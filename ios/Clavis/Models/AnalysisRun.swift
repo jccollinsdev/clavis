@@ -77,7 +77,7 @@ struct AnalysisRun: Codable, Identifiable {
         case "queued", "running":
             return "running"
         default:
-            return status
+            return "running"
         }
     }
 

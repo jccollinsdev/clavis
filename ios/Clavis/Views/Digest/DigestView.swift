@@ -36,8 +36,9 @@ struct DigestView: View {
                     if let digest = viewModel.todayDigest {
                         DigestScoreSummaryCard(digest: digest, holdings: viewModel.holdings)
                         DigestLeadCard(digest: digest)
-                        WhatChangedSection(digest: digest, holdings: viewModel.holdings, alerts: viewModel.alerts)
-                        WhatMattersTodaySection(digest: digest)
+                        DigestMacroSectionView(digest: digest)
+                        DigestSectorOverviewSection(digest: digest)
+                        DigestPositionImpactsSection(digest: digest)
                         WhatToDoSection(digest: digest)
                         PositionsSection(holdings: viewModel.holdings)
                         FullNarrativeSection(digest: digest)
@@ -154,6 +155,110 @@ struct DigestLeadCard: View {
     }
 }
 
+struct DigestMacroSectionView: View {
+    let digest: Digest
+
+    private var macro: DigestMacroSection? {
+        digest.structuredSections?.overnightMacro
+    }
+
+    var body: some View {
+        if let macro {
+            VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
+                Text("Overnight Macro")
+                    .font(ClavisTypography.cardTitle)
+                    .foregroundColor(.textPrimary)
+
+                Text(macro.brief.sanitizedDisplayText)
+                    .font(ClavisTypography.body)
+                    .foregroundColor(.textSecondary)
+
+                if !macro.themes.isEmpty {
+                    Text(macro.themes.joined(separator: " • "))
+                        .font(ClavisTypography.footnote)
+                        .foregroundColor(.textTertiary)
+                }
+
+                ForEach(Array(macro.headlines.prefix(3).enumerated()), id: \.offset) { _, headline in
+                    Text("• \(headline)")
+                        .font(ClavisTypography.body)
+                        .foregroundColor(.textSecondary)
+                }
+            }
+            .padding(ClavisTheme.cardPadding)
+            .clavisCardStyle(fill: .surfacePrimary)
+        }
+    }
+}
+
+struct DigestSectorOverviewSection: View {
+    let digest: Digest
+
+    private var sectors: [DigestSectorOverviewItem] {
+        digest.structuredSections?.sectorOverview ?? []
+    }
+
+    var body: some View {
+        if !sectors.isEmpty {
+            VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
+                Text("Sector Overview")
+                    .font(ClavisTypography.cardTitle)
+                    .foregroundColor(.textPrimary)
+
+                ForEach(sectors) { sector in
+                    VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                        Text(sector.sector.capitalized)
+                            .font(ClavisTypography.bodyEmphasis)
+                            .foregroundColor(.textPrimary)
+                        Text(sector.brief.sanitizedDisplayText)
+                            .font(ClavisTypography.body)
+                            .foregroundColor(.textSecondary)
+                    }
+                }
+            }
+            .padding(ClavisTheme.cardPadding)
+            .clavisCardStyle(fill: .surfacePrimary)
+        }
+    }
+}
+
+struct DigestPositionImpactsSection: View {
+    let digest: Digest
+
+    private var impacts: [DigestPositionImpact] {
+        digest.structuredSections?.positionImpacts ?? []
+    }
+
+    var body: some View {
+        if !impacts.isEmpty {
+            VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
+                Text("Position Impacts")
+                    .font(ClavisTypography.cardTitle)
+                    .foregroundColor(.textPrimary)
+
+                ForEach(impacts) { impact in
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text(impact.ticker)
+                                .font(ClavisTypography.bodyEmphasis)
+                                .foregroundColor(.textPrimary)
+                            Spacer()
+                            Text(impact.macroRelevance.capitalized)
+                                .font(ClavisTypography.footnote)
+                                .foregroundColor(.textTertiary)
+                        }
+                        Text(impact.impactSummary.sanitizedDisplayText)
+                            .font(ClavisTypography.body)
+                            .foregroundColor(.textSecondary)
+                    }
+                }
+            }
+            .padding(ClavisTheme.cardPadding)
+            .clavisCardStyle(fill: .surfacePrimary)
+        }
+    }
+}
+
 struct WhatChangedSection: View {
     let digest: Digest
     let holdings: [Position]
@@ -205,42 +310,15 @@ struct ChangedRow: View {
     }
 }
 
-struct WhatMattersTodaySection: View {
-    let digest: Digest
-
-    private var matters: [String] {
-        Array(((digest.structuredSections?.watchList ?? []) + (digest.structuredSections?.majorEvents ?? [])).prefix(3))
-    }
-
-    var body: some View {
-        if !matters.isEmpty {
-            VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-                Text("What Matters Today")
-                    .font(ClavisTypography.cardTitle)
-                    .foregroundColor(.textPrimary)
-
-                ForEach(Array(matters.enumerated()), id: \.offset) { index, item in
-                    HStack(alignment: .top, spacing: ClavisTheme.smallSpacing) {
-                        Text("\(index + 1).")
-                            .font(ClavisTypography.footnoteEmphasis)
-                            .foregroundColor(.textTertiary)
-                        Text(item)
-                            .font(ClavisTypography.body)
-                            .foregroundColor(.textSecondary)
-                    }
-                }
-            }
-            .padding(ClavisTheme.cardPadding)
-            .clavisCardStyle(fill: .surfacePrimary)
-        }
-    }
-}
-
 struct WhatToDoSection: View {
     let digest: Digest
 
     private var actions: [String] {
-        Array(digest.structuredSections?.portfolioAdvice.prefix(3) ?? [])
+        let advice = digest.structuredSections?.portfolioAdvice ?? []
+        if !advice.isEmpty {
+            return Array(advice.prefix(5))
+        }
+        return Array((digest.structuredSections?.portfolioImpact ?? []).prefix(3))
     }
 
     var body: some View {
@@ -347,11 +425,11 @@ struct AnalysisRunStatusCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
             HStack {
-                Text(run.status == "failed" ? "Analysis interrupted" : "Analysis in progress")
+                Text(statusTitle)
                     .font(ClavisTypography.cardTitle)
                     .foregroundColor(.textPrimary)
                 Spacer()
-                Text(run.status.capitalized)
+                Text(statusBadge)
                     .font(ClavisTypography.footnote)
                     .foregroundColor(.textTertiary)
             }
@@ -377,7 +455,41 @@ struct AnalysisRunStatusCard: View {
 
     private var statusMessage: String {
         if run.status == "failed" { return run.displayErrorMessage }
+        if let currentStageMessage = run.currentStageMessage, !currentStageMessage.isEmpty {
+            return currentStageMessage
+        }
         return "\(run.positionsProcessed ?? 0) positions processed, \(run.eventsProcessed ?? 0) events analyzed."
+    }
+
+    private var statusTitle: String {
+        if run.status == "failed" { return "Analysis interrupted" }
+        if run.lifecycleStatus == "completed" { return "Digest ready" }
+
+        switch run.currentStage {
+        case "starting": return "Starting analysis"
+        case "refreshing_metadata": return "Refreshing holdings metadata"
+        case "fetching_news": return "Fetching market news"
+        case "classifying_relevance": return "Filtering relevant stories"
+        case "classifying_macro": return "Reading market backdrop"
+        case "classifying_positions": return "Grouping position themes"
+        case "classifying_significance": return "Checking event importance"
+        case "analyzing_events": return "Analyzing position impact"
+        case "building_position_reports": return "Building position reports"
+        case "scoring_position": return "Scoring positions"
+        case "refreshing_prices": return "Refreshing prices"
+        case "computing_portfolio_risk": return "Computing portfolio risk"
+        case "building_digest": return "Building your digest"
+        default:
+            return run.status == "queued" ? "Queued for analysis" : "Analysis in progress"
+        }
+    }
+
+    private var statusBadge: String {
+        switch run.lifecycleStatus {
+        case "completed": return "Done"
+        case "failed": return "Failed"
+        default: return run.status.capitalized
+        }
     }
 }
 

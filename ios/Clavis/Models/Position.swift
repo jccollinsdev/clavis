@@ -16,6 +16,7 @@ struct Position: Identifiable, Codable, Hashable {
     var inferredLabels: [String]?
     var summary: String?
     var lastAnalyzedAt: Date?
+    var analysisStartedAt: Date?
 
     var riskState: RiskState? {
         guard let score = totalScore else { return nil }
@@ -81,6 +82,7 @@ struct Position: Identifiable, Codable, Hashable {
         case inferredLabels = "inferred_labels"
         case summary
         case lastAnalyzedAt = "last_analyzed_at"
+        case analysisStartedAt = "analysis_started_at"
     }
 
     init(from decoder: Decoder) throws {
@@ -100,6 +102,7 @@ struct Position: Identifiable, Codable, Hashable {
         inferredLabels = try container.decodeIfPresent([String].self, forKey: .inferredLabels)
         summary = try container.decodeIfPresent(String.self, forKey: .summary)
         lastAnalyzedAt = try container.decodeIfPresent(Date.self, forKey: .lastAnalyzedAt)
+        analysisStartedAt = try container.decodeIfPresent(Date.self, forKey: .analysisStartedAt)
     }
 }
 

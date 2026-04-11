@@ -25,6 +25,7 @@ class Position(PositionBase):
     id: str
     user_id: str
     current_price: Optional[float] = None
+    analysis_started_at: Optional[datetime] = None
     risk_grade: Optional[str] = None
     total_score: Optional[float] = None
     previous_grade: Optional[str] = None

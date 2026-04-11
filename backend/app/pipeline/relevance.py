@@ -45,11 +45,18 @@ def _articles_text(articles: list[dict]) -> str:
 
 def _parse_batch_relevance(response_text: str, count: int) -> list[dict]:
     parsed = extract_json_list(response_text, None)
-    if isinstance(parsed, list):
+    if isinstance(parsed, list) and all(isinstance(item, dict) for item in parsed):
         return parsed
-    if isinstance(parsed, dict) and isinstance(parsed.get("results"), list):
+    if (
+        isinstance(parsed, dict)
+        and isinstance(parsed.get("results"), list)
+        and all(isinstance(item, dict) for item in parsed["results"])
+    ):
         return parsed["results"]
 
+    print(
+        f"[WARN] _parse_batch_relevance fallback triggered. Type: {type(parsed)}, Value preview: {str(parsed)[:200]}"
+    )
     return [
         {
             "article_index": i,
@@ -68,49 +75,56 @@ async def classify_relevance_batch(
     if not articles or not positions:
         return []
 
-    results = []
     positions_text = _positions_text(positions)
-
-    for i in range(0, len(articles), batch_size):
-        batch = articles[i : i + batch_size]
-        articles_text = _articles_text(batch)
-
-        prompt = f"""Positions:
+    articles_text = _articles_text(articles)
+    prompt = f"""Positions:
 {positions_text}
 
 Articles:
 {articles_text}
 """
-
-        result = chatcompletion_text(
+    try:
+        result = await asyncio.to_thread(
+            chatcompletion_text,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": prompt},
             ],
             temperature=0.1,
-            max_tokens=800,
+            max_tokens=8000,
         )
+    except Exception as e:
+        print(f"[ERROR] chatcompletion_text failed: {e}")
+        return [
+            {
+                "article_index": i,
+                "relevant": False,
+                "affected_tickers": [],
+                "event_type": "irrelevant",
+                "why_it_matters": "LLM call failed",
+                "article": articles[i],
+            }
+            for i in range(len(articles))
+        ]
 
-        batch_results = _parse_batch_relevance(result, len(batch))
-
-        for article_idx, parsed in enumerate(batch_results):
-            global_idx = i + article_idx
-            results.append(
-                {
-                    "article_index": global_idx,
-                    "relevant": parsed.get("relevant", False),
-                    "affected_tickers": [
-                        str(t).upper()
-                        for t in parsed.get("affected_tickers", [])
-                        if str(t).strip()
-                    ],
-                    "event_type": parsed.get("event_type") or "irrelevant",
-                    "why_it_matters": parsed.get("why_it_matters") or "",
-                    "article": articles[global_idx],
-                }
-            )
-
-    return results
+    parsed_results = _parse_batch_relevance(result, len(articles))
+    output = []
+    for idx, parsed in enumerate(parsed_results):
+        output.append(
+            {
+                "article_index": idx,
+                "relevant": parsed.get("relevant", False),
+                "affected_tickers": [
+                    str(t).upper()
+                    for t in parsed.get("affected_tickers", [])
+                    if str(t).strip()
+                ],
+                "event_type": parsed.get("event_type") or "irrelevant",
+                "why_it_matters": parsed.get("why_it_matters") or "",
+                "article": articles[idx],
+            }
+        )
+    return output
 
 
 async def classify_relevance(article: dict, positions: list[dict]) -> dict:

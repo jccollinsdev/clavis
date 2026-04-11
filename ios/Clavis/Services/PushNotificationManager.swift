@@ -88,7 +88,7 @@ class PushNotificationManager: NSObject, UNUserNotificationCenterDelegate {
     ) {
         let userInfo = response.notification.request.content.userInfo
 
-        if let type = userInfo["type"] as? String {
+            if let type = userInfo["type"] as? String {
             switch type {
             case "digest":
                 NotificationCenter.default.post(name: .openDigest, object: nil)
@@ -99,6 +99,14 @@ class PushNotificationManager: NSObject, UNUserNotificationCenterDelegate {
             case "major_event":
                 if let ticker = userInfo["ticker"] as? String {
                     NotificationCenter.default.post(name: .openPositionDetail, object: ticker)
+                }
+            case "position_analysis":
+                if let ticker = userInfo["ticker"] as? String {
+                    NotificationCenter.default.post(
+                        name: .positionAnalysisComplete,
+                        object: ticker,
+                        userInfo: userInfo
+                    )
                 }
             default:
                 break
@@ -113,4 +121,5 @@ class PushNotificationManager: NSObject, UNUserNotificationCenterDelegate {
 extension Notification.Name {
     static let openDigest = Notification.Name("openDigest")
     static let openPositionDetail = Notification.Name("openPositionDetail")
+    static let positionAnalysisComplete = Notification.Name("positionAnalysisComplete")
 }

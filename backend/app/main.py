@@ -8,6 +8,7 @@ from fastapi import HTTPException
 from jose import jwt, JWTError
 from .routes.holdings import router as holdings_router
 from .routes.digest import router as digest_router
+from .routes.dashboard import router as dashboard_router
 from .routes.positions import router as positions_router
 from .routes.trigger import router as trigger_router
 from .routes.analysis_runs import router as analysis_runs_router
@@ -74,6 +75,7 @@ async def validate_jwt_middleware(request: Request, call_next):
             for p in [
                 "/holdings",
                 "/digest",
+                "/dashboard",
                 "/positions",
                 "/trigger-analysis",
                 "/analysis-runs",
@@ -190,6 +192,7 @@ async def health():
 
 app.include_router(holdings_router, prefix="/holdings", tags=["holdings"])
 app.include_router(digest_router, prefix="/digest", tags=["digest"])
+app.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
 app.include_router(positions_router, prefix="/positions", tags=["positions"])
 app.include_router(trigger_router, prefix="/trigger-analysis", tags=["analysis"])
 app.include_router(

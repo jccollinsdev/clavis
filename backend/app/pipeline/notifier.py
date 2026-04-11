@@ -12,7 +12,9 @@ def _log_push_failure(
     if result.success:
         return
 
-    fingerprint = apns_token if len(apns_token) <= 10 else f"{apns_token[:6]}...{apns_token[-4:]}"
+    fingerprint = (
+        apns_token if len(apns_token) <= 10 else f"{apns_token[:6]}...{apns_token[-4:]}"
+    )
     logger.warning(
         "Notification delivery failed",
         extra={
@@ -90,4 +92,31 @@ async def notify_portfolio_grade_change(
     }
     result = await send_push(apns_token, payload, user_id=user_id)
     _log_push_failure("portfolio_grade_change", user_id, apns_token, result)
+    return result
+
+
+async def notify_position_analysis_complete(
+    user_id: str,
+    apns_token: str,
+    ticker: str,
+    position_id: str,
+    grade: str | None = None,
+):
+    if grade:
+        body = f"{ticker} graded {grade} — now ready in your portfolio."
+    else:
+        body = f"{ticker} analysis complete — now ready in your portfolio."
+    payload = {
+        "type": "position_analysis",
+        "title": f"{ticker} Analysis Complete",
+        "body": body,
+        "data": {
+            "user_id": user_id,
+            "ticker": ticker,
+            "position_id": position_id,
+            "grade": grade,
+        },
+    }
+    result = await send_push(apns_token, payload, user_id=user_id)
+    _log_push_failure("position_analysis", user_id, apns_token, result)
     return result

@@ -43,7 +43,9 @@ async def list_holdings(
         )
         analyses = (
             supabase.table("position_analyses")
-            .select("inferred_labels, summary, status, progress_message, source_count, updated_at, created_at")
+            .select(
+                "inferred_labels, summary, status, progress_message, source_count, updated_at, created_at"
+            )
             .eq("position_id", pos["id"])
             .order("updated_at", desc=True)
             .order("created_at", desc=True)
@@ -60,7 +62,9 @@ async def list_holdings(
             pos["total_score"] = None
             pos["last_analyzed_at"] = None
         pos["previous_grade"] = scores[1].get("grade") if len(scores) >= 2 else None
-        pos["inferred_labels"] = analyses[0].get("inferred_labels") if analyses else None
+        pos["inferred_labels"] = (
+            analyses[0].get("inferred_labels") if analyses else None
+        )
         pos["summary"] = analyses[0].get("summary") if analyses else None
 
     return positions
@@ -73,10 +77,13 @@ async def create_holding(
     user_id: str = Depends(get_user_id),
 ):
     supabase = get_supabase()
+    from datetime import datetime, timezone
+
     data = {
         **position.model_dump(),
         "user_id": user_id,
         "current_price": None,
+        "analysis_started_at": datetime.now(timezone.utc).isoformat(),
     }
     result = supabase.table("positions").insert(data).execute()
     if not result.data:
@@ -143,7 +150,9 @@ async def delete_holding(position_id: str, user_id: str = Depends(get_user_id)):
     ).eq("user_id", user_id).execute()
 
     supabase.table("event_analyses").delete().eq("position_id", position_id).execute()
-    supabase.table("position_analyses").delete().eq("position_id", position_id).execute()
+    supabase.table("position_analyses").delete().eq(
+        "position_id", position_id
+    ).execute()
     supabase.table("risk_scores").delete().eq("position_id", position_id).execute()
 
     result = (

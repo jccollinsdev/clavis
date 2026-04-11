@@ -147,13 +147,12 @@ class DigestViewModel: ObservableObject {
     }
 
     func pollAnalysisRun(runId: String) async -> Bool {
-        for _ in 0..<30 {
+        for _ in 0..<240 {
             do {
                 let run = try await api.fetchAnalysisRun(id: runId)
                 activeRun = run
 
                 if run.isTerminal {
-                    activeRun = nil
                     if run.lifecycleStatus == "failed" {
                         errorMessage = run.displayErrorMessage
                         return false
@@ -162,15 +161,13 @@ class DigestViewModel: ObservableObject {
                 }
             } catch {
                 errorMessage = error.localizedDescription
-                activeRun = nil
                 return false
             }
 
             try? await Task.sleep(nanoseconds: 2_000_000_000)
         }
 
-        timeoutMessage = "Analysis taking longer than expected. You can leave this screen."
-        activeRun = nil
+        timeoutMessage = "Analysis is still running. You can leave this screen and check back shortly."
         return false
     }
 

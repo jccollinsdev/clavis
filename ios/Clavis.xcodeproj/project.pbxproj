@@ -25,6 +25,7 @@
 		6587A362239F3C87E8A9CE9E /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5854505856CBD1CDCBC4D3B7 /* APIService.swift */; };
 		6953499DF9BAA30FB978D436 /* Digest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53555B360591C580A0CD8C63 /* Digest.swift */; };
 		6F0B803D54BA6BD919253616 /* PricePoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13D5D4E31318BDF9E836901 /* PricePoint.swift */; };
+		7E689AB654B29D40998B2FAA /* Dashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 741B24BE5B94DBF045AACBD4 /* Dashboard.swift */; };
 		872A60158E6C4EDDC96F4A92 /* RiskEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = C30AAE01DC38DF049E30EA36 /* RiskEnums.swift */; };
 		8DAD521FBA34344E7E3DE207 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 011115DAEE21B65A0074A27C /* ContentView.swift */; };
 		8FA2D2834E7E84E515B83A7F /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB1A7BF18764341D7867CC44 /* SettingsViewModel.swift */; };
@@ -64,10 +65,11 @@
 		5854505856CBD1CDCBC4D3B7 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
 		5856048E7E14BD3C2E4B76B9 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		5BF6E99DAA89FDB9AA24DB3B /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
-		5D2D5EF09E956F001BB97806 /* Clavis.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clavis.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5D2D5EF09E956F001BB97806 /* Clavis.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Clavis.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D8545E60D1223D1BE1CAC01 /* NewsItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsItem.swift; sourceTree = "<group>"; };
 		661F4F5923CFE0B8A301B005 /* UserPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPreferences.swift; sourceTree = "<group>"; };
 		6DE04452D246D5FAAB52974D /* DisplayText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayText.swift; sourceTree = "<group>"; };
+		741B24BE5B94DBF045AACBD4 /* Dashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dashboard.swift; sourceTree = "<group>"; };
 		865D86FE1054F68F98487739 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		87747037B87C524712EB60CE /* Alert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Alert.swift; sourceTree = "<group>"; };
 		8EB3AB54AAFB8C83DECCA920 /* Inter-Variable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-Variable.ttf"; sourceTree = "<group>"; };
@@ -208,6 +210,7 @@
 			children = (
 				87747037B87C524712EB60CE /* Alert.swift */,
 				11006E9F2139120F0114C419 /* AnalysisRun.swift */,
+				741B24BE5B94DBF045AACBD4 /* Dashboard.swift */,
 				50C0926DEC5A852E71E5F348 /* DecodingHelpers.swift */,
 				53555B360591C580A0CD8C63 /* Digest.swift */,
 				5D8545E60D1223D1BE1CAC01 /* NewsItem.swift */,
@@ -312,6 +315,7 @@
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					D6FE17FA964BA9FB7FC4EC18 = {
+						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -364,6 +368,7 @@
 				B288C1564FD3A5CA715AEE40 /* ClavisApp.swift in Sources */,
 				B61BCC248F71D8DB1FB4DCCB /* ClavisDesignSystem.swift in Sources */,
 				8DAD521FBA34344E7E3DE207 /* ContentView.swift in Sources */,
+				7E689AB654B29D40998B2FAA /* Dashboard.swift in Sources */,
 				F93CCEE1F1296B9D0C69B5DE /* DashboardView.swift in Sources */,
 				96008B0C1B49E0BCB4D6E95E /* DashboardViewModel.swift in Sources */,
 				B8B6B6FAF7596041845F530D /* DecodingHelpers.swift in Sources */,
@@ -531,7 +536,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = GYMG4MQS8F;
 				INFOPLIST_FILE = Clavis/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -548,7 +552,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = GYMG4MQS8F;
 				INFOPLIST_FILE = Clavis/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

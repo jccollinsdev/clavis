@@ -109,6 +109,11 @@ class APIService {
         return try decoder.decode([Position].self, from: data)
     }
 
+    func fetchDashboard() async throws -> DashboardResponse {
+        let data = try await makeRequest(path: "/dashboard")
+        return try decoder.decode(DashboardResponse.self, from: data)
+    }
+
     func createHolding(ticker: String, shares: Double, purchasePrice: Double, archetype: Archetype) async throws -> Position {
         let req = CreateHoldingRequest(ticker: ticker, shares: shares, purchase_price: purchasePrice, archetype: archetype.rawValue)
         let body = try JSONEncoder().encode(req)

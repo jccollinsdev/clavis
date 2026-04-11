@@ -1006,22 +1006,16 @@ async def execute_analysis_run(
         sector_articles_by_name: dict[str, list[dict]] = {}
         for article in sector_articles:
             sector_name = (
-                str(article.get("sector") or "unknown").strip().lower() or "unknown"
+                str(article.get("sector_hint") or article.get("sector") or "")
+                .strip()
+                .lower()
             )
-            sector_articles_by_name.setdefault(sector_name, []).append(article)
+            if sector_name and sector_name not in {"unknown", "none", "null", "n/a"}:
+                sector_articles_by_name.setdefault(sector_name, []).append(article)
 
-        sector_context = {
-            "sector_overview": [
-                {
-                    "sector": sector,
-                    "brief": f"{len(articles)} CNBC sector headline(s) overnight.",
-                    "headlines": [
-                        a.get("title", "") for a in articles[:4] if a.get("title")
-                    ],
-                }
-                for sector, articles in sorted(sector_articles_by_name.items())
-            ],
-        }
+        from .macro_classifier import summarize_sector_overview
+
+        sector_context = await summarize_sector_overview(sector_articles_by_name)
         raw_articles = []
         raw_articles.extend(normalize_news_batch(company_articles, "company_news"))
         raw_articles.extend(normalize_news_batch(macro_articles, "cnbc_macro_rss"))
@@ -1043,22 +1037,81 @@ async def execute_analysis_run(
         )
         from .relevance import classify_relevance_batch
 
-        BATCH_SIZE = 15
-        all_batch_results = []
         normalized_copy = normalized_articles[:]
 
-        for batch_start in range(0, len(normalized_copy), BATCH_SIZE):
-            batch = normalized_copy[batch_start : batch_start + BATCH_SIZE]
-            _set_analysis_stage(
-                supabase,
-                analysis_run_id,
-                "classifying_relevance",
-                f"Batch relevance check: articles {batch_start + 1}-{batch_start + len(batch)} of {len(normalized_copy)}.",
+        relevance_cache: dict[str, dict] = {}
+        articles_to_classify: list[dict] = []
+        for article in normalized_copy:
+            event_hash = article.get("event_hash", "")
+            if event_hash:
+                cached = _load_analysis_cache(
+                    supabase,
+                    kind="relevance",
+                    cache_key=event_hash,
+                    max_age_hours=24,
+                )
+                if cached:
+                    relevance_cache[event_hash] = cached
+
+        for article in normalized_copy:
+            event_hash = article.get("event_hash", "")
+            if event_hash and event_hash in relevance_cache:
+                relevance_cache[event_hash]["article"] = article
+            else:
+                articles_to_classify.append(article)
+
+        uncached_count = len(articles_to_classify)
+        stage_msg = (
+            f"Filtering {uncached_count} new articles."
+            if relevance_cache
+            else f"Filtering {uncached_count} articles."
+        )
+        _set_analysis_stage(
+            supabase,
+            analysis_run_id,
+            "classifying_relevance",
+            stage_msg,
+        )
+
+        all_batch_results: list[dict] = []
+        if articles_to_classify:
+            fresh_results = await classify_relevance_batch(
+                articles_to_classify, positions, batch_size=15
             )
-            batch_results = await classify_relevance_batch(
-                batch, positions, batch_size=BATCH_SIZE
+            for r in fresh_results:
+                article = r.get("article") or {}
+                event_hash = article.get("event_hash", "")
+                if event_hash:
+                    cache_payload = {k: v for k, v in r.items() if k != "article"}
+                    _store_analysis_cache(
+                        supabase,
+                        kind="relevance",
+                        cache_key=event_hash,
+                        payload=cache_payload,
+                    )
+                all_batch_results.append(r)
+
+        for event_hash, cached in relevance_cache.items():
+            article = cached.pop("article", {})
+            all_batch_results.append(
+                {
+                    "article_index": next(
+                        (
+                            idx
+                            for idx, a in enumerate(normalized_copy)
+                            if a.get("event_hash") == event_hash
+                        ),
+                        -1,
+                    ),
+                    "relevant": cached.get("relevant", False),
+                    "affected_tickers": cached.get("affected_tickers", []),
+                    "event_type": cached.get("event_type") or "irrelevant",
+                    "why_it_matters": cached.get("why_it_matters") or "",
+                    "article": article,
+                }
             )
-            all_batch_results.extend(batch_results)
+
+        all_batch_results.sort(key=lambda r: r["article_index"])
 
         relevant_articles = []
         articles_by_ticker: dict[str, list[dict]] = {ticker: [] for ticker in tickers}
@@ -1626,12 +1679,47 @@ async def execute_analysis_run(
                 positions_processed=len(position_payloads),
                 events_processed=total_event_count,
             )
-            from .risk_scorer import score_positions_batch
+            from .risk_scorer import (
+                has_suspicious_neutral_scores,
+                score_position,
+                score_positions_batch,
+            )
 
             batch_risk_scores = await score_positions_batch(position_payloads)
             for i, scores in enumerate(batch_risk_scores):
                 if i < len(position_payloads):
                     position_payloads[i].update(scores)
+
+            suspicious_score_count = 0
+            for i, position in enumerate(positions):
+                if i >= len(position_payloads):
+                    continue
+                ai_scores = position_payloads[i]
+                if not has_suspicious_neutral_scores(ai_scores):
+                    continue
+                suspicious_score_count += 1
+                _set_analysis_stage(
+                    supabase,
+                    analysis_run_id,
+                    "scoring_position",
+                    f"Re-scoring {position['ticker']} because the batch result looked neutral or incomplete.",
+                    positions_processed=i,
+                    events_processed=total_event_count,
+                )
+                rescored = await score_position(
+                    position,
+                    position_payloads[i],
+                    inferred_labels=position_payloads[i].get("inferred_labels", []),
+                    mirofish_used=position_payloads[i].get("mirofish_used", False),
+                )
+                if not has_suspicious_neutral_scores(rescored):
+                    position_payloads[i].update(rescored)
+
+            if suspicious_score_count:
+                logger.warning(
+                    "Re-scored %s position(s) after suspicious neutral batch scoring.",
+                    suspicious_score_count,
+                )
 
             for i, position in enumerate(positions):
                 ticker = position["ticker"]
@@ -2030,6 +2118,25 @@ async def execute_analysis_run(
             positions_processed=len(position_payloads),
             events_processed=total_event_count,
         )
+        if target_position_id:
+            supabase.table("positions").update({"analysis_started_at": None}).eq(
+                "id", target_position_id
+            ).execute()
+        if target_position_id and notifications_enabled and apns_token:
+            position_ticker = tickers[0] if tickers else None
+            position_grade = (
+                position_payloads[0].get("grade") if position_payloads else None
+            )
+            if position_ticker:
+                from .notifier import notify_position_analysis_complete
+
+                await notify_position_analysis_complete(
+                    user_id,
+                    apns_token,
+                    ticker=position_ticker,
+                    position_id=target_position_id,
+                    grade=position_grade,
+                )
         if triggered_by == "scheduled":
             _record_scheduled_run_result(supabase, user_id, status="completed")
         return digest_alert_created
@@ -2047,6 +2154,10 @@ async def execute_analysis_run(
             _record_scheduled_run_result(
                 supabase, user_id, status="failed", error=str(exc)
             )
+        if target_position_id:
+            supabase.table("positions").update({"analysis_started_at": None}).eq(
+                "id", target_position_id
+            ).execute()
         raise
     finally:
         active_runs.pop(analysis_run_id, None)

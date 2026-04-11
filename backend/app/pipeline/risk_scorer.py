@@ -38,6 +38,30 @@ DIMENSION_KEYS = [
 ]
 
 
+def _neutral_dimension_count(scores: dict | None) -> int:
+    if not isinstance(scores, dict):
+        return len(DIMENSION_KEYS)
+    return sum(clamp_score(scores.get(key), 50) == 50 for key in DIMENSION_KEYS)
+
+
+def has_suspicious_neutral_scores(scores: dict | None, threshold: int = 3) -> bool:
+    return _neutral_dimension_count(scores) >= threshold
+
+
+def _is_batch_response_suspicious(
+    parsed_scores: dict[str, dict], tickers: list[str], threshold: int = 3
+) -> bool:
+    expected = [str(t).strip().upper() for t in tickers if str(t).strip()]
+    if not expected:
+        return False
+    suspicious = 0
+    for ticker in expected:
+        score = parsed_scores.get(ticker, {})
+        if has_suspicious_neutral_scores(score, threshold=threshold):
+            suspicious += 1
+    return suspicious > 0
+
+
 def _parse_batch_scores(raw_text: str, tickers: list[str]) -> dict[str, dict]:
     parsed = extract_json_object(raw_text, None)
     if isinstance(parsed, dict):
@@ -322,21 +346,32 @@ Scoring criteria:
 
 Respond with ONLY the JSON object. Start with {{ and end with }}."""
 
-    result_text = chatcompletion_text(
-        messages=[
-            {
-                "role": "system",
-                "content": "You MUST respond with valid JSON only. No markdown. No explanation. No thinking. Start your response with { and end with }.",
-            },
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.1,
-        max_tokens=800,
-    )
+    def _request_batch_scores() -> tuple[str, dict[str, dict]]:
+        result_text = chatcompletion_text(
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You MUST respond with valid JSON only. No markdown. No explanation. No thinking. Start your response with { and end with }.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.1,
+            max_tokens=800,
+        )
+        return result_text, _parse_batch_scores(result_text, tickers)
+
+    result_text, all_scores = _request_batch_scores()
 
     import re
 
-    all_scores = _parse_batch_scores(result_text, tickers)
+    if _is_batch_response_suspicious(all_scores, tickers):
+        logger.warning(
+            "score_positions_batch suspicious neutral batch detected; retrying once; raw=%r",
+            (result_text or "")[:800],
+        )
+        retry_text, retry_scores = _request_batch_scores()
+        if not _is_batch_response_suspicious(retry_scores, tickers):
+            result_text, all_scores = retry_text, retry_scores
 
     if not all_scores:
         for ticker in tickers:
@@ -353,12 +388,12 @@ Respond with ONLY the JSON object. Start with {{ and end with }}."""
                 if match:
                     ticker_scores[dim] = int(match.group(1))
             if ticker_scores:
-                all_scores[ticker] = ticker_scores
+                all_scores[ticker_upper] = ticker_scores
 
     results = []
     for p in positions_data:
         ticker = p.get("ticker", "")
-        raw_scores = all_scores.get(ticker, {})
+        raw_scores = all_scores.get(str(ticker).strip().upper(), {})
         normalized = {
             key: clamp_score(raw_scores.get(key, 50), 50) for key in DIMENSION_KEYS
         }
@@ -372,11 +407,11 @@ Respond with ONLY the JSON object. Start with {{ and end with }}."""
                 "position_sizing": normalized["position_sizing"],
                 "volatility_trend": normalized["volatility_trend"],
                 "total_score": total,
-                "grade": grade,
-                "reasoning": "",
-                "grade_reason": "",
+                "grade": raw_scores.get("grade") or grade,
+                "reasoning": raw_scores.get("reasoning", ""),
+                "grade_reason": raw_scores.get("reasoning", ""),
                 "evidence_summary": p.get("summary", ""),
-                "dimension_rationale": {},
+                "dimension_rationale": raw_scores.get("dimension_rationale") or {},
                 "mirofish_used": p.get("mirofish_used", False),
             }
         )

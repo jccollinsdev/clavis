@@ -66,7 +66,7 @@ class HoldingsViewModel: ObservableObject {
             )
             createdPositionId = createdPosition.id
             insertOrUpdateHolding(createdPosition)
-            progressMessage = "Queueing analysis..."
+            progressMessage = "Analysis running in background..."
             progressValue = 0.2
 
             analysisTask?.cancel()
@@ -86,23 +86,30 @@ class HoldingsViewModel: ObservableObject {
     private func runAnalysisFlow() async {
         do {
             let trigger = try await api.triggerAnalysis(positionId: createdPositionId)
-            if let runId = trigger.analysisRunId {
-                await pollAnalysisRun(runId: runId)
+            if trigger.analysisRunId != nil {
+                await transitionToBackground()
             } else {
-                progressMessage = "Analysis queued"
-                progressValue = 0.45
+                showProgressSheet = false
+                pendingTicker = nil
             }
         } catch is CancellationError {
             return
         } catch {
-            errorMessage = "Failed to analyze: \(error.localizedDescription)"
-            showError = false
-            activeRun = nil
             showProgressSheet = false
             progressValue = 0.0
             pendingTicker = nil
-            return
+            errorMessage = "Analysis could not be started."
+            showError = true
         }
+    }
+
+    private func transitionToBackground() async {
+        progressMessage = "Analysis running in background..."
+        progressValue = 0.3
+        try? await Task.sleep(nanoseconds: 1_500_000_000)
+        showProgressSheet = false
+        pendingTicker = nil
+        createdPositionId = nil
     }
 
     func deleteHolding(_ position: Position) async {
@@ -130,6 +137,16 @@ class HoldingsViewModel: ObservableObject {
                 let run = try await api.fetchAnalysisRun(id: runId)
                 activeRun = run
 
+                if run.isTerminal {
+                    if run.lifecycleStatus == "failed" {
+                        throw APIError.networkError(NSError(domain: "Clavis", code: 1, userInfo: [
+                            NSLocalizedDescriptionKey: run.errorMessage ?? "Analysis failed."
+                        ]))
+                    }
+                    await handleAnalysisCompletion()
+                    return
+                }
+
                 switch run.lifecycleStatus {
                 case "queued":
                     progressMessage = run.currentStageMessage ?? "Queued for analysis..."
@@ -143,24 +160,8 @@ class HoldingsViewModel: ObservableObject {
                         progressMessage = "Analysis taking longer than expected. You can leave this screen."
                         showedSoftTimeout = true
                     }
-                case "completed":
-                    progressMessage = "\(pendingTicker ?? "Position") is ready"
-                    progressValue = 1.0
-                    errorMessage = nil
-                    showError = false
-                    activeRun = nil
-                    await loadHoldings(showLoading: false)
-                    try? await Task.sleep(nanoseconds: 700_000_000)
-                    showProgressSheet = false
-                    pendingTicker = nil
-                    createdPositionId = nil
-                    return
-                case "failed":
-                    throw APIError.networkError(NSError(domain: "Clavis", code: 1, userInfo: [
-                        NSLocalizedDescriptionKey: run.errorMessage ?? "Analysis failed."
-                    ]))
                 default:
-                    progressMessage = "Processing..."
+                    progressMessage = run.currentStageMessage ?? "Processing..."
                 }
             } catch {
                 showProgressSheet = false
@@ -175,6 +176,19 @@ class HoldingsViewModel: ObservableObject {
 
             try? await Task.sleep(nanoseconds: 2_000_000_000)
         }
+    }
+
+    private func handleAnalysisCompletion() async {
+        progressMessage = "\(pendingTicker ?? "Position") is ready"
+        progressValue = 1.0
+        errorMessage = nil
+        showError = false
+        activeRun = nil
+        await loadHoldings(showLoading: false)
+        try? await Task.sleep(nanoseconds: 700_000_000)
+        showProgressSheet = false
+        pendingTicker = nil
+        createdPositionId = nil
     }
 
     private func analysisProgressValue(for run: AnalysisRun) -> Float {

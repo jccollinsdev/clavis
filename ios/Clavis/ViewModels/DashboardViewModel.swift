@@ -3,14 +3,18 @@ import SwiftUI
 
 @MainActor
 class DashboardViewModel: ObservableObject {
-    @Published var holdings: [Position] = []
-    @Published var todayDigest: Digest?
-    @Published var activeRun: AnalysisRun?
+    @Published private(set) var dashboard: DashboardResponse?
     @Published var isLoading = false
     @Published var isRefreshingAnalysis = false
     @Published var errorMessage: String?
+    @Published var activeRun: AnalysisRun?
 
     private let api = APIService.shared
+
+    var holdings: [Position] { dashboard?.positions ?? [] }
+    var todayDigest: Digest? { dashboard?.digest }
+    var alerts: [Alert] { dashboard?.alerts ?? [] }
+    var portfolioRiskSnapshot: PortfolioRiskSnapshot? { dashboard?.portfolioRiskSnapshot }
 
     var portfolioGrade: String {
         if let digestGrade = todayDigest?.overallGrade {
@@ -51,9 +55,10 @@ class DashboardViewModel: ObservableObject {
 
     var portfolioSummary: String {
         let state = portfolioRiskState.displayName.lowercased()
-        if portfolioRiskTrend == .increasing {
-            return "Portfolio risk is \(state), driven mainly by \(topRiskDriver ?? "recent deterioration")."
-        } else if portfolioRiskTrend == .improving {
+        if let driver = topRiskDriverSummary, portfolioRiskTrend == .increasing {
+            return "Portfolio risk is \(state), driven mainly by \(driver)."
+        }
+        if portfolioRiskTrend == .improving {
             return "Portfolio risk is \(state), with some positions improving."
         }
         return "Portfolio risk is \(state) and stable."
@@ -83,36 +88,193 @@ class DashboardViewModel: ObservableObject {
         todayDigest?.structuredSections?.majorEvents.count ?? 0
     }
 
-    var needsAttentionPositions: [Position] {
-        holdings
-            .filter { $0.riskGrade == "D" || $0.riskGrade == "F" || $0.riskTrend == .increasing }
-            .sorted { ($0.totalScore ?? 50) < ($1.totalScore ?? 50) }
-            .prefix(3)
-            .map { $0 }
-    }
-
-    var topRiskDriver: String? {
-        let atRiskPositions = holdings.filter { $0.riskGrade == "D" || $0.riskGrade == "F" }
-        return atRiskPositions.first?.ticker
-    }
-
-    var largestImprovingPosition: Position? {
-        holdings
-            .filter { $0.riskTrend == .improving }
-            .max { ($0.totalScore ?? 50) < ($1.totalScore ?? 50) }
-    }
-
-    var largestWorseningPosition: Position? {
-        holdings
-            .filter { $0.riskTrend == .increasing }
-            .min { ($0.totalScore ?? 50) < ($1.totalScore ?? 50) }
-    }
-
     var lastUpdatedAt: Date? {
         if let generatedAt = todayDigest?.generatedAt {
             return generatedAt
         }
         return holdings.compactMap(\.lastAnalyzedAt).max()
+    }
+
+    var analysisStatusText: String? {
+        guard let run = activeRun else { return nil }
+        if run.lifecycleStatus == "running" || run.lifecycleStatus == "queued" {
+            return run.currentStageMessage ?? run.status.capitalized
+        }
+        if run.lifecycleStatus == "failed" {
+            return run.displayErrorMessage
+        }
+        return nil
+    }
+
+    var isAnalysisRunning: Bool {
+        guard let run = activeRun else { return false }
+        return run.lifecycleStatus == "running" || run.lifecycleStatus == "queued"
+    }
+
+    var needsAttentionPositions: [Position] {
+        holdings
+            .filter { $0.riskGrade == "D" || $0.riskGrade == "F" || $0.riskTrend == .increasing }
+            .sorted { attentionRank(for: $0) < attentionRank(for: $1) }
+            .prefix(3)
+            .map { $0 }
+    }
+
+    var priorityQueue: [DashboardPriorityItem] {
+        needsAttentionPositions.map { position in
+            DashboardPriorityItem(
+                id: position.id,
+                position: position,
+                reason: priorityReason(for: position)
+            )
+        }
+    }
+
+    var portfolioRiskHighlights: [String] {
+        guard let snapshot = portfolioRiskSnapshot else { return [] }
+        var highlights: [String] = []
+
+        if let allocation = snapshot.portfolioAllocationRiskScore {
+            highlights.append("Allocation \(Int(allocation.rounded()))")
+        }
+        if let concentration = snapshot.concentrationRisk {
+            highlights.append("Concentration \(Int(concentration.rounded()))")
+        }
+        if let cluster = snapshot.clusterRisk {
+            highlights.append("Cluster \(Int(cluster.rounded()))")
+        }
+        if let macro = snapshot.macroStackRisk {
+            highlights.append("Macro \(Int(macro.rounded()))")
+        }
+        return Array(highlights.prefix(4))
+    }
+
+    var riskDriverHighlights: [String] {
+        guard let drivers = portfolioRiskSnapshot?.topRiskDrivers else { return [] }
+        return Array(drivers.map(\.displayText).prefix(3))
+    }
+
+    var morningFocusSummary: String {
+        if let summary = todayDigest?.summary?.sanitizedDisplayText, !summary.isEmpty {
+            return firstSentence(summary)
+        }
+        return "Open the digest for the latest portfolio briefing."
+    }
+
+    var morningFocusItems: [String] {
+        var items: [String] = []
+        if let watchList = todayDigest?.structuredSections?.watchList {
+            items.append(contentsOf: watchList.prefix(2))
+        }
+        if let majorEvents = todayDigest?.structuredSections?.majorEvents {
+            items.append(contentsOf: majorEvents.prefix(2))
+        }
+        return dedupe(items)
+    }
+
+    var actionItems: [String] {
+        Array(todayDigest?.structuredSections?.portfolioAdvice.prefix(3) ?? [])
+    }
+
+    var changeAlerts: [Alert] {
+        let relevantTypes: Set<AlertType> = [
+            .majorEvent,
+            .safetyDeterioration,
+            .concentrationDanger,
+            .clusterRisk,
+            .macroShock,
+            .structuralFragility,
+        ]
+        return alerts.filter { relevantTypes.contains($0.type) }.prefix(4).map { $0 }
+    }
+
+    var majorEventAlerts: [Alert] {
+        let types: Set<AlertType> = [.majorEvent]
+        return alerts.filter { types.contains($0.type) }.prefix(4).map { $0 }
+    }
+
+    func loadData() async {
+        if dashboard == nil {
+            isLoading = true
+        }
+        errorMessage = nil
+
+        do {
+            let fetched = try await api.fetchDashboard()
+            dashboard = fetched
+
+            switch fetched.analysisRun?.lifecycleStatus {
+            case "running", "queued":
+                activeRun = fetched.analysisRun
+            case "failed":
+                activeRun = fetched.analysisRun
+                errorMessage = fetched.analysisRun?.displayErrorMessage ?? "Analysis failed. Please run a fresh review."
+            default:
+                activeRun = nil
+            }
+        } catch is CancellationError {
+            errorMessage = nil
+        } catch {
+            if dashboard == nil {
+                errorMessage = "We couldn't load the dashboard right now."
+            }
+        }
+
+        isLoading = false
+    }
+
+    func triggerFreshAnalysis() async {
+        isRefreshingAnalysis = true
+        errorMessage = nil
+        activeRun = nil
+        defer { isRefreshingAnalysis = false }
+
+        do {
+            let trigger = try await api.triggerAnalysis()
+            if let runId = trigger.analysisRunId {
+                let finished = await pollAnalysisRun(runId: runId)
+                if finished {
+                    await loadData()
+                }
+            } else {
+                await loadData()
+            }
+        } catch is CancellationError {
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func pollAnalysisRun(runId: String) async -> Bool {
+        for _ in 0..<30 {
+            do {
+                let run = try await api.fetchAnalysisRun(id: runId)
+                activeRun = run
+
+                switch run.lifecycleStatus {
+                case "completed":
+                    errorMessage = nil
+                    activeRun = nil
+                    return true
+                case "failed":
+                    errorMessage = run.displayErrorMessage
+                    activeRun = run
+                    return false
+                default:
+                    break
+                }
+            } catch {
+                errorMessage = error.localizedDescription
+                activeRun = nil
+                return false
+            }
+
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+        }
+
+        errorMessage = "Analysis taking longer than expected. You can leave this screen."
+        activeRun = nil
+        return false
     }
 
     private func gradeValue(_ grade: String) -> Double {
@@ -134,112 +296,67 @@ class DashboardViewModel: ObservableObject {
         return "F"
     }
 
-    func loadData() async {
-        isLoading = true
-        errorMessage = nil
-
-        async let holdingsResult: Result<[Position], Error> = {
-            do {
-                return .success(try await api.fetchHoldings())
-            } catch {
-                return .failure(error)
-            }
-        }()
-        async let digestResult: Result<DigestResponse, Error> = {
-            do {
-                return .success(try await api.fetchTodayDigest())
-            } catch {
-                return .failure(error)
-            }
-        }()
-
-        let resolvedHoldings = await holdingsResult
-        let resolvedDigest = await digestResult
-
-        switch resolvedHoldings {
-        case .success(let fetchedHoldings):
-            holdings = fetchedHoldings
-        case .failure(let error):
-            if error is CancellationError || error.localizedDescription.localizedCaseInsensitiveContains("cancelled") {
-                errorMessage = nil
-            } else {
-                errorMessage = "We couldn't load holdings right now."
-            }
-        }
-
-        switch resolvedDigest {
-        case .success(let digestResponse):
-            todayDigest = digestResponse.digest
-        case .failure(let error):
-            todayDigest = nil
-            if !(error is CancellationError) && !error.localizedDescription.localizedCaseInsensitiveContains("cancelled") {
-                if errorMessage == nil {
-                    errorMessage = "Latest digest is temporarily unavailable."
-                }
-            }
-        }
-
-        isLoading = false
+    private func attentionRank(for position: Position) -> Int {
+        if position.riskGrade == "F" { return 0 }
+        if position.riskGrade == "D" { return 1 }
+        if position.riskTrend == .increasing { return 2 }
+        return 3
     }
 
-    func triggerFreshAnalysis() async {
-        isRefreshingAnalysis = true
-        errorMessage = nil
-        activeRun = nil
-        defer { isRefreshingAnalysis = false }
-
-        do {
-            let trigger = try await api.triggerAnalysis()
-            if let runId = trigger.analysisRunId {
-                let finished = await pollAnalysisRun(runId: runId)
-                if !finished && errorMessage == nil {
-                    errorMessage = "Analysis taking longer than expected. You can leave this screen."
-                }
-            }
-            if activeRun == nil && errorMessage == nil {
-                await loadData()
-            }
-        } catch is CancellationError {
-            errorMessage = nil
-        } catch {
-            let message = error.localizedDescription
-            if message.localizedCaseInsensitiveContains("cancelled") {
-                errorMessage = nil
-            } else {
-                errorMessage = message
-            }
-        }
-    }
-
-    private func pollAnalysisRun(runId: String) async -> Bool {
-        for _ in 0..<30 {
-            do {
-                let run = try await api.fetchAnalysisRun(id: runId)
-                activeRun = run
-
-                switch run.lifecycleStatus {
-                case "completed":
-                    errorMessage = nil
-                    activeRun = nil
-                    return true
-                case "failed":
-                    errorMessage = run.errorMessage ?? "Analysis failed."
-                    activeRun = nil
-                    return false
-                default:
-                    break
-                }
-            } catch {
-                errorMessage = error.localizedDescription
-                activeRun = nil
-                return false
-            }
-
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
+    private func priorityReason(for position: Position) -> String {
+        if let tickerAlert = alerts.first(where: { $0.positionTicker == position.ticker && $0.type != .digestReady }) {
+            return tickerAlert.message.sanitizedDisplayText
         }
 
-        errorMessage = "Analysis taking longer than expected. You can leave this screen."
-        activeRun = nil
-        return false
+        if position.riskGrade == "F" || position.riskGrade == "D" {
+            return "Low-grade holding needs review."
+        }
+
+        if position.riskTrend == .increasing {
+            return "Risk trend is worsening."
+        }
+
+        if let summary = position.summary?.sanitizedDisplayText, !summary.isEmpty {
+            return firstSentence(summary)
+        }
+
+        return "Monitoring this position."
     }
+
+    private var topRiskDriverSummary: String? {
+        if let first = riskDriverHighlights.first {
+            return first.lowercased()
+        }
+        if let atRisk = holdings.first(where: { $0.riskGrade == "D" || $0.riskGrade == "F" }) {
+            return atRisk.ticker
+        }
+        return nil
+    }
+
+    private func dedupe(_ items: [String]) -> [String] {
+        var seen = Set<String>()
+        return items.filter { seen.insert($0).inserted }
+    }
+
+    private func firstSentence(_ text: String) -> String {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return text }
+
+        let separators = CharacterSet(charactersIn: ".!?")
+        if let range = trimmed.rangeOfCharacter(from: separators) {
+            return String(trimmed[..<range.upperBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        if let newlineRange = trimmed.range(of: "\n") {
+            return String(trimmed[..<newlineRange.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        return trimmed
+    }
+}
+
+struct DashboardPriorityItem: Identifiable {
+    let id: String
+    let position: Position
+    let reason: String
 }

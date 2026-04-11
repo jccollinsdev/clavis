@@ -74,11 +74,19 @@ struct DigestHistoryResponse: Codable {
 }
 
 struct DigestSections: Codable {
+    let overnightMacro: DigestMacroSection?
+    let sectorOverview: [DigestSectorOverviewItem]
+    let positionImpacts: [DigestPositionImpact]
+    let portfolioImpact: [String]
     let majorEvents: [String]
     let watchList: [String]
     let portfolioAdvice: [String]
 
     enum CodingKeys: String, CodingKey {
+        case overnightMacro = "overnight_macro"
+        case sectorOverview = "sector_overview"
+        case positionImpacts = "position_impacts"
+        case portfolioImpact = "portfolio_impact"
         case majorEvents = "major_events"
         case watchList = "watch_list"
         case portfolioAdvice = "portfolio_advice"
@@ -86,8 +94,42 @@ struct DigestSections: Codable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        overnightMacro = try? container.decodeIfPresent(DigestMacroSection.self, forKey: .overnightMacro)
+        sectorOverview = (try? container.decode([DigestSectorOverviewItem].self, forKey: .sectorOverview)) ?? []
+        positionImpacts = (try? container.decode([DigestPositionImpact].self, forKey: .positionImpacts)) ?? []
+        portfolioImpact = (try? container.decode([String].self, forKey: .portfolioImpact)) ?? []
         majorEvents = (try? container.decode([String].self, forKey: .majorEvents)) ?? []
         watchList = (try? container.decode([String].self, forKey: .watchList)) ?? []
         portfolioAdvice = (try? container.decode([String].self, forKey: .portfolioAdvice)) ?? []
     }
 }
+
+struct DigestMacroSection: Codable {
+    let headlines: [String]
+    let themes: [String]
+    let brief: String
+}
+
+struct DigestSectorOverviewItem: Codable, Hashable, Identifiable {
+    let sector: String
+    let brief: String
+    let headlines: [String]
+
+    var id: String { sector }
+}
+
+struct DigestPositionImpact: Codable, Hashable, Identifiable {
+    let ticker: String
+    let macroRelevance: String
+    let impactSummary: String
+
+    var id: String { ticker }
+
+    enum CodingKeys: String, CodingKey {
+        case ticker
+        case macroRelevance = "macro_relevance"
+        case impactSummary = "impact_summary"
+    }
+}
+
+
