@@ -1,0 +1,35 @@
+# Environment
+.env
+*.env.local
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+.pytest_cache/
+venv/
+.venv/
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+build/
+DerivedData/
+*.xcworkspace/xcuserdata/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+
+# Node (if any)
+node_modules/
+
+# Sensitive files
+.tunnel_url
