@@ -1,0 +1,11 @@
+schemaVersion: 1
+sessionDefaultsProfiles:
+  ios:
+    projectPath: /Users/sansarkarki/Documents/Clavis/ios/Clavis.xcodeproj
+    scheme: Clavis
+    simulatorId: 22AE0AD5-B089-46A3-8393-2F947D55D0FB
+    simulatorPlatform: iOS Simulator
+    deviceId: D439E0E3-BD5D-542A-B89E-BF9CE9FCB7DA
+    bundleId: com.clavisdev.portfolioassistant
+    simulatorName: iPhone 17
+activeSessionDefaultsProfile: ios

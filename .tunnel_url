@@ -1,0 +1,10 @@
+# Cloudflare Tunnel - PERSISTENT URL
+# Backend API: https://clavis.andoverdigital.com
+# Domain: andoverdigital.com
+# Tunnel: clavis-prod (ID: b00e7135-c99c-4928-9da9-f19d1778db76)
+# Config: ~/.cloudflared/config.yml
+
+# To restart tunnel:
+# cloudflared tunnel run clavis-prod
+
+# Note: This URL is PERSISTENT and will not change.

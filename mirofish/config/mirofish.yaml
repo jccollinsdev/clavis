@@ -1,0 +1,12 @@
+version: '1.0'
+
+mirofish:
+  model: default
+  num_agents: 5
+  max_iterations: 10
+  timeout: 120
+
+server:
+  host: 0.0.0.0
+  port: 8001
+  auth_required: false
