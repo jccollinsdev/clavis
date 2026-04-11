@@ -20,5 +20,6 @@ struct ContentView: View {
                 await authViewModel.checkSession()
             }
         }
+        .preferredColorScheme(.dark)
     }
 }

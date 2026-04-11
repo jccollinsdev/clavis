@@ -7,8 +7,8 @@ struct DashboardView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    if viewModel.isLoading && viewModel.dashboard == nil {
+                LazyVStack(alignment: .leading, spacing: 24) {
+                    if viewModel.isLoading && viewModel.holdings.isEmpty {
                         DashboardLoadingCard()
                     }
 
@@ -16,462 +16,262 @@ struct DashboardView: View {
                         DashboardErrorCard(message: errorMessage)
                     }
 
-                    PortfolioOverviewCard(viewModel: viewModel)
-
-                    if viewModel.isAnalysisRunning, let activeRun = viewModel.activeRun {
-                        DashboardAnalysisRunStatusCard(run: activeRun)
-                    }
-
-                    if !viewModel.holdings.isEmpty {
-                        PriorityQueueSection(items: viewModel.priorityQueue)
-
-                        SinceLastReviewSection(alerts: viewModel.majorEventAlerts)
-
-                        MorningFocusSection(
-                            summary: viewModel.morningFocusSummary,
-                            mattersToday: viewModel.morningFocusItems,
-                            actionItems: viewModel.actionItems,
-                            openDigest: { selectedTab = 2 }
-                        )
-                    } else {
-                        DashboardEmptyStateCard(openHoldings: { selectedTab = 1 })
-                    }
-
-                    QuickActionsCard(
-                        runAnalysis: { Task { await viewModel.triggerFreshAnalysis() } },
-                        openDigest: { selectedTab = 2 },
-                        openAlerts: { selectedTab = 3 },
-                        openHoldings: { selectedTab = 1 }
+                    // Score is always the first thing seen — spec R-02
+                    PortfolioScoreHero(
+                        grade: viewModel.portfolioGrade,
+                        score: viewModel.portfolioScore,
+                        lastUpdatedAt: viewModel.lastUpdatedAt
                     )
+
+                    if !viewModel.needsAttentionPositions.isEmpty {
+                        NeedsAttentionSection(positions: viewModel.needsAttentionPositions)
+                    }
+
+                    SinceLastReviewRow(
+                        worseningCount: viewModel.deterioratingCount,
+                        improvingCount: viewModel.improvingCount,
+                        majorEventCount: viewModel.majorEventCount
+                    )
+
+                    DigestPreviewCard(digest: viewModel.todayDigest) {
+                        selectedTab = 2
+                    }
                 }
                 .padding(.horizontal, ClavisTheme.screenPadding)
                 .padding(.vertical, ClavisTheme.largeSpacing)
             }
-            .background(ClavisAtmosphereBackground())
-            .navigationTitle("Dashboard")
+            .background(Color.backgroundPrimary.ignoresSafeArea())
+            .navigationTitle("Clavix")
             .navigationBarTitleDisplayMode(.large)
             .refreshable {
                 await viewModel.loadData()
             }
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        Task { await viewModel.triggerFreshAnalysis() }
-                    } label: {
-                        if viewModel.isRefreshingAnalysis {
-                            ProgressView()
-                        } else {
-                            Image(systemName: "arrow.clockwise")
-                        }
-                    }
-                    .disabled(viewModel.isRefreshingAnalysis)
-                }
-            }
             .onAppear {
-                if viewModel.dashboard == nil && !viewModel.isLoading {
+                if viewModel.holdings.isEmpty && viewModel.todayDigest == nil && !viewModel.isLoading {
                     Task { await viewModel.loadData() }
                 }
             }
-            .onReceive(NotificationCenter.default.publisher(for: .positionAnalysisComplete)) { _ in
-                Task { @MainActor in
-                    await viewModel.loadData()
-                }
-            }
         }
     }
 }
 
-struct DashboardLoadingCard: View {
-    var body: some View {
-        ClavisLoadingCard(title: "Loading dashboard", subtitle: "Fetching your latest risk signals and digest.")
-    }
-}
+// MARK: - Portfolio Score Hero
+// The score is the primary visual object. Always first. Always dominant. — spec R-02
 
-struct PortfolioOverviewCard: View {
-    @ObservedObject var viewModel: DashboardViewModel
+struct PortfolioScoreHero: View {
+    let grade: String
+    let score: Double
+    let lastUpdatedAt: Date?
+
+    private var riskColor: Color { ClavisGradeStyle.riskColor(for: grade) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
+        VStack(spacing: 0) {
+            // Score row: large mono number + grade tag
             HStack(alignment: .center) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Portfolio Risk")
-                        .font(ClavisTypography.cardTitle)
-                        .foregroundColor(.textPrimary)
-
-                    Text("\(Int(viewModel.portfolioScore.rounded()))")
-                        .font(ClavisTypography.metric)
-                        .foregroundColor(.textPrimary)
-                }
+                Text("\(Int(score.rounded()))")
+                    .font(ClavisTypography.portfolioScore)
+                    .foregroundColor(riskColor)
+                    .contentTransition(.numericText())
+                    .animation(.linear(duration: 0.3), value: score)
+                    .monospacedDigit()
 
                 Spacer()
 
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text(viewModel.portfolioGrade)
-                        .font(ClavisTypography.grade)
-                        .foregroundColor(ClavisGradeStyle.color(for: viewModel.portfolioGrade))
+                GradeTag(grade: grade)
+            }
+            .padding(.bottom, 8)
 
-                    Text(viewModel.portfolioRiskState.displayName)
-                        .font(ClavisTypography.footnoteEmphasis)
+            // Grade band label
+            HStack {
+                Text(ClavisGradeStyle.gradeBandLabel(for: grade))
+                    .font(ClavisTypography.h2)
+                    .foregroundColor(riskColor)
+                Spacer()
+                if let lastUpdatedAt {
+                    Text("Updated \(lastUpdatedAt.formatted(date: .abbreviated, time: .shortened))")
+                        .font(ClavisTypography.label)
+                        .kerning(0.88)
                         .foregroundColor(.textSecondary)
                 }
             }
+        }
+        .padding(.horizontal, ClavisTheme.cardPadding)
+        .padding(.vertical, ClavisTheme.largeSpacing)
+        // No card border — score floats on backgroundPrimary for maximum visual dominance
+    }
+}
 
-            Text(viewModel.portfolioSummary)
-                .font(ClavisTypography.body)
+// MARK: - Needs Attention
+
+struct NeedsAttentionSection: View {
+    let positions: [Position]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("NEEDS ATTENTION")
+                .font(ClavisTypography.label)
+                .kerning(0.88)
                 .foregroundColor(.textSecondary)
+                .padding(.bottom, 8)
 
-            HStack(spacing: ClavisTheme.smallSpacing) {
-                if let updatedAt = viewModel.lastUpdatedAt {
-                    StatusPill(text: "Updated \(updatedAt.formatted(date: .abbreviated, time: .shortened))")
-                }
-
-                if let status = viewModel.analysisStatusText {
-                    StatusPill(text: status)
-                }
-            }
-        }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surfacePrimary)
-    }
-}
-
-struct PortfolioRiskCard: View {
-    let snapshot: PortfolioRiskSnapshot?
-    let highlights: [String]
-    let drivers: [String]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-            Text("Portfolio Construction Risk")
-                .font(ClavisTypography.cardTitle)
-                .foregroundColor(.textPrimary)
-
-            if let snapshot {
-                if let score = snapshot.portfolioAllocationRiskScore {
-                    Text("Allocation risk \(Int(score.rounded())) / 100")
-                        .font(ClavisTypography.bodyEmphasis)
-                        .foregroundColor(.textPrimary)
-                }
-
-                if !highlights.isEmpty {
-                    HStack(spacing: ClavisTheme.smallSpacing) {
-                        ForEach(highlights, id: \.self) { highlight in
-                            StatusPill(text: highlight)
-                        }
-                    }
-                }
-
-                if !drivers.isEmpty {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Top drivers")
-                            .font(ClavisTypography.footnoteEmphasis)
-                            .foregroundColor(.textSecondary)
-
-                        ForEach(drivers, id: \.self) { driver in
-                            Text(driver)
-                                .font(ClavisTypography.body)
-                                .foregroundColor(.textSecondary)
-                        }
-                    }
-                }
-            } else {
-                Text("No portfolio-risk snapshot is available yet.")
-                    .font(ClavisTypography.body)
-                    .foregroundColor(.textSecondary)
-            }
-        }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surfacePrimary)
-    }
-}
-
-struct PriorityQueueSection: View {
-    let items: [DashboardPriorityItem]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-            Text("Needs Attention")
-                .font(ClavisTypography.cardTitle)
-                .foregroundColor(.textPrimary)
-
-            if items.isEmpty {
-                Text("No positions currently need attention.")
-                    .font(ClavisTypography.body)
-                    .foregroundColor(.textSecondary)
-            } else {
-                ForEach(items) { item in
-                    NavigationLink(destination: PositionDetailView(positionId: item.position.id)) {
-                        DashboardPriorityRow(item: item)
+            VStack(spacing: 0) {
+                ForEach(positions) { position in
+                    NavigationLink(destination: PositionDetailView(positionId: position.id)) {
+                        AttentionRow(position: position)
                     }
                     .buttonStyle(.plain)
-                }
-            }
-        }
-    }
-}
 
-struct DashboardPriorityRow: View {
-    let item: DashboardPriorityItem
-
-    var body: some View {
-        HStack(alignment: .center, spacing: ClavisTheme.mediumSpacing) {
-            Text(item.position.riskGrade ?? "--")
-                .font(.system(size: 22, weight: .bold))
-                .foregroundColor(ClavisGradeStyle.color(for: item.position.riskGrade))
-                .frame(width: 36)
-
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(item.position.ticker)
-                        .font(ClavisTypography.bodyEmphasis)
-                        .foregroundColor(.textPrimary)
-                    Spacer()
-                    if let state = item.position.riskState {
-                        StatusPill(text: state.displayName)
-                    }
-                }
-
-                Text(item.reason)
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.textSecondary)
-                    .lineLimit(2)
-            }
-        }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surfacePrimary)
-    }
-}
-
-struct SinceLastReviewSection: View {
-    let alerts: [Alert]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-            Text("Since Last Review")
-                .font(ClavisTypography.cardTitle)
-                .foregroundColor(.textPrimary)
-
-            if alerts.isEmpty {
-                Text("No major changes detected.")
-                    .font(ClavisTypography.body)
-                    .foregroundColor(.textSecondary)
-            } else {
-                ForEach(alerts) { alert in
-                    HStack(alignment: .top, spacing: ClavisTheme.smallSpacing) {
-                        Image(systemName: alert.type.iconName)
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(alertColor(for: alert.type))
-                            .frame(width: 18)
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(alertHeadline(for: alert))
-                                .font(ClavisTypography.bodyEmphasis)
-                                .foregroundColor(.textPrimary)
-
-                            Text(alert.message.sanitizedDisplayText)
-                                .font(ClavisTypography.footnote)
-                                .foregroundColor(.textSecondary)
-                                .lineLimit(2)
-                        }
-
-                        Spacer()
+                    if position.id != positions.last?.id {
+                        Rectangle()
+                            .fill(Color.border)
+                            .frame(height: 1)
                     }
                 }
             }
-        }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surfacePrimary)
-    }
-
-    private func alertHeadline(for alert: Alert) -> String {
-        if let ticker = alert.positionTicker {
-            return "\(ticker) · \(alert.type.displayName)"
-        }
-        return alert.type.displayName
-    }
-
-    private func alertColor(for type: AlertType) -> Color {
-        switch type {
-        case .gradeChange, .safetyDeterioration, .portfolioSafetyThresholdBreach:
-            return .criticalTone
-        case .majorEvent, .macroShock, .clusterRisk, .concentrationDanger, .structuralFragility:
-            return .warningTone
-        default:
-            return .textSecondary
+            .background(Color.surface)
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.border, lineWidth: 1))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
         }
     }
 }
 
-struct MorningFocusSection: View {
-    let summary: String
-    let mattersToday: [String]
-    let actionItems: [String]
-    let openDigest: () -> Void
+struct AttentionRow: View {
+    let position: Position
+
+    private var severityColor: Color {
+        switch position.riskGrade {
+        case "F": return .riskF
+        case "D": return .riskD
+        default:  return .riskC
+        }
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-            HStack {
-                Text("Morning Focus")
-                    .font(ClavisTypography.cardTitle)
+        HStack(spacing: 0) {
+            // Left severity border — 2.5px
+            Rectangle()
+                .fill(severityColor)
+                .frame(width: 2.5)
+
+            HStack(spacing: 12) {
+                Text(position.ticker)
+                    .font(ClavisTypography.rowTicker)
                     .foregroundColor(.textPrimary)
+                    .frame(minWidth: 44, alignment: .leading)
 
-                Spacer()
+                RiskBar(
+                    score: position.totalScore ?? 50,
+                    grade: position.riskGrade ?? "C"
+                )
+                .frame(maxWidth: .infinity)
 
-                Button("Open Digest", action: openDigest)
-                    .font(ClavisTypography.footnoteEmphasis)
-                    .foregroundColor(.accentBlue)
+                HStack(spacing: 6) {
+                    Text("\(Int((position.totalScore ?? 0).rounded()))")
+                        .font(ClavisTypography.rowScore)
+                        .foregroundColor(ClavisGradeStyle.riskColor(for: position.riskGrade))
+                        .frame(width: 28, alignment: .trailing)
+                        .monospacedDigit()
+
+                    GradeTag(grade: position.riskGrade ?? "C", compact: true)
+                }
             }
+            .padding(.vertical, 10)
+            .padding(.horizontal, 12)
+        }
+        .contentShape(Rectangle())
+    }
+}
 
-            Text(summary)
-                .font(ClavisTypography.body)
+// MARK: - Since Last Review
+
+struct SinceLastReviewRow: View {
+    let worseningCount: Int
+    let improvingCount: Int
+    let majorEventCount: Int
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("SINCE LAST REVIEW")
+                .font(ClavisTypography.label)
+                .kerning(0.88)
                 .foregroundColor(.textSecondary)
 
-            if !mattersToday.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("What matters today")
-                        .font(ClavisTypography.footnoteEmphasis)
-                        .foregroundColor(.textSecondary)
-
-                    ForEach(Array(mattersToday.enumerated()), id: \.offset) { index, item in
-                        HStack(alignment: .top, spacing: ClavisTheme.smallSpacing) {
-                            Text("\(index + 1).")
-                                .font(ClavisTypography.footnoteEmphasis)
-                                .foregroundColor(.textTertiary)
-                            Text(item)
-                                .font(ClavisTypography.body)
-                                .foregroundColor(.textSecondary)
-                        }
-                    }
-                }
+            HStack(spacing: 0) {
+                ReviewMetric(value: worseningCount, label: "Worsening", tint: .riskF)
+                Spacer()
+                Rectangle().fill(Color.border).frame(width: 1, height: 32)
+                Spacer()
+                ReviewMetric(value: improvingCount, label: "Improving", tint: .riskA)
+                Spacer()
+                Rectangle().fill(Color.border).frame(width: 1, height: 32)
+                Spacer()
+                ReviewMetric(value: majorEventCount, label: "Events", tint: .riskC)
             }
-
-            if !actionItems.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("What to do")
-                        .font(ClavisTypography.footnoteEmphasis)
-                        .foregroundColor(.textSecondary)
-
-                    ForEach(actionItems, id: \.self) { item in
-                        Text(item)
-                            .font(ClavisTypography.body)
-                            .foregroundColor(.textSecondary)
-                    }
-                }
-            }
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .background(Color.surface)
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.border, lineWidth: 1))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
         }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surfacePrimary)
     }
 }
 
-struct QuickActionsCard: View {
-    let runAnalysis: () -> Void
-    let openDigest: () -> Void
-    let openAlerts: () -> Void
-    let openHoldings: () -> Void
+struct ReviewMetric: View {
+    let value: Int
+    let label: String
+    let tint: Color
 
     var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-            Text("Quick Actions")
-                .font(ClavisTypography.cardTitle)
-                .foregroundColor(.textPrimary)
-
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: ClavisTheme.smallSpacing) {
-                DashboardActionButton(title: "Run Analysis", systemImage: "arrow.clockwise", action: runAnalysis)
-                DashboardActionButton(title: "Open Digest", systemImage: "doc.text", action: openDigest)
-                DashboardActionButton(title: "View Alerts", systemImage: "bell", action: openAlerts)
-                DashboardActionButton(title: "Holdings", systemImage: "briefcase", action: openHoldings)
-            }
+        VStack(alignment: .center, spacing: 4) {
+            Text("\(value)")
+                .font(ClavisTypography.dataNumber)
+                .foregroundColor(tint)
+                .monospacedDigit()
+            Text(label.uppercased())
+                .font(ClavisTypography.label)
+                .kerning(0.88)
+                .foregroundColor(.textSecondary)
         }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surfacePrimary)
     }
 }
 
-struct DashboardActionButton: View {
-    let title: String
-    let systemImage: String
-    let action: () -> Void
+// MARK: - Digest Preview
+
+struct DigestPreviewCard: View {
+    let digest: Digest?
+    let onTap: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: onTap) {
             VStack(alignment: .leading, spacing: 8) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(.accentBlue)
+                Text("TODAY'S DIGEST")
+                    .font(ClavisTypography.label)
+                    .kerning(0.88)
+                    .foregroundColor(.textSecondary)
 
-                Text(title)
-                    .font(ClavisTypography.bodyEmphasis)
+                Text(previewText)
+                    .font(ClavisTypography.body)
                     .foregroundColor(.textPrimary)
+                    .lineLimit(2)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(ClavisTheme.cardPadding)
-            .frame(maxWidth: .infinity, minHeight: 74, alignment: .leading)
-            .background(Color.surfaceSecondary)
-            .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous))
+            .clavisCardStyle()
         }
         .buttonStyle(.plain)
     }
-}
 
-struct DashboardEmptyStateCard: View {
-    let openHoldings: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-            Text("No holdings yet")
-                .font(ClavisTypography.cardTitle)
-                .foregroundColor(.textPrimary)
-            Text("Add your first position to start tracking downside risk and portfolio updates.")
-                .font(ClavisTypography.body)
-                .foregroundColor(.textSecondary)
-
-            Button("Open Holdings", action: openHoldings)
-                .buttonStyle(.borderedProminent)
-        }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surfacePrimary)
+    private var previewText: String {
+        digest?.summary?.sanitizedDisplayText ?? "Open the latest digest summary."
     }
 }
 
-struct DashboardAnalysisRunStatusCard: View {
-    let run: AnalysisRun
+// MARK: - Loading / Error
 
+struct DashboardLoadingCard: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-            HStack {
-                Text(run.status == "queued" ? "Queued" : "Analysis Running")
-                    .font(ClavisTypography.cardTitle)
-                    .foregroundColor(.textPrimary)
-                Spacer()
-                Text("\(run.progress ?? 0)%")
-                    .font(ClavisTypography.footnoteEmphasis)
-                    .foregroundColor(.textSecondary)
-            }
-
-            Text(run.currentStageMessage ?? "Refreshing portfolio data.")
-                .font(ClavisTypography.body)
-                .foregroundColor(.textSecondary)
-
-            ProgressView(value: Double(run.progress ?? 0), total: 100)
-                .progressViewStyle(ClavisProgressStyle())
-        }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surfacePrimary)
-    }
-}
-
-struct StatusPill: View {
-    let text: String
-
-    var body: some View {
-        Text(text)
-            .font(ClavisTypography.footnoteEmphasis)
-            .foregroundColor(.textSecondary)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .background(Color.surfaceSecondary)
-            .clipShape(Capsule())
+        ClavisLoadingCard(title: "Loading dashboard", subtitle: "Fetching holdings and digest data.")
     }
 }
 
@@ -479,12 +279,19 @@ struct DashboardErrorCard: View {
     let message: String
 
     var body: some View {
-        Text(message)
-            .font(ClavisTypography.footnote)
-            .foregroundColor(.criticalTone)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(ClavisTheme.cardPadding)
-            .background(Color.warningSurface)
-            .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous))
+        HStack(spacing: 0) {
+            Rectangle().fill(Color.riskF).frame(width: 2.5)
+            Text(message)
+                .font(ClavisTypography.footnote)
+                .foregroundColor(.textPrimary)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+        }
+        .background(Color.surface)
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.border, lineWidth: 1))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
+
+// MARK: - Backward compat alias used by other files
+typealias CompactMetricReadout = ReviewMetric

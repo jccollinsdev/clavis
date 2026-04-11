@@ -289,10 +289,10 @@ class DashboardViewModel: ObservableObject {
     }
 
     private func scoreToGrade(_ score: Double) -> String {
-        if score >= 80 { return "A" }
-        if score >= 65 { return "B" }
-        if score >= 50 { return "C" }
-        if score >= 35 { return "D" }
+        if score >= 75 { return "A" }
+        if score >= 55 { return "B" }
+        if score >= 35 { return "C" }
+        if score >= 15 { return "D" }
         return "F"
     }
 
