@@ -1,0 +1,40 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - MIROFISH_URL=http://mirofish:8001
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/apns:/app/apns:ro
+    depends_on:
+      mirofish:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - clavis-network
+
+  mirofish:
+    build: ./mirofish
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./backend/.env
+    networks:
+      - clavis-network
+    volumes:
+      - ./mirofish/config:/app/config:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=5).read()"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+networks:
+  clavis-network:
+    driver: bridge
