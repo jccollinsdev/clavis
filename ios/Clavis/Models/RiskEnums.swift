@@ -19,11 +19,11 @@ enum RiskState: String, Codable, CaseIterable {
 
     static func from(score: Double) -> RiskState {
         switch score {
-        case 80...100: return .safe
-        case 65..<80: return .stable
-        case 50..<65: return .watch
-        case 35..<50: return .elevated
-        default: return .highRisk
+        case 75...100: return .safe
+        case 55..<75:  return .stable
+        case 35..<55:  return .watch
+        case 15..<35:  return .elevated
+        default:       return .highRisk
         }
     }
 }
@@ -94,11 +94,11 @@ enum Grade: String, Codable, CaseIterable {
 
     static func from(score: Double) -> Grade {
         switch score {
-        case 80...100: return .a
-        case 65..<80: return .b
-        case 50..<65: return .c
-        case 35..<50: return .d
-        default: return .f
+        case 75...100: return .a
+        case 55..<75:  return .b
+        case 35..<55:  return .c
+        case 15..<35:  return .d
+        default:       return .f
         }
     }
 
