@@ -10,7 +10,7 @@ struct HoldingsListView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                ClavisAtmosphereBackground().ignoresSafeArea()
+                Color.backgroundPrimary.ignoresSafeArea()
 
                 if viewModel.isLoading && viewModel.holdings.isEmpty {
                     VStack {
@@ -26,13 +26,20 @@ struct HoldingsListView: View {
                             DashboardErrorCard(message: errorMessage)
                                 .listRowSeparator(.hidden)
                                 .listRowBackground(Color.clear)
+                                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
                         }
+
+                        // Column headers
+                        PositionTableHeader()
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
 
                         ForEach(sortedHoldings) { position in
                             holdingRow(for: position)
                         }
                     }
-                    .listStyle(.insetGrouped)
+                    .listStyle(.plain)
                     .scrollContentBackground(.hidden)
                     .background(Color.clear)
                 }
@@ -86,7 +93,7 @@ struct HoldingsListView: View {
     @ViewBuilder
     private func holdingRow(for position: Position) -> some View {
         NavigationLink(destination: PositionDetailView(positionId: position.id)) {
-            HoldingRow(position: position)
+            PositionTableRow(position: position)
         }
         .buttonStyle(.plain)
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
@@ -103,10 +110,73 @@ struct HoldingsListView: View {
                 Label("Delete Position", systemImage: "trash")
             }
         }
-        .listRowSeparator(.hidden)
-        .listRowBackground(Color.clear)
+        .listRowSeparator(.automatic)
+        .listRowSeparatorTint(Color.border)
+        .listRowBackground(Color.backgroundPrimary)
+        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
     }
 }
+
+// MARK: - Position Table Header
+
+struct PositionTableHeader: View {
+    var body: some View {
+        HStack(spacing: 12) {
+            Text("TICKER")
+                .font(ClavisTypography.label)
+                .kerning(0.88)
+                .foregroundColor(.textSecondary)
+                .frame(minWidth: 44, alignment: .leading)
+
+            Spacer()
+
+            Text("RISK")
+                .font(ClavisTypography.label)
+                .kerning(0.88)
+                .foregroundColor(.textSecondary)
+                .frame(width: 66, alignment: .trailing)
+        }
+        .padding(.vertical, 6)
+        .padding(.horizontal, 16)
+    }
+}
+
+// MARK: - Position Table Row
+
+struct PositionTableRow: View {
+    let position: Position
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Text(position.ticker)
+                .font(ClavisTypography.rowTicker)
+                .foregroundColor(.textPrimary)
+                .frame(minWidth: 44, alignment: .leading)
+                .lineLimit(1)
+
+            RiskBar(
+                score: position.totalScore ?? 50,
+                grade: position.riskGrade ?? "C"
+            )
+            .frame(maxWidth: .infinity)
+
+            HStack(spacing: 6) {
+                Text("\(Int((position.totalScore ?? 0).rounded()))")
+                    .font(ClavisTypography.rowScore)
+                    .foregroundColor(ClavisGradeStyle.riskColor(for: position.riskGrade))
+                    .frame(width: 28, alignment: .trailing)
+                    .monospacedDigit()
+
+                GradeTag(grade: position.riskGrade ?? "C", compact: true)
+            }
+        }
+        .padding(.vertical, 10)
+        .padding(.horizontal, 16)
+        .contentShape(Rectangle())   // full row is tap target — no chevron
+    }
+}
+
+// MARK: - Holdings Empty State
 
 struct HoldingsEmptyState: View {
     let onAddPosition: () -> Void
@@ -123,69 +193,21 @@ struct HoldingsEmptyState: View {
 
                 Button("Add Position", action: onAddPosition)
                     .buttonStyle(.borderedProminent)
+                    .tint(Color.informational)
             }
             .padding(ClavisTheme.cardPadding)
-            .clavisCardStyle(fill: .surfacePrimary)
+            .clavisCardStyle()
         }
         .padding(.horizontal, ClavisTheme.screenPadding)
         .padding(.vertical, ClavisTheme.largeSpacing)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Color.appBackground)
     }
 }
 
-struct HoldingRow: View {
-    let position: Position
+// MARK: - Backward compat: keep HoldingRow as alias
+typealias HoldingRow = PositionTableRow
 
-    var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            Text(position.riskGrade ?? "--")
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.white)
-                .frame(width: 44, height: 52)
-                .background(ClavisGradeStyle.color(for: position.riskGrade))
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(position.ticker)
-                    .font(ClavisTypography.cardTitle)
-                    .foregroundColor(.textPrimary)
-                    .lineLimit(1)
-
-                if let summary = position.summary?.sanitizedDisplayText, !summary.isEmpty {
-                    Text(summary)
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.textSecondary)
-                        .lineLimit(1)
-                }
-            }
-
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: 4) {
-                Text("\(Int(position.totalScore ?? 0))")
-                    .font(ClavisTypography.bodyEmphasis)
-                    .foregroundColor(.textPrimary)
-
-                if let trend = position.riskTrend {
-                    Image(systemName: trend.iconName)
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(trendColor(trend))
-                }
-            }
-        }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surfacePrimary)
-    }
-
-    private func trendColor(_ trend: RiskTrend) -> Color {
-        switch trend {
-        case .increasing: return .criticalTone
-        case .stable: return .textTertiary
-        case .improving: return .successTone
-        }
-    }
-}
+// MARK: - Add Position Sheet
 
 struct AddPositionSheet: View {
     @ObservedObject var viewModel: HoldingsViewModel
@@ -269,91 +291,73 @@ struct AddPositionSheet: View {
     }
 }
 
+// MARK: - Add Position Progress View
+
 struct AddPositionProgressView: View {
     @ObservedObject var viewModel: HoldingsViewModel
     @Environment(\.dismiss) private var dismiss
-    @State private var shimmerPhase: CGFloat = -0.35
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 28) {
+            VStack(spacing: 32) {
                 Spacer()
 
-                VStack(spacing: 18) {
+                VStack(spacing: 20) {
+                    // Status icon
                     ZStack {
-                        Circle()
-                            .fill(
-                                RadialGradient(
-                                    colors: [Color.accentColor.opacity(0.28), Color.clear],
-                                    center: .center,
-                                    startRadius: 12,
-                                    endRadius: 58
-                                )
-                            )
-                            .frame(width: 140, height: 140)
-                            .blur(radius: 1)
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.surface)
+                            .frame(width: 80, height: 80)
+                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.border, lineWidth: 1))
 
-                        Circle()
-                            .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                            .frame(width: 86, height: 86)
-
-                        Image(systemName: viewModel.progressValue >= 1.0 ? "checkmark.circle.fill" : "chart.line.uptrend.xyaxis")
-                            .font(.system(size: 30, weight: .semibold))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [Color.accentColor, Color.green.opacity(0.9)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .scaleEffect(viewModel.progressValue >= 1.0 ? 1.05 : 1.0)
-                            .animation(.spring(response: 0.45, dampingFraction: 0.75), value: viewModel.progressValue)
+                        Image(systemName: viewModel.progressValue >= 1.0 ? "checkmark" : "chart.line.uptrend.xyaxis")
+                            .font(.system(size: 28, weight: .medium))
+                            .foregroundColor(viewModel.progressValue >= 1.0 ? .riskA : .textSecondary)
+                            .animation(.linear(duration: 0.3), value: viewModel.progressValue)
                     }
 
                     VStack(spacing: 6) {
                         Text(primaryProgressMessage)
-                            .font(.headline)
-                            .multilineTextAlignment(.center)
+                            .font(ClavisTypography.h2)
                             .foregroundColor(.textPrimary)
+                            .multilineTextAlignment(.center)
 
                         Text(progressDescription)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .font(ClavisTypography.body)
+                            .foregroundColor(.textSecondary)
                             .multilineTextAlignment(.center)
                     }
 
-                    AnimatedProgressBar(progress: Double(viewModel.progressValue), shimmerPhase: shimmerPhase)
-                        .frame(height: 18)
+                    // Progress bar — flat, no capsule
+                    GeometryReader { geo in
+                        ZStack(alignment: .leading) {
+                            Rectangle()
+                                .fill(Color.border)
+                                .frame(height: 4)
+                            Rectangle()
+                                .fill(ClavisGradeStyle.riskColor(for: progressGrade))
+                                .frame(width: geo.size.width * CGFloat(viewModel.progressValue), height: 4)
+                                .animation(.spring(response: 0.5, dampingFraction: 0.82), value: viewModel.progressValue)
+                        }
+                    }
+                    .frame(height: 4)
 
                     Text(progressStageText)
-                        .font(.footnote.weight(.medium))
-                        .foregroundColor(.secondary)
+                        .font(ClavisTypography.label)
+                        .kerning(0.88)
+                        .foregroundColor(.textSecondary)
                         .multilineTextAlignment(.center)
                 }
-                .padding(.horizontal, 18)
-                .padding(.vertical, 24)
-                .frame(maxWidth: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .fill(.ultraThinMaterial)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                                .strokeBorder(Color.white.opacity(0.09), lineWidth: 1)
-                        )
-                )
-                .shadow(color: Color.black.opacity(0.12), radius: 24, x: 0, y: 14)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 28)
+                .background(Color.surface)
+                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.border, lineWidth: 1))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
 
                 Spacer()
             }
             .padding(24)
-            .background(
-                LinearGradient(
-                    colors: [Color.appBackground, Color.appBackground.opacity(0.88), Color.accentColor.opacity(0.08)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
-            )
+            .background(Color.backgroundPrimary.ignoresSafeArea())
             .navigationTitle(viewModel.pendingTicker ?? "New Position")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -361,100 +365,56 @@ struct AddPositionProgressView: View {
                     Button("Close") { dismiss() }
                 }
             }
-            .onAppear {
-                withAnimation(.linear(duration: 1.6).repeatForever(autoreverses: false)) {
-                    shimmerPhase = 1.35
-                }
-            }
         }
     }
 
     private var primaryProgressMessage: String {
-        if viewModel.progressValue >= 1.0 {
-            return "Analysis complete"
-        }
-        return viewModel.progressMessage
+        viewModel.progressValue >= 1.0 ? "Analysis complete" : viewModel.progressMessage
     }
 
     private var progressDescription: String {
         if let pendingTicker = viewModel.pendingTicker {
-            return "\(pendingTicker) was added. Clavis is now analyzing this holding."
+            return "\(pendingTicker) was added. Clavix is now analyzing this holding."
         }
         return "Preparing your new holding."
     }
 
-    private var progressStageText: String {
-        if viewModel.progressValue >= 1.0 {
-            return "Position ready"
-        }
+    private var progressGrade: String {
+        if viewModel.progressValue >= 1.0 { return "A" }
+        if viewModel.progressValue >= 0.6 { return "B" }
+        if viewModel.progressValue >= 0.3 { return "C" }
+        return "D"
+    }
 
+    private var progressStageText: String {
+        if viewModel.progressValue >= 1.0 { return "POSITION READY" }
         switch viewModel.progressMessage {
-        case let message where message.contains("Adding"):
-            return "Creating the position"
-        case let message where message.contains("Queueing"):
-            return "Scheduling analysis"
-        case let message where message.contains("Fetching"):
-            return "Collecting news and context"
-        case let message where message.contains("Classifying"):
-            return "Matching headlines to the holding"
-        case let message where message.contains("Analyzing"):
-            return "Scoring the position"
-        case let message where message.contains("Building"):
-            return "Writing the position report"
-        default:
-            return "Working through the analysis pipeline"
+        case let m where m.contains("Adding"):      return "CREATING POSITION"
+        case let m where m.contains("Queueing"):    return "SCHEDULING ANALYSIS"
+        case let m where m.contains("Fetching"):    return "COLLECTING CONTEXT"
+        case let m where m.contains("Classifying"): return "MATCHING HEADLINES"
+        case let m where m.contains("Analyzing"):   return "SCORING POSITION"
+        case let m where m.contains("Building"):    return "WRITING REPORT"
+        default:                                     return "RUNNING ANALYSIS"
         }
     }
 }
 
+// Keep AnimatedProgressBar defined for any remaining references
 struct AnimatedProgressBar: View {
     let progress: Double
     let shimmerPhase: CGFloat
 
     var body: some View {
-        GeometryReader { proxy in
-            let width = proxy.size.width
-            let clampedProgress = min(max(progress, 0.0), 1.0)
-            let fillWidth = max(24, width * clampedProgress)
-
+        GeometryReader { geo in
             ZStack(alignment: .leading) {
-                Capsule()
-                    .fill(Color.white.opacity(0.08))
-
-                Capsule()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.accentColor.opacity(0.95), Color.cyan.opacity(0.9), Color.green.opacity(0.9)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .frame(width: fillWidth)
-                    .overlay(alignment: .leading) {
-                        Capsule()
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.white.opacity(0.0), Color.white.opacity(0.75), Color.white.opacity(0.0)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .frame(width: max(36, width * 0.18))
-                            .offset(x: shimmerOffset(in: width))
-                            .blendMode(.screen)
-                    }
-                    .shadow(color: Color.accentColor.opacity(0.35), radius: 10, x: 0, y: 4)
-
-                Capsule()
-                    .strokeBorder(Color.white.opacity(0.18), lineWidth: 1)
+                Rectangle().fill(Color.border).frame(height: 4)
+                Rectangle()
+                    .fill(Color.riskB)
+                    .frame(width: geo.size.width * CGFloat(min(max(progress, 0), 1)), height: 4)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.82), value: progress)
             }
-            .clipShape(Capsule())
-            .animation(.spring(response: 0.5, dampingFraction: 0.82), value: progress)
         }
-    }
-
-    private func shimmerOffset(in width: CGFloat) -> CGFloat {
-        let sweepWidth = max(36, width * 0.18)
-        return (width + sweepWidth) * shimmerPhase - sweepWidth
+        .frame(height: 4)
     }
 }

@@ -9,20 +9,30 @@ struct LoginView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                ClavisAtmosphereBackground()
+                Color.backgroundPrimary.ignoresSafeArea()
 
                 VStack(spacing: ClavisTheme.largeSpacing) {
-                    VStack(spacing: ClavisTheme.smallSpacing) {
-                        Text("Clavis")
-                            .font(.system(size: 34, weight: .bold))
-                            .foregroundColor(.textPrimary)
+                    // Logo + wordmark
+                    VStack(spacing: ClavisTheme.mediumSpacing) {
+                        Image("clavix_logo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 64)
 
-                        Text("Portfolio intelligence for self-directed investors")
-                            .font(.body)
-                            .foregroundColor(.textSecondary)
-                            .multilineTextAlignment(.center)
+                        VStack(spacing: 4) {
+                            Text("CLAVIX")
+                                .font(ClavisTypography.h1)
+                                .foregroundColor(.textPrimary)
+                                .kerning(-0.56)   // -0.02em at 28px
+
+                            Text("Portfolio intelligence for self-directed investors")
+                                .font(ClavisTypography.body)
+                                .foregroundColor(.textSecondary)
+                                .multilineTextAlignment(.center)
+                        }
                     }
 
+                    // Auth form
                     VStack(spacing: ClavisTheme.mediumSpacing) {
                         TextField("Email", text: $email)
                             .textFieldStyle(.roundedBorder)
@@ -37,8 +47,8 @@ struct LoginView: View {
 
                         if let error = authViewModel.errorMessage {
                             Text(error)
-                                .font(.footnote)
-                                .foregroundColor(.red)
+                                .font(ClavisTypography.footnote)
+                                .foregroundColor(.riskF)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
 
@@ -53,30 +63,27 @@ struct LoginView: View {
                         } label: {
                             if authViewModel.isLoading {
                                 ProgressView()
-                                    .tint(.white)
+                                    .tint(.textPrimary)
                                     .frame(maxWidth: .infinity)
                             } else {
                                 Text(isSignUp ? "Create Account" : "Sign In")
-                                    .font(.headline)
+                                    .font(ClavisTypography.action)
                                     .frame(maxWidth: .infinity)
                             }
                         }
                         .buttonStyle(.borderedProminent)
+                        .tint(Color.informational)
                         .controlSize(.large)
                         .disabled(authViewModel.isLoading || email.isEmpty || password.isEmpty)
 
                         Button(isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up") {
                             isSignUp.toggle()
                         }
-                        .font(.footnote)
+                        .font(ClavisTypography.footnote)
+                        .foregroundColor(.textSecondary)
                     }
                     .padding(ClavisTheme.largeSpacing)
-                    .background(Color.cardBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous)
-                            .stroke(Color.borderSubtle, lineWidth: 1)
-                    )
+                    .clavisCardStyle()
                 }
                 .padding(.horizontal, 20)
             }
