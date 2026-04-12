@@ -33,3 +33,14 @@ node_modules/
 
 # Sensitive files
 .tunnel_url
+opencode.json
+
+# Claude
+.claude/
+
+# Pycache
+.ruff_cache/
+
+# App specific
+token-dashboard/
+apns/
