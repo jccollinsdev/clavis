@@ -1320,6 +1320,7 @@ async def execute_analysis_run(
         )
 
         previous_grades_by_ticker = {}
+        previous_total_scores_by_ticker = {}
         for position in positions:
             previous_scores = (
                 supabase.table("risk_scores")
@@ -1332,6 +1333,9 @@ async def execute_analysis_run(
             )
             previous_grades_by_ticker[position["ticker"]] = (
                 previous_scores[0]["grade"] if previous_scores else None
+            )
+            previous_total_scores_by_ticker[position["ticker"]] = (
+                previous_scores[0].get("total_score") if previous_scores else None
             )
 
         async def _process_position(
@@ -1617,6 +1621,7 @@ async def execute_analysis_run(
             position_payload = {
                 **position,
                 "previous_grade": previous_grades_by_ticker.get(ticker),
+                "previous_total_score": previous_total_scores_by_ticker.get(ticker),
                 "summary": position_report["summary"],
                 "long_report": position_report["long_report"],
                 "top_risks": position_report["top_risks"],

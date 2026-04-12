@@ -1,254 +1,547 @@
-# Clavis — 7 Day Build Plan
+# Clavis — Ultimate Final Build Plan
 
-**Goal:** Working app on your phone by Day 7. Real holdings, real news, real grades, real digest.
+**Last updated:** 2026-04-12
 
-**APNs:** Deferred to v2. In-app polling only.
+**Goal:** Take Clavis from working MVP to a marketable, defensible, App Store-ready v1.
 
----
-
-## Day 1 — Environment & API Keys
-
-Get every external dependency unblocked before writing a single line of pipeline logic.
-
-### Backend .env — get all four keys
-
-- **MiniMax API key** — everything AI depends on this, do it first
-- **Finnhub API key** — free tier, instant signup
-- **Polygon.io API key** — free tier, instant signup
-- **Supabase URL + service role key + JWT secret** — already in your Supabase project settings
-
-### Verify each one works in isolation
-
-- Hit Finnhub's `/news` endpoint manually with curl, confirm real news comes back
-- Hit Polygon.io's `/v2/aggs` endpoint manually, confirm real price data comes back
-- Send one test completion to MiniMax API, confirm response comes back correctly
-
-### Supabase
-
-- Run the corrected SQL schema (with the three bug fixes: `auth.users` typo, unique RLS policy names, `risk_scores` RLS join through `positions`)
-- Confirm all six tables exist and RLS is enabled
-- Add `reasoning TEXT` and `mirofish_used BOOLEAN` to `risk_scores`
-
-### MiroFish bypass
-
-- Open `pipeline/mirofish_analyze.py`
-- Replace the implementation with a pass-through that logs a warning and returns `None`
-- All major events will route to `agentic_scan` instead — confirm this in `classifier.py`
-
-### End of Day 1 check
-
-All four API keys return real data. Schema is deployed. MiroFish is bypassed. Nothing is blocked.
+**Core positioning:** Clavis is a **portfolio risk data platform**, not an investment adviser, broker, or trading app. The product must describe what is happening in a portfolio, not tell the user what to do.
 
 ---
 
-## Day 2 — News Pipeline
+## 0. Launch Principles
 
-Build and verify the first half of the pipeline — from raw news to classified events.
+### Bloomberg Terminal Defense
 
-### RSS + Finnhub ingestion
+Before any copy, feature, or screen ships, apply this test:
 
-- Confirm `rss_ingest.py` pulls from at least 3 macro RSS feeds (Reuters, Bloomberg, WSJ)
-- Confirm `finnhub_news.py` pulls company-specific news by ticker
-- Both should return a normalized news item format — same shape regardless of source
+> Is this telling the user something that is true right now, or is it telling them what to do?
 
-### Relevance filter
+If it tells the user what to do, rewrite it.
 
-- Feed 10 real news items through `relevance.py` with 3-5 test tickers
-- Confirm it correctly discards items with no holdings match
-- Confirm it correctly flags which ticker is affected for items that match
-- Check edge cases — Fed rate decision should match rate-sensitive holdings, not just exact ticker mentions
+### Product Rules
 
-### Significance classifier
-
-- Send 5 relevant news items through `classifier.py` (MiniMax)
-- Confirm it returns `major` or `minor` correctly
-- Confirm it returns structured JSON — if MiniMax returns free text instead, fix the prompt now
-- Test with one obvious major event (earnings miss) and one obvious minor one (analyst upgrade)
-- **Validate this before end of day — classifier errors propagate to every stage downstream**
-
-### End of Day 2 check
-
-Real news flows from ingestion → relevance filter → classifier and comes out the other end with the right shape. Log every step so you can see exactly what's happening.
+- No `Buy`, `Sell`, `Exit`, `Reduce`, `Add`, `Hold`, or equivalent action signals.
+- No `What To Do` sections.
+- Scores and grades are presented as informational model outputs only.
+- Every score view must include a short disclaimer.
+- Onboarding must require an explicit risk acknowledgment before the first score is shown.
+- Legal docs, App Store metadata, and in-app disclosures must all say the same thing.
 
 ---
 
-## Day 3 — Analysis & Scoring
+## 1. Gate 0 — Business, Accounts, and External Approvals
 
-Build and verify the second half of the pipeline — from classified events to grades.
+These happen before or immediately at the start of the build. Several later phases are blocked on them.
 
-### Agentic scan
+### Apple / Revenue
 
-- Send one minor event through `agentic_scan.py` with a real position context
-- Confirm it returns a useful impact assessment in plain English
-- If output is vague or generic, tighten the system prompt — give it the archetype, the ticker, the allocation size
+- Paid Apple Developer account active (`$99/year`)
+- App Store Connect app created
+- Bundle ID reserved and locked
+- Apple tax forms completed
+- Apple banking info completed
+- RevenueCat account created
+- RevenueCat tax and payout forms completed
 
-### Risk scorer
+### Company / Finance
 
-- Send one agentic scan output through `risk_scorer.py`
-- Confirm it returns all five dimension scores plus a final A–F grade
-- Confirm it returns plain English reasoning for the methodology screen
-- Test across two archetypes — a growth stock and a value stock with the same news item should produce different scores
-- If grades feel wrong, tune the system prompt now before connecting everything
+- Business entity formed (`LLC` or equivalent)
+- Business bank account opened
+- EIN obtained if applicable
+- Basic accounting system chosen (`Wave`, spreadsheet, or equivalent)
 
-### Compiler AI
+### Domain / Email
 
-- Send two or three risk score outputs through `compiler.py`
-- Confirm it produces one coherent morning digest in plain English
-- Digest should mention which positions changed and why — not just list grades
+- `support@getclavix.com` mailbox exists and is monitored
+- Transactional email provider chosen (`Resend`, `Postmark`, or `SendGrid`)
+- SPF configured
+- DKIM configured
+- DMARC configured
 
-### End of Day 3 check
+### SnapTrade
 
-A news item goes in one end. A grade and a plain English analysis come out the other. Each stage logs its output so you can trace failures.
+- SnapTrade developer account application submitted on Day 1
+- SnapTrade approval process started early
+- SnapTrade terms reviewed
+- SnapTrade privacy policy requirements reviewed
 
----
+### Legal
 
-## Day 4 — Full Pipeline End to End
-
-Connect every stage and fire the whole thing with real data.
-
-### Wire /trigger-analysis endpoint
-
-Calling this should kick off the full pipeline for a given user:
-
-```
-RSS + Finnhub → relevance → classifier → agentic scan → risk scorer → compiler → writes to Supabase
-```
-
-### Run with 5 real holdings
-
-- Add 5 positions across different archetypes in Supabase directly (no iOS yet)
-- Hit `/trigger-analysis` manually
-- Watch the logs — confirm every stage fires in sequence
-- Check Supabase after — `risk_scores`, `news_items`, `digests` tables should all have new rows
-
-### Verify /digest endpoint
-
-- Call it and confirm it returns today's compiled digest from Supabase
-- Confirm it returns current grade per position
-
-### Verify /positions/:id endpoint
-
-- Call it and confirm it returns score breakdown, news items, and reasoning for a specific position
-
-### Debug systematically
-
-If something breaks, don't debug the whole pipeline at once. Comment out everything after the failing stage and fix it in isolation. Then reconnect.
-
-### End of Day 4 check
-
-Full pipeline fires on demand. Supabase has real data in every table. All three endpoints return correct data.
+- Fintech / securities attorney consultation scheduled or completed
+- Decision documented: Clavis stays in the information/data lane, not advice
+- Third-party processor agreements reviewed or tracked:
+  - Supabase
+  - SnapTrade
+  - MiniMax
+  - Polygon
 
 ---
 
-## Day 5 — iOS Integration & Price Charts
+## 2. Phase 1 — Security, Legal Reframing, and Critical Product Bugs
 
-Connect the iOS app to the real backend.
+This is the true first build phase. Nothing user-facing that increases exposure should ship before this is done.
 
-### Price charts
+### Security Foundation
 
-- Wire Polygon.io into `PositionDetailView.swift` — replace mock chart with real data
-- Dashboard position cards — show real current price from Polygon.io
-- Keep it simple — daily close prices are fine for MVP, no need for real-time tick data
+1. **JWT verification**
+   - Replace current shared-secret style verification with proper Supabase JWT verification
+   - Verify signatures cryptographically via JWKS / correct signing config
+   - Fail closed on invalid tokens
 
-### Backend integration
+2. **Supabase RLS audit and hardening**
+   - Verify RLS on every table
+   - Confirm `prices` table intentionally uses a broad read policy
+   - Test with an adversarial second user token
+   - Confirm no cross-user reads are possible
 
-- `APIService.swift` — confirm it attaches JWT correctly to every request
-- `DigestViewModel.swift` — calls `/digest`, renders real content
-- `DashboardViewModel.swift` — calls `/positions`, renders real grades and prices
-- `PositionDetailView.swift` — calls `/positions/:id`, renders score breakdown and news
+3. **Environment audit**
+   - Remove placeholders and dev-only values from production config
+   - Verify no secrets are hardcoded in app binaries or repo-tracked files
+   - Separate production vs staging environment config
 
-### In-app polling (replaces APNs)
+4. **HTTPS-only posture**
+   - No HTTP fallback anywhere
+   - Verify production backend, callbacks, and support URLs are HTTPS
 
-- On app open, check if today's digest exists in Supabase
-- If yes, show it immediately
-- If no, show "Your digest is being prepared" and poll every 60 seconds
-- Also check `user_preferences.last_digest_at` on app open — if a digest was already written before the user opened the app, show it without waiting for a poll cycle
+### Legal/Product Reframing
 
-### End of Day 5 check
+1. Remove all advisory/action language from iOS and backend output
+2. Replace action-oriented labels with observational labels
+3. Replace `portfolio advice` style digest sections with `what changed` or `risk summary`
+4. Add score disclaimer text anywhere a grade/score is displayed
+5. Add visible data freshness timestamps to scores and digest content
+6. Add limited-data state when evidence is weak or missing
 
-Open the iOS app. See real prices. See real grades. Tap a position and see real analysis. The app is talking to the real backend.
+### Critical Bug Fixes
 
----
+1. Holdings pull-to-refresh `Cancelled` error
+2. Digest refresh false failure state
+3. Position chart reliability and chart data correctness
+4. Missing `/preferences/alerts` endpoint
+5. Persist missing preferences fields (`summary_length`, `weekday_only`, and alert prefs if applicable)
+6. Offline and no-network handling for core screens
 
-## Day 6 — Scheduler & Polish
+### Notification Reliability Foundation
 
-Make the pipeline run automatically every morning.
-
-### Scheduler
-
-- `scheduler.py` — APScheduler fires the pipeline once per day per user at their set digest time
-- Default to 7am if no preference is set
-- Test by temporarily setting your digest time to 2 minutes from now and confirming the pipeline fires automatically
-
-### Settings screen
-
-- Digest time picker works and persists to Supabase `user_preferences`
-- Notifications toggle exists but does nothing for now — label it "coming soon" or hide it entirely
-
-### Polish
-
-- Grade change arrows on dashboard position cards (up/down/same vs yesterday's grade)
-- Archetype selection in `AddPositionSheet` — confirm dropdown matches PRD exactly: growth, value, cyclical, defensive, small cap
-- Empty states — what does the app show if no holdings are added yet?
-- Error states — what does the app show if the backend is down?
-
-### End of Day 6 check
-
-Scheduler fires automatically. Settings persist. App handles empty and error states gracefully.
+1. Confirm production APNs configuration, not just sandbox
+2. Add token refresh handling
+3. Respect notification opt-out / invalid token cleanup
 
 ---
 
-## Day 7 — Dogfood
+## 3. Phase 2 — Legal Documents, Onboarding, and Public Trust Surface
 
-Load your real portfolio and live with it for a day.
+### Legal Documents
 
-### Morning
+Publish real public URLs, accessible without login:
 
-- Add your actual holdings — real tickers, real shares, real purchase prices, correct archetypes
-- Trigger analysis manually once to generate your first real digest
-- Read it. Does it make sense? Does it reflect what actually happened in the market?
+- `/privacy`
+- `/terms`
+- `/refund`
+- `/methodology`
 
-### Grade sanity check
+### Privacy Policy Must Cover
 
-- Do the grades feel right given what you know about each position?
-- If AAPL gets an F on a green day, the scoring prompt needs tuning
-- If everything comes back a B regardless of news, the classifier isn't routing correctly
-- Tune prompts until grades feel honest
+- What data is collected
+  - name
+  - email
+  - DOB
+  - holdings
+  - brokerage connection tokens / metadata
+  - device info and notification token
+- How data is used
+  - risk analysis
+  - digest generation
+  - notifications
+  - subscription management
+- Third parties
+  - Supabase
+  - SnapTrade
+  - MiniMax
+  - Polygon
+  - Apple
+- Data retention
+- Deletion rights
+- Export rights
+- Contact information
+- Last updated date
 
-### Digest quality check
+### Terms Must Cover
 
-- Is it written in plain English a non-technical investor would understand?
-- Does it tell you something you didn't already know?
-- Would you read it every morning?
+- Service description as a data product
+- Prominent not-financial-advice disclaimer
+- Subscription terms
+- Trial terms
+- Cancellation policy
+- Refund policy link or language
+- Limitation of liability
+- Governing law
+- Last updated date
 
-### Fix what breaks
+### Refund Policy
 
-Day 7 is debugging and tuning, not building. Something will be wrong. That's what today is for. Budget 2-3 hours specifically for prompt tuning.
+- Explicit policy published publicly
+- Matches App Store and support responses
 
-### End of Day 7 check — the only one that matters
+### Methodology Page
 
-You open the app. The digest tells you what changed overnight for your real holdings. Each position has a grade that makes sense. You didn't need to open anything else to know your portfolio status.
+- Data sources
+- Five risk dimensions
+- What the model measures
+- What the model does not measure
+- Explicit note that outputs are informational model results, not recommendations
 
-**If that's true, the MVP worked.**
+### Onboarding
+
+Build a full onboarding flow with:
+
+1. Welcome / value proposition
+2. Account creation / sign in
+3. Name and DOB collection
+4. Risk acknowledgment screen
+5. Notification permission request
+6. First position flow
+
+### Risk Acknowledgment Requirement
+
+Before the user sees any score:
+
+- Show full acknowledgment copy
+- Require explicit acceptance
+- Log version + timestamp in database
 
 ---
 
-## What's Not in This Plan
+## 4. Phase 3 — Website, Email Infrastructure, and App Store Trust Prep
 
-### Deferred — APNs push notifications
-### Deferred — Onboarding first testers
-### v2 — MiroFish swarm analysis
-### v2 — Brokerage API connection
-### v2 — Web app
-### v2 — Multi-user
+### Website Fixes
+
+The marketing site must be cleaned up before submission.
+
+1. Mobile optimization
+2. Real privacy and terms links, not `#`
+3. Risk disclaimer visible in footer at minimum
+4. Support/contact page or support email visible
+5. Fix or remove `Join 2+ investors`
+6. OG tags and social preview image
+7. Favicon across required sizes
+8. Basic SEO
+   - title tag
+   - meta description
+9. Cookie consent banner if analytics are installed
+
+### Email Infrastructure
+
+Required transactional flows:
+
+1. Waitlist confirmation
+2. Welcome email on signup
+3. Trial ending reminder
+4. Payment failed notification
+5. Account deletion confirmation
+
+Required setup:
+
+- transactional provider configured
+- SPF / DKIM / DMARC valid
+- email templates created
+- support inbox monitored
+
+### App Store Connect Baseline Setup
+
+This must be ready before subscription product setup.
+
+1. App name finalized
+2. Subtitle finalized
+3. Keywords drafted
+4. Description drafted
+5. Copyright entered: `© 2026 Clavix`
+6. Primary category: `Finance`
+7. Secondary category decided if needed
+8. Age rating questionnaire completed
+9. iPad support decision made
+10. Minimum iOS version decided
 
 ---
 
-## Risk Table
+## 5. Phase 4 — Payments, RevenueCat, and Subscription Enforcement
 
-| Risk | Mitigation |
-|------|------------|
-| MiniMax returns malformed JSON | Fix classifier and scorer prompts on Day 3 before connecting pipeline |
-| Pipeline too slow to run on demand | Add async throughout Day 4 — each stage should not block the next |
-| Grades feel wrong | Budget 2-3 hours on Day 7 just for prompt tuning |
-| Polygon.io free tier rate limits | Cache price data per ticker — one fetch per day is enough for MVP |
+**Prerequisite:** Apple Developer account, App Store Connect app, bundle ID, tax/banking, and products must already be set up.
+
+### App Store / RevenueCat Setup
+
+1. Create subscription product(s) in App Store Connect
+2. Configure RevenueCat entitlements
+3. Integrate StoreKit 2 + RevenueCat SDK in iOS app
+4. Add backend webhook endpoint for subscription state updates
+5. Add restore purchases flow
+
+### Commercial Model
+
+#### Free
+
+- 3 positions max
+- Simulated positions count toward the 3-position limit
+- No live brokerage sync after trial ends
+
+#### Plus
+
+- `$15/month`
+- Real-time brokerage syncing via SnapTrade
+- Higher-value premium features as finalized
+
+### Trial
+
+- 1 month free for all new users
+- Trial countdown visible in app
+- Trial ending emails sent
+- Downgrade behavior after expiry is explicit and tested
+
+### Enforcement
+
+- Backend hard-enforces position limits
+- UI reflects plan limits
+- Subscription restore supported
+- Subscription management link present in app
+
+---
+
+## 6. Phase 5 — SnapTrade and Portfolio Connection
+
+### Start Early
+
+SnapTrade account application starts in Phase 1, even though implementation lands here.
+
+### Implementation
+
+1. Backend endpoints for user registration and connection flow
+2. OAuth / redirect or hosted connect flow support
+3. Callback handling and URL scheme registration
+4. Brokerage account sync into holdings model
+5. Disconnect and resync flows
+
+### Constraints
+
+- Review SnapTrade terms and privacy requirements before shipping
+- Do not depend on App Review creating their own brokerage connection
+- Provide demo/testing instructions for Apple reviewers using a seeded account instead
+
+---
+
+## 7. Phase 6 — App UX, Simulated Risk, and Profile Experience
+
+### Navigation / Information Architecture
+
+1. Remove Settings from bottom nav if desired
+2. Replace hamburger content with account/profile oriented surface
+3. Add profile screen
+   - name
+   - DOB
+   - plan status
+   - brokerages
+   - manage subscription
+   - support / feedback
+
+### Holdings Improvements
+
+1. Search bar on holdings
+2. Stock lookup before adding
+3. `Simulate Risk` flow before entering a real position
+4. Simulated positions displayed clearly as simulated
+5. Search + sort + filter improvements
+
+### Additional UX Work
+
+1. Empty states on every screen
+2. Better chart presentation and reliability
+3. Dark mode audit
+4. Dynamic Type audit
+5. Accessibility audit
+
+---
+
+## 8. Phase 7 — Backend Production Readiness
+
+### Operational Readiness
+
+1. Add `/v1` route prefixing strategy or document versioning plan
+2. Health check endpoint verified (`GET /health`)
+3. Graceful shutdown handling
+4. Scheduled job monitoring
+5. Structured logging in production
+6. Error alerting for backend 500s
+7. Crash reporting / backend monitoring
+8. Cold-start mitigation if hosting sleeps
+
+### Database / Infra
+
+1. Connection pooling strategy documented
+2. Scheduled digest persistence and restart resilience
+3. Database backups confirmed
+4. Backup restore tested
+5. Data retention jobs implemented in code
+
+### Privacy Operations
+
+1. `DELETE /account` endpoint
+2. `GET /account/export` endpoint
+3. Data deletion flow tested
+4. Export format defined and tested
+
+---
+
+## 9. Phase 8 — Notifications and Alert Quality
+
+### Infrastructure
+
+1. Production APNs entitlement enabled
+2. Push entitlement verified in release build
+3. Backend only sends to valid, current tokens
+4. Token updates handled correctly
+
+### Product Quality
+
+1. Alert preference granularity
+2. Silent hours respected by default
+3. Notification rate limits per position / day
+4. Alert history available in app
+5. Deep links from push land on the correct screen
+
+---
+
+## 10. Phase 9 — App Store Submission Assets and Metadata
+
+### Required App Store Metadata
+
+- App name
+- Subtitle
+- Description
+- Keywords
+- Support URL
+- Marketing URL
+- Privacy Policy URL
+- Copyright
+- Age rating
+- Export compliance
+- Privacy nutrition label
+- `What's New` text
+
+### Finance-Specific Review Prep
+
+Provide strong review notes explaining:
+
+- Data sources used
+- That the app does not execute trades
+- That Clavis is not an RIA and does not provide individualized investment advice
+- That outputs are informational model results only
+- How demo credentials work
+
+### Review Information
+
+- Demo account provided
+- Preloaded holdings in demo account
+- Reviewer instructions for key flows
+- If SnapTrade is not required for review, say so clearly
+
+### Screenshots / Assets
+
+1. Required screenshot sizes
+2. Disclaimer visible in screenshot set
+3. App icon complete in all required sizes
+4. No placeholder assets or TODO content
+5. Launch screen verified
+6. App size audited
+
+---
+
+## 11. Phase 10 — Testing Matrix
+
+### Core Functional Testing
+
+1. Fresh install flow
+2. Sign up flow
+3. Trial flow
+4. Trial expiry flow
+5. Subscription restore
+6. Multiple account sign-in / sign-out test
+7. Account deletion flow
+8. Account export flow
+
+### Device / OS Testing
+
+1. iOS 16
+2. iOS 17
+3. Smaller devices / SE class
+4. Dark mode
+5. Large accessibility font sizes
+6. iPhone-only behavior verified if iPad unsupported
+
+### Reliability Testing
+
+1. Airplane mode / offline states
+2. Background / low battery behavior
+3. Push notification end-to-end
+4. SnapTrade connection test with a real account
+5. Multiple user isolation test against RLS
+6. Crash-response drill
+
+### Beta
+
+- TestFlight external beta with real users before submission
+
+---
+
+## 12. Phase 11 — Launch Operations
+
+### Support / Ops
+
+1. Support inbox monitored daily
+2. Auto-responder enabled
+3. App Store review response account decided
+4. Crash response plan documented
+5. Internal escalation path documented
+
+### Growth / Launch
+
+1. Press kit prepared
+2. Review prompt strategy implemented
+3. Referral / sharing considered
+4. Launch announcement plan drafted
+   - Product Hunt
+   - X / Twitter
+   - relevant subreddits
+   - Hacker News if appropriate
+
+---
+
+## 13. Immediate Next Actions
+
+Do these first, in this order:
+
+1. Activate paid Apple Developer account
+2. Confirm business entity / banking / tax setup path
+3. Submit SnapTrade developer application
+4. Fix JWT verification properly
+5. Audit and test Supabase RLS with adversarial user access
+6. Rewrite advisory/action copy in app and backend
+7. Fix the four known product bugs
+8. Publish legal docs and methodology page
+
+---
+
+## 14. Definition of Launch-Ready
+
+Clavis is launch-ready when all of the following are true:
+
+- Security basics are correct
+- User isolation is verified
+- Legal docs are public and accurate
+- In-app copy does not cross into advice language
+- Apple reviewer can test the app with a seeded demo account
+- Subscription flows work
+- Notifications work in production
+- Crash and error monitoring are live
+- Website and support surfaces look legitimate
+- The app behaves well with no data, no network, expired trial, multiple accounts, and fresh install
+
+If any of those are false, the app is not ready for public launch.

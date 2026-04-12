@@ -14,13 +14,13 @@ struct LoginView: View {
                 VStack(spacing: ClavisTheme.largeSpacing) {
                     // Logo + wordmark
                     VStack(spacing: ClavisTheme.mediumSpacing) {
-                        Image("clavix_logo")
+                        Image("AppLogo")
                             .resizable()
                             .scaledToFit()
-                            .frame(height: 64)
+                            .frame(height: 1400)
 
                         VStack(spacing: 4) {
-                            Text("CLAVIX")
+                            Text("CLAVIS")
                                 .font(ClavisTypography.h1)
                                 .foregroundColor(.textPrimary)
                                 .kerning(-0.56)   // -0.02em at 28px

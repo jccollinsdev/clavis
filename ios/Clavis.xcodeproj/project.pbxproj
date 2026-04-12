@@ -9,8 +9,8 @@
 /* Begin PBXBuildFile section */
 		10A597D9B89AF751C8F6220F /* Position.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA68D051F7E6B3D8396319F1 /* Position.swift */; };
 		16BF21C4806ED2A1C51A21FF /* Inter-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8EB3AB54AAFB8C83DECCA920 /* Inter-Variable.ttf */; };
-		A2F93BC17D4E8A21C6F0553D /* JetBrainsMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B5D24A78E9C13F60A17B2E84 /* JetBrainsMono-Regular.ttf */; };
 		1BCA71D523BEDF92D78F7089 /* HoldingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C38C07B0CF0ED9A35F1AC9 /* HoldingsViewModel.swift */; };
+		1D9280D845895C4B75AC1C71 /* JetBrainsMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2179397FC5DAEEF86E5A5C71 /* JetBrainsMono-Regular.ttf */; };
 		1F29992CC73FA2AF8A5053C7 /* DigestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 109D64880EF83D2FC224A3F4 /* DigestView.swift */; };
 		2968C7B9D5B0CD322BFC6BA5 /* AlertsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8722709AAABD33C139625D0 /* AlertsView.swift */; };
 		2D0A2D28435796BB5DF7C2ED /* PushNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 473421A47E2CCB53FC0AEAF7 /* PushNotificationManager.swift */; };
@@ -57,6 +57,7 @@
 		15B66612E5443B430352FAAB /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		1C6F0F05198A0A2B6FCFBAC5 /* DigestViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DigestViewModel.swift; sourceTree = "<group>"; };
 		1F46151C0C929856200978D9 /* PriceChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceChartView.swift; sourceTree = "<group>"; };
+		2179397FC5DAEEF86E5A5C71 /* JetBrainsMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Regular.ttf"; sourceTree = "<group>"; };
 		29A809E82D0C86C833E0C7B3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		2D439D2E866ACEF64034DD2D /* AlertsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertsViewModel.swift; sourceTree = "<group>"; };
 		3EF9D33F89ABA37D1B82F8FF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -66,7 +67,7 @@
 		5854505856CBD1CDCBC4D3B7 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
 		5856048E7E14BD3C2E4B76B9 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		5BF6E99DAA89FDB9AA24DB3B /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
-		5D2D5EF09E956F001BB97806 /* Clavis.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Clavis.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5D2D5EF09E956F001BB97806 /* Clavis.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clavis.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D8545E60D1223D1BE1CAC01 /* NewsItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsItem.swift; sourceTree = "<group>"; };
 		661F4F5923CFE0B8A301B005 /* UserPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPreferences.swift; sourceTree = "<group>"; };
 		6DE04452D246D5FAAB52974D /* DisplayText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayText.swift; sourceTree = "<group>"; };
@@ -74,7 +75,6 @@
 		865D86FE1054F68F98487739 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		87747037B87C524712EB60CE /* Alert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Alert.swift; sourceTree = "<group>"; };
 		8EB3AB54AAFB8C83DECCA920 /* Inter-Variable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-Variable.ttf"; sourceTree = "<group>"; };
-		B5D24A78E9C13F60A17B2E84 /* JetBrainsMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Regular.ttf"; sourceTree = "<group>"; };
 		907D204F5C1EFC6857CFA92B /* SupabaseAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseAuthService.swift; sourceTree = "<group>"; };
 		A1C38C07B0CF0ED9A35F1AC9 /* HoldingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldingsViewModel.swift; sourceTree = "<group>"; };
 		A5460710645F8A1BFF558CFE /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
@@ -259,7 +259,7 @@
 			isa = PBXGroup;
 			children = (
 				8EB3AB54AAFB8C83DECCA920 /* Inter-Variable.ttf */,
-				B5D24A78E9C13F60A17B2E84 /* JetBrainsMono-Regular.ttf */,
+				2179397FC5DAEEF86E5A5C71 /* JetBrainsMono-Regular.ttf */,
 			);
 			path = Fonts;
 			sourceTree = "<group>";
@@ -318,7 +318,6 @@
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					D6FE17FA964BA9FB7FC4EC18 = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -352,7 +351,7 @@
 			files = (
 				4C67DB796D30B8B099615B2E /* Assets.xcassets in Resources */,
 				16BF21C4806ED2A1C51A21FF /* Inter-Variable.ttf in Resources */,
-				A2F93BC17D4E8A21C6F0553D /* JetBrainsMono-Regular.ttf in Resources */,
+				1D9280D845895C4B75AC1C71 /* JetBrainsMono-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -540,6 +539,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = GYMG4MQS8F;
 				INFOPLIST_FILE = Clavis/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -556,6 +556,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = GYMG4MQS8F;
 				INFOPLIST_FILE = Clavis/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

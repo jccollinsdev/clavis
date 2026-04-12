@@ -5,6 +5,7 @@ struct PriceChartView: View {
     let ticker: String
     let prices: [PricePoint]
     var days: Int = 30
+    @State private var selectedDate: Date?
 
     private var chartPrices: [PricePoint] {
         let sortedPrices = prices.sorted { $0.recordedAt < $1.recordedAt }
@@ -27,6 +28,15 @@ struct PriceChartView: View {
         let lowerBound = Swift.max(0, low - padding)
         let upperBound = Swift.max(high, low + padding)
         return lowerBound...upperBound
+    }
+
+    private var selectedPoint: PricePoint? {
+        guard !chartPrices.isEmpty else { return nil }
+        guard let selectedDate else { return chartPrices.last }
+
+        return chartPrices.min(by: {
+            abs($0.recordedAt.timeIntervalSince(selectedDate)) < abs($1.recordedAt.timeIntervalSince(selectedDate))
+        })
     }
 
     var body: some View {
@@ -52,40 +62,40 @@ struct PriceChartView: View {
                 }
             }
 
-                if chartPrices.isEmpty {
-                    Text("No price data available")
-                        .font(.subheadline)
-                        .foregroundColor(.textSecondary)
-                        .frame(height: 200)
-                } else {
+            if chartPrices.isEmpty {
+                Text("No price data available")
+                    .font(.subheadline)
+                    .foregroundColor(.textSecondary)
+                    .frame(height: 200)
+            } else {
                 Chart(chartPrices) { point in
                     LineMark(
                         x: .value("Date", point.recordedAt),
                         y: .value("Price", point.price)
                     )
-                    .interpolationMethod(.catmullRom)
+                    .interpolationMethod(.linear)
                     .lineStyle(StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
                     .foregroundStyle(priceDirectionColor.gradient)
+
+                    if point.id == selectedPoint?.id {
+                        PointMark(
+                            x: .value("Date", point.recordedAt),
+                            y: .value("Price", point.price)
+                        )
+                        .symbolSize(70)
+                        .foregroundStyle(priceDirectionColor)
+                    }
                 }
                 .chartYScale(domain: yRange ?? 0...100)
                 .chartXAxis(.hidden)
-                .chartXAxis {
-                    AxisMarks(values: .stride(by: .day, count: 10)) { _ in
-                        AxisValueLabel(format: .dateTime.month(.abbreviated).day())
-                    }
-                }
-                .chartYAxis {
-                    AxisMarks { value in
-                        if let price = value.as(Double.self) {
-                            AxisValueLabel {
-                                Text("$\(Int(price))")
-                                    .font(.caption2)
-                                    .foregroundColor(.textSecondary)
-                            }
-                        }
-                    }
-                }
-                .frame(height: 200)
+                .chartYAxis(.hidden)
+                .chartXSelection(value: $selectedDate)
+                .frame(height: 220)
+                .contentShape(Rectangle())
+
+                Text("Drag or tap the chart to inspect a day.")
+                    .font(.caption)
+                    .foregroundColor(.textSecondary)
 
                 HStack {
                     VStack(alignment: .leading) {
@@ -109,10 +119,10 @@ struct PriceChartView: View {
                     }
                     Spacer()
                     VStack {
-                        Text("Current")
+                        Text(selectedPoint?.id == chartPrices.last?.id ? "Current" : "Selected")
                             .font(.caption)
                             .foregroundColor(.textSecondary)
-                        Text("$\(Int(chartPrices.last?.price ?? 0))")
+                        Text("$\(Int(selectedPoint?.price ?? chartPrices.last?.price ?? 0))")
                             .font(.caption)
                             .fontWeight(.semibold)
                             .foregroundColor(.textPrimary)

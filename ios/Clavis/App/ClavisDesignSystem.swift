@@ -62,6 +62,7 @@ enum ClavisTypography {
     static let action            = inter(15, weight: .medium)
     static let topBarTitle       = h1
     static let eyebrow           = label
+    static let brandTitle        = inter(18, weight: .bold)
 }
 
 // MARK: - Color Palette
@@ -289,17 +290,18 @@ struct ClavisAtmosphereBackground: View {
 
 // MARK: - Grade Tag
 
-/// Filled grade badge. 32×32 standard, 32×24 compact. 4px radius. JetBrains Mono 13px.
+/// Filled grade badge. 32×32 standard, 32×24 compact, 56×56 large. 4px radius. JetBrains Mono 13px.
 struct GradeTag: View {
     let grade: String
     var compact: Bool = false
+    var large: Bool = false
 
     var body: some View {
         Text(grade)
-            .font(ClavisTypography.gradeTag)
+            .font(large ? .system(size: 40, weight: .bold, design: .monospaced) : ClavisTypography.gradeTag)
             .fontWeight(.medium)
             .foregroundColor(ClavisGradeStyle.gradeBandText(for: grade))
-            .frame(width: 32, height: compact ? 24 : 32)
+            .frame(width: large ? 56 : (compact ? 24 : 32), height: large ? 56 : (compact ? 24 : 32))
             .background(ClavisGradeStyle.gradeBandBg(for: grade))
             .cornerRadius(4)
     }
@@ -327,28 +329,64 @@ struct RiskBar: View {
     }
 }
 
+// MARK: - Brand Mark
+
+struct ClavisBrandMark: View {
+    var body: some View {
+        Image("AppLogo")
+            .resizable()
+            .scaledToFit()
+            .accessibilityHidden(true)
+    }
+}
+
 // MARK: - Top Bar
 
-struct ClavisTopBar<Leading: View, Trailing: View>: View {
+struct ClavisTopBar<MenuContent: View>: View {
     let title: String
-    @ViewBuilder let leading: Leading
-    @ViewBuilder let trailing: Trailing
+    let onLogoTap: () -> Void
+    @ViewBuilder let menuContent: () -> MenuContent
 
-    init(title: String, @ViewBuilder leading: () -> Leading, @ViewBuilder trailing: () -> Trailing) {
+    init(
+        title: String = "CLAVIS",
+        onLogoTap: @escaping () -> Void,
+        @ViewBuilder menuContent: @escaping () -> MenuContent
+    ) {
         self.title = title
-        self.leading = leading()
-        self.trailing = trailing()
+        self.onLogoTap = onLogoTap
+        self.menuContent = menuContent
     }
 
     var body: some View {
-        HStack(alignment: .center) {
-            leading.frame(width: 52, height: 52, alignment: .leading)
-            Spacer(minLength: 12)
+        ZStack {
+            HStack {
+                Button(action: onLogoTap) {
+                    ClavisBrandMark()
+                        .frame(width: 62, height: 62)
+                        .frame(width: 70, height: 62, alignment: .leading)
+                        .scaleEffect(1.15)
+                }
+                .buttonStyle(.plain)
+
+                Spacer()
+
+                Menu {
+                    menuContent()
+                } label: {
+                    Image(systemName: "line.3.horizontal")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.textPrimary)
+                        .frame(width: 40, height: 40)
+                        .scaleEffect(1.15)
+                }
+                .menuStyle(.borderlessButton)
+            }
+
             Text(title)
-                .font(ClavisTypography.topBarTitle)
+                .font(ClavisTypography.brandTitle)
                 .foregroundColor(.textPrimary)
-            Spacer(minLength: 12)
-            trailing.frame(width: 52, height: 52, alignment: .trailing)
+                .kerning(2.1)
+                .scaleEffect(1.15)
         }
     }
 }

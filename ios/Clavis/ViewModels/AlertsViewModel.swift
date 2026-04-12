@@ -4,6 +4,7 @@ import SwiftUI
 @MainActor
 class AlertsViewModel: ObservableObject {
     @Published var alerts: [Alert] = []
+    @Published var holdings: [Position] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
 
@@ -16,6 +17,7 @@ class AlertsViewModel: ObservableObject {
 
         do {
             alerts = try await api.fetchAlerts()
+            holdings = (try? await api.fetchHoldings()) ?? []
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -42,6 +44,7 @@ class AlertsViewModel: ObservableObject {
                     id: alert.id,
                     type: alert.type,
                     ticker: alert.positionTicker,
+                    positionId: positionId(for: alert.positionTicker),
                     alerts: [alert],
                     latestTimestamp: alert.createdAt
                 ))
@@ -56,6 +59,7 @@ class AlertsViewModel: ObservableObject {
                     id: alert.id,
                     type: alert.type,
                     ticker: alert.positionTicker,
+                    positionId: positionId(for: alert.positionTicker),
                     alerts: groupAlerts,
                     latestTimestamp: latestTimestamp
                 ))
@@ -75,5 +79,10 @@ class AlertsViewModel: ObservableObject {
 
         let timeDifference = abs(alert1.createdAt.timeIntervalSince(alert2.createdAt))
         return timeDifference <= groupingWindowMinutes * 60
+    }
+
+    private func positionId(for ticker: String?) -> String? {
+        guard let ticker else { return nil }
+        return holdings.first(where: { $0.ticker.caseInsensitiveCompare(ticker) == .orderedSame })?.id
     }
 }

@@ -37,25 +37,25 @@ struct MainTabView: View {
                 }
                 .tag(0)
 
-            HoldingsListView()
+            HoldingsListView(selectedTab: $selectedTab)
                 .tabItem {
                     Label("Holdings", systemImage: "briefcase.fill")
                 }
                 .tag(1)
 
-            DigestView()
+            DigestView(selectedTab: $selectedTab)
                 .tabItem {
                     Label("Digest", systemImage: "newspaper.fill")
                 }
                 .tag(2)
 
-            AlertsView()
+            AlertsView(selectedTab: $selectedTab)
                 .tabItem {
                     Label("Alerts", systemImage: "bell.fill")
                 }
                 .tag(3)
 
-            SettingsView()
+            SettingsView(selectedTab: $selectedTab)
                 .tabItem {
                     Label("Settings", systemImage: "gearshape.fill")
                 }

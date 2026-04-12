@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DigestView: View {
+    @Binding var selectedTab: Int
     @StateObject private var viewModel = DigestViewModel()
 
     private var activeRunningRun: AnalysisRun? {
@@ -17,57 +18,90 @@ struct DigestView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    if let activeRun = activeRunningRun {
-                        AnalysisRunStatusCard(run: activeRun)
-                    }
-
-                    if let errorMessage = viewModel.errorMessage {
-                        DigestErrorCard(message: errorMessage) {
-                            Task { await viewModel.loadDigest() }
-                        }
-                    }
-
-                    if let timeoutMessage = viewModel.timeoutMessage {
-                        DigestTimeoutCard(message: timeoutMessage)
-                    }
-
-                    if let digest = viewModel.todayDigest {
-                        DigestScoreSummaryCard(digest: digest, holdings: viewModel.holdings)
-                        DigestLeadCard(digest: digest)
-                        DigestMacroSectionView(digest: digest)
-                        DigestSectorOverviewSection(digest: digest)
-                        DigestPositionImpactsSection(digest: digest)
-                        WhatToDoSection(digest: digest)
-                        PositionsSection(holdings: viewModel.holdings)
-                        FullNarrativeSection(digest: digest)
-                    } else if shouldShowIdleState {
-                        DigestEmptyStateCard {
-                            Task { await viewModel.triggerAnalysis() }
-                        }
-                    }
-
-                    if viewModel.isLoading && viewModel.todayDigest == nil && activeRunningRun == nil && viewModel.errorMessage == nil {
-                        ClavisLoadingCard(title: "Loading digest", subtitle: "Fetching the latest morning summary.")
-                    }
-                }
-                .padding(.horizontal, ClavisTheme.screenPadding)
-                .padding(.vertical, ClavisTheme.largeSpacing)
-            }
-            .background(ClavisAtmosphereBackground())
-            .navigationTitle("Morning Digest")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
+            VStack(spacing: 0) {
+                ClavisTopBar(onLogoTap: { selectedTab = 0 }) {
                     Button {
                         Task { await viewModel.triggerAnalysis() }
                     } label: {
-                        Image(systemName: "arrow.clockwise")
+                        Label("Run Digest", systemImage: "arrow.clockwise")
                     }
                     .disabled(viewModel.isLoading || viewModel.activeRun?.status == "running")
+
+                    Divider()
+
+                    Button {
+                        selectedTab = 1
+                    } label: {
+                        Label("Holdings", systemImage: "briefcase.fill")
+                    }
+
+                    Button {
+                        selectedTab = 2
+                    } label: {
+                        Label("Digest", systemImage: "newspaper.fill")
+                    }
+
+                    Button {
+                        selectedTab = 3
+                    } label: {
+                        Label("Alerts", systemImage: "bell.fill")
+                    }
+
+                    Button {
+                        selectedTab = 4
+                    } label: {
+                        Label("Settings", systemImage: "gearshape.fill")
+                    }
+                }
+                .padding(.horizontal, ClavisTheme.screenPadding)
+                .padding(.top, 8)
+                .padding(.bottom, 12)
+
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
+                        if let activeRun = activeRunningRun {
+                            AnalysisRunStatusCard(run: activeRun)
+                        }
+
+                        if let errorMessage = viewModel.errorMessage {
+                            DigestErrorCard(message: errorMessage) {
+                                Task { await viewModel.loadDigest() }
+                            }
+                        }
+
+                        if let timeoutMessage = viewModel.timeoutMessage {
+                            DigestTimeoutCard(message: timeoutMessage)
+                        }
+
+                        if let digest = viewModel.todayDigest {
+                            DigestScoreSummaryCard(digest: digest, holdings: viewModel.holdings)
+                            DigestLeadCard(digest: digest)
+                            DigestMacroSectionView(digest: digest)
+                            DigestSectorOverviewSection(digest: digest)
+                            DigestPositionImpactsSection(digest: digest)
+                            WhatToDoSection(digest: digest)
+                            PositionsSection(holdings: viewModel.holdings)
+                            FullNarrativeSection(digest: digest)
+                        } else if shouldShowIdleState {
+                            DigestEmptyStateCard {
+                                Task { await viewModel.triggerAnalysis() }
+                            }
+                        }
+
+                        if viewModel.isLoading && viewModel.todayDigest == nil && activeRunningRun == nil && viewModel.errorMessage == nil {
+                            ClavisLoadingCard(title: "Loading digest", subtitle: "Fetching the latest morning summary.")
+                        }
+                    }
+                    .padding(.horizontal, ClavisTheme.screenPadding)
+                    .padding(.vertical, ClavisTheme.largeSpacing)
+                    .padding(.bottom, ClavisTheme.extraLargeSpacing)
+                }
+                .refreshable {
+                    await viewModel.loadDigest()
                 }
             }
+            .background(ClavisAtmosphereBackground())
+            .toolbar(.hidden, for: .navigationBar)
             .onAppear {
                 if viewModel.todayDigest == nil && viewModel.digestHistory.isEmpty && !viewModel.isLoading {
                     Task { await viewModel.loadDigest() }

@@ -37,6 +37,16 @@ DIMENSION_KEYS = [
     "volatility_trend",
 ]
 
+GRADE_ORDER = ("A", "B", "C", "D", "F")
+GRADE_THRESHOLDS = {
+    "A": 80,
+    "B": 65,
+    "C": 50,
+    "D": 35,
+    "F": 0,
+}
+GRADE_HYSTERESIS = 3.0
+
 
 def _neutral_dimension_count(scores: dict | None) -> int:
     if not isinstance(scores, dict):
@@ -134,6 +144,29 @@ def score_to_grade(score: float) -> str:
     return "F"
 
 
+def _apply_grade_hysteresis(score: float, previous_grade: str | None) -> str:
+    current_grade = score_to_grade(score)
+    previous_grade = (previous_grade or "").strip().upper()
+
+    if previous_grade not in GRADE_THRESHOLDS:
+        return current_grade
+
+    if current_grade == previous_grade:
+        return current_grade
+
+    previous_index = GRADE_ORDER.index(previous_grade)
+    current_index = GRADE_ORDER.index(current_grade)
+
+    if current_index < previous_index:
+        if score >= GRADE_THRESHOLDS[current_grade] + GRADE_HYSTERESIS:
+            return current_grade
+        return previous_grade
+
+    if score < GRADE_THRESHOLDS[previous_grade] - GRADE_HYSTERESIS:
+        return current_grade
+    return previous_grade
+
+
 async def score_position(
     position: dict,
     position_report: dict,
@@ -158,7 +191,10 @@ async def score_position(
                 },
                 {"role": "user", "content": prompt},
             ],
-            temperature=0.1,
+            temperature=0.0,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0,
             max_tokens=1500,
         )
         return result_text, extract_json_object(result_text, {})
@@ -191,12 +227,26 @@ async def score_position(
     }
 
     weighted = calculate_weighted_score(normalized_scores)
-    grade = score_to_grade(weighted)
-    valid_grades = {"A", "B", "C", "D", "F"}
-    if grade not in valid_grades:
-        grade = "C"
-    total = round(weighted, 1)
+    total = round(
+        smooth_score_change(
+            new_score=weighted,
+            previous_score=position_report.get("previous_total_score"),
+        ),
+        1,
+    )
+    grade = _apply_grade_hysteresis(total, position_report.get("previous_grade"))
     dimension_rationale = scores.get("dimension_rationale") or {}
+
+    if position_report.get("previous_grade") and grade != score_to_grade(weighted):
+        reasoning = scores.get("reasoning", "")
+        if reasoning:
+            reasoning = (
+                f"{reasoning} Grade held at {grade} to avoid churn near the threshold."
+            )
+        else:
+            reasoning = f"Grade held at {grade} to avoid churn near the threshold."
+    else:
+        reasoning = scores.get("reasoning", "")
 
     return {
         "news_sentiment": normalized_scores["news_sentiment"],
@@ -205,8 +255,8 @@ async def score_position(
         "volatility_trend": normalized_scores["volatility_trend"],
         "total_score": total,
         "grade": grade,
-        "reasoning": scores.get("reasoning", ""),
-        "grade_reason": scores.get("reasoning", ""),
+        "reasoning": reasoning,
+        "grade_reason": reasoning,
         "evidence_summary": position_report.get("summary", ""),
         "dimension_rationale": dimension_rationale,
         "mirofish_used": mirofish_used,
@@ -355,7 +405,10 @@ Respond with ONLY the JSON object. Start with {{ and end with }}."""
                 },
                 {"role": "user", "content": prompt},
             ],
-            temperature=0.1,
+            temperature=0.0,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0,
             max_tokens=800,
         )
         return result_text, _parse_batch_scores(result_text, tickers)
@@ -398,8 +451,20 @@ Respond with ONLY the JSON object. Start with {{ and end with }}."""
             key: clamp_score(raw_scores.get(key, 50), 50) for key in DIMENSION_KEYS
         }
         weighted = calculate_weighted_score(normalized)
-        grade = score_to_grade(weighted)
-        total = round(weighted, 1)
+        total = round(
+            smooth_score_change(
+                new_score=weighted,
+                previous_score=p.get("previous_total_score"),
+            ),
+            1,
+        )
+        grade = _apply_grade_hysteresis(total, p.get("previous_grade"))
+        reasoning = raw_scores.get("reasoning", "")
+        if p.get("previous_grade") and grade != score_to_grade(weighted):
+            if reasoning:
+                reasoning = f"{reasoning} Grade held at {grade} to avoid churn near the threshold."
+            else:
+                reasoning = f"Grade held at {grade} to avoid churn near the threshold."
         results.append(
             {
                 "news_sentiment": normalized["news_sentiment"],
@@ -407,9 +472,9 @@ Respond with ONLY the JSON object. Start with {{ and end with }}."""
                 "position_sizing": normalized["position_sizing"],
                 "volatility_trend": normalized["volatility_trend"],
                 "total_score": total,
-                "grade": raw_scores.get("grade") or grade,
-                "reasoning": raw_scores.get("reasoning", ""),
-                "grade_reason": raw_scores.get("reasoning", ""),
+                "grade": grade,
+                "reasoning": reasoning,
+                "grade_reason": reasoning,
                 "evidence_summary": p.get("summary", ""),
                 "dimension_rationale": raw_scores.get("dimension_rationale") or {},
                 "mirofish_used": p.get("mirofish_used", False),
