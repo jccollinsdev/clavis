@@ -10,7 +10,9 @@ Clavis monitors your holdings, filters relevant news, and scores downside risk u
 
 ## Status
 
-**Currently in:** Phase 2 — Legal Documents, Onboarding, and Public Trust Surface
+**Currently working on:** Shared Ticker Intelligence Platform Migration
+
+**Phase 1–2 roadmap items:** Security, legal, onboarding — mostly complete
 
 **Gate 0 blockers remaining before launch can proceed:**
 - Paid Apple Developer account
@@ -21,7 +23,102 @@ Clavis monitors your holdings, filters relevant news, and scores downside risk u
 
 ---
 
-## Progress
+## Architecture Migration: Shared Ticker Intelligence Platform
+
+**Goal:** Move Clavis from a user-scoped, on-demand analysis model to a shared ticker intelligence platform.
+
+- Free users read the latest cached daily ticker analysis
+- Pro users can force-refresh a ticker intra-day
+- A refresh updates the shared ticker cache for everyone
+- Holdings, watchlists, search, and digest all read from the same canonical ticker snapshot
+- This reduces analysis cost, makes watchlists natural, improves consistency, and turns Clavis into a true risk data platform
+
+### Migration Progress
+
+#### Stage 1: Schema Foundation ✅ Complete
+
+| Table | Purpose | Status |
+|-------|---------|--------|
+| `ticker_universe` | Supported tickers (S&P 500 seeded), priority ranking | ✅ |
+| `ticker_risk_snapshots` | Canonical shared risk output (grade, score, reasoning) | ✅ |
+| `ticker_news_cache` | Shared relevant news per ticker | ✅ |
+| `ticker_refresh_jobs` | Job audit, deduplication, and refresh gating | ✅ |
+| `watchlists` | User-defined collections | ✅ |
+| `watchlist_items` | Ticker membership in watchlists | ✅ |
+| `ticker_metadata` extended | PE ratio, 52-week high/low, avg volume, price snapshot | ✅ |
+
+#### Stage 2: Backend API Layer 🔄 In Progress
+
+| Route | Description | Status |
+|-------|-------------|--------|
+| `GET /tickers/search` | Search supported tickers | ✅ |
+| `GET /tickers/{ticker}` | Ticker detail bundle | ✅ |
+| `POST /tickers/{ticker}/refresh` | Pro-only manual refresh | ✅ |
+| `GET /tickers/{ticker}/refresh-status` | Refresh job status | ✅ |
+| `GET /watchlists` | List user's watchlists | ✅ |
+| `POST /watchlists` | Create watchlist | ✅ |
+| `POST /watchlists/{id}/items` | Add ticker to watchlist | ✅ |
+| `DELETE /watchlists/{id}/items/{ticker}` | Remove ticker | ✅ |
+
+| Backend Service | Description | Status |
+|----------------|-------------|--------|
+| `ticker_cache_service` | Shared ticker cache read/write, S&P 500 seed, search | ✅ |
+| Daily batch refresh scheduler | 3AM ET refresh of S&P 500 universe | ✅ |
+| Pro manual refresh path | `refresh_ticker_snapshot()` reusable function | ✅ |
+
+#### Stage 3: iOS Integration 🔄 In Progress
+
+| Screen / Feature | Description | Status |
+|-----------------|-------------|--------|
+| `TickerDetailView` | Canonical ticker intelligence screen | ✅ |
+| `TickerSearchSheet` | Search-first add position flow | ✅ |
+| Holdings enriched from ticker cache | Positions read canonical snapshots | ✅ |
+| Watchlist UI | User watchlist management | 🔄 Pending |
+| Add-position flow flip | Instant add (no blocking analysis) | 🔄 Pending |
+| Digest cutover | Source canonical snapshots instead of position analysis | 🔄 Pending |
+
+#### Stage 4: Digest & Alerts Migration ⏳ Pending
+
+- Digest pipeline refactored to read canonical ticker snapshots
+- Alerts fan out from canonical snapshot changes
+
+#### Stage 5: Legacy Cleanup ⏳ Pending
+
+- Retire or archive old `risk_scores` / `position_analyses` writes
+- Keep as historical audit only
+
+### What's Been Built So Far
+
+**Backend:**
+- S&P 500 universe seeded (505 tickers, priority-ranked)
+- Shared `ticker_risk_snapshots` table — canonical risk output per ticker
+- Shared `ticker_news_cache` table — relevant news per ticker
+- `ticker_refresh_jobs` for job deduplication and audit
+- `GET /tickers/search` — searches `ticker_universe`, returns ticker + latest grade + freshness
+- `GET /tickers/{ticker}` — full ticker detail bundle (profile, price, risk snapshot, news, user context)
+- `POST /tickers/{ticker}/refresh` — pro-only, enqueues shared refresh job, writes canonical snapshot
+- `GET /tickers/{ticker}/refresh-status` — job status polling
+- Full watchlist CRUD endpoints
+- Daily 3AM ET batch refresh job in scheduler
+- Holdings and dashboard routes now prefer canonical ticker snapshots
+
+**iOS:**
+- `TickerDetailView` — canonical ticker intelligence screen
+- `TickerSearchSheet` — search-first add position flow
+- Holdings enriched with cached ticker snapshots
+- `OnboardingViewModel` and 4-screen onboarding flow complete
+
+### What's Left
+
+- iOS watchlist management UI (add/remove tickers, view watchlist)
+- iOS holdings add flow flip — instant add without blocking analysis
+- Digest pipeline cutover to canonical ticker snapshots
+- Alert fan-out from snapshot changes
+- Legacy analysis table cleanup
+
+---
+
+## Roadmap Progress
 
 ### Phase 1 — Security, Legal Reframing, and Critical Bug Fixes ✅ Complete
 
@@ -49,8 +146,8 @@ Clavis monitors your holdings, filters relevant news, and scores downside risk u
 | Privacy Policy page | 🔄 Pending |
 | Terms of Service page | 🔄 Pending |
 | Refund Policy page | 🔄 Pending |
-| Methodology page | 🔄 Pending |
-| Onboarding UX refinement | 🔄 In Progress |
+| Methodology page | ✅ Complete |
+| Onboarding UX | ✅ Complete |
 
 ### Phase 3 — Website, Email Infrastructure, and App Store Trust Prep ⏳ Pending
 
@@ -144,6 +241,12 @@ All endpoints require `Authorization: Bearer <jwt>` header.
 | `/preferences` | GET/PATCH | User settings |
 | `/preferences/acknowledge` | POST | Onboarding completion |
 | `/trigger-analysis` | POST | Run analysis |
+| `/tickers/search` | GET | Search supported tickers |
+| `/tickers/{ticker}` | GET | Ticker detail + snapshot |
+| `/tickers/{ticker}/refresh` | POST | Pro-only manual refresh |
+| `/tickers/{ticker}/refresh-status` | GET | Refresh job status |
+| `/watchlists` | GET/POST | List/create watchlists |
+| `/watchlists/{id}/items` | POST/DELETE | Add/remove watchlist items |
 
 ---
 
@@ -156,6 +259,7 @@ Clavis/
 ├── docs/
 │   ├── STATE/          # Project state
 │   └── STATUS/         # Roadmap
+├── supabase/migrations/ # Database migrations
 └── scripts/            # Dev helper scripts
 ```
 
