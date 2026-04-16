@@ -1,547 +1,301 @@
-# Clavis — Ultimate Final Build Plan
+# Clavis — Current Delivery Roadmap
 
-**Last updated:** 2026-04-12
+**Last updated:** 2026-04-16
 
-**Goal:** Take Clavis from working MVP to a marketable, defensible, App Store-ready v1.
+**Goal:** Take Clavis from a feature-rich prototype and shared-ticker intelligence build into a secure, trustworthy, launch-ready v1.
 
-**Core positioning:** Clavis is a **portfolio risk data platform**, not an investment adviser, broker, or trading app. The product must describe what is happening in a portfolio, not tell the user what to do.
-
----
-
-## 0. Launch Principles
-
-### Bloomberg Terminal Defense
-
-Before any copy, feature, or screen ships, apply this test:
-
-> Is this telling the user something that is true right now, or is it telling them what to do?
-
-If it tells the user what to do, rewrite it.
-
-### Product Rules
-
-- No `Buy`, `Sell`, `Exit`, `Reduce`, `Add`, `Hold`, or equivalent action signals.
-- No `What To Do` sections.
-- Scores and grades are presented as informational model outputs only.
-- Every score view must include a short disclaimer.
-- Onboarding must require an explicit risk acknowledgment before the first score is shown.
-- Legal docs, App Store metadata, and in-app disclosures must all say the same thing.
+**Positioning:** Clavis is a portfolio risk data platform for self-directed investors. It describes portfolio risk, change, and evidence. It does not provide personalized investment advice.
 
 ---
 
-## 1. Gate 0 — Business, Accounts, and External Approvals
+## 0. Product Rules
 
-These happen before or immediately at the start of the build. Several later phases are blocked on them.
+These rules apply across every phase.
+
+- No buy/sell/hold style recommendations
+- No sections framed as prescriptive advice
+- Scores and grades are informational model outputs only
+- Every score surface needs disclaimer and freshness context
+- Weak evidence should be shown as limited-confidence output, not false certainty
+- Public legal copy, App Store copy, backend output, and in-app UX must describe the product the same way
+
+---
+
+## 1. External Gate
+
+These are still hard blockers outside the codebase.
 
 ### Apple / Revenue
 
-- Paid Apple Developer account active (`$99/year`)
+- Paid Apple Developer account active
 - App Store Connect app created
-- Bundle ID reserved and locked
-- Apple tax forms completed
-- Apple banking info completed
-- RevenueCat account created
-- RevenueCat tax and payout forms completed
+- Bundle ID finalized and reserved
+- Tax and banking completed
+- RevenueCat account created and configured
 
-### Company / Finance
+### Business / Legal
 
-- Business entity formed (`LLC` or equivalent)
-- Business bank account opened
-- EIN obtained if applicable
-- Basic accounting system chosen (`Wave`, spreadsheet, or equivalent)
-
-### Domain / Email
-
-- `support@getclavix.com` mailbox exists and is monitored
-- Transactional email provider chosen (`Resend`, `Postmark`, or `SendGrid`)
-- SPF configured
-- DKIM configured
-- DMARC configured
+- Business entity and banking in place
+- Fintech / securities counsel review completed or scheduled
+- Decision documented: Clavis remains in the informational/data lane
 
 ### SnapTrade
 
-- SnapTrade developer account application submitted on Day 1
-- SnapTrade approval process started early
-- SnapTrade terms reviewed
-- SnapTrade privacy policy requirements reviewed
-
-### Legal
-
-- Fintech / securities attorney consultation scheduled or completed
-- Decision documented: Clavis stays in the information/data lane, not advice
-- Third-party processor agreements reviewed or tracked:
-  - Supabase
-  - SnapTrade
-  - MiniMax
-  - Polygon
+- Developer application submitted
+- Approval process started
+- Terms and privacy requirements reviewed
 
 ---
 
-## 2. Phase 1 — Security, Legal Reframing, and Critical Product Bugs
+## 2. Phase 1 — Security And Production Hardening
 
-This is the true first build phase. Nothing user-facing that increases exposure should ship before this is done.
+**Status:** In progress
 
-### Security Foundation
+This is the highest-risk open area and must finish before launch.
 
-1. **JWT verification**
-   - Replace current shared-secret style verification with proper Supabase JWT verification
-   - Verify signatures cryptographically via JWKS / correct signing config
-   - Fail closed on invalid tokens
+### What is already done
 
-2. **Supabase RLS audit and hardening**
-   - Verify RLS on every table
-   - Confirm `prices` table intentionally uses a broad read policy
-   - Test with an adversarial second user token
-   - Confirm no cross-user reads are possible
+- Supabase-backed JWT validation via `auth.get_user` is wired in backend middleware
+- Broad RLS audit work has been performed and supporting migrations/docs exist
+- HTTPS production URL is in use for the app backend
+- Health endpoint exists
 
-3. **Environment audit**
-   - Remove placeholders and dev-only values from production config
-   - Verify no secrets are hardcoded in app binaries or repo-tracked files
-   - Separate production vs staging environment config
+### What still needs to be done
 
-4. **HTTPS-only posture**
-   - No HTTP fallback anywhere
-   - Verify production backend, callbacks, and support URLs are HTTPS
+1. Remove repo-tracked secrets and rotate exposed credentials
+2. Remove or strictly gate debug/test/internal production surfaces
+3. Replace fail-open route-prefix auth enforcement with safer route protection
+4. Lock CORS to explicit origins
+5. Reduce overuse of service-role DB access for normal user flows where possible
+6. Add monitoring, structured logging, and backend error alerting
+7. Confirm database backup and restore procedures
+8. Add account deletion and export APIs
 
-### Legal/Product Reframing
+### Exit criteria
 
-1. Remove all advisory/action language from iOS and backend output
-2. Replace action-oriented labels with observational labels
-3. Replace `portfolio advice` style digest sections with `what changed` or `risk summary`
-4. Add score disclaimer text anywhere a grade/score is displayed
-5. Add visible data freshness timestamps to scores and digest content
-6. Add limited-data state when evidence is weak or missing
-
-### Critical Bug Fixes
-
-1. Holdings pull-to-refresh `Cancelled` error
-2. Digest refresh false failure state
-3. Position chart reliability and chart data correctness
-4. Missing `/preferences/alerts` endpoint
-5. Persist missing preferences fields (`summary_length`, `weekday_only`, and alert prefs if applicable)
-6. Offline and no-network handling for core screens
-
-### Notification Reliability Foundation
-
-1. Confirm production APNs configuration, not just sandbox
-2. Add token refresh handling
-3. Respect notification opt-out / invalid token cleanup
+- No live secrets in repo-tracked files or docs
+- No public internal/debug surfaces
+- Basic monitoring and recovery posture in place
+- Tenant isolation and auth behavior tested with adversarial scenarios
 
 ---
 
-## 3. Phase 2 — Legal Documents, Onboarding, and Public Trust Surface
+## 3. Phase 2 — Shared Ticker Intelligence And Evidence Quality
 
-### Legal Documents
+**Status:** In progress
 
-Publish real public URLs, accessible without login:
+This is the core product migration currently underway.
 
-- `/privacy`
-- `/terms`
-- `/refund`
-- `/methodology`
+### What is already done
 
-### Privacy Policy Must Cover
+- Shared ticker schema foundation exists
+- S&P universe seeding exists
+- Shared ticker search/detail/refresh routes exist
+- Default watchlist routes exist
+- Holdings and position views can read from shared ticker intelligence
+- S&P backfill and snapshot sync paths exist
+- Google News RSS decoding, article resolution, body extraction, and artifact capture have been added
+- Google RSS throttling is now configurable with `GOOGLE_NEWS_RSS_DELAY_SECONDS`
 
-- What data is collected
-  - name
-  - email
-  - DOB
-  - holdings
-  - brokerage connection tokens / metadata
-  - device info and notification token
-- How data is used
-  - risk analysis
-  - digest generation
-  - notifications
-  - subscription management
-- Third parties
-  - Supabase
-  - SnapTrade
-  - MiniMax
-  - Polygon
-  - Apple
-- Data retention
-- Deletion rights
-- Export rights
-- Contact information
-- Last updated date
+### What still needs to be done
 
-### Terms Must Cover
+1. Finish validating the full shared-cache S&P AI backfill path end to end
+2. Keep improving evidence quality so wrapper, recap, and broken pages do not contaminate scoring
+3. Tighten article resolver retries, telemetry, and failure reporting
+4. Verify ticker detail parity with position detail on real shared-cache runs
+5. Finish alert fanout behavior based on shared ticker snapshot changes
+6. Confirm digest synthesis is correct when driven by shared ticker intelligence
+7. Decide what legacy tables remain operational versus historical-only
 
-- Service description as a data product
-- Prominent not-financial-advice disclaimer
-- Subscription terms
-- Trial terms
-- Cancellation policy
-- Refund policy link or language
-- Limitation of liability
-- Governing law
-- Last updated date
+### Exit criteria
 
-### Refund Policy
-
-- Explicit policy published publicly
-- Matches App Store and support responses
-
-### Methodology Page
-
-- Data sources
-- Five risk dimensions
-- What the model measures
-- What the model does not measure
-- Explicit note that outputs are informational model results, not recommendations
-
-### Onboarding
-
-Build a full onboarding flow with:
-
-1. Welcome / value proposition
-2. Account creation / sign in
-3. Name and DOB collection
-4. Risk acknowledgment screen
-5. Notification permission request
-6. First position flow
-
-### Risk Acknowledgment Requirement
-
-Before the user sees any score:
-
-- Show full acknowledgment copy
-- Require explicit acceptance
-- Log version + timestamp in database
+- Shared ticker intelligence is the reliable canonical source for ticker-level analysis
+- Full S&P backfill completes consistently with acceptable evidence quality
+- Shared cache outputs are stable enough for daily production use
 
 ---
 
-## 4. Phase 3 — Website, Email Infrastructure, and App Store Trust Prep
+## 4. Phase 3 — Legal Documents And Public Trust Surface
 
-### Website Fixes
+**Status:** In progress
 
-The marketing site must be cleaned up before submission.
+### What is already done
 
-1. Mobile optimization
-2. Real privacy and terms links, not `#`
-3. Risk disclaimer visible in footer at minimum
-4. Support/contact page or support email visible
-5. Fix or remove `Join 2+ investors`
-6. OG tags and social preview image
-7. Favicon across required sizes
-8. Basic SEO
-   - title tag
-   - meta description
-9. Cookie consent banner if analytics are installed
+- Onboarding risk framing exists in the app
+- Score disclaimers and freshness text exist in score-oriented views
+- Methodology content exists in docs and app-facing surfaces
 
-### Email Infrastructure
+### What still needs to be done
 
-Required transactional flows:
+1. Publish real public URLs for:
+   - `/privacy`
+   - `/terms`
+   - `/refund`
+   - `/methodology`
+2. Ensure privacy policy matches real data collection and processors
+3. Ensure terms match subscription and trial behavior
+4. Add versioned risk-acknowledgment persistence, not just timestamp logging
+5. Unify branding, domain, and support/contact references across docs, backend, app, and launch assets
 
-1. Waitlist confirmation
-2. Welcome email on signup
-3. Trial ending reminder
-4. Payment failed notification
-5. Account deletion confirmation
+### Exit criteria
 
-Required setup:
-
-- transactional provider configured
-- SPF / DKIM / DMARC valid
-- email templates created
-- support inbox monitored
-
-### App Store Connect Baseline Setup
-
-This must be ready before subscription product setup.
-
-1. App name finalized
-2. Subtitle finalized
-3. Keywords drafted
-4. Description drafted
-5. Copyright entered: `© 2026 Clavix`
-6. Primary category: `Finance`
-7. Secondary category decided if needed
-8. Age rating questionnaire completed
-9. iPad support decision made
-10. Minimum iOS version decided
+- Public legal pages exist and are accurate
+- Risk acknowledgment is properly versioned
+- Trust surface is consistent everywhere users or reviewers see it
 
 ---
 
-## 5. Phase 4 — Payments, RevenueCat, and Subscription Enforcement
+## 5. Phase 4 — iOS UX And Core Product Quality
 
-**Prerequisite:** Apple Developer account, App Store Connect app, bundle ID, tax/banking, and products must already be set up.
+**Status:** In progress
 
-### App Store / RevenueCat Setup
+### What is already done
 
-1. Create subscription product(s) in App Store Connect
-2. Configure RevenueCat entitlements
-3. Integrate StoreKit 2 + RevenueCat SDK in iOS app
-4. Add backend webhook endpoint for subscription state updates
-5. Add restore purchases flow
+- Auth gate and onboarding routing exist
+- Dashboard, holdings, digest, alerts, settings, ticker search, and ticker detail screens exist
+- Cached ticker snapshot data is surfaced in holdings and ticker flows
 
-### Commercial Model
+### What still needs to be done
 
-#### Free
+1. Remove duplicated hamburger-style top-level navigation in favor of more native iOS navigation patterns
+2. Improve destructive actions and row-level interaction patterns in holdings
+3. Complete watchlist UX on iOS
+4. Improve onboarding flow control and prevent accidental bypass behavior
+5. Improve offline/no-network states and degraded read-only behavior
+6. Improve notification deep-link handling
+7. Run accessibility, Dynamic Type, and appearance audits
+8. Add stronger search/sort/filter UX where still missing
 
-- 3 positions max
-- Simulated positions count toward the 3-position limit
-- No live brokerage sync after trial ends
+### Exit criteria
 
-#### Plus
-
-- `$15/month`
-- Real-time brokerage syncing via SnapTrade
-- Higher-value premium features as finalized
-
-### Trial
-
-- 1 month free for all new users
-- Trial countdown visible in app
-- Trial ending emails sent
-- Downgrade behavior after expiry is explicit and tested
-
-### Enforcement
-
-- Backend hard-enforces position limits
-- UI reflects plan limits
-- Subscription restore supported
-- Subscription management link present in app
+- Core app flows feel coherent on iPhone
+- Failure states are understandable to users
+- The app is usable and credible under normal daily conditions
 
 ---
 
-## 6. Phase 5 — SnapTrade and Portfolio Connection
+## 6. Phase 5 — Notifications And User Preference Enforcement
 
-### Start Early
+**Status:** In progress
 
-SnapTrade account application starts in Phase 1, even though implementation lands here.
+### What is already done
 
-### Implementation
+- Device token registration path exists
+- Alert preference fields exist in backend and iOS settings models
+- Scheduler and alert generation flows exist
 
-1. Backend endpoints for user registration and connection flow
-2. OAuth / redirect or hosted connect flow support
-3. Callback handling and URL scheme registration
-4. Brokerage account sync into holdings model
-5. Disconnect and resync flows
+### What still needs to be done
 
-### Constraints
+1. Finish token lifecycle handling across login, logout, refresh, and invalid token cleanup
+2. Enforce quiet hours and alert preference granularity in real send paths
+3. Ensure disabling notifications shuts down related scheduled work correctly
+4. Complete deep-link routing from push notifications
+5. Validate production APNs configuration in release conditions
 
-- Review SnapTrade terms and privacy requirements before shipping
-- Do not depend on App Review creating their own brokerage connection
-- Provide demo/testing instructions for Apple reviewers using a seeded account instead
+### Exit criteria
 
----
-
-## 7. Phase 6 — App UX, Simulated Risk, and Profile Experience
-
-### Navigation / Information Architecture
-
-1. Remove Settings from bottom nav if desired
-2. Replace hamburger content with account/profile oriented surface
-3. Add profile screen
-   - name
-   - DOB
-   - plan status
-   - brokerages
-   - manage subscription
-   - support / feedback
-
-### Holdings Improvements
-
-1. Search bar on holdings
-2. Stock lookup before adding
-3. `Simulate Risk` flow before entering a real position
-4. Simulated positions displayed clearly as simulated
-5. Search + sort + filter improvements
-
-### Additional UX Work
-
-1. Empty states on every screen
-2. Better chart presentation and reliability
-3. Dark mode audit
-4. Dynamic Type audit
-5. Accessibility audit
+- Notifications are reliable
+- User notification preferences are fully respected
+- Push taps land in the correct place in the app
 
 ---
 
-## 8. Phase 7 — Backend Production Readiness
+## 7. Phase 6 — Payments, Entitlements, And Access Control
 
-### Operational Readiness
+**Status:** Not started
 
-1. Add `/v1` route prefixing strategy or document versioning plan
-2. Health check endpoint verified (`GET /health`)
-3. Graceful shutdown handling
-4. Scheduled job monitoring
-5. Structured logging in production
-6. Error alerting for backend 500s
-7. Crash reporting / backend monitoring
-8. Cold-start mitigation if hosting sleeps
+### Scope
 
-### Database / Infra
+1. RevenueCat and StoreKit 2 integration
+2. Free vs paid entitlement model
+3. Restore purchases flow
+4. Trial state and expiry handling
+5. Backend enforcement for gated features and limits
+6. Subscription management surface in the app
 
-1. Connection pooling strategy documented
-2. Scheduled digest persistence and restart resilience
-3. Database backups confirmed
-4. Backup restore tested
-5. Data retention jobs implemented in code
+### Exit criteria
 
-### Privacy Operations
-
-1. `DELETE /account` endpoint
-2. `GET /account/export` endpoint
-3. Data deletion flow tested
-4. Export format defined and tested
+- Users can buy, restore, and manage subscription access
+- Free vs paid product rules are enforced consistently in backend and UI
 
 ---
 
-## 9. Phase 8 — Notifications and Alert Quality
+## 8. Phase 7 — SnapTrade And Live Portfolio Connections
 
-### Infrastructure
+**Status:** Not started
 
-1. Production APNs entitlement enabled
-2. Push entitlement verified in release build
-3. Backend only sends to valid, current tokens
-4. Token updates handled correctly
+### Scope
 
-### Product Quality
+1. User registration and connection endpoints
+2. Hosted connect / OAuth flow
+3. Callback handling and app deep linking
+4. Brokerage sync into holdings
+5. Disconnect and resync support
 
-1. Alert preference granularity
-2. Silent hours respected by default
-3. Notification rate limits per position / day
-4. Alert history available in app
-5. Deep links from push land on the correct screen
+### Exit criteria
 
----
-
-## 10. Phase 9 — App Store Submission Assets and Metadata
-
-### Required App Store Metadata
-
-- App name
-- Subtitle
-- Description
-- Keywords
-- Support URL
-- Marketing URL
-- Privacy Policy URL
-- Copyright
-- Age rating
-- Export compliance
-- Privacy nutrition label
-- `What's New` text
-
-### Finance-Specific Review Prep
-
-Provide strong review notes explaining:
-
-- Data sources used
-- That the app does not execute trades
-- That Clavis is not an RIA and does not provide individualized investment advice
-- That outputs are informational model results only
-- How demo credentials work
-
-### Review Information
-
-- Demo account provided
-- Preloaded holdings in demo account
-- Reviewer instructions for key flows
-- If SnapTrade is not required for review, say so clearly
-
-### Screenshots / Assets
-
-1. Required screenshot sizes
-2. Disclaimer visible in screenshot set
-3. App icon complete in all required sizes
-4. No placeholder assets or TODO content
-5. Launch screen verified
-6. App size audited
+- A user can connect, sync, disconnect, and resync a brokerage account safely
 
 ---
 
-## 11. Phase 10 — Testing Matrix
+## 9. Phase 8 — App Store, Operations, And Release Readiness
 
-### Core Functional Testing
+**Status:** Not started
 
-1. Fresh install flow
-2. Sign up flow
-3. Trial flow
-4. Trial expiry flow
-5. Subscription restore
-6. Multiple account sign-in / sign-out test
-7. Account deletion flow
-8. Account export flow
+### App Store / Review Prep
 
-### Device / OS Testing
+- Metadata, screenshots, icon set, launch assets
+- Reviewer notes and seeded/demo-account story
+- Support URL, marketing URL, privacy URL, and trust surfaces aligned
 
-1. iOS 16
-2. iOS 17
-3. Smaller devices / SE class
-4. Dark mode
-5. Large accessibility font sizes
-6. iPhone-only behavior verified if iPad unsupported
+### Testing Matrix
 
-### Reliability Testing
+- Fresh install and sign-up flows
+- Multiple-account isolation testing
+- No-network / airplane mode testing
+- Notification end-to-end testing
+- Trial / subscription / restore testing
+- Smaller-device and accessibility testing
 
-1. Airplane mode / offline states
-2. Background / low battery behavior
-3. Push notification end-to-end
-4. SnapTrade connection test with a real account
-5. Multiple user isolation test against RLS
-6. Crash-response drill
+### Operations
 
-### Beta
+- Support inbox and response workflow
+- Crash-response and escalation plan
+- TestFlight / beta feedback cycle
 
-- TestFlight external beta with real users before submission
+### Exit criteria
+
+- Reviewer can evaluate the app cleanly
+- Core user journeys are tested on target devices
+- Operational response path exists for launch issues
 
 ---
 
-## 12. Phase 11 — Launch Operations
+## 10. Immediate Next Actions
 
-### Support / Ops
+Do these next, in order.
 
-1. Support inbox monitored daily
-2. Auto-responder enabled
-3. App Store review response account decided
-4. Crash response plan documented
-5. Internal escalation path documented
-
-### Growth / Launch
-
-1. Press kit prepared
-2. Review prompt strategy implemented
-3. Referral / sharing considered
-4. Launch announcement plan drafted
-   - Product Hunt
-   - X / Twitter
-   - relevant subreddits
-   - Hacker News if appropriate
+1. Finish security hardening around secrets, debug exposure, and route protection
+2. Publish real legal/public trust pages and align branding/domain references
+3. Validate the shared-cache S&P AI backfill path and remaining evidence-quality gaps
+4. Complete iOS watchlist and core navigation/UX cleanup
+5. Finish notification lifecycle and preference enforcement
+6. Integrate RevenueCat / StoreKit and entitlement enforcement
 
 ---
 
-## 13. Immediate Next Actions
-
-Do these first, in this order:
-
-1. Activate paid Apple Developer account
-2. Confirm business entity / banking / tax setup path
-3. Submit SnapTrade developer application
-4. Fix JWT verification properly
-5. Audit and test Supabase RLS with adversarial user access
-6. Rewrite advisory/action copy in app and backend
-7. Fix the four known product bugs
-8. Publish legal docs and methodology page
-
----
-
-## 14. Definition of Launch-Ready
+## 11. Definition Of Launch-Ready
 
 Clavis is launch-ready when all of the following are true:
 
-- Security basics are correct
-- User isolation is verified
+- Security basics are correct and verified
+- Shared ticker intelligence is stable and trustworthy enough for daily use
 - Legal docs are public and accurate
-- In-app copy does not cross into advice language
-- Apple reviewer can test the app with a seeded demo account
-- Subscription flows work
-- Notifications work in production
-- Crash and error monitoring are live
-- Website and support surfaces look legitimate
-- The app behaves well with no data, no network, expired trial, multiple accounts, and fresh install
+- In-app copy stays in the informational/data lane
+- Notifications work in production and respect user preferences
+- Subscription flows work end to end
+- Apple review can be completed with a clear demo path
+- Monitoring, backup, and operational response are live
+- The app behaves well with no data, no network, multiple accounts, and fresh install
 
-If any of those are false, the app is not ready for public launch.
+If any of those are false, Clavis is not ready for public launch.

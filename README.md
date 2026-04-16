@@ -1,266 +1,205 @@
 # Clavis
 
-**Portfolio risk intelligence for self-directed investors.**
+Portfolio risk intelligence for self-directed investors.
 
-Clavis monitors your holdings, filters relevant news, and scores downside risk using letter grades (A–F). The app describes what's happening in your portfolio — it does not tell you what to do.
+Clavis monitors holdings, ingests market and company news, scores downside risk on an `A-F` scale, and surfaces digest and alert changes. The product is being built as a portfolio risk data platform, not an investment adviser, broker, or trading app.
 
-> Clavis is a portfolio risk data platform. It provides informational model outputs only, not investment advice.
-
----
-
-## Status
-
-**Currently working on:** Shared Ticker Intelligence Platform Migration
-
-**Phase 1–2 roadmap items:** Security, legal, onboarding — mostly complete
-
-**Gate 0 blockers remaining before launch can proceed:**
-- Paid Apple Developer account
-- App Store Connect setup
-- RevenueCat setup
-- Business entity and banking
-- SnapTrade developer application and approval
+> Informational model outputs only. Not financial advice.
 
 ---
 
-## Architecture Migration: Shared Ticker Intelligence Platform
+## Current Status
 
-**Goal:** Move Clavis from a user-scoped, on-demand analysis model to a shared ticker intelligence platform.
+Clavis is in an active transition from position-scoped analysis to a shared ticker intelligence platform.
 
-- Free users read the latest cached daily ticker analysis
-- Pro users can force-refresh a ticker intra-day
-- A refresh updates the shared ticker cache for everyone
-- Holdings, watchlists, search, and digest all read from the same canonical ticker snapshot
-- This reduces analysis cost, makes watchlists natural, improves consistency, and turns Clavis into a true risk data platform
+What is already live in the codebase:
 
-### Migration Progress
+- FastAPI backend with holdings, dashboard, digest, alerts, preferences, ticker search/detail, watchlists, scheduler, and analysis-run endpoints
+- SwiftUI iPhone app with auth, onboarding, holdings, digest, alerts, settings, ticker search, and ticker detail flows
+- Shared S&P ticker cache foundation backed by Supabase tables and scheduled refresh jobs
+- News pipeline that combines CNBC macro and sector feeds, Google News RSS, article resolution, relevance filtering, event analysis, and AI-assisted scoring
+- Instrumented S&P backfill tooling with artifact capture for debugging long runs
 
-#### Stage 1: Schema Foundation ✅ Complete
+Major launch blockers still open:
 
-| Table | Purpose | Status |
-|-------|---------|--------|
-| `ticker_universe` | Supported tickers (S&P 500 seeded), priority ranking | ✅ |
-| `ticker_risk_snapshots` | Canonical shared risk output (grade, score, reasoning) | ✅ |
-| `ticker_news_cache` | Shared relevant news per ticker | ✅ |
-| `ticker_refresh_jobs` | Job audit, deduplication, and refresh gating | ✅ |
-| `watchlists` | User-defined collections | ✅ |
-| `watchlist_items` | Ticker membership in watchlists | ✅ |
-| `ticker_metadata` extended | PE ratio, 52-week high/low, avg volume, price snapshot | ✅ |
-
-#### Stage 2: Backend API Layer 🔄 In Progress
-
-| Route | Description | Status |
-|-------|-------------|--------|
-| `GET /tickers/search` | Search supported tickers | ✅ |
-| `GET /tickers/{ticker}` | Ticker detail bundle | ✅ |
-| `POST /tickers/{ticker}/refresh` | Pro-only manual refresh | ✅ |
-| `GET /tickers/{ticker}/refresh-status` | Refresh job status | ✅ |
-| `GET /watchlists` | List user's watchlists | ✅ |
-| `POST /watchlists` | Create watchlist | ✅ |
-| `POST /watchlists/{id}/items` | Add ticker to watchlist | ✅ |
-| `DELETE /watchlists/{id}/items/{ticker}` | Remove ticker | ✅ |
-
-| Backend Service | Description | Status |
-|----------------|-------------|--------|
-| `ticker_cache_service` | Shared ticker cache read/write, S&P 500 seed, search | ✅ |
-| Daily batch refresh scheduler | 3AM ET refresh of S&P 500 universe | ✅ |
-| Pro manual refresh path | `refresh_ticker_snapshot()` reusable function | ✅ |
-
-#### Stage 3: iOS Integration 🔄 In Progress
-
-| Screen / Feature | Description | Status |
-|-----------------|-------------|--------|
-| `TickerDetailView` | Canonical ticker intelligence screen | ✅ |
-| `TickerSearchSheet` | Search-first add position flow | ✅ |
-| Holdings enriched from ticker cache | Positions read canonical snapshots | ✅ |
-| Watchlist UI | User watchlist management | 🔄 Pending |
-| Add-position flow flip | Instant add (no blocking analysis) | 🔄 Pending |
-| Digest cutover | Source canonical snapshots instead of position analysis | 🔄 Pending |
-
-#### Stage 4: Digest & Alerts Migration ⏳ Pending
-
-- Digest pipeline refactored to read canonical ticker snapshots
-- Alerts fan out from canonical snapshot changes
-
-#### Stage 5: Legacy Cleanup ⏳ Pending
-
-- Retire or archive old `risk_scores` / `position_analyses` writes
-- Keep as historical audit only
-
-### What's Been Built So Far
-
-**Backend:**
-- S&P 500 universe seeded (505 tickers, priority-ranked)
-- Shared `ticker_risk_snapshots` table — canonical risk output per ticker
-- Shared `ticker_news_cache` table — relevant news per ticker
-- `ticker_refresh_jobs` for job deduplication and audit
-- `GET /tickers/search` — searches `ticker_universe`, returns ticker + latest grade + freshness
-- `GET /tickers/{ticker}` — full ticker detail bundle (profile, price, risk snapshot, news, user context)
-- `POST /tickers/{ticker}/refresh` — pro-only, enqueues shared refresh job, writes canonical snapshot
-- `GET /tickers/{ticker}/refresh-status` — job status polling
-- Full watchlist CRUD endpoints
-- Daily 3AM ET batch refresh job in scheduler
-- Holdings and dashboard routes now prefer canonical ticker snapshots
-
-**iOS:**
-- `TickerDetailView` — canonical ticker intelligence screen
-- `TickerSearchSheet` — search-first add position flow
-- Holdings enriched with cached ticker snapshots
-- `OnboardingViewModel` and 4-screen onboarding flow complete
-
-### What's Left
-
-- iOS watchlist management UI (add/remove tickers, view watchlist)
-- iOS holdings add flow flip — instant add without blocking analysis
-- Digest pipeline cutover to canonical ticker snapshots
-- Alert fan-out from snapshot changes
-- Legacy analysis table cleanup
+- Security and production hardening work is not finished
+- Legal/public trust documents are not fully published
+- Subscription and RevenueCat flows are not implemented
+- SnapTrade integration is not implemented
+- Notification lifecycle and deep-link quality are incomplete
 
 ---
 
-## Roadmap Progress
+## Product Direction
 
-### Phase 1 — Security, Legal Reframing, and Critical Bug Fixes ✅ Complete
+Clavis is moving toward a shared ticker intelligence model:
 
-| Item | Status |
-|------|--------|
-| JWT verification hardened (Supabase `get_user`) | ✅ |
-| Supabase RLS audit and hardening | ✅ |
-| Environment audit (no secrets in code) | ✅ |
-| Advisory/action copy removed from AI pipeline | ✅ |
-| `"What To Do"` → `"Monitoring Notes"`, `"Action Signal"` → `"Risk Read"` | ✅ |
-| `/preferences/alerts` PATCH endpoint | ✅ |
-| All 10 preference fields persisted to Supabase | ✅ |
-| Score disclaimers added to all score views | ✅ |
-| Freshness timestamps on all data views | ✅ |
-| `CancellationError` handling verified | ✅ |
-| Phase 2 onboarding flow (4 screens) | ✅ |
-| `POST /preferences/acknowledge` endpoint | ✅ |
-| `hasCompletedOnboarding` flag implemented | ✅ |
-| Notification permission step status-aware | ✅ |
+- Shared ticker snapshots become the canonical source for search, ticker detail, watchlists, holdings enrichment, digest fallback, and alert comparisons
+- Free users consume the latest cached ticker intelligence
+- Pro users can request manual ticker refreshes
+- Backfill and scheduled refresh infrastructure update shared ticker state for all users
 
-### Phase 2 — Legal Documents, Onboarding, and Public Trust Surface 🔄 In Progress
-
-| Item | Status |
-|------|--------|
-| Privacy Policy page | 🔄 Pending |
-| Terms of Service page | 🔄 Pending |
-| Refund Policy page | 🔄 Pending |
-| Methodology page | ✅ Complete |
-| Onboarding UX | ✅ Complete |
-
-### Phase 3 — Website, Email Infrastructure, and App Store Trust Prep ⏳ Pending
-
-- Marketing site cleanup (mobile, SEO, OG tags)
-- Transactional email setup (Resend/Postmark/SendGrid)
-- App Store Connect baseline metadata
-
-### Phase 4 — Payments, RevenueCat, and Subscription Enforcement ⏳ Pending
-
-- StoreKit 2 + RevenueCat integration
-- Free tier (3 positions) vs Plus tier ($15/mo)
-- Backend subscription enforcement
-- Trial flow and expiry handling
-
-### Phase 5 — SnapTrade and Portfolio Connection ⏳ Pending
-
-- OAuth brokerage connection flow
-- Real-time portfolio sync
-- Disconnect/resync UX
-
-### Phase 6 — App UX, Simulated Risk, and Profile Experience ⏳ Pending
-
-- Profile screen (name, DOB, plan, brokers, subscription)
-- Simulate Risk flow before adding real positions
-- Search, sort, filter on holdings
-- Dark mode, Dynamic Type, accessibility audits
-
-### Phase 7 — Backend Production Readiness ⏳ Pending
-
-- Health check endpoint
-- Graceful shutdown
-- Structured logging and error alerting
-- `DELETE /account` and `GET /account/export`
-- Database backups
-
-### Phase 8 — Notifications and Alert Quality ⏳ Pending
-
-- Production APNs configuration
-- Alert preference granularity
-- Silent hours, rate limits
-- Deep links from push
-
-### Phase 9 — App Store Submission ⏳ Pending
-
-- Full metadata and screenshots
-- Finance-specific review prep
-- Demo account for Apple reviewers
-
-### Phase 10 — Testing Matrix ⏳ Pending
-
-- Full functional testing
-- iOS 16/17, SE, dark mode, accessibility
-- Offline/airplane mode
-- TestFlight external beta
-
-### Phase 11 — Launch Operations ⏳ Pending
-
-- Support inbox and ops runbook
-- Press kit and launch announcement
+This lowers analysis cost, improves consistency across the app, and makes watchlists and search first-class features instead of bolt-ons.
 
 ---
 
-## Tech Stack
+## Implemented Features
 
-**Backend:** Python/FastAPI in Docker
-- Supabase (PostgreSQL + RLS)
-- Polygon (market data)
-- Finnhub (news)
-- MiniMax (AI analysis)
+### Backend
 
-**iOS:** SwiftUI
-- StoreKit 2 + RevenueCat (planned)
-- SnapTrade (planned)
+- JWT-backed request authentication via Supabase `auth.get_user`
+- Holdings CRUD and position detail routes
+- Dashboard, digest, alerts, and preferences routes
+- Preferences persistence for digest timing, summary length, onboarding completion, and alert settings
+- Shared ticker routes:
+  - `GET /tickers/search`
+  - `GET /tickers/{ticker}`
+  - `POST /tickers/{ticker}/refresh`
+  - `GET /tickers/{ticker}/refresh-status`
+- Default watchlist routes:
+  - `GET /watchlists`
+  - `POST /watchlists/default/items`
+  - `DELETE /watchlists/default/items/{ticker}`
+- Scheduler endpoints for per-user status plus S&P seed/backfill/status helpers
+- Shared ticker services for universe seeding, search, detail assembly, watchlists, and snapshot refresh jobs
+- S&P universe seeding and ticker snapshot refresh pipeline
+- Full AI backfill path for S&P/shared ticker analysis with artifact capture under `BACKFILL_IMPORT/`
+- Google News company/sector RSS ingest with canonical URL decoding
+- Article enrichment and resolver hardening for Google wrapper links
+- Env-configurable Google RSS throttling via `GOOGLE_NEWS_RSS_DELAY_SECONDS`
 
-**Infrastructure:** Cloudflare Tunnel
-- Production URL: https://clavis.andoverdigital.com
+### iOS
+
+- Supabase auth flow
+- Onboarding flow with welcome, name/birth year, risk acknowledgment, notification step, and first-position flow
+- Auth gate that routes authenticated users to onboarding or main app
+- Tab-based app shell with Dashboard, Holdings, Digest, Alerts, and Settings
+- Holdings list with cached ticker snapshot enrichment
+- Position detail screen with score, chart, risk dimensions, and news/event surfaces
+- Ticker search sheet and shared ticker detail screen
+- Settings support for digest preferences and alert preferences
+- Score disclaimer and freshness copy on score-oriented screens
+
+### Data / Supabase
+
+- Shared ticker cache migration scaffold
+- S&P universe seed data and snapshot-related migrations
+- Analysis artifact and cache-related migrations
+- Device registration edge function under `supabase/functions/register-device`
 
 ---
 
-## API Endpoints
+## Current Gaps
 
-All endpoints require `Authorization: Bearer <jwt>` header.
+The codebase still needs meaningful work before public launch:
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/holdings` | GET/POST | List/add positions |
-| `/holdings/{id}` | DELETE | Delete position |
-| `/positions/{id}` | GET | Position detail + score |
-| `/digest` | GET | Today's digest |
-| `/alerts` | GET | Grade change alerts |
-| `/preferences` | GET/PATCH | User settings |
-| `/preferences/acknowledge` | POST | Onboarding completion |
-| `/trigger-analysis` | POST | Run analysis |
-| `/tickers/search` | GET | Search supported tickers |
-| `/tickers/{ticker}` | GET | Ticker detail + snapshot |
-| `/tickers/{ticker}/refresh` | POST | Pro-only manual refresh |
-| `/tickers/{ticker}/refresh-status` | GET | Refresh job status |
-| `/watchlists` | GET/POST | List/create watchlists |
-| `/watchlists/{id}/items` | POST/DELETE | Add/remove watchlist items |
+- Public privacy, terms, refund, and methodology pages must be finalized and aligned with the app
+- Security hardening remains incomplete around debug/internal surfaces, CORS, secrets handling, and route protection model
+- RevenueCat / StoreKit subscription flows are still pending
+- SnapTrade account connection and sync are still pending
+- Account export and deletion flows are still pending
+- Notification token lifecycle, quiet-hours enforcement, and deep links need completion
+- App Store trust surfaces, metadata, and review-prep assets are still pending
+- Reliability, monitoring, and end-to-end testing need expansion
+
+---
+
+## Architecture
+
+### Backend
+
+- FastAPI in Docker
+- Supabase for Postgres, auth, and RLS-backed data model
+- Polygon for market data
+- Finnhub for metadata and market/company news inputs
+- MiniMax for analysis/scoring prompts
+- `mirofish` sidecar service for major-event analysis
+
+### iOS
+
+- SwiftUI app targeting iPhone
+- Supabase Swift client for auth
+- Custom API client for backend integration
+
+### Shared Ticker Intelligence
+
+Core shared-cache backend pieces now exist:
+
+- `ticker_universe`
+- `ticker_risk_snapshots`
+- `ticker_news_cache`
+- `ticker_refresh_jobs`
+- `watchlists`
+- `watchlist_items`
+- expanded `ticker_metadata`
+
+---
+
+## API Surface
+
+All app endpoints are intended to require `Authorization: Bearer <jwt>` unless explicitly public.
+
+### Core user routes
+
+- `GET /holdings`
+- `POST /holdings`
+- `DELETE /holdings/{id}`
+- `GET /dashboard`
+- `GET /digest`
+- `GET /digest/history`
+- `GET /positions/{id}`
+- `GET /alerts`
+- `GET /preferences`
+- `PATCH /preferences`
+- `PATCH /preferences/alerts`
+- `POST /preferences/acknowledge`
+- `POST /preferences/profile`
+- `POST /preferences/device-token`
+- `POST /trigger-analysis`
+- `GET /analysis-runs/latest`
+- `GET /analysis-runs/{id}`
+
+### Shared ticker routes
+
+- `GET /tickers/search`
+- `GET /tickers/{ticker}`
+- `POST /tickers/{ticker}/refresh`
+- `GET /tickers/{ticker}/refresh-status`
+- `GET /watchlists`
+- `POST /watchlists/default/items`
+- `DELETE /watchlists/default/items/{ticker}`
+
+### Scheduler / infra helpers
+
+- `GET /scheduler/status`
+- `GET /scheduler/sp500/status`
+- `POST /scheduler/sp500/seed`
+- `POST /scheduler/sp500/backfill`
+- `GET /health`
 
 ---
 
 ## Project Structure
 
-```
+```text
 Clavis/
-├── backend/            # FastAPI backend (Docker)
-├── ios/                # SwiftUI iOS app
+├── backend/                 FastAPI backend
+│   ├── app/
+│   │   ├── pipeline/        News, scoring, digest, scheduler pipelines
+│   │   ├── routes/          API routes
+│   │   ├── services/        Supabase, market data, cache, APNs, scraping
+│   │   └── data/            Seed data such as the S&P universe
+│   └── tests/
+├── ios/                     SwiftUI iPhone app
+├── mirofish/                Sidecar analysis service
+├── supabase/
+│   ├── migrations/
+│   └── functions/
 ├── docs/
-│   ├── STATE/          # Project state
-│   └── STATUS/         # Roadmap
-├── supabase/migrations/ # Database migrations
-└── scripts/            # Dev helper scripts
+│   ├── STATE/
+│   └── STATUS/
+├── scripts/
+└── BACKFILL_IMPORT/         Saved backfill artifacts and run output
 ```
 
 ---
@@ -268,33 +207,62 @@ Clavis/
 ## Development
 
 ### Backend
+
 ```bash
-docker-compose up -d          # Start
-docker logs clavis-backend-1  # View logs
-docker restart clavis-backend-1 # Restart
+docker-compose up -d
+docker logs clavis-backend-1
+docker restart clavis-backend-1
 ```
 
 ### iOS
+
 ```bash
 cd ios
 xcodegen generate
-xcodebuild -scheme Clavis -configuration Debug \
-  -destination 'platform=iOS Simulator,name=iPhone 17' build
+xcodebuild -scheme Clavis -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17' build
 ```
+
+### Session bootstrap
+
+```bash
+bash scripts/session-start.sh
+```
+
+---
+
+## S&P Backfill Notes
+
+The repo now supports throttling Google News RSS fetches during one-off backfill runs.
+
+Environment variable:
+
+- `GOOGLE_NEWS_RSS_DELAY_SECONDS`
+
+Example:
+
+```bash
+docker exec -e GOOGLE_NEWS_RSS_DELAY_SECONDS=60 "clavis-backend-1" python -c '
+import asyncio
+from app.pipeline.scheduler import run_sp500_full_ai_analysis_fast
+print(asyncio.run(run_sp500_full_ai_analysis_fast(job_type="backfill")))
+'
+```
+
+That delay is opt-in. Normal runs remain unthrottled unless the variable is set.
 
 ---
 
 ## Launch Criteria
 
-Clavis is launch-ready when all of the following are true:
+Clavis is launch-ready only when all of the following are true:
 
-- Security basics are correct
-- User isolation is verified
+- Security basics are correct and verified
+- User isolation is tested
 - Legal docs are public and accurate
-- In-app copy does not cross into advice language
-- Apple reviewer can test the app with a seeded demo account
-- Subscription flows work
+- The app copy stays in the informational/data lane
+- Subscription flows work end to end
 - Notifications work in production
-- Crash and error monitoring are live
-- Website and support surfaces look legitimate
-- The app behaves well with no data, no network, expired trial, multiple accounts, and fresh install
+- Monitoring and crash/error alerting are live
+- The app handles no-data, no-network, fresh-install, and multi-account flows well
+
+Until those are true, this is still an active pre-launch build.
