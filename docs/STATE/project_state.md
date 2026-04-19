@@ -1,26 +1,16 @@
 ---
 project: Clavis
 version: 1
-last_updated: 2026-04-16
+last_updated: 2026-04-19
 roadmap: docs/STATUS/roadmap.md
 status: active
-current_phase: "Phase 2 - Shared ticker intelligence and evidence-quality hardening"
+current_phase: "Phase 0 - V1 scope lock and final roadmap"
 current_focus:
-  - Introduce evidence-quality modeling and sufficiency gates so wrapper-only articles no longer flow through relevance, event analysis, and report generation as if they were real article evidence
-  - Make the search collector resilient to per-query failures so one bad DuckDuckGo request does not zero out company-article enrichment coverage
-  - Fix the resolver fallback regression so Google wrapper articles no longer fail with unbound diagnostics variables during backfill runs
-  - Make company-news resolver retries smarter and emit per-article failure reasons so wrapper-only runs are diagnosable instead of opaque
-  - Add resolver telemetry and evidence gates for company-news article enrichment so the backfill run can distinguish true article coverage from wrapper-only failure states
-  - Refactor the shared-cache backfill path into a ticker-intelligence pipeline for the position view: enrich article evidence with scraped content, reduce cache contamination, preserve valid macro output, and remove position-sizing logic from synthetic backfill snapshots
-  - Resolve Google RSS wrapper pages into real publisher article bodies using source-domain hints, search-result discovery, and proxy text extraction so backfill analysis can cite substantive evidence instead of wrapper summaries
-  - Fix the source_url resolver path so Google RSS company articles are resolved through the actual publisher URL instead of reconstructed slugs; source_url path is now probed first in resolution, with newspaper4k extraction and HTML fallback applied to the source_url directly before search candidates are tried
-  - Decode Google News RSS article URLs into canonical publisher article URLs during company-news ingest so enrichment starts from the real article page rather than the publisher homepage stored in RSS source metadata
-  - Ensure company-news article resolution happens before relevance classification so stale wrapper-era cache rows cannot bypass the improved evidence path
-  - Tighten the remaining junk-article filters so broken MarketWatch recaps, generic price-move stories, and malformed proxy pages do not survive relevance/significance and dilute final backfill scores
-  - Validate the repaired shared-cache S&P AI backfill path after fixing subset scoping, failed-run snapshot sync, misleading CLI dimension output, and restoring AI-led scoring preference for backfill runs
-  - Validate the expanded ticker detail parity view, dynamic shared ticker onboarding, shared ticker cache freshness, digest synthesis, and alert fanout behavior in production-like runs
-  - Validate the optimized shared-cache AI backfill path after reducing Finnhub, RSS, and MiniMax call volume across metadata refresh, relevance, event analysis, and scoring
-  - Optional iOS refinement pass for richer ticker detail actions and more complete watchlist management UX
+  - Lock the V1 product scope: Clavix branding, handoff UI as source of truth, brokerage sync in V1, and Pro purchase at $25/month
+  - Define the missing News feed endpoint contract before implementation so the new Home/News/Article flow has a stable backend shape
+  - Build the final execution plan for phases 0-4, including the exact dependency order for iOS UI, backend API, and release readiness work
+  - Treat email summaries, advanced plan management, and institutional/data features as V2-only work
+  - Keep the shared ticker analysis assumptions stable while the UI/API plan is finalized
 blockers:
   gate_0:
     - Paid Apple Developer account
@@ -28,12 +18,50 @@ blockers:
     - RevenueCat setup
     - Business entity and banking
     - SnapTrade developer application and approval
+    - SnapTrade sandbox + brokerage sync setup once launch timing justifies it
   technical:
-    - Shared-cache scoring dispersion may still be narrower than the old fully AI-led flow because metadata inputs still default leverage/profitability to neutral placeholders and shared event projection is less ticker-specific than the legacy path
-    - Batch AI scoring still needs live validation after reducing backfill scoring chunk size; empty MiniMax scoring responses should now fall back less often, but the new behavior needs rerun confirmation
-    - The position-view backfill output still needs a fuller ticker-intelligence refactor: real article-body extraction is now wired for selected company articles and bad relevance cache payloads are rejected, but the final UI shape still needs simplification around what happened / what to watch / risk dimensions / relevant news
-    - End-to-end ABBV backfill now completes with real event analyses and non-fallback risk dimensions, but one more cleanup pass is still needed to reject low-value recap / broken-page articles that currently survive as minor events
-recent_completions:
+    - News feed endpoint has no dedicated implementation yet and needs an explicit route/data contract before the handoff UI can be built
+    - App shell/UI migration for the handoff has not started yet
+    - Phase 3 and Phase 4 implementation order still needs to be broken into concrete file-level tasks
+  recent_completions:
+  - Created a branding guide documenting fonts, colors, spacing, tone, and UI presentation rules
+  - Created a comprehensive UI wireframe brief covering Home, Holdings, Digest, Alerts, News, ticker detail, onboarding, and settings
+  - Added the DigitalOcean VPS setup guide with droplet bootstrap steps, secret-copy steps, Cloudflare Tunnel systemd service, and verification commands
+  - Documented the `develop` / `main` branch workflow and the production deploy path to the droplet in AGENTS.md
+  - Confirmed the backfill artifact set contains descriptive, article-specific risk analyses rather than generic fallback summaries
+  - Fixed structural refresh overwriting AI scores: refresh_ticker_snapshot now skips tickers with existing AI-scored same-day snapshot (methodology_version ILIKE '%ai%')
+  - Implemented run_user_holdings_daily_ai_refresh() job at 2 AM UTC: queries all user-held tickers (excluding system SP500 user) and runs full AI pipeline via tickers_override passthrough to run_sp500_full_ai_analysis_fast
+  - Moved the iOS Supabase anon key into an xcconfig-backed build setting, regenerated XcodeGen, and verified the simulator still launches with the real key
+  - Updated the shared ticker snapshot refresh to consume recent news-derived events instead of hardcoding macro/event adjustments to zero
+  - Updated the iOS ticker detail model and UI so backfill search results now show AI score rationale and AI dimensions instead of the structural-only snapshot card
+  - Simplified the add-position ticker field so it no longer pops live search results while typing, and clarified the watchlist star action with accessibility labels
+  - Reframed the shared ticker detail fallback as a structural snapshot with explicit copy that macro and event adjustments are neutral until a live analysis run exists
+  - Fixed the stale evidence label bug so enriched company articles now refresh both top-level and nested relevance evidence quality, preventing bodyful articles from still being persisted as `title_only`
+  - Parallelized the S&P backfill price-refresh stage and shortened Finnhub quote timeouts so 25-ticker batches stop spending their tail in a serial price loop
+  - Simplified company-news discovery queries to use the company name directly instead of appending "stock", so the backfill can pull broader news coverage for each holding
+  - Widened the shared ticker analysis gate so headline-summary company articles can now be forced into event analysis after enrichment, not just partial/full-body articles
+  - Swapped company-news discovery to GNews, added decoded URL rewriting so wrapper links are replaced with publisher URLs, and validated AAPL/MSFT/TSLA live results in the backend container
+  - Moved company article enrichment out of the shared payload and into a cache-backed post-relevance step so only needed company articles get scraped, and added a reusable event-hash cache for enriched articles across backfill runs
+  - Disabled forced LLM scoring for S&P backfill positions and raised backfill batch concurrency to 4 so the remaining runtime is driven more by actual work than by neutral fallback retries or serialized batch waits
+  - Removed Polygon from the backfill refresh path so price updates now use Finnhub-only snapshots, and collapsed company article enrichment into the shared payload so batches reuse cached enriched articles instead of re-scraping them
+  - Reduced the backfill-only shared ingest load by capping the shared company RSS feed at 4 articles per ticker, trimming sector/macroeconomic fetch volume, and adding timing logs for shared payload build, article enrichment, and cache reuse so the next canary can pinpoint the remaining bottleneck
+  - Split the backfill news path into a shared raw ingest plus batch-specific analysis consumption: the controller now fetches one shared news payload for all selected tickers, batch analyses reuse that cache, and the 8-ticker canary still completed successfully in 8.7 minutes with 8/8 synced and 0 failures
+  - Implemented the next backfill throughput pass: article enrichment now runs with higher concurrency, scheduled S&P batch analyses create independent run IDs, and company-news enrichment overlaps with relevance classification before the enriched bodies are merged back for downstream analysis; an 8-ticker canary completed successfully in 8.8 minutes with 8/8 synced and no failures
+  - Inspected the stalled detached S&P backfill through batch artifacts and live DB state, confirmed the worker had progressed through event analysis/report/scoring, then safely terminated the live worker and marked the active master plus batch runs failed after investigation
+  - Patched the detached S&P backfill hang path by adding default MiniMax chat timeouts, skipping digest generation for internal scheduled S&P batch runs, and excluding the long-lived `sp500_backfill` controller row from stale-run cleanup so the controller is no longer marked failed mid-run
+  - Ran a grounding QC pass across one sampled stock from every other batch in the interrupted run; later completed batches were usually tied to real event titles, but several summaries still overreached with macro spillover claims and synthetic zero-share backfill rows sometimes produced false "no position / wait-and-see / entry catalyst" language
+  - Fixed the S&P backfill launcher so the detached worker now starts from the backend root instead of a hard-coded `/app` cwd, and added a focused launcher regression test
+  - Added a local `python -m app.scripts.sp500_backfill` launcher/status workflow so the backend container can start an S&P backfill in a detached process, return a run ID without JWT, and report progress from `analysis_runs`
+  - Added a persistent server-side S&P backfill trigger/status flow backed by `analysis_runs`, so admin requests can enqueue a backfill, get a run ID immediately, and poll progress even after the calling terminal closes
+  - Hardened the batched S&P backfill against transient Supabase/PostgREST disconnects by retrying timeout-finalization and status-poll queries, and by consuming background task exceptions so failures no longer surface only as "Task exception was never retrieved"
+  - Chose UptimeRobot as the free-tier uptime monitor and documented the exact `/health` check settings in the repo
+  - Fixed the Google RSS throttling lock so it is scoped per event loop, preventing batched backfill runs from failing with "bound to a different event loop" errors
+  - Added an uptime-monitoring runbook for the backend `/health` endpoint so the app can be watched on a free tier without extra infrastructure
+  - Added backend Sentry scaffolding and a GitHub Actions CI workflow for compile/test coverage
+  - Chunked the S&P shared-cache AI backfill into sequential batches of 10 tickers so large runs avoid the 25-minute scheduler timeout and can continue even if one batch fails
+  - Added a dedicated `/account` backend surface for user data export and account deletion, including Supabase auth-user removal and cleanup across user-owned tables
+  - Added structured JSON-style backend event logging for auth failures, request failures, startup status, and successful request completions
+  - Redacted repo-tracked secret values from `AGENTS.md`, `backend/.env`, `docs/STATUS/PROJECT_STATUS.md`, and the iOS Supabase config so only placeholder/local-secret references remain in tracked files
   - Added env-configurable Google News RSS throttling in `backend/app/pipeline/rss_ingest.py` so one-off backfill runs can serialize Google feed requests with a fixed inter-request delay (for example `GOOGLE_NEWS_RSS_DELAY_SECONDS=60`) without slowing normal runs unless explicitly enabled
   - Began the structural evidence-quality fix: normalization now strips HTML and tags articles as title_only/headline_summary/partial_body/full_body, company-news force-promotion is now gated on usable evidence, event-analysis prompts now include body/evidence depth, and empty-event reports now state low evidence rather than claiming no material catalysts
   - Fixed two evidence-quality bugs in the backfill pipeline: (1) `company_articles_enriched` was inside `if artifact_enabled:` so SP500 backfill runs always passed empty enrichment to normalization — moved enrichment, coverage gate, and market_articles outside the artifact gate; (2) `normalize_news_item` used `raw_body = article.get("body") or raw_summary` which discarded enriched body key when body was absent from RSS items — fixed to distinguish absent key from empty string, giving `full_body: 3, headline_summary: 2, title_only: 35` vs prior `title_only: 40`

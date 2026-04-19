@@ -1,8 +1,10 @@
 # Clavis — Current Delivery Roadmap
 
-**Last updated:** 2026-04-16
+**Last updated:** 2026-04-19
 
 **Goal:** Take Clavis from a feature-rich prototype and shared-ticker intelligence build into a secure, trustworthy, launch-ready v1.
+
+**V1 execution plan:** See `docs/STATUS/clavix_v1_final_roadmap.md` for the phase 0-4 plan, V1 scope, and the news-feed endpoint plan.
 
 **Positioning:** Clavis is a portfolio risk data platform for self-directed investors. It describes portfolio risk, change, and evidence. It does not provide personalized investment advice.
 
@@ -220,7 +222,41 @@ This is the core product migration currently underway.
 
 ---
 
-## 8. Phase 7 — SnapTrade And Live Portfolio Connections
+## 8. Phase 7 — Infrastructure: DigitalOcean VPS Migration
+
+**Status:** In progress
+
+Move the backend off the local Mac and onto a persistent cloud server so the app works 24/7 without the developer's machine being on.
+
+### Why this droplet
+- Small Ubuntu VPS is enough for backend + mirofish + cloudflared
+- App data stays in Supabase, so the server stays stateless
+- Cloudflare Tunnel keeps the host closed to public inbound traffic
+
+### Scope
+
+1. Create DigitalOcean droplet (Ubuntu 24.04, SSH key auth)
+2. Install Docker and docker-compose-v2 on the VPS
+3. Keep `develop` for local integration work and `main` for production deploys
+4. Sync the repo into `/opt/clavis` from GitHub Actions on every `main` deploy
+5. Securely copy `backend/.env` and `backend/apns/apns.p8` to the VPS (never commit)
+6. Run `docker compose up -d --build` — verify both containers healthy
+7. Install `cloudflared` on VPS and copy tunnel cert or token from local Mac
+8. Register cloudflared as a systemd service so tunnel survives reboots
+9. Verify `https://clavis.andoverdigital.com` routes correctly to VPS
+10. Add VPS IP to UptimeRobot monitor (already configured for `/health`)
+11. Keep Docker restart policy set to `unless-stopped`
+
+### Exit criteria
+
+- Backend runs 24/7 on VPS without developer machine involvement
+- Cloudflare Tunnel is live and routing to VPS
+- UptimeRobot monitoring is active on VPS-hosted `/health`
+- All API keys are in VPS `.env` only, not in any tracked file
+
+---
+
+## 9. Phase 8 — SnapTrade And Live Portfolio Connections
 
 **Status:** Not started
 
@@ -238,7 +274,7 @@ This is the core product migration currently underway.
 
 ---
 
-## 9. Phase 8 — App Store, Operations, And Release Readiness
+## 10. Phase 9 — App Store, Operations, And Release Readiness
 
 **Status:** Not started
 
@@ -271,7 +307,7 @@ This is the core product migration currently underway.
 
 ---
 
-## 10. Immediate Next Actions
+## 11. Immediate Next Actions
 
 Do these next, in order.
 
@@ -281,10 +317,11 @@ Do these next, in order.
 4. Complete iOS watchlist and core navigation/UX cleanup
 5. Finish notification lifecycle and preference enforcement
 6. Integrate RevenueCat / StoreKit and entitlement enforcement
+7. Migrate backend to DigitalOcean VPS (Phase 7)
 
 ---
 
-## 11. Definition Of Launch-Ready
+## 12. Definition Of Launch-Ready
 
 Clavis is launch-ready when all of the following are true:
 
