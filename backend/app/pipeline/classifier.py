@@ -172,58 +172,60 @@ async def classify_significance_batch(
     if not uncached_indices:
         return results
 
-    articles_text = []
-    for i in uncached_indices:
-        article = articles[i]
-        title = article.get("title", "")[:500]
-        summary = article.get("summary", "")[:500]
-        body = article.get("body", "")[:1000]
-        articles_text.append(f"[{i}] Title: {title}\nSummary: {summary}\nBody: {body}")
+    chunk_size = 8
+    for chunk_start in range(0, len(uncached_indices), chunk_size):
+        chunk_indices = uncached_indices[chunk_start : chunk_start + chunk_size]
+        articles_text = []
+        for local_idx, article_idx in enumerate(chunk_indices):
+            article = articles[article_idx]
+            title = article.get("title", "")[:500]
+            summary = article.get("summary", "")[:500]
+            body = article.get("body", "")[:1000]
+            articles_text.append(
+                f"[{local_idx}] Title: {title}\nSummary: {summary}\nBody: {body}"
+            )
 
-    prompt = "\n\n".join(articles_text)
+        prompt = "\n\n".join(articles_text)
 
-    response = chatcompletion_text(
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.1,
-        max_tokens=3000,
-    )
+        response = chatcompletion_text(
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.1,
+            max_tokens=1200,
+        )
 
-    parsed = extract_json_list(response, None)
-    if isinstance(parsed, list):
-        parsed_index = 0
-        for i, result in enumerate(results):
-            if result is None:
-                if parsed_index < len(parsed):
-                    p = parsed[parsed_index]
+        parsed = extract_json_list(response, None)
+        if isinstance(parsed, list):
+            for local_idx, article_idx in enumerate(chunk_indices):
+                if local_idx < len(parsed):
+                    p = parsed[local_idx]
                     significance = p.get("significance", "minor")
                     if significance not in {"major", "minor"}:
                         significance = "minor"
-                    results[i] = {
+                    results[article_idx] = {
                         "significance": significance,
                         "event_type": p.get("event_type") or "other",
                         "why_it_matters": p.get("why_it_matters")
                         or "Classification evidence unavailable.",
                         "confidence": float(p.get("confidence") or 0.5),
                     }
-                    parsed_index += 1
                 else:
-                    results[i] = {
+                    results[article_idx] = {
                         "significance": "minor",
                         "event_type": "other",
                         "why_it_matters": "Classification unavailable.",
                         "confidence": 0.3,
                     }
-    else:
-        for i in uncached_indices:
-            if results[i] is None:
-                results[i] = {
-                    "significance": "minor",
-                    "event_type": "other",
-                    "why_it_matters": "Classification parse failed.",
-                    "confidence": 0.3,
-                }
+            continue
+
+        for article_idx in chunk_indices:
+            results[article_idx] = {
+                "significance": "minor",
+                "event_type": "other",
+                "why_it_matters": "Classification parse failed.",
+                "confidence": 0.3,
+            }
 
     return results

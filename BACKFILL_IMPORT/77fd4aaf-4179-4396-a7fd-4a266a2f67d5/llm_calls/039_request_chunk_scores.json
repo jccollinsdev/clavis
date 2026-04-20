@@ -1,0 +1,31 @@
+{
+  "sequence": 39,
+  "logged_at": "2026-04-14T10:37:56.368829+00:00",
+  "model": "MiniMax-M2.7",
+  "function_name": "chatcompletion_text",
+  "caller": {
+    "file": "/app/app/pipeline/risk_scorer.py",
+    "function": "_request_chunk_scores",
+    "line": 752
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You MUST respond with valid JSON only. No markdown. No explanation. No thinking. Start your response with { and end with }."
+    },
+    {
+      "role": "user",
+      "content": "Score each position across 4 dimensions (0-100) and assign a grade.\n\nPosition 1:\n- Ticker: MMM\n- Shares: 0.0 @ $0.0\n- Inferred labels: growth\n- Position report summary: 3M (MMM) currently shows no active position in the portfolio despite recent bullish signals from institutional investors, including a significant stake increase by SG Americas Securities LLC and modes\n- Long report excerpt: 3M presents an intriguing pre-position case where external validation from sophisticated investors contrasts with an inactive portfolio allocation. The major event\u2014SG Americas Securities LLC increasing its holdings\u2014suggests institutional belief in potential undervaluation or successful execution of \n\nReturn EXACTLY this JSON format (no markdown, no explanation, no thinking):\n{\"scores\": {\"MMM\": {\"news_sentiment\": 50, \"macro_exposure\": 50, \"thesis_risk\": 50, \"volatility_trend\": 50, \"grade\": \"C\"}}}\n\nScoring criteria:\n- news_sentiment: positive news=high (70-90), negative=low (20-40), neutral=50\n- macro_exposure: low macro sensitivity=high (60-80), high sensitivity=low (20-40)\n- thesis_risk: durable thesis with limited unresolved risk=high (70-90), fragile/conflicted thesis=low (20-40)\n- volatility_trend: decreasing vol=high (60-80), increasing vol=low (20-40)\n- Grade A=80+, B=65-79, C=50-64, D=35-49, F=<35\n\nRespond with ONLY the JSON object. Start with { and end with }."
+    }
+  ],
+  "kwargs": {
+    "temperature": 0.0,
+    "top_p": 1,
+    "frequency_penalty": 0,
+    "presence_penalty": 0,
+    "max_tokens": 800
+  },
+  "response": "{\"scores\": {\"MMM\": {\"news_sentiment\": 65, \"macro_exposure\": 55, \"thesis_risk\": 45, \"volatility_trend\": 50, \"grade\": \"C\"}}}",
+  "error": null,
+  "duration_ms": 23769.71
+}

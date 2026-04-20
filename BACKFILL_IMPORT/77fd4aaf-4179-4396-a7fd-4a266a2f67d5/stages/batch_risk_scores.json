@@ -1,0 +1,58 @@
+[
+  {
+    "news_sentiment": 72,
+    "macro_exposure": 68,
+    "position_sizing": null,
+    "thesis_risk": 72,
+    "volatility_trend": 55,
+    "total_score": 58.8,
+    "grade": "C",
+    "reasoning": "Grade held at C to stay consistent near the threshold.",
+    "grade_reason": "Grade held at C to stay consistent near the threshold.",
+    "evidence_summary": "AbbVie's $745M Haisco partnership represents a strategically sound diversification move beyond its Humira-dependent revenue base, leveraging Chinese pharmaceutical innovation at a modest cost relative to its ~$300B market cap. The minor institutional selling by Factory Mutual likely reflects routine rebalancing rather than fundamental concerns, while positive relative performance framing versus Pfizer could attract growth-oriented flows. Near-term catalysts center on pipeline execution, while the long-term thesis hinges on successfully navigating the post-Humira patent cliff.",
+    "dimension_rationale": {},
+    "mirofish_used": false
+  },
+  {
+    "news_sentiment": 52,
+    "macro_exposure": 65,
+    "position_sizing": null,
+    "thesis_risk": 70,
+    "volatility_trend": 52,
+    "total_score": 59.8,
+    "grade": "C",
+    "reasoning": "",
+    "grade_reason": "",
+    "evidence_summary": "Abbott Laboratories (ABT) shows stable technical conditions with the stock trading within recent ranges following a modest pullback, presenting a potential entry point for growth-oriented investors. The healthcare conglomerate benefits from a diversified business mix spanning diagnostics, medical devices, and established pharmaceuticals, though near-term catalysts appear limited without upcoming earnings triggers or sector-specific developments. The growth thesis hinges on whether recent weakness represents a temporary sentiment shift or a more fundamental reassessment of the company's growth trajectory.",
+    "dimension_rationale": {},
+    "mirofish_used": false
+  },
+  {
+    "news_sentiment": 50,
+    "macro_exposure": 40,
+    "position_sizing": null,
+    "thesis_risk": 55,
+    "volatility_trend": 52,
+    "total_score": 49.2,
+    "grade": "D",
+    "reasoning": "",
+    "grade_reason": "",
+    "evidence_summary": "A.O. Smith (AOS) is a building products manufacturer specializing in water heaters and water treatment solutions, with performance closely tied to residential construction trends and replacement demand. With zero shares currently held and a major earnings preview underway, this position warrants careful monitoring of the upcoming quarterly report and guidance for near-term thesis validation. The growth label is somewhat nuanced for this industrial name, as the company also exhibits value characteristics through steady dividend income, making it sensitive to both housing market cycles and consumer confidence shifts.",
+    "dimension_rationale": {},
+    "mirofish_used": false
+  },
+  {
+    "news_sentiment": 65,
+    "macro_exposure": 55,
+    "position_sizing": null,
+    "thesis_risk": 45,
+    "volatility_trend": 50,
+    "total_score": 53.8,
+    "grade": "C",
+    "reasoning": "",
+    "grade_reason": "",
+    "evidence_summary": "3M (MMM) currently shows no active position in the portfolio despite recent bullish signals from institutional investors, including a significant stake increase by SG Americas Securities LLC and modest insider buying by the Group President. The company continues navigating a complex turnaround narrative centered on cost reduction and portfolio reshaping amid ongoing legacy liability challenges. Given the zero position, this analysis serves as pre-position surveillance rather than active risk management.",
+    "dimension_rationale": {},
+    "mirofish_used": false
+  }
+]

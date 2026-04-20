@@ -4,6 +4,7 @@ import SwiftUI
 @MainActor
 class DashboardViewModel: ObservableObject {
     @Published private(set) var dashboard: DashboardResponse?
+    @Published private var digestOverride: Digest?
     @Published var isLoading = false
     @Published var isRefreshingAnalysis = false
     @Published var errorMessage: String?
@@ -12,7 +13,7 @@ class DashboardViewModel: ObservableObject {
     private let api = APIService.shared
 
     var holdings: [Position] { dashboard?.positions ?? [] }
-    var todayDigest: Digest? { dashboard?.digest }
+    var todayDigest: Digest? { digestOverride ?? dashboard?.digest }
     var alerts: [Alert] { dashboard?.alerts ?? [] }
     var portfolioRiskSnapshot: PortfolioRiskSnapshot? { dashboard?.portfolioRiskSnapshot }
 
@@ -162,6 +163,9 @@ class DashboardViewModel: ObservableObject {
 
     var morningFocusItems: [String] {
         var items: [String] = []
+        if let watchlistAlerts = todayDigest?.structuredSections?.watchlistAlerts {
+            items.append(contentsOf: watchlistAlerts.prefix(2))
+        }
         if let watchList = todayDigest?.structuredSections?.watchList {
             items.append(contentsOf: watchList.prefix(2))
         }
@@ -172,7 +176,19 @@ class DashboardViewModel: ObservableObject {
     }
 
     var actionItems: [String] {
-        Array(todayDigest?.structuredSections?.portfolioAdvice.prefix(3) ?? [])
+        Array(todayDigest?.structuredSections?.portfolioImpact.prefix(3) ?? [])
+    }
+
+    var nextScheduledRunText: String {
+        let calendar = Calendar.current
+        let now = Date()
+        var nextComponents = calendar.dateComponents([.year, .month, .day], from: now)
+        nextComponents.hour = 9
+        nextComponents.minute = 30
+
+        let todayRun = calendar.date(from: nextComponents) ?? now
+        let nextRun = todayRun > now ? todayRun : calendar.date(byAdding: .day, value: 1, to: todayRun) ?? todayRun
+        return nextRun.formatted(date: .omitted, time: .shortened)
     }
 
     var changeAlerts: [Alert] {
@@ -197,17 +213,28 @@ class DashboardViewModel: ObservableObject {
             isLoading = true
         }
         errorMessage = nil
+        digestOverride = nil
 
         do {
             let fetched = try await api.fetchDashboard()
             dashboard = fetched
+
+            if shouldRefreshDigest(fetched.digest, holdingCount: fetched.positions.count) {
+                do {
+                    let refreshed = try await api.fetchTodayDigest()
+                    digestOverride = refreshed.digest
+                } catch {
+                    digestOverride = nil
+                }
+            }
 
             switch fetched.analysisRun?.lifecycleStatus {
             case "running", "queued":
                 activeRun = fetched.analysisRun
             case "failed":
                 activeRun = fetched.analysisRun
-                errorMessage = fetched.analysisRun?.displayErrorMessage ?? "Analysis failed. Please run a fresh review."
+                let displayError = fetched.analysisRun?.displayErrorMessage ?? "Analysis failed. Please run a fresh review."
+                errorMessage = isTransientAnalysisError(displayError) ? nil : displayError
             default:
                 activeRun = nil
             }
@@ -220,6 +247,14 @@ class DashboardViewModel: ObservableObject {
         }
 
         isLoading = false
+    }
+
+    private func isTransientAnalysisError(_ message: String?) -> Bool {
+        guard let message = message?.lowercased() else { return false }
+        return message.contains("high traffic")
+            || message.contains("rate limit")
+            || message.contains("overload")
+            || message.contains("temporarily unavailable")
     }
 
     func triggerFreshAnalysis() async {
@@ -257,7 +292,7 @@ class DashboardViewModel: ObservableObject {
                     activeRun = nil
                     return true
                 case "failed":
-                    errorMessage = run.displayErrorMessage
+                    errorMessage = isTransientAnalysisError(run.displayErrorMessage) ? nil : run.displayErrorMessage
                     activeRun = run
                     return false
                 default:
@@ -321,6 +356,11 @@ class DashboardViewModel: ObservableObject {
         }
 
         return "Monitoring this position."
+    }
+
+    private func shouldRefreshDigest(_ digest: Digest?, holdingCount: Int) -> Bool {
+        guard holdingCount > 0 else { return false }
+        return digest?.structuredSections?.digestVersion != 2
     }
 
     private var topRiskDriverSummary: String? {

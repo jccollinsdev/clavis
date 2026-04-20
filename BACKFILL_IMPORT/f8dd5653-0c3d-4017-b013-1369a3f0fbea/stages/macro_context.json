@@ -1,0 +1,39 @@
+{
+  "overnight_macro": {
+    "headlines": [
+      "JPMorgan Chase tops estimates on fixed income, investment banking as Wall Street hums",
+      "Oil falls as IEA predicts \u2018demand destruction will spread\u2019 and hopes for fresh Iran talks grow",
+      "Democrats raised $500 million in Q1 from party's main fundraising platform",
+      "Trump is blockading Iranian ports in the Persian Gulf. What does that mean?"
+    ],
+    "themes": [
+      "sector_specific",
+      "credit_market",
+      "commodities"
+    ],
+    "brief": "Overnight macro developments centered on sector_specific, credit_market, commodities, with the main headlines reflecting those themes across markets."
+  },
+  "position_impacts": [
+    {
+      "ticker": "ABBV",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    },
+    {
+      "ticker": "ABT",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    },
+    {
+      "ticker": "AOS",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    },
+    {
+      "ticker": "MMM",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    }
+  ],
+  "what_matters_today": []
+}

@@ -1,0 +1,101 @@
+{
+  "position": {
+    "id": "2d4cf841-b6c2-4c21-a88d-87c7c996c3f4",
+    "user_id": "00000000-0000-0000-0000-000000000001",
+    "ticker": "ABT",
+    "shares": 0.0,
+    "purchase_price": 0.0,
+    "archetype": "growth",
+    "created_at": "2026-04-12T23:57:58.424725+00:00",
+    "updated_at": "2026-04-12T23:57:58.424725+00:00",
+    "current_price": 100.69,
+    "analysis_started_at": null
+  },
+  "inferred_labels": [
+    "growth"
+  ],
+  "related_articles": [],
+  "event_analyses": [],
+  "position_report": {
+    "summary": "No material new risk events were identified for ABT in this cycle.",
+    "long_report": "ABT did not have any relevant events that cleared the portfolio relevance threshold during this run. The current view is therefore based on existing position context and the absence of new material catalysts.",
+    "methodology": "Position review based on position metadata and an empty relevant-event set for this analysis cycle.",
+    "top_risks": [
+      "No new material risk catalysts identified."
+    ],
+    "watch_items": [
+      "New company-specific or macro catalysts have not appeared in this cycle."
+    ]
+  },
+  "position_payload": {
+    "id": "2d4cf841-b6c2-4c21-a88d-87c7c996c3f4",
+    "user_id": "00000000-0000-0000-0000-000000000001",
+    "ticker": "ABT",
+    "shares": 0.0,
+    "purchase_price": 0.0,
+    "archetype": "growth",
+    "created_at": "2026-04-12T23:57:58.424725+00:00",
+    "updated_at": "2026-04-12T23:57:58.424725+00:00",
+    "current_price": 100.69,
+    "analysis_started_at": null,
+    "analysis_mode": "sp500_backfill",
+    "previous_grade": "C",
+    "previous_total_score": 61.0,
+    "summary": "No material new risk events were identified for ABT in this cycle.",
+    "long_report": "ABT did not have any relevant events that cleared the portfolio relevance threshold during this run. The current view is therefore based on existing position context and the absence of new material catalysts.",
+    "top_risks": [
+      "No new material risk catalysts identified."
+    ],
+    "watch_items": [
+      "New company-specific or macro catalysts have not appeared in this cycle."
+    ],
+    "top_news": [],
+    "inferred_labels": [
+      "growth"
+    ],
+    "methodology": "Position review based on position metadata and an empty relevant-event set for this analysis cycle.",
+    "mirofish_used": false,
+    "thesis_verifier": [],
+    "event_analyses": [],
+    "ticker_metadata": {
+      "id": "278a73d7-7378-4c67-83f4-3b0848f58942",
+      "ticker": "ABT",
+      "company_name": "Abbott Laboratories",
+      "asset_class": null,
+      "sector": "Health Care",
+      "industry": null,
+      "exchange": "NEW YORK STOCK EXCHANGE, INC.",
+      "market_cap": 174688234144.21143,
+      "market_cap_bucket": "high",
+      "float_shares": null,
+      "avg_daily_dollar_volume": 953533293.1,
+      "spread_proxy": 0.001,
+      "beta": 0.78056407,
+      "volatility_proxy": 0.1951410175,
+      "profitability_profile": "mixed",
+      "leverage_profile": "moderate",
+      "macro_sensitivity": null,
+      "structural_fragility": null,
+      "liquidity_risk": null,
+      "updated_at": "2026-04-13T20:15:15.577334+00:00",
+      "created_at": "2026-04-12T21:58:05.756473+00:00",
+      "pe_ratio": 26.7229,
+      "week_52_high": 139.06,
+      "week_52_low": 99.34,
+      "price": 100.69,
+      "price_as_of": "2026-04-13T20:15:15.453361+00:00",
+      "avg_volume": 9.46999,
+      "previous_close": 100.3,
+      "open_price": 100.125,
+      "day_high": 100.895,
+      "day_low": 99.05,
+      "last_price_source": "finnhub",
+      "is_supported": true
+    },
+    "macro_impact": {
+      "ticker": "ABT",
+      "macro_relevance": "neutral",
+      "impact_summary": "Abbott Laboratories' med-tech growth profile faces no meaningful overnight macro catalyst."
+    }
+  }
+}

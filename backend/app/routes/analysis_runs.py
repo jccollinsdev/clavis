@@ -12,9 +12,17 @@ def _enrich_run(run: dict, digest: list[dict] | None = None) -> dict:
         digest[0].get("overall_grade") if digest else run.get("overall_portfolio_grade")
     )
     run["generated_at"] = digest[0].get("generated_at") if digest else None
-    if run.get("current_stage") == "completed" and run.get("status") != "completed":
+    if run.get("current_stage") == "completed" and run.get("status") in {
+        None,
+        "queued",
+        "running",
+    }:
         run["status"] = "completed"
-    if run.get("current_stage") == "failed" and run.get("status") != "failed":
+    if run.get("current_stage") == "failed" and run.get("status") in {
+        None,
+        "queued",
+        "running",
+    }:
         run["status"] = "failed"
     run["progress"] = _run_progress(run.get("current_stage"), run.get("status"))
     run["digest_ready"] = bool(digest) or run.get("status") == "completed"
@@ -37,7 +45,7 @@ def _get_latest_completed_run(supabase, user_id: str) -> dict | None:
 
 
 def _run_progress(stage: str | None, status: str | None) -> int:
-    if status == "completed":
+    if status in {"completed", "partial"}:
         return 100
     if status == "failed":
         return 0
@@ -53,6 +61,7 @@ def _run_progress(stage: str | None, status: str | None) -> int:
         "refreshing_prices": 88,
         "computing_portfolio_risk": 94,
         "building_digest": 98,
+        "sp500_running_batches": 60,
     }.get(stage or "", 10)
 
 

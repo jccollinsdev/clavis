@@ -1,0 +1,65 @@
+{
+  "overnight_macro": {
+    "headlines": [
+      "Vance says 'the ball is in Iran's court' to move peace talks further, as U.S. blockade takes effect",
+      "Fed nominee Warsh clears a hurdle to Senate hearing",
+      "Oil prices near $100 as U.S. Navy blockades Iran's ports after peace talks fail",
+      "Trump deletes Truth Social image depicting him as Jesus: 'It was me as a doctor'"
+    ],
+    "themes": [],
+    "brief": "Overnight macro developments were limited. Markets appear calm with no significant policy shifts or economic surprises."
+  },
+  "position_impacts": [
+    {
+      "ticker": "A",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    },
+    {
+      "ticker": "ABBV",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    },
+    {
+      "ticker": "ABT",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    },
+    {
+      "ticker": "ACN",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    },
+    {
+      "ticker": "ADBE",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    },
+    {
+      "ticker": "AES",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    },
+    {
+      "ticker": "AFL",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    },
+    {
+      "ticker": "AMD",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    },
+    {
+      "ticker": "AOS",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    },
+    {
+      "ticker": "MMM",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    }
+  ],
+  "what_matters_today": []
+}

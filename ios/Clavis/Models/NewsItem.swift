@@ -33,6 +33,7 @@ struct NewsItem: Identifiable, Codable {
     let userId: String
     let ticker: String?
     let title: String
+    let summary: String?
     let source: String?
     let url: String?
     let significance: String?
@@ -45,6 +46,7 @@ struct NewsItem: Identifiable, Codable {
         case userId = "user_id"
         case ticker
         case title
+        case summary
         case source
         case url
         case significance
@@ -59,6 +61,7 @@ struct NewsItem: Identifiable, Codable {
         userId = try container.decode(String.self, forKey: .userId)
         ticker = try container.decodeIfPresent(String.self, forKey: .ticker)
         title = try container.decode(String.self, forKey: .title)
+        summary = try container.decodeIfPresent(String.self, forKey: .summary)
         source = try container.decodeIfPresent(String.self, forKey: .source)
         url = try container.decodeIfPresent(String.self, forKey: .url)
         significance = try container.decodeIfPresent(String.self, forKey: .significance)

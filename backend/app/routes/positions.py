@@ -7,6 +7,14 @@ from fastapi import (
     Response,
 )
 from ..services.supabase import get_supabase
+from ..services.ticker_cache_service import (
+    _get_latest_position_score_for_ids,
+    build_position_analysis_from_snapshot,
+    build_risk_score_response,
+    get_latest_risk_snapshot_map,
+    get_metadata_map,
+    sanitize_public_analysis_text,
+)
 from .holdings import refresh_position_price
 
 router = APIRouter()
@@ -78,14 +86,6 @@ async def get_position_detail(
             refresh_position_price, position_id, position["ticker"]
         )
 
-    scores_result = (
-        supabase.table("risk_scores")
-        .select("*")
-        .eq("position_id", position_id)
-        .order("calculated_at", desc=True)
-        .limit(1)
-        .execute()
-    )
     analyses_result = (
         supabase.table("position_analyses")
         .select("*")
@@ -95,14 +95,21 @@ async def get_position_detail(
         .execute()
     )
     analyses = analyses_result.data or []
-    current_analysis = _select_current_analysis(analyses)
+
+    metadata = get_metadata_map(supabase, [position["ticker"]]).get(
+        position["ticker"], {}
+    )
+    snapshot = get_latest_risk_snapshot_map(supabase, [position["ticker"]]).get(
+        position["ticker"]
+    )
+    if position.get("current_price") is None:
+        position["current_price"] = metadata.get("price")
 
     news_result = (
-        supabase.table("news_items")
+        supabase.table("ticker_news_cache")
         .select("*")
-        .eq("user_id", user_id)
         .eq("ticker", position["ticker"])
-        .order("processed_at", desc=True)
+        .order("published_at", desc=True)
         .limit(10)
         .execute()
     )
@@ -125,47 +132,52 @@ async def get_position_detail(
         .execute()
     )
 
-    current_score = scores_result.data[0] if scores_result.data else None
+    current_analysis = sanitize_public_analysis_text(
+        _select_current_analysis(analyses)
+        or build_position_analysis_from_snapshot(
+            snapshot, position_id=position_id, ticker=position["ticker"]
+        )
+    )
+    latest_position_score = _get_latest_position_score_for_ids(supabase, [position_id])
+    score_response = sanitize_public_analysis_text(
+        build_risk_score_response(
+            snapshot,
+            position_id=position_id,
+            latest_position_score=latest_position_score,
+        )
+    )
+    recent_news = []
+    for row in news_result.data or []:
+        recent_news.append(
+            {
+                "id": row.get("id"),
+                "user_id": user_id,
+                "ticker": position["ticker"],
+                "title": row.get("headline"),
+                "summary": row.get("summary"),
+                "source": row.get("source"),
+                "url": row.get("url"),
+                "significance": row.get("sentiment"),
+                "published_at": row.get("published_at"),
+                "affected_tickers": [position["ticker"]],
+                "processed_at": row.get("processed_at"),
+            }
+        )
 
-    if current_score:
-        score_response = {
-            "id": current_score.get("id"),
-            "position_id": current_score.get("position_id"),
-            "safety_score": current_score.get(
-                "safety_score", current_score.get("total_score")
-            ),
-            "confidence": current_score.get("confidence"),
-            "structural_base_score": current_score.get("structural_base_score"),
-            "macro_adjustment": current_score.get("macro_adjustment"),
-            "event_adjustment": current_score.get("event_adjustment"),
-            "grade": current_score.get("grade"),
-            "reasoning": current_score.get("reasoning"),
-            "factor_breakdown": current_score.get("factor_breakdown"),
-            "mirofish_used": current_score.get("mirofish_used"),
-            "calculated_at": current_score.get("calculated_at"),
-            "total_score": current_score.get("total_score"),
-            "news_sentiment": current_score.get("news_sentiment"),
-            "macro_exposure": current_score.get("macro_exposure"),
-            "position_sizing": current_score.get("position_sizing"),
-            "volatility_trend": current_score.get("volatility_trend"),
+    return sanitize_public_analysis_text(
+        {
+            "position": position,
+            "current_score": score_response,
+            "current_analysis": current_analysis,
+            "methodology": current_analysis.get("methodology")
+            if current_analysis
+            else None,
+            "dimension_breakdown": snapshot.get("dimension_rationale")
+            if snapshot
+            else None,
+            "latest_event_analyses": event_result.data,
+            "mirofish_used_this_cycle": False,
+            "recent_news": recent_news,
+            "recent_alerts": alerts_result.data,
         }
-    else:
-        score_response = None
-
-    return {
-        "position": position,
-        "current_score": score_response,
-        "current_analysis": current_analysis,
-        "methodology": current_analysis.get("methodology")
-        if current_analysis
-        else None,
-        "dimension_breakdown": current_score.get("dimension_rationale")
-        if current_score
-        else None,
-        "latest_event_analyses": event_result.data,
-        "mirofish_used_this_cycle": current_score.get("mirofish_used")
-        if current_score
-        else False,
-        "recent_news": news_result.data,
-        "recent_alerts": alerts_result.data,
-    }
+    )

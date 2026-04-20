@@ -1,0 +1,323 @@
+{
+  "structural_scores": {
+    "safety_score": 60,
+    "confidence": 0.75,
+    "structural_base_score": 60,
+    "macro_adjustment": 0.0,
+    "event_adjustment": 0.0,
+    "total_score": 60,
+    "grade": "C",
+    "factor_breakdown": {
+      "market_cap_bucket": "high",
+      "market_cap_contribution": 25.5,
+      "asset_class_contribution": 10.0,
+      "liquidity_score": 50,
+      "volatility_score": 45,
+      "leverage_score": 50,
+      "profitability_score": 50,
+      "macro_adjustment": 0.0,
+      "event_adjustment": 0.0,
+      "event_count": 3
+    },
+    "market_cap_bucket": "high",
+    "reasoning": "Structural: 60, Macro: 0.0, Event: 0.0",
+    "grade_reason": "Safety score 60 based on structural factors and adjustments",
+    "dimension_rationale": {
+      "structural_base_score": "Deterministic scoring from market cap, liquidity, volatility, leverage, profitability",
+      "macro_adjustment": "Regime neutral with None sensitivity",
+      "event_adjustment": "3 recent events contributing 0.0"
+    },
+    "mirofish_used": false
+  },
+  "ai_scores": {
+    "id": "551d5410-388d-4c62-b0c2-ba9ab0f49e3b",
+    "user_id": "00000000-0000-0000-0000-000000000001",
+    "ticker": "ACN",
+    "shares": 0.0,
+    "purchase_price": 0.0,
+    "archetype": "growth",
+    "created_at": "2026-04-13T00:47:15.797313+00:00",
+    "updated_at": "2026-04-13T00:47:15.797313+00:00",
+    "current_price": 191.95,
+    "analysis_started_at": null,
+    "analysis_mode": "sp500_backfill",
+    "previous_grade": "C",
+    "previous_total_score": 58.8,
+    "summary": "Accenture's federal contract wins represent a meaningful structural advantage, offering long-duration, sticky revenue streams in a growing digital modernization market with high barriers to entry; combined with institutional buying from a value-oriented firm, the long-term growth thesis remains intact. However, the recent 6.9% price surge has pushed shares near the GuruFocus fair-value estimate of $353.9, introducing near-term pullback risk if momentum overshoots without fresh earnings catalysts. The position appears supported by improving investor sentiment, though valuation headroom has narrowed significantly.",
+    "long_report": "Accenture's federal business expansion is a strategically important development that directly reinforces the 'growth' label associated with this holding. Government technology work offers multi-year contract durations and higher switching costs for clients, providing revenue visibility that corporate consulting alone cannot match. This diversification reduces reliance on cyclical corporate IT spending and positions ACN to benefit from ongoing federal digital modernization initiatives\u2014a structural tailwind. On valuation, the recent 6.9% gain brings the stock within striking distance of the GF fair-value estimate of $353.9, meaning near-term upside may be limited without positive earnings revisions or additional contract announcements. The Deprince Race & Zollo purchase signals that at current levels, sophisticated value-oriented investors see favorable risk/reward, but this is a mild rather than aggressive bullish signal. For a growth-oriented position, the narrowing valuation discount suggests investors should monitor whether ACN can sustain elevated multiples or if earnings growth must accelerate to justify further upside. In the near term, the combination of momentum-driven gains and reduced valuation cushion elevates downside risk if macro conditions deteriorate or if Q&A fiscal year guidance disappoints.",
+    "top_risks": [
+      "Valuation pullback risk: the 6.9% gain has narrowed the discount to fair value, increasing susceptibility to reversals if price momentum exceeds earnings delivery",
+      "Federal spending uncertainty: shifts in government budget priorities or procurement delays could pressure the newly won contract revenues before they fully materialize",
+      "Earnings growth dependency: sustaining current multiples requires consistent revenue and EPS growth, as the valuation cushion is now minimal"
+    ],
+    "watch_items": [
+      "Q3/Q4 earnings growth rates and federal revenue contribution as a percentage of total sales",
+      "Federal budget allocations for technology modernization in upcoming appropriations cycles",
+      "Any additional contract announcements or large federal IT awards that would validate the diversification thesis",
+      "Broader market risk sentiment if macro conditions shift risk-off, given the reduced valuation buffer"
+    ],
+    "top_news": [
+      "Accenture plc (ACN): Leveraging Federal Wins to Strengthen Long-Term Growth Visibility",
+      "A Look at Accenture PLC (ACN) After 6.9% Gain -- GF Value $353.9",
+      "Deprince Race & Zollo Inc. Acquires 15,599 Shares of Accenture PLC $ACN"
+    ],
+    "inferred_labels": [
+      "growth"
+    ],
+    "methodology": "This report anchors analysis to three key event signals: the federal contract wins as a structural growth driver (major), institutional accumulation as a valuation confirmation (major), and the recent price surge bringing fair-value proximity as a near-term risk indicator (minor). The 'growth' label and absence of sector-specific macro context inform the forward-looking risk assessment, while valuation benchmarks provide objective anchoring points.",
+    "mirofish_used": false,
+    "thesis_verifier": [
+      {
+        "macro_event": "Overnight macro was calm with no significant policy shifts; markets stable with limited developments",
+        "thesis_impact": "neutral",
+        "reasoning": "Absent macro catalysts, the thesis remains anchored to company-specific federal wins and earnings quality rather than external macro drivers"
+      },
+      {
+        "macro_event": "Institutional investor Deprince Race & Zollo Inc. acquired 15,599 ACN shares, a value-oriented signal at current levels",
+        "thesis_impact": "confirms",
+        "reasoning": "Value-oriented institutional buying confirms the growth thesis by validating that at present valuations, ACN's risk/reward is favorable relative to alternative equity opportunities"
+      }
+    ],
+    "event_analyses": [
+      {
+        "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+        "position_id": "551d5410-388d-4c62-b0c2-ba9ab0f49e3b",
+        "event_hash": "30a59cabe11fe22f0a22e4a7d15b9bb1549ecd94cc8b53a365200716d9566a24",
+        "external_event_id": "CBMirwFBVV95cUxQNUxEdHpwTk5qeVYtaE13Mlg0S1VOTUZ0aWdTVEJiXzJaNG9SX0txZHFwSERtSjA5bFctUEI0YmRkcjIzUVZ2c1J4UDRPeFB5cHd5RjRENGI0WFFwQ2ViR3RXYVJzX2hvcmdLcVo2OWV4UWU3UmlPRmhUUkRkRVVjQko0X2lwZlFQRDdxcjBLYkMxelFvcmVzcXN4WmpEblg3cGU4ZjFfZmhSQ011NWw4",
+        "title": "A Look at Accenture PLC (ACN) After 6.9% Gain -- GF Value $353.9",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMirwFBVV95cUxQNUxEdHpwTk5qeVYtaE13Mlg0S1VOTUZ0aWdTVEJiXzJaNG9SX0txZHFwSERtSjA5bFctUEI0YmRkcjIzUVZ2c1J4UDRPeFB5cHd5RjRENGI0WFFwQ2ViR3RXYVJzX2hvcmdLcVo2OWV4UWU3UmlPRmhUUkRkRVVjQko0X2lwZlFQRDdxcjBLYkMxelFvcmVzcXN4WmpEblg3cGU4ZjFfZmhSQ011NWw4?oc=5\" target=\"_blank\">A Look at Accenture PLC (ACN) After 6.9% Gain -- GF Value $353.9</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">GuruFocus</font>",
+        "source": "GuruFocus",
+        "source_url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxQNUxEdHpwTk5qeVYtaE13Mlg0S1VOTUZ0aWdTVEJiXzJaNG9SX0txZHFwSERtSjA5bFctUEI0YmRkcjIzUVZ2c1J4UDRPeFB5cHd5RjRENGI0WFFwQ2ViR3RXYVJzX2hvcmdLcVo2OWV4UWU3UmlPRmhUUkRkRVVjQko0X2lwZlFQRDdxcjBLYkMxelFvcmVzcXN4WmpEblg3cGU4ZjFfZmhSQ011NWw4?oc=5",
+        "published_at": "2026-04-13T21:29:37+00:00",
+        "event_type": "other",
+        "significance": "minor",
+        "classification": {
+          "confidence": 0.92,
+          "event_type": "other",
+          "significance": "minor",
+          "why_it_matters": "GuruFocus valuation analysis of Accenture's stock price versus intrinsic value, not an analyst rating."
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "ACN"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "Accenture showing 6.9% gain and strong GF value rating supports the growth archetype holding."
+          },
+          "significance": {
+            "confidence": 0.92,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "GuruFocus valuation analysis of Accenture's stock price versus intrinsic value, not an analyst rating."
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "Accenture's recent 6.9% price gain brings the stock closer to its GuruFocus (GF) fair\u2011value estimate of $353.9, indicating short\u2011term upward momentum that may narrow the valuation discount. While the move suggests improving investor sentiment, the proximity to the GF value raises the risk of a pullback if the price overshoots without underlying earnings support. The market's reaction also reflects heightened volatility in the IT\u2011services sector, making near\u2011term price swings more likely. This is direct company coverage for ACN.",
+        "confidence": 0.73,
+        "impact_horizon": "near_term",
+        "risk_direction": "improving",
+        "scenario_summary": "Accenture's price has risen 6.9% toward its GF fair\u2011value estimate, signaling short\u2011term upside momentum but also a potential reversal risk if the stock reaches overvaluation. This is direct company coverage for ACN.",
+        "key_implications": [
+          "The stock's approach to the GF value could attract value\u2011oriented investors, but also prompt profit\u2011taking if the price exceeds the estimate.",
+          "Increased volatility around the $353.9 level may create trading opportunities but also elevate downside risk.",
+          "Sector\u2011wide trends in IT services will be a key driver of whether the momentum sustains."
+        ],
+        "recommended_followups": [
+          "Monitor whether Accenture's price stabilizes near or above the $353.9 GF value to assess if the upside is sustainable.",
+          "Track upcoming earnings releases and guidance for any revisions to the company\u2019s growth outlook that could affect the GF estimate.",
+          "Keep an eye on broader IT\u2011services sector benchmarks and macroeconomic factors that could influence investor risk appetite."
+        ]
+      },
+      {
+        "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+        "position_id": "551d5410-388d-4c62-b0c2-ba9ab0f49e3b",
+        "event_hash": "051db58512767551183c572dca3ceda8eed7bb69b7e141efb5219fe365d205d2",
+        "external_event_id": "CBMiowFBVV95cUxQR0U1YlczRVM3b1NOQUtIek9qcGVjeEkzbnJEMElKRGZ0U3RtYUFxakVpV2NRbmtiMENKbVY0SldHZ3A3YWRMWVBNeC14eWhreWRjRi1aY3Q0ckRBRVNVSjF0OXFTTF9ZZXNyMFdrWG5ZYXVQOXJPdS1oWVprZENvemZIMkl3dFA5UWdTN1BKRS1OV0g3RjdRU2lvbFFxM1RpelZv",
+        "title": "Accenture plc (ACN): Leveraging Federal Wins to Strengthen Long-Term Growth Visibility",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiowFBVV95cUxQR0U1YlczRVM3b1NOQUtIek9qcGVjeEkzbnJEMElKRGZ0U3RtYUFxakVpV2NRbmtiMENKbVY0SldHZ3A3YWRMWVBNeC14eWhreWRjRi1aY3Q0ckRBRVNVSjF0OXFTTF9ZZXNyMFdrWG5ZYXVQOXJPdS1oWVprZENvemZIMkl3dFA5UWdTN1BKRS1OV0g3RjdRU2lvbFFxM1RpelZv?oc=5\" target=\"_blank\">Accenture plc (ACN): Leveraging Federal Wins to Strengthen Long-Term Growth Visibility</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Finance</font>",
+        "source": "Yahoo Finance",
+        "source_url": "https://news.google.com/rss/articles/CBMiowFBVV95cUxQR0U1YlczRVM3b1NOQUtIek9qcGVjeEkzbnJEMElKRGZ0U3RtYUFxakVpV2NRbmtiMENKbVY0SldHZ3A3YWRMWVBNeC14eWhreWRjRi1aY3Q0ckRBRVNVSjF0OXFTTF9ZZXNyMFdrWG5ZYXVQOXJPdS1oWVprZENvemZIMkl3dFA5UWdTN1BKRS1OV0g3RjdRU2lvbFFxM1RpelZv?oc=5",
+        "published_at": "2026-04-12T18:18:10+00:00",
+        "event_type": "other",
+        "significance": "major",
+        "classification": {
+          "rule": "keyword",
+          "confidence": 0.95,
+          "event_type": "other",
+          "significance": "major",
+          "why_it_matters": "Keyword detected major event"
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "ACN"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "LLM call failed"
+          },
+          "significance": {
+            "rule": "keyword",
+            "confidence": 0.95,
+            "event_type": "other",
+            "significance": "major",
+            "why_it_matters": "Keyword detected major event"
+          }
+        },
+        "analysis_source": "minimax_fallback",
+        "long_analysis": "Accenture's federal contract wins represent a meaningful diversification of revenue streams, as government technology work tends to offer long-duration, sticky contracts that improve revenue visibility over multi-year horizons. Federal work also typically carries higher barriers to entry for competitors, providing ACN with a defensible niche in a growing digital modernization market. This development reinforces Accenture's positioning as a preferred vendor for large-scale transformation programs, which can support pricing power and contract backlog stability. The headline framing explicitly ties federal wins to long-term growth visibility, signaling management confidence in sustained revenue generation from this vertical. This is direct company coverage for ACN.",
+        "confidence": 0.7999999999999999,
+        "impact_horizon": "long_term",
+        "risk_direction": "improving",
+        "scenario_summary": "Accenture's federal contract wins deepen revenue diversification and contract backlog visibility, supporting a more predictable long-term earnings profile amid a mixed commercial consulting environment. This is direct company coverage for ACN.",
+        "key_implications": [
+          "Federal backlog provides a revenue floor and multi-year visibility absent in purely commercial consulting lines",
+          "Increased government technology spend (digital modernization, cybersecurity) creates a durable demand tailwind",
+          "Federal wins strengthen ACN's competitive moat given stringent security clearances and compliance requirements that limit peer competition"
+        ],
+        "recommended_followups": [
+          "Track federal contract announcement cadence and aggregate contract value to assess backlog growth rate",
+          "Monitor ACN's government segment revenue as a disclosed sub-segment in earnings presentations",
+          "Evaluate whether federal wins are offsetting commercial consulting softness in Q4/fiscal year reporting"
+        ]
+      },
+      {
+        "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+        "position_id": "551d5410-388d-4c62-b0c2-ba9ab0f49e3b",
+        "event_hash": "2647446533a4baceb972d39743ac0fa9c7a6623d8dfa522d63d856cee96b8969",
+        "external_event_id": "CBMixgFBVV95cUxNZFN6Y2hQNWZweWZmelp5dDE4aG9YSXJpelM4ZWJFYjEwZHpUc2kxTnFCVHktLU9WcHg3ZVFnTDRHc1hoLWRRcEdSM0Z6SlJfR0xfMXJ0djRLanlqN0ZnSll2ZjdESXVGVmc5VEdieWMwVWFBZXc1aEdLc3hvdEd2VnphOGUtcV95c041TVpzZ0NCNkd2Mi1WM0Yzc1NyVW9yY1FXNjh3Nm56emhkSGZPRkFqVGFZQkhrbTAtdzY0Z3RHNnVRSFE",
+        "title": "Deprince Race & Zollo Inc. Acquires 15,599 Shares of Accenture PLC $ACN",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMixgFBVV95cUxNZFN6Y2hQNWZweWZmelp5dDE4aG9YSXJpelM4ZWJFYjEwZHpUc2kxTnFCVHktLU9WcHg3ZVFnTDRHc1hoLWRRcEdSM0Z6SlJfR0xfMXJ0djRLanlqN0ZnSll2ZjdESXVGVmc5VEdieWMwVWFBZXc1aEdLc3hvdEd2VnphOGUtcV95c041TVpzZ0NCNkd2Mi1WM0Yzc1NyVW9yY1FXNjh3Nm56emhkSGZPRkFqVGFZQkhrbTAtdzY0Z3RHNnVRSFE?oc=5\" target=\"_blank\">Deprince Race & Zollo Inc. Acquires 15,599 Shares of Accenture PLC $ACN</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">MarketBeat</font>",
+        "source": "MarketBeat",
+        "source_url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxNZFN6Y2hQNWZweWZmelp5dDE4aG9YSXJpelM4ZWJFYjEwZHpUc2kxTnFCVHktLU9WcHg3ZVFnTDRHc1hoLWRRcEdSM0Z6SlJfR0xfMXJ0djRLanlqN0ZnSll2ZjdESXVGVmc5VEdieWMwVWFBZXc1aEdLc3hvdEd2VnphOGUtcV95c041TVpzZ0NCNkd2Mi1WM0Yzc1NyVW9yY1FXNjh3Nm56emhkSGZPRkFqVGFZQkhrbTAtdzY0Z3RHNnVRSFE?oc=5",
+        "published_at": "2026-04-13T08:21:12+00:00",
+        "event_type": "other",
+        "significance": "major",
+        "classification": {
+          "rule": "keyword",
+          "confidence": 0.95,
+          "event_type": "other",
+          "significance": "major",
+          "why_it_matters": "Keyword detected major event"
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "ACN"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "Institutional accumulation data is routine; no material news affecting ACN fundamentals."
+          },
+          "significance": {
+            "rule": "keyword",
+            "confidence": 0.95,
+            "event_type": "other",
+            "significance": "major",
+            "why_it_matters": "Keyword detected major event"
+          }
+        },
+        "analysis_source": "minimax_fallback",
+        "long_analysis": "Deprince Race & Zollo Inc.'s purchase of 15,599 ACN shares represents a direct equity allocation decision by a value-oriented institutional investor, which is a mildly bullish signal for near-term price support. The trade size, while not transformative, signals that at current valuations the firm views Accenture's risk/reward as favorable relative to alternative equity opportunities. This type of insider-adjacent buying can catalyze investor confidence, particularly if it contrasts with broader tech consultancy sector sentiment. However, 15,599 shares is a relatively modest position relative to ACN's market cap, so the market impact is likely limited to signaling rather than price-moving volume. This is direct company coverage for ACN.",
+        "confidence": 0.73,
+        "impact_horizon": "near_term",
+        "risk_direction": "neutral",
+        "scenario_summary": "Institutional buying by Deprince Race & Zollo provides a modest positive sentiment signal, supporting near-term price floors but unlikely to materially alter ACN's valuation trajectory on its own. This is direct company coverage for ACN.",
+        "key_implications": [
+          "The purchase signals institutional conviction that ACN is attractively valued at prevailing prices",
+          "Near-term price support is likely, as buying activity counters selling pressure from passive rebalancing",
+          "A single firm's buying activity is insufficient to drive material upside without corroborating fundamental catalysts"
+        ],
+        "recommended_followups": [
+          "Cross-reference against 13F filings for the full quarter to confirm whether the position was scaled up or is part of an existing thesis",
+          "Watch for additional institutional buying activity in ACN across other 13F filers in the same period",
+          "Assess whether the purchase timing aligns with ACN's post-earnings quiet period or dividend ex-date"
+        ]
+      }
+    ],
+    "ticker_metadata": {
+      "id": "e61952a5-b988-4409-a602-17bb0a7f2698",
+      "ticker": "ACN",
+      "company_name": "Accenture PLC",
+      "asset_class": null,
+      "sector": "Technology",
+      "industry": null,
+      "exchange": "NEW YORK STOCK EXCHANGE, INC.",
+      "market_cap": 117845642078.78432,
+      "market_cap_bucket": "high",
+      "float_shares": null,
+      "avg_daily_dollar_volume": 1043182986.9999999,
+      "spread_proxy": 0.001,
+      "beta": 1.1984261,
+      "volatility_proxy": 0.299606525,
+      "profitability_profile": "mixed",
+      "leverage_profile": "moderate",
+      "macro_sensitivity": null,
+      "structural_fragility": null,
+      "liquidity_risk": null,
+      "updated_at": "2026-04-14T01:07:48.776421+00:00",
+      "created_at": "2026-04-12T21:58:09.401112+00:00",
+      "pe_ratio": 14.6978,
+      "week_52_high": 325.71,
+      "week_52_low": 177.5,
+      "price": 191.95,
+      "price_as_of": "2026-04-14T01:07:48.772705+00:00",
+      "avg_volume": 5.43466,
+      "previous_close": 179.53,
+      "open_price": 180.98,
+      "day_high": 192.04,
+      "day_low": 180.37,
+      "last_price_source": "finnhub",
+      "is_supported": true
+    },
+    "macro_impact": {
+      "ticker": "ACN",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    },
+    "news_sentiment": 75,
+    "macro_exposure": 70,
+    "position_sizing": 50,
+    "volatility_trend": 50,
+    "total_score": 61.2,
+    "grade": "C",
+    "reasoning": "",
+    "grade_reason": "",
+    "evidence_summary": "Accenture's federal contract wins represent a meaningful structural advantage, offering long-duration, sticky revenue streams in a growing digital modernization market with high barriers to entry; combined with institutional buying from a value-oriented firm, the long-term growth thesis remains intact. However, the recent 6.9% price surge has pushed shares near the GuruFocus fair-value estimate of $353.9, introducing near-term pullback risk if momentum overshoots without fresh earnings catalysts. The position appears supported by improving investor sentiment, though valuation headroom has narrowed significantly.",
+    "dimension_rationale": {}
+  },
+  "risk_payload": {
+    "position_id": "551d5410-388d-4c62-b0c2-ba9ab0f49e3b",
+    "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+    "news_sentiment": 75,
+    "macro_exposure": 70,
+    "position_sizing": 50,
+    "volatility_trend": 50,
+    "total_score": 61.2,
+    "safety_score": 60,
+    "confidence": 0.75,
+    "structural_base_score": 60,
+    "macro_adjustment": 0.0,
+    "event_adjustment": 0.0,
+    "factor_breakdown": {
+      "market_cap_bucket": "high",
+      "market_cap_contribution": 25.5,
+      "asset_class_contribution": 10.0,
+      "liquidity_score": 50,
+      "volatility_score": 45,
+      "leverage_score": 50,
+      "profitability_score": 50,
+      "macro_adjustment": 0.0,
+      "event_adjustment": 0.0,
+      "event_count": 3
+    },
+    "grade": "C",
+    "reasoning": "",
+    "grade_reason": "",
+    "evidence_summary": "Accenture's federal contract wins represent a meaningful structural advantage, offering long-duration, sticky revenue streams in a growing digital modernization market with high barriers to entry; combined with institutional buying from a value-oriented firm, the long-term growth thesis remains intact. However, the recent 6.9% price surge has pushed shares near the GuruFocus fair-value estimate of $353.9, introducing near-term pullback risk if momentum overshoots without fresh earnings catalysts. The position appears supported by improving investor sentiment, though valuation headroom has narrowed significantly.",
+    "dimension_rationale": {},
+    "mirofish_used": false
+  }
+}

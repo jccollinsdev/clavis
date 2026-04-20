@@ -1,11 +1,75 @@
 import os
 import requests
+import time
+from threading import Lock
 from supabase import create_client, Client
 from datetime import datetime, timedelta
 from ..config import get_settings
 
 POLYGON_BASE_URL = "https://api.polygon.io/v2"
 FINNHUB_QUOTE_URL = "https://finnhub.io/api/v1/quote"
+
+MAX_RETRIES = 5
+RETRY_BASE_DELAY = 5.0
+_MIN_CALL_SPACING = 20.0
+
+_last_polygon_call = 0.0
+_polygon_rate_limit_lock = Lock()
+_polygon_request_lock = Lock()
+
+
+def _rate_limit_polygon():
+    global _last_polygon_call
+    with _polygon_rate_limit_lock:
+        now = time.monotonic()
+        elapsed = now - _last_polygon_call
+        if elapsed < _MIN_CALL_SPACING:
+            time.sleep(_MIN_CALL_SPACING - elapsed)
+        _last_polygon_call = time.monotonic()
+
+
+def _retry_request(fn, *args, **kwargs):
+    last_exc = None
+    for attempt in range(MAX_RETRIES):
+        try:
+            result = fn(*args, **kwargs)
+            if hasattr(result, "status_code"):
+                if result.status_code == 429:
+                    delay = RETRY_BASE_DELAY * (2**attempt)
+                    print(
+                        f"Polygon 429 rate limit, attempt {attempt + 1}, sleeping {delay:.1f}s"
+                    )
+                    time.sleep(delay)
+                    last_exc = Exception(f"429 rate limit on attempt {attempt + 1}")
+                    continue
+                if result.status_code == 500 or result.status_code == 503:
+                    delay = RETRY_BASE_DELAY * (2**attempt)
+                    time.sleep(delay)
+                    last_exc = Exception(
+                        f"{result.status_code} server error on attempt {attempt + 1}"
+                    )
+                    continue
+                if result.status_code == 401 or result.status_code == 403:
+                    print(
+                        f"Polygon auth error {result.status_code} for {kwargs.get('url', 'unknown')}"
+                    )
+                    return result
+            return result
+        except Exception as e:
+            last_exc = e
+            if attempt < MAX_RETRIES - 1:
+                delay = RETRY_BASE_DELAY * (2**attempt)
+                time.sleep(delay)
+    if last_exc:
+        raise last_exc
+    return None
+
+
+def polygon_get(url: str, *, params: dict | None = None, timeout: int = 15):
+    """Perform a Polygon request under a strict 20s global gate."""
+    with _polygon_request_lock:
+        _rate_limit_polygon()
+        return _retry_request(requests.get, url, params=params, timeout=timeout)
 
 
 def get_polygon_client() -> str:
@@ -51,7 +115,9 @@ def fetch_current_price(ticker: str) -> float | None:
     try:
         url = f"{POLYGON_BASE_URL}/snapshot/locale/us/markets/stocks/tickers/{ticker.upper()}"
         params = {"apiKey": api_key}
-        resp = requests.get(url, params=params, timeout=10)
+        resp = polygon_get(url, params=params, timeout=10)
+        if resp is None:
+            return fetch_current_price_from_finnhub(ticker)
         if resp.status_code == 200:
             data = resp.json()
             if data.get("status") == "OK" and "ticker" in data:
@@ -85,7 +151,10 @@ def fetch_aggs(ticker: str, days: int = 30) -> list[dict]:
             "sort": "asc",
             "limit": 500,
         }
-        resp = requests.get(url, params=params, timeout=15)
+        resp = polygon_get(url, params=params, timeout=15)
+        if resp is None:
+            print(f"All retries exhausted for Polygon aggs for {ticker}")
+            return []
         if resp.status_code == 200:
             data = resp.json()
             if data.get("results"):

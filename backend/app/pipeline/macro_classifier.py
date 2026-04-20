@@ -32,6 +32,17 @@ MACRO_THEMES = [
     "commodities",
 ]
 
+THEME_LABELS = {
+    "rate_policy": "rate policy",
+    "inflation": "inflation",
+    "growth_recession": "growth and recession",
+    "geopolitics": "geopolitics",
+    "sector_specific": "sector-specific moves",
+    "credit_market": "credit markets",
+    "currency": "currency",
+    "commodities": "commodities",
+}
+
 THEME_KEYWORDS = {
     "rate_policy": [
         "fed",
@@ -131,7 +142,7 @@ def _detect_macro_themes(articles: list[dict]) -> list[dict]:
     return detected
 
 
-SYSTEM_PROMPT = """You are a macro analyst writing a brief morning macro brief.
+SYSTEM_PROMPT = """You are a macro analyst writing a brief morning portfolio backdrop.
 
 Given a list of overnight macro developments (news articles classified as macro-relevant), synthesize them into a clear structured brief.
 
@@ -162,6 +173,8 @@ Rules:
 - For themes, use exactly: rate_policy, inflation, growth_recession, geopolitics, sector_specific, credit_market, currency, commodities
 - For position_impacts, include every holding provided exactly once
 - For what_matters_today, focus on forward-looking catalysts: scheduled events, data releases, known earnings, policy decisions
+- In the overnight_macro brief, write natural language only. Do not echo theme keys like rate_policy or sector_specific.
+- Make the brief specific to the headlines. If the news is geopolitical, merger-related, or Fed-related, say that plainly.
 - If no meaningful macro happened overnight, return empty headlines and brief: "No significant macro developments overnight."
 - Be specific and factual. Do not speculate beyond what the headlines say.
 - position_impacts should reference actual holdings provided, not generic tickers
@@ -200,6 +213,10 @@ def _fallback_sector_brief(sector: str, articles: list[dict]) -> dict:
     return {"sector": sector, "brief": brief, "headlines": []}
 
 
+def _theme_label(theme: str) -> str:
+    return THEME_LABELS.get(theme, theme.replace("_", " "))
+
+
 def _normalize_position_impacts(
     raw_impacts: list[dict], positions: list[dict]
 ) -> list[dict]:
@@ -232,7 +249,7 @@ def _normalize_position_impacts(
             {
                 "ticker": ticker,
                 "macro_relevance": "neutral",
-                "impact_summary": "No clear overnight macro read-through for this holding; keep the focus on company-specific developments unless new sector news broadens out.",
+                "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out.",
             }
         )
     return normalized
@@ -252,7 +269,10 @@ def _fallback_macro_brief(
 
     fallback_brief = "Overnight macro developments were limited. Markets appear calm with no significant policy shifts or economic surprises."
     if themes_found:
-        fallback_brief = f"Overnight macro themes: {', '.join(sorted(themes_found))}. No major surprises."
+        fallback_brief = (
+            f"Overnight headlines pointed to {', '.join(_theme_label(theme) for theme in sorted(themes_found))}. "
+            f"No major surprise changed the overall tone."
+        )
 
     return {
         "overnight_macro": {
@@ -262,6 +282,74 @@ def _fallback_macro_brief(
         },
         "position_impacts": _normalize_position_impacts([], positions),
         "what_matters_today": [],
+    }
+
+
+def _normalize_macro_output(
+    parsed: dict, fallback: dict, positions: list[dict]
+) -> dict:
+    raw_macro = parsed.get("overnight_macro") if isinstance(parsed, dict) else {}
+    if not isinstance(raw_macro, dict):
+        raw_macro = {}
+
+    fallback_macro = fallback["overnight_macro"]
+    raw_headlines = raw_macro.get("headlines")
+    headlines = [
+        str(item).strip()
+        for item in (raw_headlines or fallback_macro.get("headlines") or [])
+        if str(item).strip()
+    ][:4]
+
+    raw_themes = [
+        str(theme).strip().lower()
+        for theme in (raw_macro.get("themes") or [])
+        if str(theme).strip().lower() in MACRO_THEMES
+    ]
+    fallback_detected = _detect_macro_themes(
+        [{"title": headline, "summary": ""} for headline in headlines]
+    )
+    detected_themes: list[str] = []
+    for item in fallback_detected:
+        for theme in item.get("themes", []):
+            if theme not in detected_themes:
+                detected_themes.append(theme)
+    themes = raw_themes or detected_themes or list(fallback_macro.get("themes") or [])
+
+    brief = (
+        str(raw_macro.get("brief") or "").strip()
+        or fallback_macro.get("brief")
+        or "No significant macro developments overnight."
+    )
+    if headlines and (
+        "_" in brief
+        or "limited" in brief.lower()
+        or brief.lower().startswith("overnight macro developments centered on")
+    ):
+        headline_text = "; ".join(headlines[:3])
+        theme_text = ", ".join(_theme_label(theme) for theme in themes[:3])
+        if theme_text:
+            brief = f"Overnight headlines centered on {headline_text}. The main themes were {theme_text}."
+        else:
+            brief = f"Overnight headlines centered on {headline_text}."
+
+    parsed_impacts = parsed.get("position_impacts") if isinstance(parsed, dict) else []
+    if not isinstance(parsed_impacts, list):
+        parsed_impacts = []
+
+    what_matters_today = (
+        parsed.get("what_matters_today") if isinstance(parsed, dict) else []
+    )
+    if not isinstance(what_matters_today, list):
+        what_matters_today = []
+
+    return {
+        "overnight_macro": {
+            "headlines": headlines,
+            "themes": themes[:3],
+            "brief": brief,
+        },
+        "position_impacts": _normalize_position_impacts(parsed_impacts, positions),
+        "what_matters_today": what_matters_today,
     }
 
 
@@ -378,16 +466,7 @@ Overnight macro articles:
         parsed = {}
     fallback = _fallback_macro_brief(overnight_articles, positions)
 
-    parsed_impacts = parsed.get("position_impacts")
-    if not isinstance(parsed_impacts, list):
-        parsed_impacts = fallback["position_impacts"]
-
-    return {
-        "overnight_macro": parsed.get("overnight_macro") or fallback["overnight_macro"],
-        "position_impacts": _normalize_position_impacts(parsed_impacts, positions),
-        "what_matters_today": parsed.get("what_matters_today")
-        or fallback["what_matters_today"],
-    }
+    return _normalize_macro_output(parsed, fallback, positions)
 
 
 def filter_macro_articles(articles: list[dict]) -> list[dict]:

@@ -1,6 +1,7 @@
 import time
-from fastapi import APIRouter, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse
+from ..services.access_control import require_admin_user_id
 from ..services.debug_service import (
     get_debug_service,
     track_request,
@@ -27,58 +28,49 @@ def ensure_patched():
 
 
 @router.get("/dashboard")
-async def dashboard():
+async def dashboard(user_id: str = Depends(require_admin_user_id)):
     ensure_patched()
     return HTMLResponse(DASHBOARD_HTML)
 
 
 @router.get("/requests")
-async def get_requests():
+async def get_requests(user_id: str = Depends(require_admin_user_id)):
     ensure_patched()
     service = get_debug_service()
     return JSONResponse(service.get_requests())
 
 
 @router.get("/ai-calls")
-async def get_ai_calls():
+async def get_ai_calls(user_id: str = Depends(require_admin_user_id)):
     ensure_patched()
     service = get_debug_service()
     return JSONResponse(service.get_ai_calls())
 
 
 @router.get("/stats")
-async def get_stats():
+async def get_stats(user_id: str = Depends(require_admin_user_id)):
     ensure_patched()
     service = get_debug_service()
     return JSONResponse(service.get_stats())
 
 
 @router.post("/clear")
-async def clear_debug():
+async def clear_debug(user_id: str = Depends(require_admin_user_id)):
     service = get_debug_service()
     service.clear_all()
     return JSONResponse({"status": "cleared"})
 
 
 @router.post("/run-analysis")
-async def run_analysis(user_id: str | None = None):
+async def run_analysis(user_id: str = Depends(require_admin_user_id)):
     supabase = get_supabase()
-    if not user_id:
-        prefs = (
-            supabase.table("user_preferences").select("user_id").limit(1).execute().data
-        )
-        if not prefs:
-            return JSONResponse(
-                {"status": "error", "message": "No user found"}, status_code=404
-            )
-        user_id = prefs[0]["user_id"]
 
     run = await trigger_user_digest(user_id)
     return JSONResponse({"status": "queued", "user_id": user_id, "run": run})
 
 
 @router.get("/")
-async def debug_index():
+async def debug_index(user_id: str = Depends(require_admin_user_id)):
     ensure_patched()
     service = get_debug_service()
     stats = service.get_stats()

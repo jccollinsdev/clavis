@@ -1,0 +1,527 @@
+{
+  "position": {
+    "id": "58bd0f7a-6d49-4221-a6e0-dd0fd1b67f72",
+    "user_id": "00000000-0000-0000-0000-000000000001",
+    "ticker": "AMD",
+    "shares": 0.0,
+    "purchase_price": 0.0,
+    "archetype": "growth",
+    "created_at": "2026-04-13T00:47:15.797313+00:00",
+    "updated_at": "2026-04-13T00:47:15.797313+00:00",
+    "current_price": 246.83,
+    "analysis_started_at": null
+  },
+  "inferred_labels": [
+    "growth"
+  ],
+  "related_articles": [
+    {
+      "external_id": "CBMifkFVX3lxTE9xRTR6enNENm1Gc0dqWXlXQkxHUkZBSnh6LVU4b2d3aU15Vmh6LXBzbEs0d0hZY3loWlc4UXNRS0ZfWktTVXJ5Y2ZNUnlnamxydXVHdjVhYzFaR3pvWWY4SFlzQ0pJSFdFRGhlMDE2OUxPTXpiNVhCMjJpS0NnZw",
+      "event_hash": "10a8ceff75a4009088d1e0fcd38c57b05daf65e9e24dfddf3c1f4652bd6e1a5f",
+      "source_type": "company_news",
+      "source": "Seeking Alpha",
+      "title": "AMD: Growth Is Real, Upside Is Not (NASDAQ:AMD)",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMifkFVX3lxTE9xRTR6enNENm1Gc0dqWXlXQkxHUkZBSnh6LVU4b2d3aU15Vmh6LXBzbEs0d0hZY3loWlc4UXNRS0ZfWktTVXJ5Y2ZNUnlnamxydXVHdjVhYzFaR3pvWWY4SFlzQ0pJSFdFRGhlMDE2OUxPTXpiNVhCMjJpS0NnZw?oc=5\" target=\"_blank\">AMD: Growth Is Real, Upside Is Not (NASDAQ:AMD)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Seeking Alpha</font>",
+      "body": "<a href=\"https://news.google.com/rss/articles/CBMifkFVX3lxTE9xRTR6enNENm1Gc0dqWXlXQkxHUkZBSnh6LVU4b2d3aU15Vmh6LXBzbEs0d0hZY3loWlc4UXNRS0ZfWktTVXJ5Y2ZNUnlnamxydXVHdjVhYzFaR3pvWWY4SFlzQ0pJSFdFRGhlMDE2OUxPTXpiNVhCMjJpS0NnZw?oc=5\" target=\"_blank\">AMD: Growth Is Real, Upside Is Not (NASDAQ:AMD)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Seeking Alpha</font>",
+      "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTE9xRTR6enNENm1Gc0dqWXlXQkxHUkZBSnh6LVU4b2d3aU15Vmh6LXBzbEs0d0hZY3loWlc4UXNRS0ZfWktTVXJ5Y2ZNUnlnamxydXVHdjVhYzFaR3pvWWY4SFlzQ0pJSFdFRGhlMDE2OUxPTXpiNVhCMjJpS0NnZw?oc=5",
+      "published_at": "2026-04-13T21:56:35+00:00",
+      "ticker_hints": [
+        "AMD"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMifkFVX3lxTE9xRTR6enNENm1Gc0dqWXlXQkxHUkZBSnh6LVU4b2d3aU15Vmh6LXBzbEs0d0hZY3loWlc4UXNRS0ZfWktTVXJ5Y2ZNUnlnamxydXVHdjVhYzFaR3pvWWY4SFlzQ0pJSFdFRGhlMDE2OUxPTXpiNVhCMjJpS0NnZw",
+        "title": "AMD: Growth Is Real, Upside Is Not (NASDAQ:AMD)",
+        "source": "Seeking Alpha",
+        "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTE9xRTR6enNENm1Gc0dqWXlXQkxHUkZBSnh6LVU4b2d3aU15Vmh6LXBzbEs0d0hZY3loWlc4UXNRS0ZfWktTVXJ5Y2ZNUnlnamxydXVHdjVhYzFaR3pvWWY4SFlzQ0pJSFdFRGhlMDE2OUxPTXpiNVhCMjJpS0NnZw?oc=5",
+        "published_at": "2026-04-13T21:56:35+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMifkFVX3lxTE9xRTR6enNENm1Gc0dqWXlXQkxHUkZBSnh6LVU4b2d3aU15Vmh6LXBzbEs0d0hZY3loWlc4UXNRS0ZfWktTVXJ5Y2ZNUnlnamxydXVHdjVhYzFaR3pvWWY4SFlzQ0pJSFdFRGhlMDE2OUxPTXpiNVhCMjJpS0NnZw?oc=5\" target=\"_blank\">AMD: Growth Is Real, Upside Is Not (NASDAQ:AMD)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Seeking Alpha</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "AMD",
+        "company_name": "Advanced Micro Devices Inc",
+        "query": "Advanced Micro Devices Inc stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "AMD"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "Article directly discusses AMD's growth trajectory and upside potential, which directly impacts the AMD position in the portfolio."
+      }
+    },
+    {
+      "external_id": "CBMifEFVX3lxTFBtRjlhMW5fYm9BeHlvdjVVd3gxR3Jpd2NrZjMwWTdwLWNoQXF6MThfX2pzWmQtSjlhN2FIVjRRQXlvdThlLVlneFhUZmxBVFc5MEtHR0NfXy1xWHlvMm1LSWdiVU9vV0g3ZzUzRVJXSFlkZ2JEYWM5d3gza1o",
+      "event_hash": "7d27cf90fbcc2f59ca0c81891b651dda68760b20e21abe2ba2d8dcbdc001d337",
+      "source_type": "company_news",
+      "source": "GuruFocus",
+      "title": "AMD Updates AI App as Stock Slips",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMifEFVX3lxTFBtRjlhMW5fYm9BeHlvdjVVd3gxR3Jpd2NrZjMwWTdwLWNoQXF6MThfX2pzWmQtSjlhN2FIVjRRQXlvdThlLVlneFhUZmxBVFc5MEtHR0NfXy1xWHlvMm1LSWdiVU9vV0g3ZzUzRVJXSFlkZ2JEYWM5d3gza1o?oc=5\" target=\"_blank\">AMD Updates AI App as Stock Slips</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">GuruFocus</font>",
+      "body": "<a href=\"https://news.google.com/rss/articles/CBMifEFVX3lxTFBtRjlhMW5fYm9BeHlvdjVVd3gxR3Jpd2NrZjMwWTdwLWNoQXF6MThfX2pzWmQtSjlhN2FIVjRRQXlvdThlLVlneFhUZmxBVFc5MEtHR0NfXy1xWHlvMm1LSWdiVU9vV0g3ZzUzRVJXSFlkZ2JEYWM5d3gza1o?oc=5\" target=\"_blank\">AMD Updates AI App as Stock Slips</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">GuruFocus</font>",
+      "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTFBtRjlhMW5fYm9BeHlvdjVVd3gxR3Jpd2NrZjMwWTdwLWNoQXF6MThfX2pzWmQtSjlhN2FIVjRRQXlvdThlLVlneFhUZmxBVFc5MEtHR0NfXy1xWHlvMm1LSWdiVU9vV0g3ZzUzRVJXSFlkZ2JEYWM5d3gza1o?oc=5",
+      "published_at": "2026-04-13T16:55:46+00:00",
+      "ticker_hints": [
+        "AMD"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMifEFVX3lxTFBtRjlhMW5fYm9BeHlvdjVVd3gxR3Jpd2NrZjMwWTdwLWNoQXF6MThfX2pzWmQtSjlhN2FIVjRRQXlvdThlLVlneFhUZmxBVFc5MEtHR0NfXy1xWHlvMm1LSWdiVU9vV0g3ZzUzRVJXSFlkZ2JEYWM5d3gza1o",
+        "title": "AMD Updates AI App as Stock Slips",
+        "source": "GuruFocus",
+        "url": "https://news.google.com/rss/articles/CBMifEFVX3lxTFBtRjlhMW5fYm9BeHlvdjVVd3gxR3Jpd2NrZjMwWTdwLWNoQXF6MThfX2pzWmQtSjlhN2FIVjRRQXlvdThlLVlneFhUZmxBVFc5MEtHR0NfXy1xWHlvMm1LSWdiVU9vV0g3ZzUzRVJXSFlkZ2JEYWM5d3gza1o?oc=5",
+        "published_at": "2026-04-13T16:55:46+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMifEFVX3lxTFBtRjlhMW5fYm9BeHlvdjVVd3gxR3Jpd2NrZjMwWTdwLWNoQXF6MThfX2pzWmQtSjlhN2FIVjRRQXlvdThlLVlneFhUZmxBVFc5MEtHR0NfXy1xWHlvMm1LSWdiVU9vV0g3ZzUzRVJXSFlkZ2JEYWM5d3gza1o?oc=5\" target=\"_blank\">AMD Updates AI App as Stock Slips</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">GuruFocus</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "AMD",
+        "company_name": "Advanced Micro Devices Inc",
+        "query": "Advanced Micro Devices Inc stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "AMD"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "LLM call failed"
+      }
+    },
+    {
+      "external_id": "CBMisAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMtIBsAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMg",
+      "event_hash": "46592bcc5584f5d576031d91d7bc8608c40785625e306535554d0445a3172563",
+      "source_type": "company_news",
+      "source": "insidermonkey.com",
+      "title": "Here\u2019s What The Street Thinks About Advanced Micro Devices (AMD)",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMisAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMtIBsAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMg?oc=5\" target=\"_blank\">Here\u2019s What The Street Thinks About Advanced Micro Devices (AMD)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">insidermonkey.com</font>",
+      "body": "<a href=\"https://news.google.com/rss/articles/CBMisAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMtIBsAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMg?oc=5\" target=\"_blank\">Here\u2019s What The Street Thinks About Advanced Micro Devices (AMD)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">insidermonkey.com</font>",
+      "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMtIBsAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMg?oc=5",
+      "published_at": "2026-04-12T18:46:56+00:00",
+      "ticker_hints": [
+        "AMD"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMisAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMtIBsAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMg",
+        "title": "Here\u2019s What The Street Thinks About Advanced Micro Devices (AMD)",
+        "source": "insidermonkey.com",
+        "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMtIBsAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMg?oc=5",
+        "published_at": "2026-04-12T18:46:56+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMisAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMtIBsAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMg?oc=5\" target=\"_blank\">Here\u2019s What The Street Thinks About Advanced Micro Devices (AMD)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">insidermonkey.com</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "AMD",
+        "company_name": "Advanced Micro Devices Inc",
+        "query": "Advanced Micro Devices Inc stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "AMD"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "Summarizes analyst sentiment on AMD, which provides actionable intelligence for managing this position."
+      }
+    }
+  ],
+  "event_analyses": [
+    {
+      "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+      "position_id": "58bd0f7a-6d49-4221-a6e0-dd0fd1b67f72",
+      "event_hash": "10a8ceff75a4009088d1e0fcd38c57b05daf65e9e24dfddf3c1f4652bd6e1a5f",
+      "external_event_id": "CBMifkFVX3lxTE9xRTR6enNENm1Gc0dqWXlXQkxHUkZBSnh6LVU4b2d3aU15Vmh6LXBzbEs0d0hZY3loWlc4UXNRS0ZfWktTVXJ5Y2ZNUnlnamxydXVHdjVhYzFaR3pvWWY4SFlzQ0pJSFdFRGhlMDE2OUxPTXpiNVhCMjJpS0NnZw",
+      "title": "AMD: Growth Is Real, Upside Is Not (NASDAQ:AMD)",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMifkFVX3lxTE9xRTR6enNENm1Gc0dqWXlXQkxHUkZBSnh6LVU4b2d3aU15Vmh6LXBzbEs0d0hZY3loWlc4UXNRS0ZfWktTVXJ5Y2ZNUnlnamxydXVHdjVhYzFaR3pvWWY4SFlzQ0pJSFdFRGhlMDE2OUxPTXpiNVhCMjJpS0NnZw?oc=5\" target=\"_blank\">AMD: Growth Is Real, Upside Is Not (NASDAQ:AMD)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Seeking Alpha</font>",
+      "source": "Seeking Alpha",
+      "source_url": "https://news.google.com/rss/articles/CBMifkFVX3lxTE9xRTR6enNENm1Gc0dqWXlXQkxHUkZBSnh6LVU4b2d3aU15Vmh6LXBzbEs0d0hZY3loWlc4UXNRS0ZfWktTVXJ5Y2ZNUnlnamxydXVHdjVhYzFaR3pvWWY4SFlzQ0pJSFdFRGhlMDE2OUxPTXpiNVhCMjJpS0NnZw?oc=5",
+      "published_at": "2026-04-13T21:56:35+00:00",
+      "event_type": "other",
+      "significance": "minor",
+      "classification": {
+        "confidence": 0.9,
+        "event_type": "other",
+        "significance": "minor",
+        "why_it_matters": "Seeking Alpha opinion piece analyzing AMD's valuation is third-party commentary, not a corporate announcement or new data."
+      },
+      "classification_evidence": {
+        "relevance": {
+          "relevant": true,
+          "affected_tickers": [
+            "AMD"
+          ],
+          "event_type": "company_specific",
+          "why_it_matters": "Article directly discusses AMD's growth trajectory and upside potential, which directly impacts the AMD position in the portfolio."
+        },
+        "significance": {
+          "confidence": 0.9,
+          "event_type": "other",
+          "significance": "minor",
+          "why_it_matters": "Seeking Alpha opinion piece analyzing AMD's valuation is third-party commentary, not a corporate announcement or new data."
+        }
+      },
+      "analysis_source": "minimax",
+      "long_analysis": "AMD demonstrates solid growth fundamentals with increasing data center and AI chip sales, but market concerns about valuation multiples and competition from Nvidia may limit near-term stock appreciation. The article suggests current pricing reflects high expectations that could be difficult to exceed without significant positive surprises in earnings or market share gains. This is direct company coverage for AMD.",
+      "confidence": 0.83,
+      "impact_horizon": "near_term",
+      "risk_direction": "neutral",
+      "scenario_summary": "AMD's growth trajectory remains intact while stock valuation may face headwinds from market expectations and competitive pressures. This is direct company coverage for AMD.",
+      "key_implications": [
+        "Valuation concerns may cap immediate stock upside despite operational strength",
+        "Competitive dynamics with Nvidia continue to influence investor sentiment"
+      ],
+      "recommended_followups": [
+        "Monitor forward P/E ratios relative to semiconductor sector peers",
+        "Track market share changes in data center GPU segment",
+        "Review the read-through against AMD's current labels: growth."
+      ]
+    },
+    {
+      "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+      "position_id": "58bd0f7a-6d49-4221-a6e0-dd0fd1b67f72",
+      "event_hash": "7d27cf90fbcc2f59ca0c81891b651dda68760b20e21abe2ba2d8dcbdc001d337",
+      "external_event_id": "CBMifEFVX3lxTFBtRjlhMW5fYm9BeHlvdjVVd3gxR3Jpd2NrZjMwWTdwLWNoQXF6MThfX2pzWmQtSjlhN2FIVjRRQXlvdThlLVlneFhUZmxBVFc5MEtHR0NfXy1xWHlvMm1LSWdiVU9vV0g3ZzUzRVJXSFlkZ2JEYWM5d3gza1o",
+      "title": "AMD Updates AI App as Stock Slips",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMifEFVX3lxTFBtRjlhMW5fYm9BeHlvdjVVd3gxR3Jpd2NrZjMwWTdwLWNoQXF6MThfX2pzWmQtSjlhN2FIVjRRQXlvdThlLVlneFhUZmxBVFc5MEtHR0NfXy1xWHlvMm1LSWdiVU9vV0g3ZzUzRVJXSFlkZ2JEYWM5d3gza1o?oc=5\" target=\"_blank\">AMD Updates AI App as Stock Slips</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">GuruFocus</font>",
+      "source": "GuruFocus",
+      "source_url": "https://news.google.com/rss/articles/CBMifEFVX3lxTFBtRjlhMW5fYm9BeHlvdjVVd3gxR3Jpd2NrZjMwWTdwLWNoQXF6MThfX2pzWmQtSjlhN2FIVjRRQXlvdThlLVlneFhUZmxBVFc5MEtHR0NfXy1xWHlvMm1LSWdiVU9vV0g3ZzUzRVJXSFlkZ2JEYWM5d3gza1o?oc=5",
+      "published_at": "2026-04-13T16:55:46+00:00",
+      "event_type": "product",
+      "significance": "minor",
+      "classification": {
+        "confidence": 0.75,
+        "event_type": "product",
+        "significance": "minor",
+        "why_it_matters": "AMD updating an AI app is a routine product maintenance release, not a major product launch or strategic shift."
+      },
+      "classification_evidence": {
+        "relevance": {
+          "relevant": true,
+          "affected_tickers": [
+            "AMD"
+          ],
+          "event_type": "company_specific",
+          "why_it_matters": "LLM call failed"
+        },
+        "significance": {
+          "confidence": 0.75,
+          "event_type": "product",
+          "significance": "minor",
+          "why_it_matters": "AMD updating an AI app is a routine product maintenance release, not a major product launch or strategic shift."
+        }
+      },
+      "analysis_source": "minimax",
+      "long_analysis": "AMD is continuing to develop and update its AI software ecosystem while experiencing short-term stock price weakness, suggesting a disconnect between product advancement and market perception. This indicates ongoing commitment to the AI market but reflects broader concerns about timing of AI revenue monetization. This is direct company coverage for AMD.",
+      "confidence": 0.73,
+      "impact_horizon": "immediate",
+      "risk_direction": "neutral",
+      "scenario_summary": "Product development persists despite stock decline, highlighting market uncertainty around AI monetization timeline. This is direct company coverage for AMD.",
+      "key_implications": [
+        "AMD remains actively invested in AI software stack development",
+        "Stock weakness may represent temporary market mispricing"
+      ],
+      "recommended_followups": [
+        "Review adoption metrics for AMD's AI software updates",
+        "Assess correlation between AI product releases and stock price recovery",
+        "Review the read-through against AMD's current labels: growth."
+      ]
+    },
+    {
+      "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+      "position_id": "58bd0f7a-6d49-4221-a6e0-dd0fd1b67f72",
+      "event_hash": "46592bcc5584f5d576031d91d7bc8608c40785625e306535554d0445a3172563",
+      "external_event_id": "CBMisAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMtIBsAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMg",
+      "title": "Here\u2019s What The Street Thinks About Advanced Micro Devices (AMD)",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMisAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMtIBsAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMg?oc=5\" target=\"_blank\">Here\u2019s What The Street Thinks About Advanced Micro Devices (AMD)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">insidermonkey.com</font>",
+      "source": "insidermonkey.com",
+      "source_url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMtIBsAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMg?oc=5",
+      "published_at": "2026-04-12T18:46:56+00:00",
+      "event_type": "other",
+      "significance": "minor",
+      "classification": {
+        "confidence": 0.88,
+        "event_type": "other",
+        "significance": "minor",
+        "why_it_matters": "Summary of analyst sentiment about AMD is secondary market commentary rather than new fundamental information."
+      },
+      "classification_evidence": {
+        "relevance": {
+          "relevant": true,
+          "affected_tickers": [
+            "AMD"
+          ],
+          "event_type": "company_specific",
+          "why_it_matters": "Summarizes analyst sentiment on AMD, which provides actionable intelligence for managing this position."
+        },
+        "significance": {
+          "confidence": 0.88,
+          "event_type": "other",
+          "significance": "minor",
+          "why_it_matters": "Summary of analyst sentiment about AMD is secondary market commentary rather than new fundamental information."
+        }
+      },
+      "analysis_source": "minimax",
+      "long_analysis": "Analyst sentiment on AMD reflects mixed views on growth prospects and valuation reasonableness, with consensus likely acknowledging the company's technological positioning while debating execution timing. This street perspective provides a benchmark for market expectations across different analyst coverage. This is direct company coverage for AMD.",
+      "confidence": 0.7799999999999999,
+      "impact_horizon": "near_term",
+      "risk_direction": "neutral",
+      "scenario_summary": "Street consensus presents balanced view of AMD's opportunities balanced against execution and valuation concerns. This is direct company coverage for AMD.",
+      "key_implications": [
+        "Analyst divergence suggests uncertainty around earnings trajectory",
+        "Price targets likely reflect varied assumptions on AI market capture"
+      ],
+      "recommended_followups": [
+        "Track analyst revisions following upcoming earnings reports",
+        "Compare consensus price targets to current trading ranges",
+        "Review the read-through against AMD's current labels: growth."
+      ]
+    }
+  ],
+  "position_report": {
+    "summary": "AMD demonstrates genuine growth fundamentals driven by expanding data center and AI chip sales, yet market skepticism about valuation multiples and intensifying Nvidia competition suggest limited near-term stock appreciation potential. The disconnect between ongoing product and software ecosystem advancement and current stock weakness indicates market pricing reflects high execution expectations that may prove difficult to consistently exceed.",
+    "long_report": "AMD's core investment narrative centers on its meaningful positioning within the AI semiconductor ecosystem, with particular strength in data center GPUs and adaptive computing solutions. The company's continued development of its AI software ecosystem represents a strategic effort to build competitive moat beyond raw hardware specifications, addressing historical software support criticisms. However, current market sentiment reflects elevated valuation multiples that price in substantial success, creating a challenging backdrop where modest positive surprises may prove insufficient to move the stock meaningfully higher. Nvidia's dominant market position in AI training workloads presents ongoing competitive headwinds, potentially constraining AMD's ability to capture the full benefit of secular AI infrastructure buildout. Near-term earnings reports will serve as critical inflection points where growth acceleration or deceleration against already-elevated expectations could drive significant multiple re-rating in either direction. The longer-term thesis remains intact given AI infrastructure investment tailwinds, but the stock's current valuation provides limited margin of safety for execution miscues.",
+    "methodology": "Analysis synthesizes recent analyst commentary and company-specific coverage to assess the gap between AMD's product development trajectory and market-implied expectations, evaluating near-term upside constraints from valuation dynamics and competitive positioning against longer-term AI infrastructure secular tailwinds.",
+    "top_risks": [
+      "Valuation multiple compression if near-term earnings fail to meet already-elevated market expectations",
+      "Nvidia's continued dominance in AI training\u5e02\u573a\u4efd\u989d limiting AMD's ability to monetize AI infrastructure buildout",
+      "AI revenue monetization timing uncertainty creating potential for prolonged disconnect between product progress and financial results"
+    ],
+    "watch_items": [
+      "Data center segment quarterly revenue growth rate and sequential acceleration or deceleration",
+      "AI software ecosystem adoption metrics and developer ecosystem expansion",
+      "Market share dynamics relative to Nvidia in hyperscaler AI deployments",
+      "Gross margin trajectory as AI chip mix increases"
+    ],
+    "thesis_verifier": []
+  },
+  "position_payload": {
+    "id": "58bd0f7a-6d49-4221-a6e0-dd0fd1b67f72",
+    "user_id": "00000000-0000-0000-0000-000000000001",
+    "ticker": "AMD",
+    "shares": 0.0,
+    "purchase_price": 0.0,
+    "archetype": "growth",
+    "created_at": "2026-04-13T00:47:15.797313+00:00",
+    "updated_at": "2026-04-13T00:47:15.797313+00:00",
+    "current_price": 246.83,
+    "analysis_started_at": null,
+    "analysis_mode": "sp500_backfill",
+    "previous_grade": "C",
+    "previous_total_score": 55.0,
+    "summary": "AMD demonstrates genuine growth fundamentals driven by expanding data center and AI chip sales, yet market skepticism about valuation multiples and intensifying Nvidia competition suggest limited near-term stock appreciation potential. The disconnect between ongoing product and software ecosystem advancement and current stock weakness indicates market pricing reflects high execution expectations that may prove difficult to consistently exceed.",
+    "long_report": "AMD's core investment narrative centers on its meaningful positioning within the AI semiconductor ecosystem, with particular strength in data center GPUs and adaptive computing solutions. The company's continued development of its AI software ecosystem represents a strategic effort to build competitive moat beyond raw hardware specifications, addressing historical software support criticisms. However, current market sentiment reflects elevated valuation multiples that price in substantial success, creating a challenging backdrop where modest positive surprises may prove insufficient to move the stock meaningfully higher. Nvidia's dominant market position in AI training workloads presents ongoing competitive headwinds, potentially constraining AMD's ability to capture the full benefit of secular AI infrastructure buildout. Near-term earnings reports will serve as critical inflection points where growth acceleration or deceleration against already-elevated expectations could drive significant multiple re-rating in either direction. The longer-term thesis remains intact given AI infrastructure investment tailwinds, but the stock's current valuation provides limited margin of safety for execution miscues.",
+    "top_risks": [
+      "Valuation multiple compression if near-term earnings fail to meet already-elevated market expectations",
+      "Nvidia's continued dominance in AI training\u5e02\u573a\u4efd\u989d limiting AMD's ability to monetize AI infrastructure buildout",
+      "AI revenue monetization timing uncertainty creating potential for prolonged disconnect between product progress and financial results"
+    ],
+    "watch_items": [
+      "Data center segment quarterly revenue growth rate and sequential acceleration or deceleration",
+      "AI software ecosystem adoption metrics and developer ecosystem expansion",
+      "Market share dynamics relative to Nvidia in hyperscaler AI deployments",
+      "Gross margin trajectory as AI chip mix increases"
+    ],
+    "top_news": [
+      "AMD: Growth Is Real, Upside Is Not (NASDAQ:AMD)",
+      "AMD Updates AI App as Stock Slips",
+      "Here\u2019s What The Street Thinks About Advanced Micro Devices (AMD)"
+    ],
+    "inferred_labels": [
+      "growth"
+    ],
+    "methodology": "Analysis synthesizes recent analyst commentary and company-specific coverage to assess the gap between AMD's product development trajectory and market-implied expectations, evaluating near-term upside constraints from valuation dynamics and competitive positioning against longer-term AI infrastructure secular tailwinds.",
+    "mirofish_used": false,
+    "thesis_verifier": [],
+    "event_analyses": [
+      {
+        "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+        "position_id": "58bd0f7a-6d49-4221-a6e0-dd0fd1b67f72",
+        "event_hash": "10a8ceff75a4009088d1e0fcd38c57b05daf65e9e24dfddf3c1f4652bd6e1a5f",
+        "external_event_id": "CBMifkFVX3lxTE9xRTR6enNENm1Gc0dqWXlXQkxHUkZBSnh6LVU4b2d3aU15Vmh6LXBzbEs0d0hZY3loWlc4UXNRS0ZfWktTVXJ5Y2ZNUnlnamxydXVHdjVhYzFaR3pvWWY4SFlzQ0pJSFdFRGhlMDE2OUxPTXpiNVhCMjJpS0NnZw",
+        "title": "AMD: Growth Is Real, Upside Is Not (NASDAQ:AMD)",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMifkFVX3lxTE9xRTR6enNENm1Gc0dqWXlXQkxHUkZBSnh6LVU4b2d3aU15Vmh6LXBzbEs0d0hZY3loWlc4UXNRS0ZfWktTVXJ5Y2ZNUnlnamxydXVHdjVhYzFaR3pvWWY4SFlzQ0pJSFdFRGhlMDE2OUxPTXpiNVhCMjJpS0NnZw?oc=5\" target=\"_blank\">AMD: Growth Is Real, Upside Is Not (NASDAQ:AMD)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Seeking Alpha</font>",
+        "source": "Seeking Alpha",
+        "source_url": "https://news.google.com/rss/articles/CBMifkFVX3lxTE9xRTR6enNENm1Gc0dqWXlXQkxHUkZBSnh6LVU4b2d3aU15Vmh6LXBzbEs0d0hZY3loWlc4UXNRS0ZfWktTVXJ5Y2ZNUnlnamxydXVHdjVhYzFaR3pvWWY4SFlzQ0pJSFdFRGhlMDE2OUxPTXpiNVhCMjJpS0NnZw?oc=5",
+        "published_at": "2026-04-13T21:56:35+00:00",
+        "event_type": "other",
+        "significance": "minor",
+        "classification": {
+          "confidence": 0.9,
+          "event_type": "other",
+          "significance": "minor",
+          "why_it_matters": "Seeking Alpha opinion piece analyzing AMD's valuation is third-party commentary, not a corporate announcement or new data."
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "AMD"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "Article directly discusses AMD's growth trajectory and upside potential, which directly impacts the AMD position in the portfolio."
+          },
+          "significance": {
+            "confidence": 0.9,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "Seeking Alpha opinion piece analyzing AMD's valuation is third-party commentary, not a corporate announcement or new data."
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "AMD demonstrates solid growth fundamentals with increasing data center and AI chip sales, but market concerns about valuation multiples and competition from Nvidia may limit near-term stock appreciation. The article suggests current pricing reflects high expectations that could be difficult to exceed without significant positive surprises in earnings or market share gains. This is direct company coverage for AMD.",
+        "confidence": 0.83,
+        "impact_horizon": "near_term",
+        "risk_direction": "neutral",
+        "scenario_summary": "AMD's growth trajectory remains intact while stock valuation may face headwinds from market expectations and competitive pressures. This is direct company coverage for AMD.",
+        "key_implications": [
+          "Valuation concerns may cap immediate stock upside despite operational strength",
+          "Competitive dynamics with Nvidia continue to influence investor sentiment"
+        ],
+        "recommended_followups": [
+          "Monitor forward P/E ratios relative to semiconductor sector peers",
+          "Track market share changes in data center GPU segment",
+          "Review the read-through against AMD's current labels: growth."
+        ]
+      },
+      {
+        "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+        "position_id": "58bd0f7a-6d49-4221-a6e0-dd0fd1b67f72",
+        "event_hash": "7d27cf90fbcc2f59ca0c81891b651dda68760b20e21abe2ba2d8dcbdc001d337",
+        "external_event_id": "CBMifEFVX3lxTFBtRjlhMW5fYm9BeHlvdjVVd3gxR3Jpd2NrZjMwWTdwLWNoQXF6MThfX2pzWmQtSjlhN2FIVjRRQXlvdThlLVlneFhUZmxBVFc5MEtHR0NfXy1xWHlvMm1LSWdiVU9vV0g3ZzUzRVJXSFlkZ2JEYWM5d3gza1o",
+        "title": "AMD Updates AI App as Stock Slips",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMifEFVX3lxTFBtRjlhMW5fYm9BeHlvdjVVd3gxR3Jpd2NrZjMwWTdwLWNoQXF6MThfX2pzWmQtSjlhN2FIVjRRQXlvdThlLVlneFhUZmxBVFc5MEtHR0NfXy1xWHlvMm1LSWdiVU9vV0g3ZzUzRVJXSFlkZ2JEYWM5d3gza1o?oc=5\" target=\"_blank\">AMD Updates AI App as Stock Slips</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">GuruFocus</font>",
+        "source": "GuruFocus",
+        "source_url": "https://news.google.com/rss/articles/CBMifEFVX3lxTFBtRjlhMW5fYm9BeHlvdjVVd3gxR3Jpd2NrZjMwWTdwLWNoQXF6MThfX2pzWmQtSjlhN2FIVjRRQXlvdThlLVlneFhUZmxBVFc5MEtHR0NfXy1xWHlvMm1LSWdiVU9vV0g3ZzUzRVJXSFlkZ2JEYWM5d3gza1o?oc=5",
+        "published_at": "2026-04-13T16:55:46+00:00",
+        "event_type": "product",
+        "significance": "minor",
+        "classification": {
+          "confidence": 0.75,
+          "event_type": "product",
+          "significance": "minor",
+          "why_it_matters": "AMD updating an AI app is a routine product maintenance release, not a major product launch or strategic shift."
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "AMD"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "LLM call failed"
+          },
+          "significance": {
+            "confidence": 0.75,
+            "event_type": "product",
+            "significance": "minor",
+            "why_it_matters": "AMD updating an AI app is a routine product maintenance release, not a major product launch or strategic shift."
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "AMD is continuing to develop and update its AI software ecosystem while experiencing short-term stock price weakness, suggesting a disconnect between product advancement and market perception. This indicates ongoing commitment to the AI market but reflects broader concerns about timing of AI revenue monetization. This is direct company coverage for AMD.",
+        "confidence": 0.73,
+        "impact_horizon": "immediate",
+        "risk_direction": "neutral",
+        "scenario_summary": "Product development persists despite stock decline, highlighting market uncertainty around AI monetization timeline. This is direct company coverage for AMD.",
+        "key_implications": [
+          "AMD remains actively invested in AI software stack development",
+          "Stock weakness may represent temporary market mispricing"
+        ],
+        "recommended_followups": [
+          "Review adoption metrics for AMD's AI software updates",
+          "Assess correlation between AI product releases and stock price recovery",
+          "Review the read-through against AMD's current labels: growth."
+        ]
+      },
+      {
+        "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+        "position_id": "58bd0f7a-6d49-4221-a6e0-dd0fd1b67f72",
+        "event_hash": "46592bcc5584f5d576031d91d7bc8608c40785625e306535554d0445a3172563",
+        "external_event_id": "CBMisAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMtIBsAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMg",
+        "title": "Here\u2019s What The Street Thinks About Advanced Micro Devices (AMD)",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMisAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMtIBsAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMg?oc=5\" target=\"_blank\">Here\u2019s What The Street Thinks About Advanced Micro Devices (AMD)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">insidermonkey.com</font>",
+        "source": "insidermonkey.com",
+        "source_url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMtIBsAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMg?oc=5",
+        "published_at": "2026-04-12T18:46:56+00:00",
+        "event_type": "other",
+        "significance": "minor",
+        "classification": {
+          "confidence": 0.88,
+          "event_type": "other",
+          "significance": "minor",
+          "why_it_matters": "Summary of analyst sentiment about AMD is secondary market commentary rather than new fundamental information."
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "AMD"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "Summarizes analyst sentiment on AMD, which provides actionable intelligence for managing this position."
+          },
+          "significance": {
+            "confidence": 0.88,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "Summary of analyst sentiment about AMD is secondary market commentary rather than new fundamental information."
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "Analyst sentiment on AMD reflects mixed views on growth prospects and valuation reasonableness, with consensus likely acknowledging the company's technological positioning while debating execution timing. This street perspective provides a benchmark for market expectations across different analyst coverage. This is direct company coverage for AMD.",
+        "confidence": 0.7799999999999999,
+        "impact_horizon": "near_term",
+        "risk_direction": "neutral",
+        "scenario_summary": "Street consensus presents balanced view of AMD's opportunities balanced against execution and valuation concerns. This is direct company coverage for AMD.",
+        "key_implications": [
+          "Analyst divergence suggests uncertainty around earnings trajectory",
+          "Price targets likely reflect varied assumptions on AI market capture"
+        ],
+        "recommended_followups": [
+          "Track analyst revisions following upcoming earnings reports",
+          "Compare consensus price targets to current trading ranges",
+          "Review the read-through against AMD's current labels: growth."
+        ]
+      }
+    ],
+    "ticker_metadata": {
+      "id": "5581a757-41a7-4100-87b0-ae7bc8605078",
+      "ticker": "AMD",
+      "company_name": "Advanced Micro Devices Inc",
+      "asset_class": null,
+      "sector": "Semiconductors",
+      "industry": null,
+      "exchange": "NASDAQ NMS - GLOBAL MARKET",
+      "market_cap": 402434308624.7618,
+      "market_cap_bucket": "high",
+      "float_shares": null,
+      "avg_daily_dollar_volume": 8595783169.300001,
+      "spread_proxy": 0.001,
+      "beta": 2.0540373,
+      "volatility_proxy": 0.513509325,
+      "profitability_profile": "mixed",
+      "leverage_profile": "moderate",
+      "macro_sensitivity": null,
+      "structural_fragility": null,
+      "liquidity_risk": null,
+      "updated_at": "2026-04-14T01:07:54.307953+00:00",
+      "created_at": "2026-04-12T21:58:12.947094+00:00",
+      "pe_ratio": 92.8337,
+      "week_52_high": 267.0799,
+      "week_52_low": 78.87,
+      "price": 246.83,
+      "price_as_of": "2026-04-14T01:07:54.304086+00:00",
+      "avg_volume": 34.82471,
+      "previous_close": 245.04,
+      "open_price": 245.025,
+      "day_high": 247.33,
+      "day_low": 242.03,
+      "last_price_source": "finnhub",
+      "is_supported": true
+    },
+    "macro_impact": {
+      "ticker": "AMD",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    }
+  }
+}

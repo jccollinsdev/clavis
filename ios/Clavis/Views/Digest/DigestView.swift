@@ -3,6 +3,7 @@ import SwiftUI
 struct DigestView: View {
     @Binding var selectedTab: Int
     @StateObject private var viewModel = DigestViewModel()
+    @State private var hasLoaded = false
 
     private var activeRunningRun: AnalysisRun? {
         guard let run = viewModel.activeRun,
@@ -18,96 +19,332 @@ struct DigestView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                ClavisTopBar(onLogoTap: { selectedTab = 0 }) {
-                    Button {
-                        Task { await viewModel.triggerAnalysis() }
-                    } label: {
-                        Label("Run Digest", systemImage: "arrow.clockwise")
-                    }
-                    .disabled(viewModel.isLoading || viewModel.activeRun?.status == "running")
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
+                    DigestTopHeader(
+                        onRefresh: { Task { await viewModel.triggerAnalysis() } },
+                        onOpenHoldings: { selectedTab = 1 },
+                        isLoading: viewModel.isLoading || viewModel.activeRun?.status == "running"
+                    )
 
-                    Divider()
-
-                    Button {
-                        selectedTab = 1
-                    } label: {
-                        Label("Holdings", systemImage: "briefcase.fill")
+                    if let activeRun = activeRunningRun {
+                        AnalysisRunStatusCard(run: activeRun)
                     }
 
-                    Button {
-                        selectedTab = 2
-                    } label: {
-                        Label("Digest", systemImage: "newspaper.fill")
+                    if let errorMessage = viewModel.errorMessage {
+                        DigestErrorCard(message: errorMessage) {
+                            Task { await viewModel.loadDigest() }
+                        }
                     }
 
-                    Button {
-                        selectedTab = 3
-                    } label: {
-                        Label("Alerts", systemImage: "bell.fill")
+                    if let timeoutMessage = viewModel.timeoutMessage {
+                        DigestTimeoutCard(message: timeoutMessage)
                     }
 
-                    Button {
-                        selectedTab = 4
-                    } label: {
-                        Label("Settings", systemImage: "gearshape.fill")
+                    if let digest = viewModel.todayDigest {
+                        DigestHeroCard(
+                            digest: digest,
+                            holdings: viewModel.holdings,
+                            activeRun: activeRunningRun,
+                            isLoading: viewModel.isLoading,
+                            onRunDigest: { Task { await viewModel.triggerAnalysis() } },
+                            onRefresh: { Task { await viewModel.triggerAnalysis() } }
+                        )
+                        DigestMacroSectionView(digest: digest)
+                        DigestSectorOverviewSection(digest: digest)
+                        DigestPrototypePositionImpactsSection(digest: digest, holdings: viewModel.holdings)
+                        DigestWhatMattersSection(digest: digest)
+                        DigestWatchlistAlertsSection(digest: digest)
+                        DigestWhatToWatchSection(digest: digest)
+                        FullNarrativeSection(digest: digest)
+                    } else if shouldShowIdleState {
+                        DigestEmptyStateCard {
+                            Task { await viewModel.triggerAnalysis() }
+                        }
+                    }
+
+                    if viewModel.isLoading && viewModel.todayDigest == nil && activeRunningRun == nil && viewModel.errorMessage == nil {
+                        ClavisLoadingCard(title: "Loading digest", subtitle: "Fetching the latest morning summary.")
                     }
                 }
                 .padding(.horizontal, ClavisTheme.screenPadding)
-                .padding(.top, 8)
-                .padding(.bottom, 12)
-
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                        if let activeRun = activeRunningRun {
-                            AnalysisRunStatusCard(run: activeRun)
-                        }
-
-                        if let errorMessage = viewModel.errorMessage {
-                            DigestErrorCard(message: errorMessage) {
-                                Task { await viewModel.loadDigest() }
-                            }
-                        }
-
-                        if let timeoutMessage = viewModel.timeoutMessage {
-                            DigestTimeoutCard(message: timeoutMessage)
-                        }
-
-                        if let digest = viewModel.todayDigest {
-                            DigestScoreSummaryCard(digest: digest, holdings: viewModel.holdings)
-                            DigestLeadCard(digest: digest)
-                            DigestMacroSectionView(digest: digest)
-                            DigestSectorOverviewSection(digest: digest)
-                            DigestPositionImpactsSection(digest: digest)
-                            WhatToDoSection(digest: digest)
-                            PositionsSection(holdings: viewModel.holdings)
-                            FullNarrativeSection(digest: digest)
-                        } else if shouldShowIdleState {
-                            DigestEmptyStateCard {
-                                Task { await viewModel.triggerAnalysis() }
-                            }
-                        }
-
-                        if viewModel.isLoading && viewModel.todayDigest == nil && activeRunningRun == nil && viewModel.errorMessage == nil {
-                            ClavisLoadingCard(title: "Loading digest", subtitle: "Fetching the latest morning summary.")
-                        }
-                    }
-                    .padding(.horizontal, ClavisTheme.screenPadding)
-                    .padding(.vertical, ClavisTheme.largeSpacing)
-                    .padding(.bottom, ClavisTheme.extraLargeSpacing)
-                }
-                .refreshable {
-                    await viewModel.loadDigest()
-                }
+                .padding(.top, ClavisTheme.largeSpacing)
+                .padding(.bottom, ClavisTheme.extraLargeSpacing)
+            }
+            .refreshable {
+                await viewModel.triggerAnalysis()
             }
             .background(ClavisAtmosphereBackground())
             .toolbar(.hidden, for: .navigationBar)
             .onAppear {
-                if viewModel.todayDigest == nil && viewModel.digestHistory.isEmpty && !viewModel.isLoading {
+                if selectedTab == 2, !hasLoaded {
+                    hasLoaded = true
+                    Task { await viewModel.loadDigest() }
+                }
+            }
+            .onChange(of: selectedTab) { _, newValue in
+                if newValue == 2 && !hasLoaded && !viewModel.isLoading {
+                    hasLoaded = true
                     Task { await viewModel.loadDigest() }
                 }
             }
         }
+    }
+
+    private var recentDigests: [Digest] {
+        var seen = Set<String>()
+        return ([viewModel.todayDigest].compactMap { $0 } + viewModel.digestHistory)
+            .filter {
+                guard $0.overallScore != nil else { return false }
+                return seen.insert($0.id).inserted
+            }
+            .sorted { $0.generatedAt < $1.generatedAt }
+    }
+}
+
+private struct DigestTopHeader: View {
+    let onRefresh: () -> Void
+    let onOpenHoldings: () -> Void
+    let isLoading: Bool
+
+    var body: some View {
+        HStack(alignment: .bottom) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(Date().formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
+                    .font(ClavisTypography.label)
+                    .foregroundColor(.textSecondary)
+                Text("Digest")
+                    .font(ClavisTypography.cardTitle)
+                    .foregroundColor(.textPrimary)
+            }
+
+            Spacer()
+
+            Button(action: onRefresh) {
+                DigestHeaderButton(systemName: isLoading ? "hourglass" : "arrow.clockwise")
+            }
+            .buttonStyle(.plain)
+            .disabled(isLoading)
+
+            Button(action: onOpenHoldings) {
+                DigestHeaderButton(systemName: "briefcase.fill")
+            }
+            .buttonStyle(.plain)
+        }
+    }
+}
+
+private struct DigestHeaderButton: View {
+    let systemName: String
+
+    var body: some View {
+        Image(systemName: systemName)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundColor(.textSecondary)
+            .frame(width: 40, height: 40)
+            .background(Color.surface)
+            .clipShape(Circle())
+            .overlay(Circle().stroke(Color.border, lineWidth: 1))
+    }
+}
+
+private struct DigestThesisCard: View {
+    let digest: Digest
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Text("Thesis · generated \(digest.generatedAt.formatted(date: .omitted, time: .shortened))")
+                .font(ClavisTypography.label)
+                .foregroundColor(.textSecondary)
+
+            Text(digest.summary?.sanitizedDisplayText ?? digest.content.sanitizedDisplayText.firstParagraph ?? "")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(ClavisTheme.cardPadding)
+        .clavisCardStyle(fill: .surface)
+    }
+}
+
+private struct DigestPrototypePositionImpactsSection: View {
+    let digest: Digest
+    let holdings: [Position]
+
+    private var impacts: [DigestPositionImpact] {
+        digest.structuredSections?.positionImpacts ?? []
+    }
+
+    var body: some View {
+        if !impacts.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Position impacts")
+                    .font(ClavisTypography.label)
+                    .foregroundColor(.textSecondary)
+
+                DigestPrototypeListCard {
+                    ForEach(impacts) { impact in
+                        NavigationLink(destination: tickerDestination(for: impact.ticker)) {
+                            HStack(alignment: .top, spacing: 12) {
+                                GradeTag(grade: grade(for: impact.ticker), compact: true)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(impact.ticker)
+                                        .font(ClavisTypography.bodyEmphasis)
+                                        .foregroundColor(.textPrimary)
+                                    Text(impact.impactSummary.sanitizedDisplayText)
+                                        .font(ClavisTypography.footnote)
+                                        .foregroundColor(.textSecondary)
+                                        .lineLimit(2)
+                                }
+
+                                Spacer()
+
+                                Text(impact.macroRelevance.capitalized)
+                                    .font(ClavisTypography.footnote)
+                                    .foregroundColor(.textSecondary)
+                            }
+                            .padding(.vertical, 12)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func tickerDestination(for ticker: String) -> some View {
+        if let position = holdings.first(where: { $0.ticker == ticker }) {
+            TickerDetailView(ticker: position.ticker)
+        } else {
+            TickerDetailView(ticker: ticker)
+        }
+    }
+
+    private func grade(for ticker: String) -> String {
+        holdings.first(where: { $0.ticker == ticker })?.riskGrade ?? digest.overallGrade ?? "C"
+    }
+}
+
+private struct DigestPrototypeListCard<Content: View>: View {
+    @ViewBuilder let content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            content
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 2)
+        .clavisCardStyle(fill: .surface)
+    }
+}
+
+private struct DigestWhatToWatchSection: View {
+    let digest: Digest
+
+    private var items: [String] {
+        let watch = digest.structuredSections?.watchList ?? []
+        if !watch.isEmpty {
+            return Array(watch.prefix(3)).map(condensedWatchItem)
+        }
+        return Array((digest.structuredSections?.portfolioImpact ?? []).prefix(3)).map(condensedWatchItem)
+    }
+
+    var body: some View {
+        if !items.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("What to watch")
+                    .font(ClavisTypography.label)
+                    .foregroundColor(.textSecondary)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(items, id: \.self) { item in
+                        Text(item)
+                            .font(ClavisTypography.body)
+                            .foregroundColor(.textSecondary)
+                    }
+                }
+                .padding(ClavisTheme.cardPadding)
+                .clavisCardStyle(fill: .surface)
+            }
+        }
+    }
+
+    private func condensedWatchItem(_ raw: String) -> String {
+        let cleaned = raw.sanitizedDisplayText.replacingOccurrences(of: "_", with: " ")
+        guard let firstMarker = cleaned.range(of: " — ") else { return cleaned }
+        let prefix = String(cleaned[..<firstMarker.lowerBound])
+        let suffix = String(cleaned[firstMarker.upperBound...])
+        guard let ticker = prefix.split(separator: " ").first?.uppercased(), !ticker.isEmpty else {
+            return cleaned
+        }
+        let repeatedPattern = "\\b\(ticker)\\b\\s*[—:-]\\s*"
+        let collapsed = suffix.replacingOccurrences(
+            of: repeatedPattern,
+            with: "",
+            options: .regularExpression
+        )
+        return "\(prefix) — \(collapsed)".replacingOccurrences(of: "  ", with: " ")
+    }
+}
+
+struct DigestHeroCard: View {
+    let digest: Digest?
+    let holdings: [Position]
+    let activeRun: AnalysisRun?
+    let isLoading: Bool
+    let onRunDigest: () -> Void
+    let onRefresh: () -> Void
+
+    private var summaryText: String {
+        if let summary = digest?.summary?.sanitizedDisplayText, !summary.isEmpty {
+            return summary
+        }
+        return "Latest morning summary for your portfolio."
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
+            ClavisEyebrowHeader(eyebrow: "Digest", title: "Morning summary")
+
+            Text(summaryText)
+                .font(ClavisTypography.body)
+                .foregroundColor(.textSecondary)
+
+            HStack(spacing: ClavisTheme.smallSpacing) {
+                ClavisMetricLabel(label: "Updated", value: digest?.generatedAt.formatted(date: .abbreviated, time: .shortened) ?? "Pending")
+                ClavisMetricLabel(label: "Holdings", value: "\(holdings.count)")
+            }
+
+            HStack(spacing: ClavisTheme.smallSpacing) {
+                Button(action: onRunDigest) {
+                    Label(isLoading ? "Running" : "Run digest", systemImage: "arrow.clockwise")
+                        .font(ClavisTypography.footnoteEmphasis)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.informational)
+                .disabled(isLoading || activeRun?.status == "running")
+
+                Button(action: onRefresh) {
+                    Label("Refresh", systemImage: "clock.arrow.circlepath")
+                        .font(ClavisTypography.footnoteEmphasis)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+            }
+
+            Text("Informational only. Not financial advice.")
+                .font(ClavisTypography.footnote)
+                .foregroundColor(.textTertiary)
+        }
+        .padding(ClavisTheme.cardPadding)
+        .clavisHeroCardStyle(fill: .surface)
     }
 }
 
@@ -149,6 +386,17 @@ struct DigestScoreSummaryCard: View {
         }
         .padding(ClavisTheme.cardPadding)
         .clavisCardStyle(fill: .surfacePrimary)
+
+        VStack(alignment: .leading, spacing: 2) {
+            Text("Score as of \(digest.generatedAt.formatted(date: .abbreviated, time: .shortened))")
+                .font(ClavisTypography.footnote)
+                .foregroundColor(.textTertiary)
+            Text("Informational only. Not financial advice.")
+                .font(ClavisTypography.footnote)
+                .foregroundColor(.textTertiary)
+        }
+        .padding(.horizontal, ClavisTheme.cardPadding)
+        .padding(.bottom, ClavisTheme.smallSpacing)
     }
 
     private func gradeRank(_ grade: String) -> Int {
@@ -208,7 +456,7 @@ struct DigestMacroSectionView: View {
                     .foregroundColor(.textSecondary)
 
                 if !macro.themes.isEmpty {
-                    Text(macro.themes.joined(separator: " • "))
+                    Text(macro.themes.map { $0.humanizedTitleCasedDisplayText }.joined(separator: " • "))
                         .font(ClavisTypography.footnote)
                         .foregroundColor(.textTertiary)
                 }
@@ -234,24 +482,40 @@ struct DigestSectorOverviewSection: View {
 
     var body: some View {
         if !sectors.isEmpty {
-            VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-                Text("Sector Overview")
-                    .font(ClavisTypography.cardTitle)
-                    .foregroundColor(.textPrimary)
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Sector overview")
+                    .font(ClavisTypography.label)
+                    .foregroundColor(.textSecondary)
 
-                ForEach(sectors) { sector in
-                    VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                        Text(sector.sector.capitalized)
-                            .font(ClavisTypography.bodyEmphasis)
-                            .foregroundColor(.textPrimary)
-                        Text(sector.brief.sanitizedDisplayText)
-                            .font(ClavisTypography.body)
-                            .foregroundColor(.textSecondary)
+                DigestPrototypeListCard {
+                    ForEach(Array(sectors.enumerated()), id: \.element.id) { index, sector in
+                        VStack(alignment: .leading, spacing: 0) {
+                            HStack(alignment: .top, spacing: 10) {
+                                Circle()
+                                    .fill(Color.textSecondary.opacity(0.55))
+                                    .frame(width: 8, height: 8)
+                                    .padding(.top, 4)
+
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text(sector.sector.humanizedTitleCasedDisplayText)
+                                        .font(ClavisTypography.bodyEmphasis)
+                                        .foregroundColor(.textPrimary)
+                                    Text(sector.brief.sanitizedDisplayText)
+                                        .font(ClavisTypography.footnote)
+                                        .foregroundColor(.textSecondary)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
+                            }
+                            .padding(.vertical, 12)
+
+                            if index < sectors.count - 1 {
+                                Divider()
+                                    .overlay(Color.border)
+                            }
+                        }
                     }
                 }
             }
-            .padding(ClavisTheme.cardPadding)
-            .clavisCardStyle(fill: .surfacePrimary)
         }
     }
 }
@@ -289,6 +553,99 @@ struct DigestPositionImpactsSection: View {
             }
             .padding(ClavisTheme.cardPadding)
             .clavisCardStyle(fill: .surfacePrimary)
+        }
+    }
+}
+
+struct DigestWhatMattersSection: View {
+    let digest: Digest
+
+    private var items: [DigestWhatMattersItem] {
+        digest.structuredSections?.whatMattersToday ?? []
+    }
+
+    var body: some View {
+        if !items.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("What matters today")
+                    .font(ClavisTypography.label)
+                    .foregroundColor(.textSecondary)
+
+                DigestPrototypeListCard {
+                    ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                        VStack(alignment: .leading, spacing: 0) {
+                            HStack(alignment: .top, spacing: 10) {
+                                Circle()
+                                    .fill(Color.textSecondary.opacity(0.55))
+                                    .frame(width: 8, height: 8)
+                                    .padding(.top, 4)
+
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text(item.catalyst.sanitizedDisplayText)
+                                        .font(ClavisTypography.bodyEmphasis)
+                                        .foregroundColor(.textPrimary)
+                                    Text("\(item.urgency.capitalized) urgency")
+                                        .font(ClavisTypography.footnote)
+                                        .foregroundColor(.textSecondary)
+                                    if !item.impactedPositions.isEmpty {
+                                        Text(item.impactedPositions.joined(separator: ", "))
+                                            .font(ClavisTypography.footnote)
+                                            .foregroundColor(.textTertiary)
+                                    }
+                                }
+                            }
+                            .padding(.vertical, 12)
+
+                            if index < items.count - 1 {
+                                Divider()
+                                    .overlay(Color.border)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct DigestWatchlistAlertsSection: View {
+    let digest: Digest
+
+    private var items: [String] {
+        digest.structuredSections?.watchlistAlerts ?? []
+    }
+
+    var body: some View {
+        if !items.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Watchlist alerts")
+                    .font(ClavisTypography.label)
+                    .foregroundColor(.textSecondary)
+
+                DigestPrototypeListCard {
+                    ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                        VStack(alignment: .leading, spacing: 0) {
+                            HStack(alignment: .top, spacing: 10) {
+                                Circle()
+                                    .fill(Color.criticalTone.opacity(0.7))
+                                    .frame(width: 8, height: 8)
+                                    .padding(.top, 4)
+
+                                Text(item.sanitizedDisplayText)
+                                    .font(ClavisTypography.footnote)
+                                    .foregroundColor(.textSecondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .padding(.vertical, 12)
+
+                            if index < items.count - 1 {
+                                Divider()
+                                    .overlay(Color.border)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -348,17 +705,17 @@ struct WhatToDoSection: View {
     let digest: Digest
 
     private var actions: [String] {
-        let advice = digest.structuredSections?.portfolioAdvice ?? []
-        if !advice.isEmpty {
-            return Array(advice.prefix(5))
+        let notes = digest.structuredSections?.portfolioImpact ?? []
+        if !notes.isEmpty {
+            return Array(notes.prefix(5))
         }
-        return Array((digest.structuredSections?.portfolioImpact ?? []).prefix(3))
+        return Array((digest.structuredSections?.watchList ?? []).prefix(3))
     }
 
     var body: some View {
         if !actions.isEmpty {
             VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-                Text("What To Do")
+                Text("What Changed")
                     .font(ClavisTypography.cardTitle)
                     .foregroundColor(.textPrimary)
 
@@ -389,7 +746,7 @@ struct PositionsSection: View {
                     .foregroundColor(.textPrimary)
 
                 ForEach(sortedHoldings) { holding in
-                    NavigationLink(destination: PositionDetailView(positionId: holding.id)) {
+                    NavigationLink(destination: TickerDetailView(ticker: holding.ticker)) {
                         HStack(spacing: ClavisTheme.mediumSpacing) {
                             Text(holding.riskGrade ?? "--")
                                 .font(.system(size: 18, weight: .bold))

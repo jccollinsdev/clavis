@@ -1,0 +1,24 @@
+{
+  "sequence": 28,
+  "logged_at": "2026-04-14T10:32:50.795305+00:00",
+  "model": "MiniMax-M2.7",
+  "function_name": "chatcompletion_text",
+  "caller": {
+    "file": "/app/app/pipeline/agentic_scan.py",
+    "function": "analyze_minor_events_shared_batch",
+    "line": 229
+  },
+  "messages": [
+    {
+      "role": "user",
+      "content": "You are a portfolio risk analyst.\n\nGiven multiple news items, produce a reusable base analysis for each event without assuming a specific holder.\n\nNews items to analyze:\n[0] Title: Factory Mutual Insurance Co. Decreases AbbVie Stock Position\n    Summary: <a href=\"https://news.google.com/rss/articles/CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTkJ2TmN1UQ?oc=5\" targe\n\n[1] Title: Battle of Big Pharma: Is AbbVie Stock Pulling Ahead of Pfizer?\n    Summary: <a href=\"https://news.google.com/rss/articles/CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz?oc=5\" target=\"_blank\">Battle of Big Pharma: Is AbbVie\n\nFor each news item above, return a JSON object with:\n- \"analysis_text\": \"2-4 sentence analysis\"\n- \"impact_horizon\": \"immediate|near_term|long_term\"\n- \"risk_direction\": \"improving|neutral|worsening\"\n- \"confidence\": 0.0-1.0\n- \"scenario_summary\": \"one sentence\"\n- \"key_implications\": [\"...\", \"...\"]\n- \"followup_notes\": [\"...\", \"...\"]\n\nReturn a JSON array with one object per news item in order."
+    }
+  ],
+  "kwargs": {
+    "temperature": 0.2,
+    "max_tokens": 2400
+  },
+  "response": "```json\n[\n  {\n    \"analysis_text\": \"Factory Mutual Insurance Co.'s decision to trim its AbbVie stake suggests a reduction in institutional confidence in the near term, which could weigh on the stock's price and increase short\u2011term volatility. While the move may reflect routine portfolio rebalancing rather than a fundamental concern, it signals a shift in sentiment that market participants often react to quickly. Investors should watch for additional holdings data to determine whether this is an isolated transaction or part of a broader trend.\",\n    \"impact_horizon\": \"near_term\",\n    \"risk_direction\": \"worsening\",\n    \"confidence\": 0.70,\n    \"scenario_summary\": \"A decline in a notable institutional stake points to heightened near\u2011term risk and possible downward pressure on AbbVie shares.\",\n    \"key_implications\": [\n      \"Reduced institutional support may amplify short\u2011term price swings.\",\n      \"Market perception of AbbVie's fundamentals could deteriorate if further selling emerges.\"\n    ],\n    \"followup_notes\": [\n      \"Track upcoming 13F filings to see if other large investors adjust positions.\",\n      \"Monitor the stock\u2019s price reaction in the days following the news for signs of sustained pressure.\"\n    ]\n  },\n  {\n    \"analysis_text\": \"Reports framing AbbVie as outpacing Pfizer in the pharma race suggest stronger relative performance, which could attract bullish investors and lift sentiment. However, the analysis hinges on product pipelines and market\u2011share dynamics; competitive advantages can be fleeting if pipeline setbacks arise. The near\u2011term impact is likely a modest positive, while long\u2011term prospects depend on execution of strategic initiatives.\",\n    \"impact_horizon\": \"near_term\",\n    \"risk_direction\": \"improving\",\n    \"confidence\": 0.65,\n    \"scenario_summary\": \"AbbVie appears to be gaining a competitive edge over Pfizer, supporting a more favorable risk outlook in the near term.\",\n    \"key_implications\": [\n      \"Positive comparative narrative may drive incremental buying interest.\",\n      \"Sustained leadership will require continued pipeline success and market\u2011share gains.\"\n    ],\n    \"followup_notes\": [\n      \"Compare upcoming quarterly earnings for both companies to validate relative performance.\",\n      \"Review pipeline announcements and regulatory milestones that could affect the competitive balance.\"\n    ]\n  }\n]\n```",
+  "error": null,
+  "duration_ms": 36157.7
+}

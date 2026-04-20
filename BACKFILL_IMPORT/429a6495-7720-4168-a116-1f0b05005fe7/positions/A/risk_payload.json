@@ -1,0 +1,311 @@
+{
+  "structural_scores": {
+    "safety_score": 57,
+    "confidence": 0.75,
+    "structural_base_score": 57,
+    "macro_adjustment": 0.0,
+    "event_adjustment": 0.0,
+    "total_score": 57,
+    "grade": "C",
+    "factor_breakdown": {
+      "market_cap_bucket": "moderate_high",
+      "market_cap_contribution": 22.5,
+      "asset_class_contribution": 10.0,
+      "liquidity_score": 50,
+      "volatility_score": 45,
+      "leverage_score": 50,
+      "profitability_score": 50,
+      "macro_adjustment": 0.0,
+      "event_adjustment": 0.0,
+      "event_count": 3
+    },
+    "market_cap_bucket": "moderate_high",
+    "reasoning": "Structural: 57, Macro: 0.0, Event: 0.0",
+    "grade_reason": "Safety score 57 based on structural factors and adjustments",
+    "dimension_rationale": {
+      "structural_base_score": "Deterministic scoring from market cap, liquidity, volatility, leverage, profitability",
+      "macro_adjustment": "Regime neutral with None sensitivity",
+      "event_adjustment": "3 recent events contributing 0.0"
+    },
+    "mirofish_used": false
+  },
+  "ai_scores": {
+    "id": "de7efb1a-ed76-4d8a-b265-401f1963dba3",
+    "user_id": "00000000-0000-0000-0000-000000000001",
+    "ticker": "A",
+    "shares": 0.0,
+    "purchase_price": 0.0,
+    "archetype": "growth",
+    "created_at": "2026-04-13T00:47:15.797313+00:00",
+    "updated_at": "2026-04-13T00:47:15.797313+00:00",
+    "current_price": 117.5,
+    "analysis_started_at": null,
+    "analysis_mode": "sp500_backfill",
+    "previous_grade": "D",
+    "previous_total_score": 46.2,
+    "summary": "Agilent Technologies (A) presents a mixed near-term outlook with institutional buying activity offset by analyst price target reductions and underperformance versus peers. The absence of shares in the position suggests either a recently closed or pending allocation, warranting close monitoring before commitment.",
+    "long_report": "Agilent Technologies is a life sciences company operating in sectors that typically benefit from secular growth trends in diagnostics and laboratory equipment. The position shows zero shares and zero purchase price, which may indicate a recently exited position or a watch-only status awaiting re-entry. The most significant development is CCLA Investment Management's disclosed purchase of Agilent shares\u2014a positive signal from an ethical/institutional investor whose mandates often attract follow-on interest from similar quality-focused funds. This institutional accumulation could provide support for the stock. Conversely, TD Cowen's reduction of its price target to $147 from $157 while maintaining a Buy rating signals that near-term earnings expectations or growth projections have been revised downward, possibly reflecting sector headwinds or softer demand in certain end markets. The stock's Thursday underperformance relative to competitors adds near-term technical pressure. For a growth-oriented investor, the key question is whether recent weakness represents a compelling entry point or reflects fundamental concerns about business momentum. The absence of macro catalysts means company-specific developments\u2014upcoming earnings, guidance revisions, or competitive dynamics\u2014will dominate near-term direction.",
+    "top_risks": [
+      "Analyst expectations may still be too high if TD Cowen's downward revision reflects broader sector trend rather than idiosyncratic concerns",
+      "Single-day underperformance could signal early-stage rotation away from life sciences growth names if confirmed in subsequent trading sessions",
+      "Growth positioning may face headwinds if interest rates or risk sentiment shift unfavorably in the broader market"
+    ],
+    "watch_items": [
+      "Monitor for confirmation of the underperformance trend\u2014continued relative weakness versus peers would increase risk assessment",
+      "Watch for follow-on institutional buying activity in upcoming 13F filings that could validate or contradict the CCLA signal",
+      "Track upcoming earnings and guidance for any revisions that align with or contradict the TD Cowen price target reduction"
+    ],
+    "top_news": [
+      "TD Cowen Adjusts Price Target on Agilent Technologies to $147 From $157, Maintains Buy Rating",
+      "Agilent Technologies Inc. stock underperforms Thursday when compared to competitors",
+      "Agilent Technologies, Inc. $A Shares Bought by CCLA Investment Management"
+    ],
+    "inferred_labels": [
+      "growth"
+    ],
+    "methodology": "This report synthesizes the three provided event analyses using a framework that weights institutional buying activity as a moderately bullish signal, analyst target reductions as caution indicators, and relative stock performance as a technical near-term factor. The growth label infers the investor's time horizon and expected return profile. Macro context was assessed but deemed non-material for this specific holding given the absence of relevant overnight developments.",
+    "mirofish_used": false,
+    "thesis_verifier": [],
+    "event_analyses": [
+      {
+        "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+        "position_id": "de7efb1a-ed76-4d8a-b265-401f1963dba3",
+        "event_hash": "c861cd107767a6f2f52013cfe4a2ba463e8b4e511c0eb52261bc0488b4988c82",
+        "external_event_id": "CBMi2wFBVV95cUxOMDIwYWNFMDdvWmpkUjQtUEVfZVlBNF82SWxhVy14MzVQOUNqVmx5bzhpTWN4bWRRSVpIUW40SnpJeTNyaXRFdWJoUWJmN2I0OWxUSllNMlo2WGFaWUlxM1gtRFpURXM0bVFWckttVXR5bVNRWjA1aVVRM3pHenRTdDJDQVN1U1pabS0yVDRDTVdCQXdFM194QXc1c0xmNldsSEpCVk54SlJValpDUkZzc3BaZE93aHFHOC1TQmF1T2dNRjNRVnVFM0RUMk9qbXFJb3A1dFFmdFpkSEk",
+        "title": "TD Cowen Adjusts Price Target on Agilent Technologies to $147 From $157, Maintains Buy Rating",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMi2wFBVV95cUxOMDIwYWNFMDdvWmpkUjQtUEVfZVlBNF82SWxhVy14MzVQOUNqVmx5bzhpTWN4bWRRSVpIUW40SnpJeTNyaXRFdWJoUWJmN2I0OWxUSllNMlo2WGFaWUlxM1gtRFpURXM0bVFWckttVXR5bVNRWjA1aVVRM3pHenRTdDJDQVN1U1pabS0yVDRDTVdCQXdFM194QXc1c0xmNldsSEpCVk54SlJValpDUkZzc3BaZE93aHFHOC1TQmF1T2dNRjNRVnVFM0RUMk9qbXFJb3A1dFFmdFpkSEk?oc=5\" target=\"_blank\">TD Cowen Adjusts Price Target on Agilent Technologies to $147 From $157, Maintains Buy Rating</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">marketscreener.com</font>",
+        "source": "marketscreener.com",
+        "source_url": "https://news.google.com/rss/articles/CBMi2wFBVV95cUxOMDIwYWNFMDdvWmpkUjQtUEVfZVlBNF82SWxhVy14MzVQOUNqVmx5bzhpTWN4bWRRSVpIUW40SnpJeTNyaXRFdWJoUWJmN2I0OWxUSllNMlo2WGFaWUlxM1gtRFpURXM0bVFWckttVXR5bVNRWjA1aVVRM3pHenRTdDJDQVN1U1pabS0yVDRDTVdCQXdFM194QXc1c0xmNldsSEpCVk54SlJValpDUkZzc3BaZE93aHFHOC1TQmF1T2dNRjNRVnVFM0RUMk9qbXFJb3A1dFFmdFpkSEk?oc=5",
+        "published_at": "2026-04-13T12:24:32+00:00",
+        "event_type": "other",
+        "significance": "minor",
+        "classification": {
+          "rule": "keyword",
+          "confidence": 0.85,
+          "event_type": "other",
+          "significance": "minor",
+          "why_it_matters": "Keyword detected routine minor event"
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "A"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "TD Cowen's price target adjustment and maintained Buy rating on Agilent Technologies directly affects the A position with a revised outlook."
+          },
+          "significance": {
+            "rule": "keyword",
+            "confidence": 0.85,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "Keyword detected routine minor event"
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "TD Cowen's decision to lower the price target from $157 to $147 while maintaining a Buy rating suggests underlying caution about near-term performance, possibly due to updated earnings expectations or sector headwinds, though the sustained bullish stance indicates continued confidence in the company's long-term value proposition. The reduction in target price may reflect revised growth projections or market conditions rather than fundamental concerns about Agilent's business model. Investors should note that analyst actions often signal anticipated movements in earnings or revenue trajectories. This is direct company coverage for A.",
+        "confidence": 0.7999999999999999,
+        "impact_horizon": "near_term",
+        "risk_direction": "neutral",
+        "scenario_summary": "Analyst maintains positive outlook but reduces price target, suggesting near-term caution amid potential market or sector adjustments. This is direct company coverage for A.",
+        "key_implications": [
+          "Current price may be approaching the reduced target, suggesting limited immediate upside per TD Cowen's model",
+          "Maintenance of Buy rating indicates continued confidence in fundamental business strength despite reduced expectations"
+        ],
+        "recommended_followups": [
+          "Monitor upcoming earnings reports for confirmation of the analyst's revised expectations",
+          "Watch for similar adjustments from other analysts covering Agilent to gauge broader sentiment shifts",
+          "Review the read-through against A's current labels: growth."
+        ]
+      },
+      {
+        "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+        "position_id": "de7efb1a-ed76-4d8a-b265-401f1963dba3",
+        "event_hash": "3bf5c649b3e5a82a73dd560c93e5c48e2b680d35a0874469cf40d08c3cb8c1b4",
+        "external_event_id": "CBMi2gFBVV95cUxPTXBDTWZ5TkduQmFOU3BldDh1VElfckQ0cndRaUdGeXBveVZjTFExeVhxRWo0RkhzZkxyNWY1SGtKOUFCSjNaX3BKcEIzWUI5dDhnd2p3RWZNZ240WlZsS1l0X3VhSXBRQjYtQXNYb2ZRdmt1VG9McjIzQ0NkSHcyS24wcW9wVXJ2M0lZMERqbVhRcDZLU1ljU1ZpYjdkWkJTeDBVZHNwRVRnM2Z3UjllNTlUUTA1LWxfVEx2SFFSQzVMTGZob21nTkktMVBUR2dxMDh1d3dSTUtXQQ",
+        "title": "Agilent Technologies Inc. stock underperforms Thursday when compared to competitors",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMi2gFBVV95cUxPTXBDTWZ5TkduQmFOU3BldDh1VElfckQ0cndRaUdGeXBveVZjTFExeVhxRWo0RkhzZkxyNWY1SGtKOUFCSjNaX3BKcEIzWUI5dDhnd2p3RWZNZ240WlZsS1l0X3VhSXBRQjYtQXNYb2ZRdmt1VG9McjIzQ0NkSHcyS24wcW9wVXJ2M0lZMERqbVhRcDZLU1ljU1ZpYjdkWkJTeDBVZHNwRVRnM2Z3UjllNTlUUTA1LWxfVEx2SFFSQzVMTGZob21nTkktMVBUR2dxMDh1d3dSTUtXQQ?oc=5\" target=\"_blank\">Agilent Technologies Inc. stock underperforms Thursday when compared to competitors</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">MarketWatch</font>",
+        "source": "MarketWatch",
+        "source_url": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxPTXBDTWZ5TkduQmFOU3BldDh1VElfckQ0cndRaUdGeXBveVZjTFExeVhxRWo0RkhzZkxyNWY1SGtKOUFCSjNaX3BKcEIzWUI5dDhnd2p3RWZNZ240WlZsS1l0X3VhSXBRQjYtQXNYb2ZRdmt1VG9McjIzQ0NkSHcyS24wcW9wVXJ2M0lZMERqbVhRcDZLU1ljU1ZpYjdkWkJTeDBVZHNwRVRnM2Z3UjllNTlUUTA1LWxfVEx2SFFSQzVMTGZob21nTkktMVBUR2dxMDh1d3dSTUtXQQ?oc=5",
+        "published_at": "2026-04-09T20:56:00+00:00",
+        "event_type": "other",
+        "significance": "minor",
+        "classification": {
+          "rule": "keyword",
+          "confidence": 0.85,
+          "event_type": "other",
+          "significance": "minor",
+          "why_it_matters": "Keyword detected routine minor event"
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "A"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "LLM call failed"
+          },
+          "significance": {
+            "rule": "keyword",
+            "confidence": 0.85,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "Keyword detected routine minor event"
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "Single-day underperformance relative to competitors may reflect sector rotation dynamics or company-specific concerns surfacing. Underperformance vs peer group on a given day warrants attention but requires trend confirmation to assess materiality. This could indicate market preference shifting toward competitors or sector-specific headwinds affecting Agilent. Without context on the broader market movement, the relative underperformance may be amplified or mitigated. This is direct company coverage for A.",
+        "confidence": 0.6599999999999999,
+        "impact_horizon": "immediate",
+        "risk_direction": "neutral",
+        "scenario_summary": "One-day relative underperformance suggests short-term sentiment pressure but lacks sufficient evidence to indicate structural concerns without follow-through. This is direct company coverage for A.",
+        "key_implications": [
+          "Peer comparison reveals relative weakness that markets are pricing in",
+          "Short-term technical or sentiment factors may be dominating price action"
+        ],
+        "recommended_followups": [
+          "Track performance over subsequent days to confirm or deny trend",
+          "Compare against sector ETF performance to isolate company vs industry factors",
+          "Review volume patterns to assess if selling pressure is structural or transient"
+        ]
+      },
+      {
+        "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+        "position_id": "de7efb1a-ed76-4d8a-b265-401f1963dba3",
+        "event_hash": "879b0c5fe002d4a38e7d4573986cda25d4f6ccb158be3fbe2d50f299b91e8a3a",
+        "external_event_id": "CBMiywFBVV95cUxQWXp2dFI1d2hPMU1tNmtNUi1LWTlwdWlTMDM0VndjUlRBSWh0NG13NTNxSWl6a3JzNTFGS25aNldwVVdoNmVYUXFLalJROFlsTlIwYm1heXNFWFYtc0EzSklCMmlULXNNanRuQ2ZhYmNqVnBRSWRhenNkaVdNeno4U1hPQUNPdmVwZDVNTGhLbnFYclNWNDNLeUpHd2VxTzR4dFlzQmlIbkpBSWVWbG1Vd2IzQnF1S2NLX2J2bGw5TEMzOGhQZm5pYmI3bw",
+        "title": "Agilent Technologies, Inc. $A Shares Bought by CCLA Investment Management",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiywFBVV95cUxQWXp2dFI1d2hPMU1tNmtNUi1LWTlwdWlTMDM0VndjUlRBSWh0NG13NTNxSWl6a3JzNTFGS25aNldwVVdoNmVYUXFLalJROFlsTlIwYm1heXNFWFYtc0EzSklCMmlULXNNanRuQ2ZhYmNqVnBRSWRhenNkaVdNeno4U1hPQUNPdmVwZDVNTGhLbnFYclNWNDNLeUpHd2VxTzR4dFlzQmlIbkpBSWVWbG1Vd2IzQnF1S2NLX2J2bGw5TEMzOGhQZm5pYmI3bw?oc=5\" target=\"_blank\">Agilent Technologies, Inc. $A Shares Bought by CCLA Investment Management</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">MarketBeat</font>",
+        "source": "MarketBeat",
+        "source_url": "https://news.google.com/rss/articles/CBMiywFBVV95cUxQWXp2dFI1d2hPMU1tNmtNUi1LWTlwdWlTMDM0VndjUlRBSWh0NG13NTNxSWl6a3JzNTFGS25aNldwVVdoNmVYUXFLalJROFlsTlIwYm1heXNFWFYtc0EzSklCMmlULXNNanRuQ2ZhYmNqVnBRSWRhenNkaVdNeno4U1hPQUNPdmVwZDVNTGhLbnFYclNWNDNLeUpHd2VxTzR4dFlzQmlIbkpBSWVWbG1Vd2IzQnF1S2NLX2J2bGw5TEMzOGhQZm5pYmI3bw?oc=5",
+        "published_at": "2026-04-09T09:10:19+00:00",
+        "event_type": "other",
+        "significance": "major",
+        "classification": {
+          "rule": "keyword",
+          "confidence": 0.95,
+          "event_type": "other",
+          "significance": "major",
+          "why_it_matters": "Keyword detected major event"
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "A"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "LLM call failed"
+          },
+          "significance": {
+            "rule": "keyword",
+            "confidence": 0.95,
+            "event_type": "other",
+            "significance": "major",
+            "why_it_matters": "Keyword detected major event"
+          }
+        },
+        "analysis_source": "minimax_fallback",
+        "long_analysis": "CCLA Investment Management's purchase of Agilent Technologies shares represents a positive signal from a quality-focused institutional investor. CCLA is a well-known institutional investor managing assets for charitable and ethical mandates, and their disclosed buy could attract attention from other institutional investors monitoring 13F filings. However, the actual impact on Agilent's valuation depends on the scale of the position relative to the company's market capitalization and total shares outstanding. Agilent operates in the life sciences and diagnostics sector, which remains structurally robust given ongoing demand for laboratory equipment and instruments. Without specific share count or dollar value details in this report, the market signal remains moderate rather than strongly bullish. The filing may have minor positive price pressure if the market interprets CCLA's involvement as a validation of Agilent's fundamental value. This is direct company coverage for A.",
+        "confidence": 0.63,
+        "impact_horizon": "near_term",
+        "risk_direction": "neutral",
+        "scenario_summary": "CCLA's disclosed purchase provides modest positive sentiment for Agilent without materially altering its fundamental outlook or valuation trajectory. This is direct company coverage for A.",
+        "key_implications": [
+          "Institutional buying from CCLA adds a positive sentiment data point for Agilent's shareholder base",
+          "The actual portfolio impact depends on position size relative to Agilent's $30-40B market cap",
+          "Agilent's life sciences exposure continues to support stable demand fundamentals"
+        ],
+        "recommended_followups": [
+          "Check the full 13F filing for position size and percentage of shares outstanding",
+          "Monitor if other institutional investors increase positions in the same quarter",
+          "Review Agilent's upcoming earnings for any guidance changes that could interact with this ownership signal"
+        ]
+      }
+    ],
+    "ticker_metadata": {
+      "id": "a2fddffc-1af1-495a-a03b-6249110a120f",
+      "ticker": "A",
+      "company_name": "Agilent Technologies Inc",
+      "asset_class": null,
+      "sector": "Life Sciences Tools & Services",
+      "industry": null,
+      "exchange": "NEW YORK STOCK EXCHANGE, INC.",
+      "market_cap": 32516223393.09819,
+      "market_cap_bucket": "moderate_high",
+      "float_shares": null,
+      "avg_daily_dollar_volume": 166798300.0,
+      "spread_proxy": 0.001,
+      "beta": 1.3009752,
+      "volatility_proxy": 0.3252438,
+      "profitability_profile": "mixed",
+      "leverage_profile": "moderate",
+      "macro_sensitivity": null,
+      "structural_fragility": null,
+      "liquidity_risk": null,
+      "updated_at": "2026-04-13T20:15:55.883633+00:00",
+      "created_at": "2026-04-12T21:58:17.893437+00:00",
+      "pe_ratio": 25.2611,
+      "week_52_high": 160.27,
+      "week_52_low": 96.43,
+      "price": 117.5,
+      "price_as_of": "2026-04-13T20:15:55.751222+00:00",
+      "avg_volume": 1.41956,
+      "previous_close": 115.06,
+      "open_price": 114.94,
+      "day_high": 117.75,
+      "day_low": 114.67,
+      "last_price_source": "finnhub",
+      "is_supported": true
+    },
+    "macro_impact": {
+      "ticker": "A",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    },
+    "news_sentiment": 45,
+    "macro_exposure": 60,
+    "position_sizing": 30,
+    "volatility_trend": 40,
+    "total_score": 43.8,
+    "grade": "D",
+    "reasoning": "",
+    "grade_reason": "",
+    "evidence_summary": "Agilent Technologies (A) presents a mixed near-term outlook with institutional buying activity offset by analyst price target reductions and underperformance versus peers. The absence of shares in the position suggests either a recently closed or pending allocation, warranting close monitoring before commitment.",
+    "dimension_rationale": {}
+  },
+  "risk_payload": {
+    "position_id": "de7efb1a-ed76-4d8a-b265-401f1963dba3",
+    "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+    "news_sentiment": 45,
+    "macro_exposure": 60,
+    "position_sizing": 30,
+    "volatility_trend": 40,
+    "total_score": 43.8,
+    "safety_score": 57,
+    "confidence": 0.75,
+    "structural_base_score": 57,
+    "macro_adjustment": 0.0,
+    "event_adjustment": 0.0,
+    "factor_breakdown": {
+      "market_cap_bucket": "moderate_high",
+      "market_cap_contribution": 22.5,
+      "asset_class_contribution": 10.0,
+      "liquidity_score": 50,
+      "volatility_score": 45,
+      "leverage_score": 50,
+      "profitability_score": 50,
+      "macro_adjustment": 0.0,
+      "event_adjustment": 0.0,
+      "event_count": 3
+    },
+    "grade": "D",
+    "reasoning": "",
+    "grade_reason": "",
+    "evidence_summary": "Agilent Technologies (A) presents a mixed near-term outlook with institutional buying activity offset by analyst price target reductions and underperformance versus peers. The absence of shares in the position suggests either a recently closed or pending allocation, warranting close monitoring before commitment.",
+    "dimension_rationale": {},
+    "mirofish_used": false
+  }
+}

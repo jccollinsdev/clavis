@@ -28,55 +28,61 @@ class DigestViewModel: ObservableObject {
         errorMessage = nil
         timeoutMessage = nil
 
-        async let todayDigestResult: Result<DigestResponse, Error> = {
+        async let dashboardResult: Result<DashboardResponse, Error> = {
             do {
-                return .success(try await api.fetchTodayDigest())
+                return .success(try await api.fetchDashboard())
             } catch {
                 return .failure(error)
             }
         }()
         async let historyResult: Result<[Digest], Error> = {
             do {
-                return .success(try await api.fetchDigestHistory())
-            } catch {
-                return .failure(error)
-            }
-        }()
-        async let holdingsResult: Result<[Position], Error> = {
-            do {
-                return .success(try await api.fetchHoldings())
-            } catch {
-                return .failure(error)
-            }
-        }()
-        async let alertsResult: Result<[Alert], Error> = {
-            do {
-                return .success(try await api.fetchAlerts())
+                return .success(try await api.fetchDigestHistory(timeoutInterval: 75))
             } catch {
                 return .failure(error)
             }
         }()
 
-        let resolvedTodayDigest = await todayDigestResult
+        let resolvedDashboard = await dashboardResult
         let resolvedHistory = await historyResult
-        let resolvedHoldings = await holdingsResult
-        let resolvedAlerts = await alertsResult
 
         guard generation == loadGeneration else { return }
 
         var resolvedRun = previousRunningRun
 
-        switch resolvedTodayDigest {
+        switch resolvedDashboard {
         case .success(let response):
             resolvedRun = response.analysisRun ?? previousRunningRun
             todayDigest = response.digest ?? previousDigest
+            holdings = response.positions
+            alerts = response.alerts
+
+            if shouldRefreshDigest(todayDigest, holdingCount: holdings.count) {
+                do {
+                    let generated = try await api.fetchTodayDigest()
+                    if generation == loadGeneration {
+                        todayDigest = generated.digest ?? todayDigest
+                        if let run = generated.analysisRun {
+                            resolvedRun = run
+                            let displayError = run.displayErrorMessage
+                            activeRun = run.lifecycleStatus == "failed" && isTransientAnalysisError(displayError) ? nil : run
+                        }
+                    }
+                } catch {
+                    if previousDigest == nil && todayDigest == nil {
+                        errorMessage = "We couldn't load the latest digest right now."
+                    }
+                }
+            }
+
             switch resolvedRun?.lifecycleStatus {
             case "running", "queued":
                 activeRun = resolvedRun
                 errorMessage = nil
             case "failed":
                 activeRun = resolvedRun
-                errorMessage = resolvedRun?.displayErrorMessage ?? "Analysis failed. Please run a fresh review."
+                let displayError = resolvedRun?.displayErrorMessage ?? "Analysis failed. Please run a fresh review."
+                errorMessage = isTransientAnalysisError(displayError) ? nil : displayError
             case "completed":
                 activeRun = response.digest == nil ? resolvedRun : nil
                 errorMessage = nil
@@ -112,9 +118,6 @@ class DigestViewModel: ObservableObject {
         }
 
         digestHistory = (try? resolvedHistory.get()) ?? []
-        holdings = (try? resolvedHoldings.get()) ?? []
-        alerts = (try? resolvedAlerts.get()) ?? []
-
         if let message = errorMessage, message.localizedCaseInsensitiveContains("cancelled") {
             errorMessage = nil
         }
@@ -146,6 +149,19 @@ class DigestViewModel: ObservableObject {
         isLoading = false
     }
 
+    private func isTransientAnalysisError(_ message: String?) -> Bool {
+        guard let message = message?.lowercased() else { return false }
+        return message.contains("high traffic")
+            || message.contains("rate limit")
+            || message.contains("overload")
+            || message.contains("temporarily unavailable")
+    }
+
+    private func shouldRefreshDigest(_ digest: Digest?, holdingCount: Int) -> Bool {
+        guard holdingCount > 0 else { return false }
+        return digest?.structuredSections?.digestVersion != 2
+    }
+
     func pollAnalysisRun(runId: String) async -> Bool {
         for _ in 0..<240 {
             do {
@@ -154,7 +170,7 @@ class DigestViewModel: ObservableObject {
 
                 if run.isTerminal {
                     if run.lifecycleStatus == "failed" {
-                        errorMessage = run.displayErrorMessage
+                        errorMessage = isTransientAnalysisError(run.displayErrorMessage) ? nil : run.displayErrorMessage
                         return false
                     }
                     return true
@@ -174,7 +190,7 @@ class DigestViewModel: ObservableObject {
     private func waitForDigestReady() async {
         for _ in 0..<10 {
             do {
-                let response = try await api.fetchTodayDigest()
+                let response = try await api.fetchTodayDigest(forceRefresh: true, timeoutInterval: 75)
                 if let digest = response.digest {
                     todayDigest = digest
                     return

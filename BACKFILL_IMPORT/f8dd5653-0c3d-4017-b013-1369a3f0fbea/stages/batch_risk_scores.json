@@ -1,0 +1,58 @@
+[
+  {
+    "news_sentiment": 75,
+    "macro_exposure": 65,
+    "position_sizing": null,
+    "thesis_risk": 70,
+    "volatility_trend": 65,
+    "total_score": 68.8,
+    "grade": "B",
+    "reasoning": "",
+    "grade_reason": "",
+    "evidence_summary": "AbbVie's $745M pain-drug partnership with China's Haisco represents a strategically significant diversification move beyond its Humira-dependent revenue base, though near-term institutional confidence has softened as evidenced by Factory Mutual reducing its stake. The major deal signals continued M&A appetite and pipeline expansion at reasonable terms relative to the company's ~$300B market cap, while competitive positioning against peers like Pfizer remains favorable. Investors should monitor pipeline execution and revenue diversification milestones closely.",
+    "dimension_rationale": {},
+    "mirofish_used": false
+  },
+  {
+    "news_sentiment": 45,
+    "macro_exposure": 55,
+    "position_sizing": null,
+    "thesis_risk": 55,
+    "volatility_trend": 45,
+    "total_score": 50.0,
+    "grade": "C",
+    "reasoning": "",
+    "grade_reason": "",
+    "evidence_summary": "Abbott Laboratories warrants monitoring following a notable 3.04% price decline on April 10 and coordinated analyst forecast revisions ahead of Q1 earnings. The combination of recent price weakness and shifting Wall Street expectations suggests potential near-term volatility, though the pullback may present an entry opportunity for growth-oriented investors tracking the stock.",
+    "dimension_rationale": {},
+    "mirofish_used": false
+  },
+  {
+    "news_sentiment": 55,
+    "macro_exposure": 55,
+    "position_sizing": null,
+    "thesis_risk": 65,
+    "volatility_trend": 55,
+    "total_score": 57.5,
+    "grade": "C",
+    "reasoning": "",
+    "grade_reason": "",
+    "evidence_summary": "A.O. Smith (AOS) is a leading manufacturer of water heating and treatment products with significant exposure to residential construction and replacement demand cycles. The company operates in an essential services category with recurring revenue characteristics from replacement parts and filters. With zero current position and an upcoming earnings report as the primary near-term catalyst, the focus should be on assessing whether the current risk-reward profile justifies establishing a position.",
+    "dimension_rationale": {},
+    "mirofish_used": false
+  },
+  {
+    "news_sentiment": 65,
+    "macro_exposure": 55,
+    "position_sizing": null,
+    "thesis_risk": 55,
+    "volatility_trend": 50,
+    "total_score": 56.2,
+    "grade": "C",
+    "reasoning": "",
+    "grade_reason": "",
+    "evidence_summary": "3M (MMM) presents mixed signals with no active position held (0.0 shares), as minor insider buying by the Group President and a significant institutional stake increase by SG Americas Securities LLC indicate confidence in the company's strategic direction. However, the modest scale of open-market purchases and the single-institution nature of the recent buying limit immediate price impact. The growth label appears somewhat inconsistent with 3M's traditional defensive-industrial profile, suggesting potential thesis ambiguity that warrants clarification before establishing exposure.",
+    "dimension_rationale": {},
+    "mirofish_used": false
+  }
+]

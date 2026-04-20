@@ -1,0 +1,303 @@
+{
+  "structural_scores": {
+    "safety_score": 60,
+    "confidence": 0.85,
+    "structural_base_score": 60,
+    "macro_adjustment": 0.0,
+    "event_adjustment": 0.0,
+    "total_score": 60,
+    "grade": "C",
+    "factor_breakdown": {
+      "market_cap_bucket": "high",
+      "market_cap_contribution": 25.5,
+      "asset_class_contribution": 10.0,
+      "liquidity_score": 50,
+      "volatility_score": 50,
+      "leverage_score": 50,
+      "profitability_score": 50,
+      "macro_adjustment": 0.0,
+      "event_adjustment": 0.0,
+      "event_count": 3
+    },
+    "market_cap_bucket": "high",
+    "reasoning": "Structural: 60, Macro: 0.0, Event: 0.0",
+    "grade_reason": "Safety score 60 based on structural factors and adjustments",
+    "dimension_rationale": {
+      "structural_base_score": "Deterministic scoring from market cap, liquidity, volatility, leverage, profitability",
+      "macro_adjustment": "Regime neutral with None sensitivity",
+      "event_adjustment": "3 recent events contributing 0.0"
+    },
+    "mirofish_used": false
+  },
+  "ai_scores": {
+    "id": "3785a9c9-1699-4068-b096-611fe9967dfb",
+    "user_id": "00000000-0000-0000-0000-000000000001",
+    "ticker": "ABBV",
+    "shares": 0.0,
+    "purchase_price": 0.0,
+    "archetype": "growth",
+    "created_at": "2026-04-13T00:47:15.797313+00:00",
+    "updated_at": "2026-04-13T00:47:15.797313+00:00",
+    "current_price": 206.47,
+    "analysis_started_at": null,
+    "analysis_mode": "sp500_backfill",
+    "previous_grade": "D",
+    "previous_total_score": 47.0,
+    "summary": "AbbVie faces near-term headwinds from recent stock price weakness, likely tied to market concerns over earnings outlook or pipeline developments, creating elevated short-term volatility. The Q1 neuroscience franchise performance represents a critical near-term catalyst that could either validate or undermine growth expectations. With no clear macro tailwinds currently, company-specific developments will drive performance in the near term.",
+    "long_report": "AbbVie's recent price decline reflects market disappointment that could stem from concerns about near-term earnings trajectory or pipeline uncertainties, signaling a negative sentiment shift in the near term. The neuroscience franchise presents both opportunity and risk heading into Q1\u2014successful drug adoption could provide meaningful revenue catalysts, while slower uptake or competitive/reimbursement pressures would maintain a modest growth profile. The stock's current trading near recent levels without fundamental catalysts suggests a holding pattern where investors await Q1 results for directional signals. Absent macro drivers, ABBV's performance will be heavily dependent on whether the company can demonstrate pipeline progress and solid product revenue growth. The growth-oriented positioning implies investor confidence in long-term pipeline value, but this thesis requires validation through upcoming quarterly performance.",
+    "top_risks": [
+      "Earnings miss or guidance reduction could accelerate the recent price decline and extend volatility",
+      "Pipeline setbacks or competitive pressures in neuroscience could undermine growth thesis",
+      "Reimbursement challenges or slower drug adoption could constrain revenue upside in key franchises"
+    ],
+    "watch_items": [
+      "Q1 neuroscience franchise revenue performance and management commentary on drug launch trajectory",
+      "Any pipeline development announcements that could address or exacerbate current market concerns"
+    ],
+    "top_news": [
+      "What is behind AbbVie stock's recent drop in value today",
+      "Will AbbVie's Neuroscience Franchise Aid Top-line Growth in Q1?",
+      "abbv stock: AbbVie Inc. (ABBV) \u2014 Stock"
+    ],
+    "inferred_labels": [
+      "growth"
+    ],
+    "methodology": "Analysis based on recent stock price movement signals, Q1 growth catalyst assessment from neuroscience franchise coverage, and current trading dynamics. Risk factors identified through event severity classification and sector-specific considerations. No macro read-through exists given limited overnight developments, making company-specific events the primary analytical driver.",
+    "mirofish_used": false,
+    "thesis_verifier": [],
+    "event_analyses": [
+      {
+        "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+        "position_id": "3785a9c9-1699-4068-b096-611fe9967dfb",
+        "event_hash": "9ebe7ed46af0d5ece09b8514cbfd206eabede913e032bfefa8eecf336f8f0cf2",
+        "external_event_id": "CBMimAFBVV95cUxQekRKOXdRMkNMdEN1YmFwTFdsRjBwcFdUVlItc0YzLW5Sa3hHMWRKU0V6MU9FYVpCUHFqTW9BTmhXQTV3SmJRVlpiU3o4MEU3a3cwZWFpLVpwMHFxdVB0cllJb2JGVmNCbjh4ci1Iekp1enJEellFRGxPWm4xc0dBa2JMYmZxMWxQb19LbzBaUTZiQ29LR1hhaQ",
+        "title": "What is behind AbbVie stock's recent drop in value today",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMimAFBVV95cUxQekRKOXdRMkNMdEN1YmFwTFdsRjBwcFdUVlItc0YzLW5Sa3hHMWRKU0V6MU9FYVpCUHFqTW9BTmhXQTV3SmJRVlpiU3o4MEU3a3cwZWFpLVpwMHFxdVB0cllJb2JGVmNCbjh4ci1Iekp1enJEellFRGxPWm4xc0dBa2JMYmZxMWxQb19LbzBaUTZiQ29LR1hhaQ?oc=5\" target=\"_blank\">What is behind AbbVie stock's recent drop in value today</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Traders Union</font>",
+        "source": "Traders Union",
+        "source_url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxQekRKOXdRMkNMdEN1YmFwTFdsRjBwcFdUVlItc0YzLW5Sa3hHMWRKU0V6MU9FYVpCUHFqTW9BTmhXQTV3SmJRVlpiU3o4MEU3a3cwZWFpLVpwMHFxdVB0cllJb2JGVmNCbjh4ci1Iekp1enJEellFRGxPWm4xc0dBa2JMYmZxMWxQb19LbzBaUTZiQ29LR1hhaQ?oc=5",
+        "published_at": "2026-04-13T16:36:12+00:00",
+        "event_type": "other",
+        "significance": "minor",
+        "classification": {
+          "confidence": 0.92,
+          "event_type": "other",
+          "significance": "minor",
+          "why_it_matters": "This is market commentary explaining AbbVie's stock price movement, not a material corporate announcement."
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "ABBV"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "LLM call failed"
+          },
+          "significance": {
+            "confidence": 0.92,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "This is market commentary explaining AbbVie's stock price movement, not a material corporate announcement."
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "The article highlights a sudden decline in AbbVie\u2019s share price, reflecting market disappointment possibly tied to recent news or data that raised concerns about the company\u2019s near\u2011term outlook. This price drop signals heightened volatility and a negative sentiment shift among investors in the short term. The underlying drivers\u2014such as a potential earnings miss or pipeline setback\u2014could weigh on the stock if not addressed promptly. Overall, the immediate risk environment appears to be worsening, with limited clarity on the catalyst. This is direct company coverage for ABBV.",
+        "confidence": 0.7999999999999999,
+        "impact_horizon": "immediate",
+        "risk_direction": "worsening",
+        "scenario_summary": "AbbVie faces short\u2011term price pressure from a recent negative development, raising downside risk. This is direct company coverage for ABBV.",
+        "key_implications": [
+          "Investor sentiment may remain fragile, leading to further selling if the cause of the drop is not clarified.",
+          "Sector peers could experience spill\u2011over selling, affecting broader biotech indices."
+        ],
+        "recommended_followups": [
+          "Review the upcoming earnings call for management commentary on the drop.",
+          "Monitor analyst reports for target price adjustments and any changes to recommendations.",
+          "Review the read-through against ABBV's current labels: growth."
+        ]
+      },
+      {
+        "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+        "position_id": "3785a9c9-1699-4068-b096-611fe9967dfb",
+        "event_hash": "aa5897f479b72b9e764ddff4d15fdb30a2db6cc6c54889f786a5e6dd88076039",
+        "external_event_id": "CBMipAFBVV95cUxNUS1BaUZxQUxaWDdzNGxxUnpzbV95SDkxczh3ekNpM0tFT3N4ZllYa2NTTl9OQjRiQlB5aGdnNVNtV2xBcVVfZmlua1hSVzh3bV80RGIta2dxemlPbWNOeFp5TjJabXNNanFjVE8xdEdOU0k2ZzJZYXB1NFBfWHVhQTlpb1k5cHFiekx1aThfWjhLRWNYaWlsMGRMb3BLc3JwVHZMag",
+        "title": "Will AbbVie's Neuroscience Franchise Aid Top-line Growth in Q1?",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMipAFBVV95cUxNUS1BaUZxQUxaWDdzNGxxUnpzbV95SDkxczh3ekNpM0tFT3N4ZllYa2NTTl9OQjRiQlB5aGdnNVNtV2xBcVVfZmlua1hSVzh3bV80RGIta2dxemlPbWNOeFp5TjJabXNNanFjVE8xdEdOU0k2ZzJZYXB1NFBfWHVhQTlpb1k5cHFiekx1aThfWjhLRWNYaWlsMGRMb3BLc3JwVHZMag?oc=5\" target=\"_blank\">Will AbbVie's Neuroscience Franchise Aid Top-line Growth in Q1?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Zacks Investment Research</font>",
+        "source": "Zacks Investment Research",
+        "source_url": "https://news.google.com/rss/articles/CBMipAFBVV95cUxNUS1BaUZxQUxaWDdzNGxxUnpzbV95SDkxczh3ekNpM0tFT3N4ZllYa2NTTl9OQjRiQlB5aGdnNVNtV2xBcVVfZmlua1hSVzh3bV80RGIta2dxemlPbWNOeFp5TjJabXNNanFjVE8xdEdOU0k2ZzJZYXB1NFBfWHVhQTlpb1k5cHFiekx1aThfWjhLRWNYaWlsMGRMb3BLc3JwVHZMag?oc=5",
+        "published_at": "2026-04-13T11:23:27+00:00",
+        "event_type": "other",
+        "significance": "minor",
+        "classification": {
+          "confidence": 0.9,
+          "event_type": "other",
+          "significance": "minor",
+          "why_it_matters": "Zacks analysis speculating on AbbVie's neuroscience franchise potential, not an actual earnings announcement."
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "ABBV"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "LLM call failed"
+          },
+          "significance": {
+            "confidence": 0.9,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "Zacks analysis speculating on AbbVie's neuroscience franchise potential, not an actual earnings announcement."
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "The piece explores whether AbbVie\u2019s neuroscience franchise can contribute meaningfully to top\u2011line growth in the upcoming Q1 results, highlighting both the opportunity from new drug launches and the challenges of competition and reimbursement. Positive momentum in this franchise could provide a revenue catalyst, whereas slower adoption would keep growth modest. The analysis suggests a moderate probability that the franchise will support revenue, making the risk direction slightly improving if execution matches expectations. Confidence in this projection is tempered by uncertainty around prescription trends and regulatory status. This is direct company coverage for ABBV.",
+        "confidence": 0.71,
+        "impact_horizon": "near_term",
+        "risk_direction": "improving",
+        "scenario_summary": "AbbVie\u2019s neuroscience portfolio may lift Q1 revenue if demand for new therapies accelerates. This is direct company coverage for ABBV.",
+        "key_implications": [
+          "A successful neuroscience launch could boost full\u2011year guidance and positively affect stock valuation.",
+          "Any shortfall in sales could limit the upside and keep the risk profile neutral to negative."
+        ],
+        "recommended_followups": [
+          "Track prescription monitoring data and payer coverage updates for key neuroscience products.",
+          "Watch the Q1 earnings release for explicit commentary on franchise performance and guidance adjustments.",
+          "Review the read-through against ABBV's current labels: growth."
+        ]
+      },
+      {
+        "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+        "position_id": "3785a9c9-1699-4068-b096-611fe9967dfb",
+        "event_hash": "6f9b8c6ca53b5d1a27eeb291a9fd7dc6d9908af082c7d6d34e2cb34989025800",
+        "external_event_id": "CBMiT0FVX3lxTE8xclZscVJ0NnBXQ0ctWGJEdjN1WW10M1NUYks5UEw0MzRiSGhtbWpOQVVuVGl4dktnTVhFdkMydzlkWGxaNFBVTU02MUZhNm8",
+        "title": "abbv stock: AbbVie Inc. (ABBV) \u2014 Stock",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiT0FVX3lxTE8xclZscVJ0NnBXQ0ctWGJEdjN1WW10M1NUYks5UEw0MzRiSGhtbWpOQVVuVGl4dktnTVhFdkMydzlkWGxaNFBVTU02MUZhNm8?oc=5\" target=\"_blank\">abbv stock: AbbVie Inc. (ABBV) \u2014 Stock</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Bitget</font>",
+        "source": "Bitget",
+        "source_url": "https://news.google.com/rss/articles/CBMiT0FVX3lxTE8xclZscVJ0NnBXQ0ctWGJEdjN1WW10M1NUYks5UEw0MzRiSGhtbWpOQVVuVGl4dktnTVhFdkMydzlkWGxaNFBVTU02MUZhNm8?oc=5",
+        "published_at": "2026-04-13T07:06:55+00:00",
+        "event_type": "other",
+        "significance": "minor",
+        "classification": {
+          "confidence": 0.95,
+          "event_type": "other",
+          "significance": "minor",
+          "why_it_matters": "Routine stock data summary page from Bitget, not a material corporate event."
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "ABBV"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "LLM call failed"
+          },
+          "significance": {
+            "confidence": 0.95,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "Routine stock data summary page from Bitget, not a material corporate event."
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "The brief stock summary presents current price and basic metrics for AbbVie, indicating that the shares are trading near recent levels without major fundamental news. This suggests a neutral short\u2011term risk environment where market participants are likely reacting to broader sector movements rather than company\u2011specific events. The absence of new information implies limited near\u2011term catalysts, leaving the risk direction essentially unchanged. Confidence in this neutral stance is high given the lack of new disclosures. This is direct company coverage for ABBV.",
+        "confidence": 0.9299999999999999,
+        "impact_horizon": "immediate",
+        "risk_direction": "neutral",
+        "scenario_summary": "AbbVie\u2019s stock is steady with no new fundamental shift, maintaining a neutral risk outlook. This is direct company coverage for ABBV.",
+        "key_implications": [
+          "Short\u2011term traders may see limited price movement until the next material announcement.",
+          "Long\u2011term investors can focus on underlying fundamentals and upcoming catalysts for future direction."
+        ],
+        "recommended_followups": [
+          "Watch for upcoming earnings, drug approvals, or regulatory decisions that could alter the neutral stance.",
+          "Monitor macro factors and sector trends that may indirectly influence AbbVie\u2019s share price.",
+          "Review the read-through against ABBV's current labels: growth."
+        ]
+      }
+    ],
+    "ticker_metadata": {
+      "id": "a732512e-b96d-4c34-a1a1-4e13f6f417b7",
+      "ticker": "ABBV",
+      "company_name": "AbbVie Inc",
+      "asset_class": null,
+      "sector": "Biotechnology",
+      "industry": null,
+      "exchange": "NEW YORK STOCK EXCHANGE, INC.",
+      "market_cap": 365196362377.69086,
+      "market_cap_bucket": "high",
+      "float_shares": null,
+      "avg_daily_dollar_volume": 1251837933.5,
+      "spread_proxy": 0.001,
+      "beta": 0.33795568,
+      "volatility_proxy": 0.08448892,
+      "profitability_profile": "mixed",
+      "leverage_profile": "moderate",
+      "macro_sensitivity": null,
+      "structural_fragility": null,
+      "liquidity_risk": null,
+      "updated_at": "2026-04-14T01:07:46.550886+00:00",
+      "created_at": "2026-04-12T21:58:07.473359+00:00",
+      "pe_ratio": 86.4087,
+      "week_52_high": 244.81,
+      "week_52_low": 164.39,
+      "price": 206.47,
+      "price_as_of": "2026-04-14T01:07:46.545708+00:00",
+      "avg_volume": 6.06305,
+      "previous_close": 207.94,
+      "open_price": 206.43,
+      "day_high": 208.08,
+      "day_low": 203.01,
+      "last_price_source": "finnhub",
+      "is_supported": true
+    },
+    "macro_impact": {
+      "ticker": "ABBV",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    },
+    "news_sentiment": 35,
+    "macro_exposure": 55,
+    "position_sizing": 30,
+    "volatility_trend": 35,
+    "total_score": 38.8,
+    "grade": "D",
+    "reasoning": "",
+    "grade_reason": "",
+    "evidence_summary": "AbbVie faces near-term headwinds from recent stock price weakness, likely tied to market concerns over earnings outlook or pipeline developments, creating elevated short-term volatility. The Q1 neuroscience franchise performance represents a critical near-term catalyst that could either validate or undermine growth expectations. With no clear macro tailwinds currently, company-specific developments will drive performance in the near term.",
+    "dimension_rationale": {}
+  },
+  "risk_payload": {
+    "position_id": "3785a9c9-1699-4068-b096-611fe9967dfb",
+    "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+    "news_sentiment": 35,
+    "macro_exposure": 55,
+    "position_sizing": 30,
+    "volatility_trend": 35,
+    "total_score": 38.8,
+    "safety_score": 60,
+    "confidence": 0.85,
+    "structural_base_score": 60,
+    "macro_adjustment": 0.0,
+    "event_adjustment": 0.0,
+    "factor_breakdown": {
+      "market_cap_bucket": "high",
+      "market_cap_contribution": 25.5,
+      "asset_class_contribution": 10.0,
+      "liquidity_score": 50,
+      "volatility_score": 50,
+      "leverage_score": 50,
+      "profitability_score": 50,
+      "macro_adjustment": 0.0,
+      "event_adjustment": 0.0,
+      "event_count": 3
+    },
+    "grade": "D",
+    "reasoning": "",
+    "grade_reason": "",
+    "evidence_summary": "AbbVie faces near-term headwinds from recent stock price weakness, likely tied to market concerns over earnings outlook or pipeline developments, creating elevated short-term volatility. The Q1 neuroscience franchise performance represents a critical near-term catalyst that could either validate or undermine growth expectations. With no clear macro tailwinds currently, company-specific developments will drive performance in the near term.",
+    "dimension_rationale": {},
+    "mirofish_used": false
+  }
+}

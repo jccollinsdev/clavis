@@ -1,0 +1,35 @@
+{
+  "overnight_macro": {
+    "headlines": [
+      "Oil falls as IEA predicts \u2018demand destruction will spread\u2019 and hopes for fresh Iran talks grow",
+      "China calls U.S. blockade of the Strait of Hormuz 'dangerous and irresponsible'",
+      "The Iran war could cost the American taxpayer $1 trillion, says Harvard academic",
+      "JPMorgan Chase is set to report first-quarter earnings \u2013 here\u2019s what the Street expects"
+    ],
+    "themes": [],
+    "brief": "Overnight macro developments were limited. Markets appear calm with no significant policy shifts or economic surprises."
+  },
+  "position_impacts": [
+    {
+      "ticker": "ABBV",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    },
+    {
+      "ticker": "ABT",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    },
+    {
+      "ticker": "AOS",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    },
+    {
+      "ticker": "MMM",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    }
+  ],
+  "what_matters_today": []
+}

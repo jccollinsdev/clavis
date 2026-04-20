@@ -1,10 +1,10 @@
 import SwiftUI
+import UIKit
 
 struct MainTabView: View {
-    @State private var selectedTab = 0
+    @AppStorage("clavix.selectedTab") private var selectedTab = 0
 
     init() {
-        // Navigation bar — dark, no shadow
         let navAppearance = UINavigationBarAppearance()
         navAppearance.configureWithOpaqueBackground()
         navAppearance.backgroundColor = UIColor(Color.backgroundPrimary)
@@ -20,11 +20,34 @@ struct MainTabView: View {
         UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
         UINavigationBar.appearance().compactAppearance = navAppearance
 
-        // Tab bar — dark surface
         let tabAppearance = UITabBarAppearance()
         tabAppearance.configureWithOpaqueBackground()
         tabAppearance.backgroundColor = UIColor(Color.surface)
         tabAppearance.shadowColor = UIColor(Color.border)
+
+        let selectedColor = UIColor(Color.textPrimary)
+        let normalColor = UIColor(Color.textSecondary)
+        let compactFont = UIFont(name: "Inter", size: 10) ?? UIFont.systemFont(ofSize: 10, weight: .medium)
+        let selectedFont = UIFont(name: "Inter", size: 10) ?? UIFont.systemFont(ofSize: 10, weight: .semibold)
+        let appearances = [
+            tabAppearance.stackedLayoutAppearance,
+            tabAppearance.inlineLayoutAppearance,
+            tabAppearance.compactInlineLayoutAppearance,
+        ]
+
+        for appearance in appearances {
+            appearance.normal.iconColor = normalColor
+            appearance.normal.titleTextAttributes = [
+                .foregroundColor: normalColor,
+                .font: compactFont,
+            ]
+            appearance.selected.iconColor = selectedColor
+            appearance.selected.titleTextAttributes = [
+                .foregroundColor: selectedColor,
+                .font: selectedFont,
+            ]
+        }
+
         UITabBar.appearance().standardAppearance = tabAppearance
         UITabBar.appearance().scrollEdgeAppearance = tabAppearance
     }
@@ -33,31 +56,31 @@ struct MainTabView: View {
         TabView(selection: $selectedTab) {
             DashboardView(selectedTab: $selectedTab)
                 .tabItem {
-                    Label("Home", systemImage: "chart.pie.fill")
+                    Label("Home", systemImage: "house")
                 }
                 .tag(0)
 
             HoldingsListView(selectedTab: $selectedTab)
                 .tabItem {
-                    Label("Holdings", systemImage: "briefcase.fill")
+                    Label("Holdings", systemImage: "briefcase")
                 }
                 .tag(1)
 
             DigestView(selectedTab: $selectedTab)
                 .tabItem {
-                    Label("Digest", systemImage: "newspaper.fill")
+                    Label("Digest", systemImage: "doc.text")
                 }
                 .tag(2)
 
             AlertsView(selectedTab: $selectedTab)
                 .tabItem {
-                    Label("Alerts", systemImage: "bell.fill")
+                    Label("Alerts", systemImage: "bell")
                 }
                 .tag(3)
 
             SettingsView(selectedTab: $selectedTab)
                 .tabItem {
-                    Label("Settings", systemImage: "gearshape.fill")
+                    Label("Settings", systemImage: "gearshape")
                 }
                 .tag(4)
         }

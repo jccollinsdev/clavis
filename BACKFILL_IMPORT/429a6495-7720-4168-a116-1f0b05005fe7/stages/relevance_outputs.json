@@ -1,0 +1,72 @@
+{
+  "cached_count": 185,
+  "uncached_count": 2,
+  "results": [
+    {
+      "article_index": 0,
+      "relevant": true,
+      "affected_tickers": [
+        "AES"
+      ],
+      "event_type": "company_specific",
+      "why_it_matters": "Article discusses AES potentially pursuing a take-private transaction, which directly impacts the equity position and growth thesis.",
+      "article": {
+        "external_id": "CBMirgFBVV95cUxPYVZLTHZrN0l5U2VKMU5WSnZjNDhwSEJIUFNlcTROTldPdWl5QzRPUnJVcDl0dnhyRVpxREhRN0kwd1BIejVKM3pkTmZXak92bV9TWE5yYWltNUw0SlBzR2YzZVd4Z0xvcVNSNzFMWU5qV25uYlMzcEpVZl91Z0p2R1lUX2VmQlF2TUVqZVdUME9leENmaTlKZGEzdGVYbWN4VnEwMTZSUXNkVkFYSnc",
+        "event_hash": "54e2dc8ad23630b51764b1813210e9ac5e132e9bbac0032bc21a109956872ce3",
+        "source_type": "company_news",
+        "source": "Morningstar",
+        "title": "AES' Take-Private Transaction Best Option for Shareholders",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMirgFBVV95cUxPYVZLTHZrN0l5U2VKMU5WSnZjNDhwSEJIUFNlcTROTldPdWl5QzRPUnJVcDl0dnhyRVpxREhRN0kwd1BIejVKM3pkTmZXak92bV9TWE5yYWltNUw0SlBzR2YzZVd4Z0xvcVNSNzFMWU5qV25uYlMzcEpVZl91Z0p2R1lUX2VmQlF2TUVqZVdUME9leENmaTlKZGEzdGVYbWN4VnEwMTZSUXNkVkFYSnc?oc=5\" target=\"_blank\">AES' Take-Private Transaction Best Option for Shareholders</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Morningstar</font>",
+        "body": "<a href=\"https://news.google.com/rss/articles/CBMirgFBVV95cUxPYVZLTHZrN0l5U2VKMU5WSnZjNDhwSEJIUFNlcTROTldPdWl5QzRPUnJVcDl0dnhyRVpxREhRN0kwd1BIejVKM3pkTmZXak92bV9TWE5yYWltNUw0SlBzR2YzZVd4Z0xvcVNSNzFMWU5qV25uYlMzcEpVZl91Z0p2R1lUX2VmQlF2TUVqZVdUME9leENmaTlKZGEzdGVYbWN4VnEwMTZSUXNkVkFYSnc?oc=5\" target=\"_blank\">AES' Take-Private Transaction Best Option for Shareholders</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Morningstar</font>",
+        "url": "https://news.google.com/rss/articles/CBMirgFBVV95cUxPYVZLTHZrN0l5U2VKMU5WSnZjNDhwSEJIUFNlcTROTldPdWl5QzRPUnJVcDl0dnhyRVpxREhRN0kwd1BIejVKM3pkTmZXak92bV9TWE5yYWltNUw0SlBzR2YzZVd4Z0xvcVNSNzFMWU5qV25uYlMzcEpVZl91Z0p2R1lUX2VmQlF2TUVqZVdUME9leENmaTlKZGEzdGVYbWN4VnEwMTZSUXNkVkFYSnc?oc=5",
+        "published_at": "2026-04-13T18:59:57+00:00",
+        "ticker_hints": [
+          "AES"
+        ],
+        "sector_hint": null,
+        "raw": {
+          "id": "CBMirgFBVV95cUxPYVZLTHZrN0l5U2VKMU5WSnZjNDhwSEJIUFNlcTROTldPdWl5QzRPUnJVcDl0dnhyRVpxREhRN0kwd1BIejVKM3pkTmZXak92bV9TWE5yYWltNUw0SlBzR2YzZVd4Z0xvcVNSNzFMWU5qV25uYlMzcEpVZl91Z0p2R1lUX2VmQlF2TUVqZVdUME9leENmaTlKZGEzdGVYbWN4VnEwMTZSUXNkVkFYSnc",
+          "title": "AES' Take-Private Transaction Best Option for Shareholders",
+          "source": "Morningstar",
+          "url": "https://news.google.com/rss/articles/CBMirgFBVV95cUxPYVZLTHZrN0l5U2VKMU5WSnZjNDhwSEJIUFNlcTROTldPdWl5QzRPUnJVcDl0dnhyRVpxREhRN0kwd1BIejVKM3pkTmZXak92bV9TWE5yYWltNUw0SlBzR2YzZVd4Z0xvcVNSNzFMWU5qV25uYlMzcEpVZl91Z0p2R1lUX2VmQlF2TUVqZVdUME9leENmaTlKZGEzdGVYbWN4VnEwMTZSUXNkVkFYSnc?oc=5",
+          "published_at": "2026-04-13T18:59:57+00:00",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMirgFBVV95cUxPYVZLTHZrN0l5U2VKMU5WSnZjNDhwSEJIUFNlcTROTldPdWl5QzRPUnJVcDl0dnhyRVpxREhRN0kwd1BIejVKM3pkTmZXak92bV9TWE5yYWltNUw0SlBzR2YzZVd4Z0xvcVNSNzFMWU5qV25uYlMzcEpVZl91Z0p2R1lUX2VmQlF2TUVqZVdUME9leENmaTlKZGEzdGVYbWN4VnEwMTZSUXNkVkFYSnc?oc=5\" target=\"_blank\">AES' Take-Private Transaction Best Option for Shareholders</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Morningstar</font>",
+          "sector": null,
+          "source_type": "company_news",
+          "ticker": "AES",
+          "company_name": "AES Corp",
+          "query": "AES Corp stock"
+        }
+      }
+    },
+    {
+      "article_index": 1,
+      "relevant": false,
+      "affected_tickers": [],
+      "event_type": "irrelevant",
+      "why_it_matters": "Geopolitical conflict news has no connection to AES or its growth archetype.",
+      "article": {
+        "external_id": "7790969",
+        "event_hash": "0436c81682182bf730106178c90ed3c5649b64a9ef72174f6f5262c52c2588d3",
+        "source_type": "market_news",
+        "source": "Reuters",
+        "title": "Israel presses assault on Lebanon border town ahead of US-hosted talks - Reuters",
+        "summary": "Israel presses assault on Lebanon border town ahead of US-hosted talks\u00a0\u00a0Reuters",
+        "body": "Israel presses assault on Lebanon border town ahead of US-hosted talks\u00a0\u00a0Reuters",
+        "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxNWHJaTXRMMjludkJDVU9Jdy04bFRpR2x2dkJ4UXB2cHVYNkFkcHZvemw4SzVxNGl5ejZZSHZLakk5X3pNMV9DWVFraksza0I0cUNvejZmejdwR2lHLW1TS3Atek5NNGtrWEg2NHB0bERfXzlvQW1sNVNTbjF0dW5KTlFiQ3ZNamdXZF9lbVoxVnl0WFpKMjF6MUN1THpzb0ZBYm1LMERTa3Jhdm5uSVh5YUVfRjhHeXVpX0E?oc=5",
+        "published_at": "2026-04-13T19:04:04+00:00",
+        "ticker_hints": [],
+        "sector_hint": null,
+        "raw": {
+          "id": "7790969",
+          "title": "Israel presses assault on Lebanon border town ahead of US-hosted talks - Reuters",
+          "source": "Reuters",
+          "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxNWHJaTXRMMjludkJDVU9Jdy04bFRpR2x2dkJ4UXB2cHVYNkFkcHZvemw4SzVxNGl5ejZZSHZLakk5X3pNMV9DWVFraksza0I0cUNvejZmejdwR2lHLW1TS3Atek5NNGtrWEg2NHB0bERfXzlvQW1sNVNTbjF0dW5KTlFiQ3ZNamdXZF9lbVoxVnl0WFpKMjF6MUN1THpzb0ZBYm1LMERTa3Jhdm5uSVh5YUVfRjhHeXVpX0E?oc=5",
+          "published_at": 1776107044,
+          "summary": "Israel presses assault on Lebanon border town ahead of US-hosted talks\u00a0\u00a0Reuters",
+          "category": "market"
+        }
+      }
+    }
+  ]
+}

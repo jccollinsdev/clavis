@@ -6,6 +6,28 @@ from datetime import datetime, timezone
 from typing import Any
 
 
+_PUBLIC_ANALYSIS_REPLACEMENTS: list[tuple[str, str]] = [
+    (
+        r"\bfull_body read rather than a fully grounded article analysis\b",
+        "provisional article read",
+    ),
+    (r"\bfully grounded article analysis\b", "provisional article read"),
+    (r"\bfully supported analysis\b", "provisional article read"),
+    (
+        r"\bfull article coverage rather than a fully supported analysis\b",
+        "provisional article read",
+    ),
+    (r"\bfull_body\b", "full article"),
+    (r"\btitle_only\b", "headline-only"),
+    (r"\bheadline_summary\b", "headline summary"),
+    (r"\bevidence quality\b", "coverage depth"),
+    (r"\blow-evidence\b", "thin coverage"),
+    (r"\bcurrent evidence is still incomplete\b", "coverage is still thin"),
+    (r"\bevidence is still incomplete\b", "coverage is still thin"),
+    (r"\barticle evidence\b", "article coverage"),
+]
+
+
 def utcnow_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -148,3 +170,17 @@ def extract_json_list(raw_text: str, default: Any) -> Any:
 def make_event_hash(*parts: Any) -> str:
     payload = "||".join(str(part or "").strip().lower() for part in parts)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def sanitize_public_analysis_text(value: Any) -> Any:
+    if isinstance(value, str):
+        cleaned = value
+        for pattern, replacement in _PUBLIC_ANALYSIS_REPLACEMENTS:
+            cleaned = re.sub(pattern, replacement, cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\s+", " ", cleaned).strip()
+        return cleaned
+    if isinstance(value, list):
+        return [sanitize_public_analysis_text(item) for item in value]
+    if isinstance(value, dict):
+        return {key: sanitize_public_analysis_text(item) for key, item in value.items()}
+    return value

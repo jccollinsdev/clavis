@@ -6,99 +6,52 @@ struct DashboardView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                ClavisTopBar(onLogoTap: { selectedTab = 0 }) {
-                    Button {
-                        Task { await viewModel.loadData() }
-                    } label: {
-                        Label("Refresh", systemImage: "arrow.clockwise")
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
+                    DashboardTopHeader(selectedTab: $selectedTab)
+
+                    if viewModel.isLoading && viewModel.holdings.isEmpty {
+                        DashboardLoadingCard()
                     }
 
-                    Button {
-                        Task { await viewModel.triggerFreshAnalysis() }
-                    } label: {
-                        Label("Run Analysis", systemImage: "waveform.path.ecg")
-                    }
-                    .disabled(viewModel.isRefreshingAnalysis)
-
-                    Divider()
-
-                    Button {
-                        selectedTab = 1
-                    } label: {
-                        Label("Holdings", systemImage: "briefcase.fill")
+                    if let activeRun = viewModel.activeRun,
+                       activeRun.lifecycleStatus == "running" || activeRun.lifecycleStatus == "queued" {
+                        AnalysisRunStatusCard(run: activeRun)
                     }
 
-                    Button {
-                        selectedTab = 2
-                    } label: {
-                        Label("Digest", systemImage: "newspaper.fill")
+                    if let errorMessage = viewModel.errorMessage {
+                        DashboardErrorCard(message: errorMessage)
                     }
 
-                    Button {
-                        selectedTab = 3
-                    } label: {
-                        Label("Alerts", systemImage: "bell.fill")
-                    }
+                    DashboardPrototypeHeroCard(
+                        viewModel: viewModel,
+                        onRefresh: { Task { await viewModel.loadData() } },
+                        onRunAnalysis: { Task { await viewModel.triggerFreshAnalysis() } }
+                    )
 
-                    Button {
-                        selectedTab = 4
-                    } label: {
-                        Label("Settings", systemImage: "gearshape.fill")
+                    DashboardStatStrip(viewModel: viewModel)
+
+                    if viewModel.holdings.isEmpty {
+                        DashboardEmptyStateCard(openHoldings: { selectedTab = 1 })
+                    } else {
+                        if !viewModel.needsAttentionPositions.isEmpty {
+                            DashboardNeedsAttentionCard(items: viewModel.priorityQueue)
+                        }
+
+                        DashboardWhatChangedCard(viewModel: viewModel)
+
+                        DashboardDigestTeaserCard(
+                            digest: viewModel.todayDigest,
+                            openDigest: { selectedTab = 2 }
+                        )
                     }
                 }
                 .padding(.horizontal, ClavisTheme.screenPadding)
-                .padding(.top, 8)
-                .padding(.bottom, 12)
-
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                        if viewModel.isLoading && viewModel.holdings.isEmpty {
-                            DashboardLoadingCard()
-                        }
-
-                        if let activeRun = viewModel.activeRun,
-                           activeRun.lifecycleStatus == "running" || activeRun.lifecycleStatus == "queued" {
-                            AnalysisRunStatusCard(run: activeRun)
-                        }
-
-                        if let errorMessage = viewModel.errorMessage {
-                            DashboardErrorCard(message: errorMessage)
-                        }
-
-                        if viewModel.holdings.isEmpty {
-                            DashboardEmptyStateCard(openHoldings: { selectedTab = 1 })
-                        } else {
-                            DashboardHeroCard(viewModel: viewModel)
-                            DashboardSnapshotCard(viewModel: viewModel)
-
-                            if !viewModel.needsAttentionPositions.isEmpty {
-                                DashboardNeedsAttentionCard(items: viewModel.priorityQueue)
-                            }
-
-                            SinceLastReviewCard(
-                                worseningCount: viewModel.deterioratingCount,
-                                improvingCount: viewModel.improvingCount,
-                                majorEventCount: viewModel.majorEventCount,
-                                alerts: viewModel.changeAlerts
-                            )
-
-                            if let digest = viewModel.todayDigest {
-                                DashboardPlaybookCard(
-                                    digest: digest,
-                                    openDigest: { selectedTab = 2 },
-                                    openAlerts: { selectedTab = 3 }
-                                )
-                            }
-                        }
-                    }
-                    .padding(.horizontal, ClavisTheme.screenPadding)
-                    .padding(.top, ClavisTheme.mediumSpacing)
-                    .padding(.bottom, ClavisTheme.extraLargeSpacing)
-                }
-                .refreshable {
-                    await viewModel.loadData()
-                }
+                .padding(.top, ClavisTheme.mediumSpacing)
+                .padding(.bottom, ClavisTheme.extraLargeSpacing)
+            }
+            .refreshable {
+                await viewModel.loadData()
             }
             .background(ClavisAtmosphereBackground())
             .toolbar(.hidden, for: .navigationBar)
@@ -108,6 +61,405 @@ struct DashboardView: View {
                 }
             }
         }
+    }
+}
+
+private struct DashboardTopHeader: View {
+    @Binding var selectedTab: Int
+
+    var body: some View {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(Date().formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
+                    .font(ClavisTypography.label)
+                    .foregroundColor(.textSecondary)
+
+                Text("Good morning")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.textPrimary)
+            }
+
+            Spacer()
+
+            NavigationLink(destination: NewsView()) {
+                DashboardHeaderButton {
+                    Image(systemName: "doc.text")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.textSecondary)
+                }
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                selectedTab = 4
+            } label: {
+                DashboardHeaderButton {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.textSecondary)
+                }
+            }
+            .buttonStyle(.plain)
+        }
+    }
+}
+
+private struct DashboardHeaderButton<Content: View>: View {
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        content
+            .frame(width: 40, height: 40)
+            .background(Color.surface)
+            .clipShape(Circle())
+            .overlay(Circle().stroke(Color.border, lineWidth: 1))
+    }
+}
+
+private struct DashboardPrototypeHeroCard: View {
+    @ObservedObject var viewModel: DashboardViewModel
+    let onRefresh: () -> Void
+    let onRunAnalysis: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .center, spacing: 14) {
+                ClavixGauge(
+                    score: Int(viewModel.portfolioScore.rounded()),
+                    grade: viewModel.portfolioGrade == "N/A" ? "C" : viewModel.portfolioGrade,
+                    size: 112
+                )
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(viewModel.portfolioSummary)
+                        .font(ClavisTypography.body)
+                        .foregroundColor(.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    HStack(spacing: 7) {
+                        Button(action: onRefresh) {
+                            Label("Refresh", systemImage: "arrow.clockwise")
+                                .font(ClavisTypography.footnoteEmphasis)
+                                .padding(.horizontal, 11)
+                                .padding(.vertical, 6)
+                        }
+                        .buttonStyle(.plain)
+                        .background(Color.surfaceElevated)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .stroke(Color.border, lineWidth: 1)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+
+                        Button(action: onRunAnalysis) {
+                            Text(viewModel.isRefreshingAnalysis ? "Running..." : "Run analysis")
+                                .font(ClavisTypography.footnoteEmphasis)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 11)
+                                .padding(.vertical, 6)
+                        }
+                        .buttonStyle(.plain)
+                        .background(Color.informational)
+                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                        .disabled(viewModel.isRefreshingAnalysis || viewModel.isAnalysisRunning)
+                    }
+                }
+            }
+
+            Divider()
+                .overlay(Color.border)
+
+            HStack {
+                Text("Updated \(viewModel.lastUpdatedAt?.formatted(date: .omitted, time: .shortened) ?? "Pending") · \(viewModel.holdings.count) holdings")
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textTertiary)
+
+                Spacer()
+
+                Text("Next run \(viewModel.nextScheduledRunText)")
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textTertiary)
+            }
+        }
+        .padding(ClavisTheme.cardPadding)
+        .clavisCardStyle(fill: .surface)
+    }
+}
+
+private struct DashboardStatStrip: View {
+    @ObservedObject var viewModel: DashboardViewModel
+
+    var body: some View {
+        HStack(spacing: 9) {
+            DashboardSummaryStatCard(label: "At risk", value: "\(viewModel.deterioratingCount)", detail: "of \(viewModel.holdings.count) holdings")
+            DashboardSummaryStatCard(label: "Alerts", value: "\(viewModel.changeAlerts.count)", detail: "recent changes")
+            DashboardSummaryStatCard(label: "Watchlist", value: "\(viewModel.morningFocusItems.count)", detail: "items tracked")
+        }
+    }
+}
+
+private struct DashboardSummaryStatCard: View {
+    let label: String
+    let value: String
+    let detail: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label.uppercased())
+                .font(ClavisTypography.label)
+                .foregroundColor(.textSecondary)
+
+            Text(value)
+                .font(ClavisTypography.dataNumber)
+                .foregroundColor(.textPrimary)
+                .monospacedDigit()
+
+            Text(detail)
+                .font(.system(size: 10))
+                .foregroundColor(.textSecondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .clavisCardStyle(fill: .surface)
+    }
+}
+
+private struct DashboardWhatChangedCard: View {
+    @ObservedObject var viewModel: DashboardViewModel
+
+    private var entries: [DashboardChangeEntry] {
+        var items = viewModel.changeAlerts.prefix(3).map {
+            DashboardChangeEntry(
+                title: $0.positionTicker ?? $0.type.displayName,
+                grade: $0.newGrade ?? $0.previousGrade ?? "C",
+                message: $0.message.sanitizedDisplayText,
+                time: $0.createdAt.relativeTimestamp
+            )
+        }
+
+        if !viewModel.holdings.isEmpty {
+            items.insert(
+                DashboardChangeEntry(
+                    title: "Portfolio",
+                    grade: viewModel.portfolioGrade == "N/A" ? "C" : viewModel.portfolioGrade,
+                    message: "Score \(Int(viewModel.portfolioScore.rounded())) · \(viewModel.portfolioRiskState.displayName)",
+                    time: viewModel.lastUpdatedAt?.relativeTimestamp ?? "Now"
+                ),
+                at: 0
+            )
+        }
+
+        return Array(items.prefix(3))
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("What changed")
+                .font(ClavisTypography.cardTitle)
+                .foregroundColor(.textPrimary)
+
+            ForEach(entries) { entry in
+                HStack(alignment: .top, spacing: 10) {
+                    GradeTag(grade: entry.grade, compact: true)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(entry.title)
+                            .font(ClavisTypography.footnoteEmphasis)
+                            .foregroundColor(.textPrimary)
+                        Text(entry.message)
+                            .font(ClavisTypography.footnote)
+                            .foregroundColor(.textSecondary)
+                            .lineLimit(2)
+                    }
+
+                    Spacer()
+
+                    Text(entry.time)
+                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .foregroundColor(.textSecondary)
+                }
+            }
+        }
+        .padding(ClavisTheme.cardPadding)
+        .clavisCardStyle(fill: .surface)
+    }
+}
+
+private struct DashboardDigestTeaserCard: View {
+    let digest: Digest?
+    let openDigest: () -> Void
+
+    private var sectorPreviewItems: [DigestSectorOverviewItem] {
+        Array((digest?.structuredSections?.sectorOverview ?? []).prefix(3))
+    }
+
+    var body: some View {
+        Button(action: openDigest) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(alignment: .top) {
+                    Text("Morning digest")
+                        .font(ClavisTypography.cardTitle)
+                        .foregroundColor(.textPrimary)
+                    Spacer()
+                    if let grade = digest?.overallGrade {
+                        GradeTag(grade: grade, compact: true)
+                    }
+                }
+
+                Text(digest?.summary?.sanitizedDisplayText ?? "Open the latest morning digest for the current portfolio readout.")
+                    .font(ClavisTypography.body)
+                    .foregroundColor(.textSecondary)
+                    .multilineTextAlignment(.leading)
+
+                DashboardDigestSectorPreview(items: sectorPreviewItems)
+
+                Text("Read full digest →")
+                    .font(ClavisTypography.footnoteEmphasis)
+                    .foregroundColor(.informational)
+            }
+            .padding(ClavisTheme.cardPadding)
+            .clavisCardStyle(fill: .surface)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct DashboardDigestSectorPreview: View {
+    let items: [DigestSectorOverviewItem]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Sector overview")
+                .font(ClavisTypography.label)
+                .foregroundColor(.textSecondary)
+
+            if items.isEmpty {
+                Text("Sector-level drivers will appear here after the next completed digest.")
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textSecondary)
+            } else {
+                ForEach(items) { item in
+                    HStack(alignment: .top, spacing: 8) {
+                        Circle()
+                            .fill(Color.textSecondary.opacity(0.55))
+                            .frame(width: 6, height: 6)
+                            .padding(.top, 5)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(item.sector.capitalized)
+                                .font(ClavisTypography.footnoteEmphasis)
+                                .foregroundColor(.textPrimary)
+                            Text(item.brief.sanitizedDisplayText)
+                                .font(ClavisTypography.footnote)
+                                .foregroundColor(.textSecondary)
+                                .lineLimit(2)
+                        }
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(Color.surfaceElevated)
+        .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous)
+                .stroke(Color.border, lineWidth: 1)
+        )
+    }
+}
+
+private struct DashboardChangeEntry: Identifiable {
+    let id = UUID()
+    let title: String
+    let grade: String
+    let message: String
+    let time: String
+}
+
+private extension Date {
+    var relativeTimestamp: String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: self, relativeTo: Date())
+    }
+}
+
+struct DashboardMastheadCard: View {
+    @ObservedObject var viewModel: DashboardViewModel
+    let onOpenHoldings: () -> Void
+    let onOpenDigest: () -> Void
+    let onOpenAlerts: () -> Void
+    let onRefresh: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
+            ClavisEyebrowHeader(eyebrow: "Home", title: "Portfolio triage")
+
+            Text(viewModel.portfolioSummary)
+                .font(ClavisTypography.body)
+                .foregroundColor(.textSecondary)
+
+            HStack(alignment: .top, spacing: ClavisTheme.mediumSpacing) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Risk score")
+                        .font(ClavisTypography.label)
+                        .foregroundColor(.textTertiary)
+
+                    Text("\(Int(viewModel.portfolioScore.rounded()))")
+                        .font(ClavisTypography.portfolioScore)
+                        .foregroundColor(ClavisGradeStyle.riskColor(for: viewModel.portfolioGrade))
+                        .monospacedDigit()
+                }
+
+                Spacer()
+
+                GradeTag(grade: viewModel.portfolioGrade == "N/A" ? "C" : viewModel.portfolioGrade, large: true)
+            }
+
+            HStack(spacing: ClavisTheme.smallSpacing) {
+                DashboardMetaPill(title: "Updated", value: viewModel.lastUpdatedAt?.formatted(date: .abbreviated, time: .shortened) ?? "Pending")
+                DashboardMetaPill(title: "Pressure", value: viewModel.portfolioActionPressure.displayName, accent: ClavisDecisionStyle.tint(for: viewModel.portfolioActionPressure))
+            }
+
+            HStack(spacing: ClavisTheme.smallSpacing) {
+                Button(action: onOpenHoldings) {
+                    Label("Holdings", systemImage: "briefcase.fill")
+                        .font(ClavisTypography.footnoteEmphasis)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+
+                Button(action: onOpenDigest) {
+                    Label("Digest", systemImage: "newspaper.fill")
+                        .font(ClavisTypography.footnoteEmphasis)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+
+                Button(action: onOpenAlerts) {
+                    Label("Alerts", systemImage: "bell.fill")
+                        .font(ClavisTypography.footnoteEmphasis)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+            }
+
+            HStack {
+                Text("Informational only. Not financial advice.")
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textTertiary)
+                Spacer()
+                Button(action: onRefresh) {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                        .font(ClavisTypography.footnoteEmphasis)
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.informational)
+            }
+        }
+        .padding(ClavisTheme.cardPadding)
+        .clavisHeroCardStyle(fill: .surface)
     }
 }
 
@@ -162,6 +514,19 @@ struct DashboardHeroCard: View {
         }
         .padding(ClavisTheme.cardPadding)
         .clavisHeroCardStyle(fill: .surface)
+
+        VStack(alignment: .leading, spacing: 2) {
+            if let updatedAt = viewModel.lastUpdatedAt {
+                Text("Score as of \(updatedAt.formatted(date: .abbreviated, time: .shortened))")
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textTertiary)
+            }
+            Text("Informational only. Not financial advice.")
+                .font(ClavisTypography.footnote)
+                .foregroundColor(.textTertiary)
+        }
+        .padding(.horizontal, ClavisTheme.cardPadding)
+        .padding(.bottom, ClavisTheme.smallSpacing)
     }
 }
 
@@ -229,7 +594,7 @@ struct DashboardNeedsAttentionCard: View {
                 .foregroundColor(.textPrimary)
 
             ForEach(items) { item in
-                NavigationLink(destination: PositionDetailView(positionId: item.position.id)) {
+                NavigationLink(destination: TickerDetailView(ticker: item.position.ticker)) {
                     DashboardAttentionRow(item: item)
                 }
                 .buttonStyle(.plain)
@@ -359,8 +724,7 @@ struct DashboardPlaybookCard: View {
     let openAlerts: () -> Void
 
     private var actions: [String] {
-        let advice = digest.structuredSections?.portfolioAdvice ?? []
-        return Array(advice.prefix(3))
+        Array((digest.structuredSections?.portfolioImpact ?? []).prefix(3))
     }
 
     private var watchList: [String] {
@@ -381,7 +745,7 @@ struct DashboardPlaybookCard: View {
 
             if !actions.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("What To Do")
+                    Text("What Changed")
                         .font(ClavisTypography.footnoteEmphasis)
                         .foregroundColor(.textTertiary)
 
@@ -415,7 +779,7 @@ struct DashboardPlaybookCard: View {
             }
 
             if actions.isEmpty && watchList.isEmpty {
-                Text("Open the latest digest for portfolio-specific guidance.")
+                Text("Open the latest digest for the current portfolio readout.")
                     .font(ClavisTypography.body)
                     .foregroundColor(.textSecondary)
             }

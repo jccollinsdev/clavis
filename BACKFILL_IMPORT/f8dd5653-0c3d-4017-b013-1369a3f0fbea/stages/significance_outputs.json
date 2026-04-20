@@ -1,0 +1,121 @@
+{
+  "articles_classified": [
+    {
+      "external_id": "CBMi5AFBVV95cUxPakVZaWdUVW1QRDc4cE8yZmNUajNvTC1EVHN1NE9VVEpzWkREdGhlZDVwZEdZNE5WRC1hbmRmaFEwNFFfWlc3d1NhMlVPanJEX3ZDMGRaZjVEUlhoSVVEcFI2REgzYmJ3bWt6QXRNN3pORm1NNlgtMkkwaXRtQmNUZDNveXZCamRvcDN4Nm9hYzBoX1JTTnNTR1prdURWTl9BQ2M4OEpzeVh6eDhBVzFvNmVLaWs4NFRGM0NtR01IWnFKWXZjZ08tNWVMOVktZ2UwQXVia2stYUktQ0dTT2YwbnVvUXg",
+      "event_hash": "366d987c88be5395c7c11f3cd71b835579450aaafcf77a8efb275429b534fdd2",
+      "source_type": "company_news",
+      "source": "Benzinga",
+      "title": "Top Wall Street Forecasters Revamp Abbott Expectations Ahead Of Q1 Earnings",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi5AFBVV95cUxPakVZaWdUVW1QRDc4cE8yZmNUajNvTC1EVHN1NE9VVEpzWkREdGhlZDVwZEdZNE5WRC1hbmRmaFEwNFFfWlc3d1NhMlVPanJEX3ZDMGRaZjVEUlhoSVVEcFI2REgzYmJ3bWt6QXRNN3pORm1NNlgtMkkwaXRtQmNUZDNveXZCamRvcDN4Nm9hYzBoX1JTTnNTR1prdURWTl9BQ2M4OEpzeVh6eDhBVzFvNmVLaWs4NFRGM0NtR01IWnFKWXZjZ08tNWVMOVktZ2UwQXVia2stYUktQ0dTT2YwbnVvUXg?oc=5\" target=\"_blank\">Top Wall Street Forecasters Revamp Abbott Expectations Ahead Of Q1 Earnings</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Benzinga</font>",
+      "body": "",
+      "url": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxPakVZaWdUVW1QRDc4cE8yZmNUajNvTC1EVHN1NE9VVEpzWkREdGhlZDVwZEdZNE5WRC1hbmRmaFEwNFFfWlc3d1NhMlVPanJEX3ZDMGRaZjVEUlhoSVVEcFI2REgzYmJ3bWt6QXRNN3pORm1NNlgtMkkwaXRtQmNUZDNveXZCamRvcDN4Nm9hYzBoX1JTTnNTR1prdURWTl9BQ2M4OEpzeVh6eDhBVzFvNmVLaWs4NFRGM0NtR01IWnFKWXZjZ08tNWVMOVktZ2UwQXVia2stYUktQ0dTT2YwbnVvUXg?oc=5",
+      "published_at": "2026-04-14T10:07:07+00:00",
+      "ticker_hints": [
+        "ABT"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMi5AFBVV95cUxPakVZaWdUVW1QRDc4cE8yZmNUajNvTC1EVHN1NE9VVEpzWkREdGhlZDVwZEdZNE5WRC1hbmRmaFEwNFFfWlc3d1NhMlVPanJEX3ZDMGRaZjVEUlhoSVVEcFI2REgzYmJ3bWt6QXRNN3pORm1NNlgtMkkwaXRtQmNUZDNveXZCamRvcDN4Nm9hYzBoX1JTTnNTR1prdURWTl9BQ2M4OEpzeVh6eDhBVzFvNmVLaWs4NFRGM0NtR01IWnFKWXZjZ08tNWVMOVktZ2UwQXVia2stYUktQ0dTT2YwbnVvUXg",
+        "title": "Top Wall Street Forecasters Revamp Abbott Expectations Ahead Of Q1 Earnings",
+        "source": "Benzinga",
+        "source_url": "https://www.benzinga.com",
+        "url": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxPakVZaWdUVW1QRDc4cE8yZmNUajNvTC1EVHN1NE9VVEpzWkREdGhlZDVwZEdZNE5WRC1hbmRmaFEwNFFfWlc3d1NhMlVPanJEX3ZDMGRaZjVEUlhoSVVEcFI2REgzYmJ3bWt6QXRNN3pORm1NNlgtMkkwaXRtQmNUZDNveXZCamRvcDN4Nm9hYzBoX1JTTnNTR1prdURWTl9BQ2M4OEpzeVh6eDhBVzFvNmVLaWs4NFRGM0NtR01IWnFKWXZjZ08tNWVMOVktZ2UwQXVia2stYUktQ0dTT2YwbnVvUXg?oc=5",
+        "published_at": "2026-04-14T10:07:07+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMi5AFBVV95cUxPakVZaWdUVW1QRDc4cE8yZmNUajNvTC1EVHN1NE9VVEpzWkREdGhlZDVwZEdZNE5WRC1hbmRmaFEwNFFfWlc3d1NhMlVPanJEX3ZDMGRaZjVEUlhoSVVEcFI2REgzYmJ3bWt6QXRNN3pORm1NNlgtMkkwaXRtQmNUZDNveXZCamRvcDN4Nm9hYzBoX1JTTnNTR1prdURWTl9BQ2M4OEpzeVh6eDhBVzFvNmVLaWs4NFRGM0NtR01IWnFKWXZjZ08tNWVMOVktZ2UwQXVia2stYUktQ0dTT2YwbnVvUXg?oc=5\" target=\"_blank\">Top Wall Street Forecasters Revamp Abbott Expectations Ahead Of Q1 Earnings</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Benzinga</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "ABT",
+        "company_name": "Abbott Laboratories",
+        "query": "Abbott Laboratories stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "ABT"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "Wall Street forecasters updating Abbott expectations ahead of Q1 earnings provides material guidance information for the ABT position."
+      },
+      "resolved_url": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxPakVZaWdUVW1QRDc4cE8yZmNUajNvTC1EVHN1NE9VVEpzWkREdGhlZDVwZEdZNE5WRC1hbmRmaFEwNFFfWlc3d1NhMlVPanJEX3ZDMGRaZjVEUlhoSVVEcFI2REgzYmJ3bWt6QXRNN3pORm1NNlgtMkkwaXRtQmNUZDNveXZCamRvcDN4Nm9hYzBoX1JTTnNTR1prdURWTl9BQ2M4OEpzeVh6eDhBVzFvNmVLaWs4NFRGM0NtR01IWnFKWXZjZ08tNWVMOVktZ2UwQXVia2stYUktQ0dTT2YwbnVvUXg?oc=5&hl=en-US&gl=US&ceid=US:en",
+      "content_source": "Benzinga",
+      "scrape_status": "google_wrapper"
+    }
+  ],
+  "significance_cache": {
+    "7ab598fae41c679cbeb26230a6ca0756a198f51aba479b60ae205be828ccb02d": {
+      "confidence": 0.85,
+      "event_type": "mna",
+      "significance": "major",
+      "why_it_matters": "AbbVie's up to $745M deal with Haisco for a pain drug represents a significant strategic partnership that could materially impact AbbVie's pipeline and future revenue streams."
+    },
+    "71a87b2621d105df3c8f0a0fb770e159ab85bc38f158166270abf676acef956b": {
+      "confidence": 0.9,
+      "event_type": "other",
+      "significance": "minor",
+      "why_it_matters": "Factory Mutual Insurance reducing its AbbVie position is routine institutional portfolio rebalancing and does not reflect changes in AbbVie's underlying fundamentals."
+    },
+    "7d47e5b020e88983bc7b8c9a2f5a3211c6d34961c1e8edcd818edf3ddda97f08": {
+      "confidence": 0.92,
+      "event_type": "other",
+      "significance": "minor",
+      "why_it_matters": "This is analytical commentary comparing AbbVie and Pfizer stock performance without any material new catalyst from either company."
+    },
+    "00199102b53f2778cc1b752999d56e52bda617eea6e047ddec6ae96bf6d65cac": {
+      "confidence": 0.92,
+      "event_type": "other",
+      "significance": "minor",
+      "why_it_matters": "This is analyst commentary asking if ABT is attractive after a price pullback, not a material corporate announcement or catalyst."
+    },
+    "47e14cd37dda390ab67eb378a2091da34d4800879c436e35c680bd59c876edb7": {
+      "confidence": 0.93,
+      "event_type": "other",
+      "significance": "minor",
+      "why_it_matters": "Reporting on stock price movement without revealing a new material corporate event or fundamental change."
+    },
+    "9fed14e5aa90a676312e30b1fa05eb66fb060176c564ae8da60c424a595df6f1": {
+      "confidence": 0.95,
+      "event_type": "other",
+      "significance": "minor",
+      "why_it_matters": "This is a routine update on a mutual fund's portfolio holdings with no new corporate announcements or material catalysts."
+    },
+    "27dce6a24c1077ffdcbea3d980b3312610e5e1f59eb022d98800d71373ed7ebe": {
+      "confidence": 0.92,
+      "event_type": "other",
+      "significance": "minor",
+      "why_it_matters": "Stock quote/listing without a material news event or corporate announcement."
+    },
+    "59d66734ce28fd9f389e9f793b6013857cbf53850720414dde340c860ae8cc34": {
+      "rule": "keyword",
+      "confidence": 0.95,
+      "event_type": "other",
+      "significance": "major",
+      "why_it_matters": "Keyword detected major event"
+    },
+    "056c3b580566f967e413e8321bdbbae788b846a33f6d5dfa1154254c69bacec8": {
+      "confidence": 0.82,
+      "event_type": "management",
+      "significance": "minor",
+      "why_it_matters": "Group President's small open-market stock buys are routine insider activity below the threshold for material significance."
+    },
+    "735d4e62239414b211b08dc4181d7095853bf5528ea3903e89c10f7ce2a71b16": {
+      "confidence": 0.3,
+      "event_type": "other",
+      "significance": "minor",
+      "why_it_matters": "Classification unavailable."
+    },
+    "c0cc7865a779930bae22864c75efe4db5d344a9242acce3b8bb4c59d8d905f88": {
+      "rule": "keyword",
+      "confidence": 0.95,
+      "event_type": "other",
+      "significance": "major",
+      "why_it_matters": "Keyword detected major event"
+    },
+    "366d987c88be5395c7c11f3cd71b835579450aaafcf77a8efb275429b534fdd2": {
+      "significance": "major",
+      "event_type": "other",
+      "why_it_matters": "Keyword detected major event",
+      "confidence": 0.95,
+      "rule": "keyword"
+    }
+  }
+}

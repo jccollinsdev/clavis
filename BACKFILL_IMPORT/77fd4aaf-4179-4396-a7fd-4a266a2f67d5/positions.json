@@ -1,0 +1,59 @@
+{
+  "positions": [
+    {
+      "id": "3785a9c9-1699-4068-b096-611fe9967dfb",
+      "user_id": "00000000-0000-0000-0000-000000000001",
+      "ticker": "ABBV",
+      "shares": 0.0,
+      "purchase_price": 0.0,
+      "archetype": "growth",
+      "created_at": "2026-04-13T00:47:15.797313+00:00",
+      "updated_at": "2026-04-13T00:47:15.797313+00:00",
+      "current_price": 206.47,
+      "analysis_started_at": null
+    },
+    {
+      "id": "2d4cf841-b6c2-4c21-a88d-87c7c996c3f4",
+      "user_id": "00000000-0000-0000-0000-000000000001",
+      "ticker": "ABT",
+      "shares": 0.0,
+      "purchase_price": 0.0,
+      "archetype": "growth",
+      "created_at": "2026-04-12T23:57:58.424725+00:00",
+      "updated_at": "2026-04-12T23:57:58.424725+00:00",
+      "current_price": 100.69,
+      "analysis_started_at": null
+    },
+    {
+      "id": "05f45e96-bbe1-4dd5-9799-1c55542d15b1",
+      "user_id": "00000000-0000-0000-0000-000000000001",
+      "ticker": "AOS",
+      "shares": 0.0,
+      "purchase_price": 0.0,
+      "archetype": "growth",
+      "created_at": "2026-04-12T23:57:58.424725+00:00",
+      "updated_at": "2026-04-12T23:57:58.424725+00:00",
+      "current_price": 67.18,
+      "analysis_started_at": null
+    },
+    {
+      "id": "786062a4-1859-4be6-b0b9-189777d41c32",
+      "user_id": "00000000-0000-0000-0000-000000000001",
+      "ticker": "MMM",
+      "shares": 0.0,
+      "purchase_price": 0.0,
+      "archetype": "growth",
+      "created_at": "2026-04-12T23:57:58.424725+00:00",
+      "updated_at": "2026-04-12T23:57:58.424725+00:00",
+      "current_price": 152.79,
+      "analysis_started_at": null
+    }
+  ],
+  "target_position_id": null,
+  "target_tickers": [
+    "ABBV",
+    "ABT",
+    "AOS",
+    "MMM"
+  ]
+}

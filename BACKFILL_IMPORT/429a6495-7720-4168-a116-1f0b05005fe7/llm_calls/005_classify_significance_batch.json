@@ -1,0 +1,28 @@
+{
+  "sequence": 5,
+  "logged_at": "2026-04-14T01:10:55.602697+00:00",
+  "model": "MiniMax-M2.7",
+  "function_name": "chatcompletion_text",
+  "caller": {
+    "file": "/app/app/pipeline/classifier.py",
+    "function": "classify_significance_batch",
+    "line": 190
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a financial event classifier for a portfolio risk app.\n\nClassify each news item conservatively.\n\nMAJOR = earnings results or surprises, guidance raises/cuts, material corporate announcements, new product launches, strategy shifts, M&A, CEO/CFO resignations or appointments tied to change, regulatory actions, SEC/DOJ investigations, bankruptcy, financing crises, major recalls, and other events that can materially change fundamentals or valuation.\n\nMINOR = analyst upgrades/downgrades, price target changes, routine economic data, conference appearances, commentary, secondary mentions, and general market chatter without a material new catalyst.\n\nRules:\n- If the company itself is announcing a material action, prefer MAJOR.\n- If it is only analysis, commentary, or a rating change, prefer MINOR.\n- When uncertain, choose MINOR.\n\nReturn exact JSON with:\n{{\n  \"significance\": \"major|minor\",\n  \"event_type\": \"earnings|macro|management|mna|regulatory|product|financing|sector|other\",\n  \"why_it_matters\": \"one sentence\",\n  \"confidence\": 0.0-1.0\n}}"
+    },
+    {
+      "role": "user",
+      "content": "[0] Title: AES' Take-Private Transaction Best Option for Shareholders\nSummary: <a href=\"https://news.google.com/rss/articles/CBMirgFBVV95cUxPYVZLTHZrN0l5U2VKMU5WSnZjNDhwSEJIUFNlcTROTldPdWl5QzRPUnJVcDl0dnhyRVpxREhRN0kwd1BIejVKM3pkTmZXak92bV9TWE5yYWltNUw0SlBzR2YzZVd4Z0xvcVNSNzFMWU5qV25uYlMzcEpVZl91Z0p2R1lUX2VmQlF2TUVqZVdUME9leENmaTlKZGEzdGVYbWN4VnEwMTZSUXNkVkFYSnc?oc=5\" target=\"_blank\">AES' Take-Private Transaction Best Option for Shareholders</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Morningstar</font>\nBody: <a href=\"https://news.google.com/rss/articles/CBMirgFBVV95cUxPYVZLTHZrN0l5U2VKMU5WSnZjNDhwSEJIUFNlcTROTldPdWl5QzRPUnJVcDl0dnhyRVpxREhRN0kwd1BIejVKM3pkTmZXak92bV9TWE5yYWltNUw0SlBzR2YzZVd4Z0xvcVNSNzFMWU5qV25uYlMzcEpVZl91Z0p2R1lUX2VmQlF2TUVqZVdUME9leENmaTlKZGEzdGVYbWN4VnEwMTZSUXNkVkFYSnc?oc=5\" target=\"_blank\">AES' Take-Private Transaction Best Option for Shareholders</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Morningstar</font>\n\n[1] Title: 3M Co Stock (MMM) Moved Down by 3.12% on Mar 9: A Full Analysis\nSummary: <a href=\"https://news.google.com/rss/articles/CBMigAFBVV95cUxQaXZxSHJYbV83amcwLUFDMFRCNW9PLUR6eDZnMWdEV2l2Rnk1elU0YTFWTGQ2TllEWnN1NnctZTkxOFhPbG9rTmg5Y2RaTzRrMTJNYV9KeUNPZzM2ZW1FbllfZXRlNndzRDhJU0c2S0t3MGNTazNpN0dGQmFTSWR0OA?oc=5\" target=\"_blank\">3M Co Stock (MMM) Moved Down by 3.12% on Mar 9: A Full Analysis</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">TradingKey</font>\nBody: <a href=\"https://news.google.com/rss/articles/CBMigAFBVV95cUxQaXZxSHJYbV83amcwLUFDMFRCNW9PLUR6eDZnMWdEV2l2Rnk1elU0YTFWTGQ2TllEWnN1NnctZTkxOFhPbG9rTmg5Y2RaTzRrMTJNYV9KeUNPZzM2ZW1FbllfZXRlNndzRDhJU0c2S0t3MGNTazNpN0dGQmFTSWR0OA?oc=5\" target=\"_blank\">3M Co Stock (MMM) Moved Down by 3.12% on Mar 9: A Full Analysis</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">TradingKey</font>"
+    }
+  ],
+  "kwargs": {
+    "temperature": 0.1,
+    "max_tokens": 1200
+  },
+  "response": "```json\n[\n  {\n    \"significance\": \"major\",\n    \"event_type\": \"mna\",\n    \"why_it_matters\": \"A take-private transaction represents a material corporate action that would fundamentally change AES's public ownership structure and shareholder value proposition.\",\n    \"confidence\": 0.82\n  },\n  {\n    \"significance\": \"minor\",\n    \"event_type\": \"other\",\n    \"why_it_matters\": \"This is routine market analysis of a 3.12% stock price decline without a new fundamental catalyst driving the movement.\",\n    \"confidence\": 0.78\n  }\n]\n```",
+  "error": null,
+  "duration_ms": 14478.27
+}

@@ -1,0 +1,31 @@
+{
+  "sequence": 38,
+  "logged_at": "2026-04-14T10:37:32.592528+00:00",
+  "model": "MiniMax-M2.7",
+  "function_name": "chatcompletion_text",
+  "caller": {
+    "file": "/app/app/pipeline/risk_scorer.py",
+    "function": "_request_chunk_scores",
+    "line": 752
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You MUST respond with valid JSON only. No markdown. No explanation. No thinking. Start your response with { and end with }."
+    },
+    {
+      "role": "user",
+      "content": "Score each position across 4 dimensions (0-100) and assign a grade.\n\nPosition 1:\n- Ticker: ABBV\n- Shares: 0.0 @ $0.0\n- Inferred labels: growth\n- Position report summary: AbbVie's $745M Haisco partnership represents a strategically sound diversification move beyond its Humira-dependent revenue base, leveraging Chinese pharmaceutical innovation at a modest cost relative\n- Long report excerpt: The major Haisco deal signals AbbVie's commitment to M&A-driven pipeline expansion, a critical strategic imperative as Humira faces escalating biosimilar competition. The modest upfront investment relative to market cap demonstrates capital discipline while still accessing differentiated therapeutic\nPosition 2:\n- Ticker: ABT\n- Shares: 0.0 @ $0.0\n- Inferred labels: growth\n- Position report summary: Abbott Laboratories (ABT) shows stable technical conditions with the stock trading within recent ranges following a modest pullback, presenting a potential entry point for growth-oriented investors. T\n- Long report excerpt: Abbott Laboratories is currently experiencing a period of consolidation after a recent share price pullback, with the stock trading in line with historical averages for both volume and volatility, suggesting institutional holders are neither aggressively accumulating nor reducing positions. The grow\nPosition 3:\n- Ticker: AOS\n- Shares: 0.0 @ $0.0\n- Inferred labels: growth\n- Position report summary: A.O. Smith (AOS) is a building products manufacturer specializing in water heaters and water treatment solutions, with performance closely tied to residential construction trends and replacement deman\n- Long report excerpt: A.O. Smith operates as a mid-cap industrial manufacturer in the building products space, producing residential and commercial water heaters, boilers, and water treatment systems. The company's near-term catalyst centers on the upcoming earnings release, where analyst consensus expectations are alrea\n\nReturn EXACTLY this JSON format (no markdown, no explanation, no thinking):\n{\"scores\": {\"ABBV\": {\"news_sentiment\": 50, \"macro_exposure\": 50, \"thesis_risk\": 50, \"volatility_trend\": 50, \"grade\": \"C\"}, \"ABT\": {\"news_sentiment\": 50, \"macro_exposure\": 50, \"thesis_risk\": 50, \"volatility_trend\": 50, \"grade\": \"C\"}, \"AOS\": {\"news_sentiment\": 50, \"macro_exposure\": 50, \"thesis_risk\": 50, \"volatility_trend\": 50, \"grade\": \"C\"}}}\n\nScoring criteria:\n- news_sentiment: positive news=high (70-90), negative=low (20-40), neutral=50\n- macro_exposure: low macro sensitivity=high (60-80), high sensitivity=low (20-40)\n- thesis_risk: durable thesis with limited unresolved risk=high (70-90), fragile/conflicted thesis=low (20-40)\n- volatility_trend: decreasing vol=high (60-80), increasing vol=low (20-40)\n- Grade A=80+, B=65-79, C=50-64, D=35-49, F=<35\n\nRespond with ONLY the JSON object. Start with { and end with }."
+    }
+  ],
+  "kwargs": {
+    "temperature": 0.0,
+    "top_p": 1,
+    "frequency_penalty": 0,
+    "presence_penalty": 0,
+    "max_tokens": 800
+  },
+  "response": "{\"scores\": {\"ABBV\": {\"news_sentiment\": 72, \"macro_exposure\": 68, \"thesis_risk\": 72, \"volatility_trend\": 55, \"grade\": \"B\"}, \"ABT\": {\"news_sentiment\": 52, \"macro_exposure\": 65, \"thesis_risk\": 70, \"volatility_trend\": 52, \"grade\": \"C\"}, \"AOS\": {\"news_sentiment\": 50, \"macro_exposure\": 40, \"thesis_risk\": 55, \"volatility_trend\": 52, \"grade\": \"D\"}}}",
+  "error": null,
+  "duration_ms": 14365.67
+}

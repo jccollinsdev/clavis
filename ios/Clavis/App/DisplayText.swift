@@ -24,6 +24,15 @@ extension String {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    var humanizedDisplayText: String {
+        sanitizedDisplayText.replacingOccurrences(of: "_", with: " ")
+    }
+
+    var humanizedTitleCasedDisplayText: String {
+        let cleaned = humanizedDisplayText.lowercased()
+        return cleaned.isEmpty ? cleaned : cleaned.capitalized
+    }
+
     var strippedMarkdownMarkers: String {
         sanitizedDisplayText
             .replacingOccurrences(of: "**", with: "")

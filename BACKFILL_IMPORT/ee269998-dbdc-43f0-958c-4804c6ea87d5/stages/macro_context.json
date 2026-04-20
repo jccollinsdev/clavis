@@ -1,0 +1,49 @@
+{
+  "overnight_macro": {
+    "headlines": [
+      "Fed nominee Kevin Warsh's financial disclosures reveal vast wealth, exceeding past chairs",
+      "Strait of Hormuz traffic remains at a trickle despite U.S.-Iran ceasefire talks",
+      "Nvidia extends winning streak to 10 days, denies acquisition rumors"
+    ],
+    "themes": [
+      "rate_policy",
+      "geopolitics",
+      "sector_specific"
+    ],
+    "brief": "Fed chair nominee Kevin Warsh's financial disclosures drew attention amid ongoing rate policy uncertainty, while geopolitical tensions persist as Strait of Hormuz shipping remains constrained despite U.S.-Iran peace discussions. Nvidia continued its strong momentum, extending gains and quelling acquisition speculation."
+  },
+  "position_impacts": [
+    {
+      "ticker": "ABBV",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro development with direct read-through to AbbVie's pharmaceutical growth trajectory."
+    },
+    {
+      "ticker": "ABT",
+      "macro_relevance": "neutral",
+      "impact_summary": "Abbott Laboratories' med-tech growth profile faces no meaningful overnight macro catalyst."
+    },
+    {
+      "ticker": "AOS",
+      "macro_relevance": "neutral",
+      "impact_summary": "A.O. Smith's water infrastructure business has no clear overnight macro change affecting its outlook."
+    },
+    {
+      "ticker": "MMM",
+      "macro_relevance": "neutral",
+      "impact_summary": "3M's diversified industrial portfolio faces no specific overnight macro development."
+    }
+  ],
+  "what_matters_today": [
+    {
+      "catalyst": "Kevin Warsh Fed chair confirmation process and any signals on monetary policy stance",
+      "impacted_positions": [],
+      "urgency": "medium"
+    },
+    {
+      "catalyst": "U.S.-Iran nuclear talks continue; Strait of Hormuz monitoring",
+      "impacted_positions": [],
+      "urgency": "medium"
+    }
+  ]
+}

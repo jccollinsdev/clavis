@@ -72,6 +72,10 @@ class AlertsViewModel: ObservableObject {
         return groups.sorted { $0.latestTimestamp > $1.latestTimestamp }
     }
 
+    var sortedAlerts: [Alert] {
+        alerts.sorted { $0.createdAt > $1.createdAt }
+    }
+
     private func shouldGroup(_ alert1: Alert, _ alert2: Alert) -> Bool {
         if alert1.type != alert2.type { return false }
 
@@ -81,7 +85,7 @@ class AlertsViewModel: ObservableObject {
         return timeDifference <= groupingWindowMinutes * 60
     }
 
-    private func positionId(for ticker: String?) -> String? {
+    func positionId(for ticker: String?) -> String? {
         guard let ticker else { return nil }
         return holdings.first(where: { $0.ticker.caseInsensitiveCompare(ticker) == .orderedSame })?.id
     }

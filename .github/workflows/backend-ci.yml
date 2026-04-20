@@ -1,0 +1,46 @@
+name: Backend CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      SUPABASE_URL: https://example.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY: test-service-role-key
+      SUPABASE_JWT_SECRET: test-jwt-secret
+      MINIMAX_API_KEY: test-minimax-key
+      FINNHUB_API_KEY: test-finnhub-key
+      POLYGON_API_KEY: test-polygon-key
+      SENTRY_DSN: ""
+      SENTRY_ENVIRONMENT: ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -r requirements.txt pytest
+
+      - name: Compile backend
+        run: python3 -m compileall -q app
+
+      - name: Run tests
+        run: python3 -m pytest -q

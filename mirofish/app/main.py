@@ -36,7 +36,7 @@ Return strict JSON:
   "confidence": 0.0-1.0,
   "scenario_summary": "one sentence",
   "key_implications": ["...", "..."],
-  "recommended_followups": ["...", "..."],
+   "followup_notes": ["...", "..."],
   "provider": "mirofish"
 }
 
@@ -99,8 +99,12 @@ Position:
             "risk_direction": "worsening",
             "confidence": 0.55,
             "scenario_summary": "Major event fallback from local MiroFish adapter.",
-            "key_implications": ["Validate the durability of the core thesis against this event."],
-            "recommended_followups": ["Review management commentary, filings, and follow-on reporting."],
+            "key_implications": [
+                "Validate the durability of the core thesis against this event."
+            ],
+            "followup_notes": [
+                "Review management commentary, filings, and follow-on reporting."
+            ],
             "provider": "mirofish",
         }
 

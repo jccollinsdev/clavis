@@ -2,7 +2,17 @@ import Foundation
 
 enum Config {
     static let supabaseUrl = "https://uwvwulhkxtzabykelvam.supabase.co"
-    static let supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV3dnd1bGhreHR6YWJ5a2VsdmFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMDU2NTQsImV4cCI6MjA5MDg4MTY1NH0.Dp38Ba7YH7icnaPlnnvcGNuwMBrDL4l_Lx0veKuQYwk"
+    static let supabaseAnonKey: String = {
+        let envValue = ProcessInfo.processInfo.environment["SUPABASE_ANON_KEY"]?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let envValue, !envValue.isEmpty { return envValue }
+
+        if let bundleValue = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_ANON_KEY") as? String {
+            let trimmed = bundleValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty { return trimmed }
+        }
+
+        return ""
+    }()
     static let backendBaseUrl = "https://clavis.andoverdigital.com"
 }
 
@@ -46,13 +56,18 @@ class APIService {
         }
         let configuration = URLSessionConfiguration.default
         configuration.timeoutIntervalForRequest = 12
-        configuration.timeoutIntervalForResource = 20
+        configuration.timeoutIntervalForResource = 90
         configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
         configuration.urlCache = nil
         self.session = URLSession(configuration: configuration)
     }
 
-    private func makeRequest(path: String, method: String = "GET", body: Data? = nil) async throws -> Data {
+    private func makeRequest(
+        path: String,
+        method: String = "GET",
+        body: Data? = nil,
+        timeoutInterval: TimeInterval = 12
+    ) async throws -> Data {
         guard let url = URL(string: "\(baseURL)\(path)") else {
             throw APIError.invalidURL
         }
@@ -73,7 +88,7 @@ class APIService {
         }
 
         do {
-            request.timeoutInterval = 12
+            request.timeoutInterval = timeoutInterval
             let (data, response) = try await session.data(for: request)
 
             guard let httpResponse = response as? HTTPURLResponse else {
@@ -121,19 +136,70 @@ class APIService {
         return try decoder.decode(Position.self, from: data)
     }
 
+    // MARK: - Tickers
+
+    func searchTickers(query: String, limit: Int = 20) async throws -> [TickerSearchResult] {
+        let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
+        let data = try await makeRequest(path: "/tickers/search?q=\(encoded)&limit=\(limit)")
+        let response = try decoder.decode(TickerSearchResponse.self, from: data)
+        return response.results
+    }
+
+    func fetchTickerDetail(ticker: String) async throws -> TickerDetailResponse {
+        let data = try await makeRequest(path: "/tickers/\(ticker)")
+        return try decoder.decode(TickerDetailResponse.self, from: data)
+    }
+
+    func refreshTicker(ticker: String) async throws -> TickerRefreshResponse {
+        let data = try await makeRequest(path: "/tickers/\(ticker)/refresh", method: "POST", body: Data())
+        return try decoder.decode(TickerRefreshResponse.self, from: data)
+    }
+
+    func fetchTickerRefreshStatus(ticker: String) async throws -> TickerRefreshStatusResponse {
+        let data = try await makeRequest(path: "/tickers/\(ticker)/refresh-status")
+        return try decoder.decode(TickerRefreshStatusResponse.self, from: data)
+    }
+
+    // MARK: - Watchlists
+
+    struct WatchlistItemCreate: Encodable {
+        let ticker: String
+    }
+
+    func fetchWatchlists() async throws -> [Watchlist] {
+        let data = try await makeRequest(path: "/watchlists")
+        let response = try decoder.decode(WatchlistsResponse.self, from: data)
+        return response.watchlists
+    }
+
+    func addToWatchlist(ticker: String) async throws -> Watchlist {
+        let body = try JSONEncoder().encode(WatchlistItemCreate(ticker: ticker))
+        let data = try await makeRequest(path: "/watchlists/default/items", method: "POST", body: body)
+        return try decoder.decode(Watchlist.self, from: data)
+    }
+
+    func removeFromWatchlist(ticker: String) async throws -> Watchlist {
+        let data = try await makeRequest(path: "/watchlists/default/items/\(ticker)", method: "DELETE")
+        return try decoder.decode(Watchlist.self, from: data)
+    }
+
     func deleteHolding(id: String) async throws {
         _ = try await makeRequest(path: "/holdings/\(id)", method: "DELETE")
     }
 
     // MARK: - Digest
 
-    func fetchTodayDigest() async throws -> DigestResponse {
-        let data = try await makeRequest(path: "/digest")
+    func fetchTodayDigest(forceRefresh: Bool = false, timeoutInterval: TimeInterval = 75) async throws -> DigestResponse {
+        let path = forceRefresh ? "/digest?force_refresh=true" : "/digest"
+        let data = try await makeRequest(path: path, timeoutInterval: timeoutInterval)
         return try decoder.decode(DigestResponse.self, from: data)
     }
 
-    func fetchDigestHistory(limit: Int = 7) async throws -> [Digest] {
-        let data = try await makeRequest(path: "/digest/history?limit=\(limit)")
+    func fetchDigestHistory(limit: Int = 7, timeoutInterval: TimeInterval = 75) async throws -> [Digest] {
+        let data = try await makeRequest(
+            path: "/digest/history?limit=\(limit)",
+            timeoutInterval: timeoutInterval
+        )
         return try decoder.decode([Digest].self, from: data)
     }
 
@@ -149,6 +215,19 @@ class APIService {
     func fetchAlerts() async throws -> [Alert] {
         let data = try await makeRequest(path: "/alerts")
         return try decoder.decode([Alert].self, from: data)
+    }
+
+    // MARK: - News
+
+    func fetchNewsFeed(limit: Int = 30) async throws -> NewsFeedResponse {
+        let data = try await makeRequest(path: "/news?limit=\(limit)")
+        return try decoder.decode(NewsFeedResponse.self, from: data)
+    }
+
+    func fetchNewsArticle(id: String) async throws -> NewsArticleResponse {
+        let encoded = id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? id
+        let data = try await makeRequest(path: "/news/\(encoded)")
+        return try decoder.decode(NewsArticleResponse.self, from: data)
     }
 
     // MARK: - Analysis Runs
@@ -198,10 +277,36 @@ class APIService {
     struct PreferencesResponse: Codable {
         let digestTime: String?
         let notificationsEnabled: Bool?
+        let summaryLength: String?
+        let weekdayOnly: Bool?
+        let alertsGradeChanges: Bool?
+        let alertsMajorEvents: Bool?
+        let alertsPortfolioRisk: Bool?
+        let alertsLargePriceMoves: Bool?
+        let quietHoursEnabled: Bool?
+        let quietHoursStart: String?
+        let quietHoursEnd: String?
+        let hasCompletedOnboarding: Bool?
+        let name: String?
+        let birthYear: Int?
+        let subscriptionTier: String?
 
         enum CodingKeys: String, CodingKey {
             case digestTime = "digest_time"
             case notificationsEnabled = "notifications_enabled"
+            case summaryLength = "summary_length"
+            case weekdayOnly = "weekday_only"
+            case alertsGradeChanges = "alerts_grade_changes"
+            case alertsMajorEvents = "alerts_major_events"
+            case alertsPortfolioRisk = "alerts_portfolio_risk"
+            case alertsLargePriceMoves = "alerts_large_price_moves"
+            case quietHoursEnabled = "quiet_hours_enabled"
+            case quietHoursStart = "quiet_hours_start"
+            case quietHoursEnd = "quiet_hours_end"
+            case hasCompletedOnboarding = "has_completed_onboarding"
+            case name
+            case birthYear = "birth_year"
+            case subscriptionTier = "subscription_tier"
         }
     }
 
@@ -232,6 +337,7 @@ class APIService {
         let alerts_grade_changes: Bool?
         let alerts_major_events: Bool?
         let alerts_portfolio_risk: Bool?
+        let alerts_large_price_moves: Bool?
         let quiet_hours_enabled: Bool?
         let quiet_hours_start: String?
         let quiet_hours_end: String?
@@ -241,6 +347,7 @@ class APIService {
         gradeChanges: Bool,
         majorEvents: Bool,
         portfolioRisk: Bool,
+        largePriceMoves: Bool? = nil,
         quietHoursEnabled: Bool,
         quietHoursStart: Date,
         quietHoursEnd: Date
@@ -251,6 +358,7 @@ class APIService {
             alerts_grade_changes: gradeChanges,
             alerts_major_events: majorEvents,
             alerts_portfolio_risk: portfolioRisk,
+            alerts_large_price_moves: largePriceMoves,
             quiet_hours_enabled: quietHoursEnabled,
             quiet_hours_start: formatter.string(from: quietHoursStart),
             quiet_hours_end: formatter.string(from: quietHoursEnd)
@@ -259,10 +367,27 @@ class APIService {
         _ = try await makeRequest(path: "/preferences/alerts", method: "PATCH", body: body)
     }
 
+    // MARK: - Onboarding
+
+    func acknowledgeOnboarding() async throws {
+        _ = try await makeRequest(path: "/preferences/acknowledge", method: "POST", body: Data())
+    }
+
+    struct ProfileUpdate: Encodable {
+        let name: String?
+        let birth_year: Int?
+    }
+
+    func updateProfile(name: String?, birthYear: Int?) async throws {
+        let update = ProfileUpdate(name: name, birth_year: birthYear)
+        let body = try JSONEncoder().encode(update)
+        _ = try await makeRequest(path: "/preferences/profile", method: "POST", body: body)
+    }
+
     // MARK: - Prices
 
     func fetchPriceHistory(ticker: String, days: Int = 30) async throws -> PriceHistoryResponse {
-        let data = try await makeRequest(path: "/prices/\(ticker)?days=\(days)")
+        let data = try await makeRequest(path: "/prices/\(ticker)?days=\(days)", timeoutInterval: 35)
         return try decoder.decode(PriceHistoryResponse.self, from: data)
     }
 
@@ -339,5 +464,274 @@ struct TriggerAnalysisResponse: Codable {
         case overallGrade = "overall_grade"
         case digestReady = "digest_ready"
         case error
+    }
+}
+
+struct TickerSearchResponse: Codable {
+    let results: [TickerSearchResult]
+    let message: String?
+}
+
+struct TickerSearchResult: Identifiable, Codable, Hashable {
+    let ticker: String
+    let companyName: String
+    let exchange: String?
+    let sector: String?
+    let industry: String?
+    let price: Double?
+    let priceAsOf: Date?
+    let grade: String?
+    let safetyScore: Double?
+    let analysisAsOf: Date?
+    let summary: String?
+    let isSupported: Bool
+
+    var id: String { ticker }
+
+    enum CodingKeys: String, CodingKey {
+        case ticker
+        case companyName = "company_name"
+        case exchange
+        case sector
+        case industry
+        case price
+        case priceAsOf = "price_as_of"
+        case grade
+        case safetyScore = "safety_score"
+        case analysisAsOf = "analysis_as_of"
+        case summary
+        case isSupported = "is_supported"
+    }
+}
+
+struct TickerDetailResponse: Codable {
+    let ticker: String
+    let profile: TickerProfile
+    let position: Position
+    let latestPrice: TickerLatestPrice
+    let latestRiskSnapshot: TickerRiskSnapshot?
+    let currentScore: RiskScore?
+    let currentAnalysis: PositionAnalysis?
+    let methodology: String?
+    let dimensionBreakdown: [String: String]?
+    let latestEventAnalyses: [EventAnalysis]
+    let mirofishUsedThisCycle: Bool
+    let recentNews: [NewsItem]
+    let recentAlerts: [Alert]
+    let freshness: TickerFreshness
+    let userContext: TickerUserContext
+
+    enum CodingKeys: String, CodingKey {
+        case ticker
+        case profile
+        case position
+        case latestPrice = "latest_price"
+        case latestRiskSnapshot = "latest_risk_snapshot"
+        case currentScore = "current_score"
+        case currentAnalysis = "current_analysis"
+        case methodology
+        case dimensionBreakdown = "dimension_breakdown"
+        case latestEventAnalyses = "latest_event_analyses"
+        case mirofishUsedThisCycle = "mirofish_used_this_cycle"
+        case recentNews = "recent_news"
+        case recentAlerts = "recent_alerts"
+        case freshness
+        case userContext = "user_context"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        ticker = try container.decode(String.self, forKey: .ticker)
+        profile = try container.decode(TickerProfile.self, forKey: .profile)
+        position = try container.decode(Position.self, forKey: .position)
+        latestPrice = try container.decode(TickerLatestPrice.self, forKey: .latestPrice)
+        latestRiskSnapshot = try? container.decodeIfPresent(TickerRiskSnapshot.self, forKey: .latestRiskSnapshot)
+        currentScore = try? container.decodeIfPresent(RiskScore.self, forKey: .currentScore)
+        currentAnalysis = try? container.decodeIfPresent(PositionAnalysis.self, forKey: .currentAnalysis)
+        methodology = try container.decodeIfPresent(String.self, forKey: .methodology)
+        dimensionBreakdown = try? container.decodeIfPresent([String: String].self, forKey: .dimensionBreakdown)
+        latestEventAnalyses = (try? container.decode([EventAnalysis].self, forKey: .latestEventAnalyses)) ?? []
+        mirofishUsedThisCycle = (try? container.decode(Bool.self, forKey: .mirofishUsedThisCycle)) ?? false
+        recentNews = (try? container.decode([NewsItem].self, forKey: .recentNews)) ?? []
+        recentAlerts = (try? container.decode([Alert].self, forKey: .recentAlerts)) ?? []
+        freshness = try container.decode(TickerFreshness.self, forKey: .freshness)
+        userContext = try container.decode(TickerUserContext.self, forKey: .userContext)
+    }
+}
+
+struct TickerProfile: Codable {
+    let ticker: String
+    let companyName: String?
+    let exchange: String?
+    let sector: String?
+    let industry: String?
+    let peRatio: Double?
+    let week52High: Double?
+    let week52Low: Double?
+    let marketCap: Double?
+
+    enum CodingKeys: String, CodingKey {
+        case ticker
+        case companyName = "company_name"
+        case exchange
+        case sector
+        case industry
+        case peRatio = "pe_ratio"
+        case week52High = "week_52_high"
+        case week52Low = "week_52_low"
+        case marketCap = "market_cap"
+    }
+}
+
+struct TickerLatestPrice: Codable {
+    let price: Double?
+    let priceAsOf: Date?
+    let previousClose: Double?
+    let openPrice: Double?
+    let dayHigh: Double?
+    let dayLow: Double?
+    let week52High: Double?
+    let week52Low: Double?
+    let avgVolume: Double?
+    let source: String?
+
+    enum CodingKeys: String, CodingKey {
+        case price
+        case priceAsOf = "price_as_of"
+        case previousClose = "previous_close"
+        case openPrice = "open_price"
+        case dayHigh = "day_high"
+        case dayLow = "day_low"
+        case week52High = "week_52_high"
+        case week52Low = "week_52_low"
+        case avgVolume = "avg_volume"
+        case source
+    }
+}
+
+struct TickerRiskSnapshot: Codable {
+    let id: String
+    let ticker: String
+    let grade: String?
+    let safetyScore: Double?
+    let structuralBaseScore: Double?
+    let confidence: Double?
+    let factorBreakdown: FactorBreakdown?
+    let reasoning: String?
+    let newsSummary: String?
+    let analysisAsOf: Date
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case ticker
+        case grade
+        case safetyScore = "safety_score"
+        case structuralBaseScore = "structural_base_score"
+        case confidence
+        case factorBreakdown = "factor_breakdown"
+        case reasoning
+        case newsSummary = "news_summary"
+        case analysisAsOf = "analysis_as_of"
+    }
+}
+
+struct TickerFreshness: Codable {
+    let priceAsOf: Date?
+    let analysisAsOf: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case priceAsOf = "price_as_of"
+        case analysisAsOf = "analysis_as_of"
+    }
+}
+
+struct TickerUserContext: Codable {
+    let isHeld: Bool
+    let holdingIds: [String]
+    let isInWatchlist: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case isHeld = "is_held"
+        case holdingIds = "holding_ids"
+        case isInWatchlist = "is_in_watchlist"
+    }
+}
+
+struct WatchlistsResponse: Codable {
+    let watchlists: [Watchlist]
+    let message: String?
+}
+
+struct Watchlist: Identifiable, Codable {
+    let id: String
+    let userId: String
+    let name: String
+    let isDefault: Bool
+    let items: [WatchlistItem]
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case name
+        case isDefault = "is_default"
+        case items
+    }
+}
+
+struct WatchlistItem: Identifiable, Codable {
+    let id: String
+    let ticker: String
+    let companyName: String?
+    let price: Double?
+    let priceAsOf: Date?
+    let grade: String?
+    let safetyScore: Double?
+    let analysisAsOf: Date?
+    let summary: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case ticker
+        case companyName = "company_name"
+        case price
+        case priceAsOf = "price_as_of"
+        case grade
+        case safetyScore = "safety_score"
+        case analysisAsOf = "analysis_as_of"
+        case summary
+    }
+}
+
+struct TickerRefreshResponse: Codable {
+    let jobId: String?
+    let ticker: String
+    let status: String
+    let startedAt: Date?
+    let completedAt: Date?
+    let errorMessage: String?
+
+    enum CodingKeys: String, CodingKey {
+        case jobId = "job_id"
+        case ticker
+        case status
+        case startedAt = "started_at"
+        case completedAt = "completed_at"
+        case errorMessage = "error_message"
+    }
+}
+
+struct TickerRefreshStatusResponse: Codable {
+    let ticker: String
+    let status: String
+    let startedAt: Date?
+    let completedAt: Date?
+    let errorMessage: String?
+
+    enum CodingKeys: String, CodingKey {
+        case ticker
+        case status
+        case startedAt = "started_at"
+        case completedAt = "completed_at"
+        case errorMessage = "error_message"
     }
 }

@@ -1,8 +1,12 @@
 from ..services.minimax import chatcompletion_text
-from .analysis_utils import extract_json_list, extract_json_object
+from .analysis_utils import (
+    extract_json_list,
+    extract_json_object,
+    sanitize_public_analysis_text,
+)
 
 
-SYSTEM_PROMPT = """You write a long-form investment risk report for one stock position.
+SYSTEM_PROMPT = """You write a long-form portfolio risk report for one stock position.
 
 Return strict JSON with this shape:
 {{
@@ -21,11 +25,12 @@ Return strict JSON with this shape:
 }}
 
 Anchor the report in the supplied event evidence. Mention both near-term and longer-term implications when relevant.
+Use plain English for the public-facing report. Do not mention internal evidence labels, body-depth terms, or implementation jargon such as full_body, title_only, or headline_summary.
 
-CRITICAL - Macro as Thesis Verifier:
-- For thesis_verifier, assess whether any macro context confirms, challenges, or is neutral to this position's investment thesis
-- If the position has no clear thesis, use "neutral" for thesis_impact
-- Macro should VERIFY the thesis, not drive it. If macro is neutral to the thesis, say so simply.
+CRITICAL - Macro as Risk Context:
+- For thesis_verifier, assess whether any macro context confirms, challenges, or is neutral to this position's risk profile
+- If the position has no clear setup, use "neutral" for thesis_impact
+- Macro should describe whether it confirms, challenges, or is neutral to the risk profile.
 - Only include thesis_verifier entries for macro events that actually relate to this position's sector/theme
 - If no relevant macro context exists, omit thesis_verifier array entirely (do not include empty array)
 """
@@ -89,10 +94,10 @@ def _fallback_position_report(
         "long_report": long_report,
         "methodology": "Fallback synthesis from structured event analyses, inferred labels, and direction-of-risk signals.",
         "top_risks": top_risks
-        or ["Watch for changes in thesis integrity and follow-on reporting."],
+        or ["A single new article or filing could materially change the risk read."],
         "watch_items": watch_items
         or [
-            "Watch for additional company-specific or macro updates that change event significance."
+            "Watch for new company-specific news, guidance, or filings that change the setup."
         ],
     }
 
@@ -105,25 +110,44 @@ async def build_position_report(
 ) -> dict:
     if not event_analyses:
         ticker = position.get("ticker", "This holding")
-        return {
-            "summary": f"No material new risk events were identified for {ticker} in this cycle.",
-            "long_report": f"{ticker} did not have any relevant events that cleared the portfolio relevance threshold during this run. The current view is therefore based on existing position context and the absence of new negative catalysts.",
-            "methodology": "Position review based on position metadata and an empty relevant-event set for this analysis cycle.",
-            "top_risks": ["No new material risk catalysts identified."],
-            "watch_items": ["Watch for new company-specific or macro catalysts."],
-        }
+        return sanitize_public_analysis_text(
+            {
+                "summary": f"Insufficient evidence was available to produce a substantive event-driven analysis for {ticker} in this cycle.",
+                "long_report": f"Coverage for {ticker} was either absent, unresolved, or too thin to support a grounded event read in this run. Treat the current view as provisional and based mostly on existing position context rather than newly confirmed catalysts.",
+                "methodology": "Low-evidence fallback based on position metadata and the absence of usable event coverage for this cycle.",
+                "top_risks": [
+                    "Evidence quality was too limited to validate new company-specific catalysts."
+                ],
+                "watch_items": [
+                    "Recheck for resolved company or sector coverage before treating the absence of event analysis as a clean signal."
+                ],
+            }
+        )
 
     event_summary = "\n".join(
         f"- [{event.get('significance', 'minor')}] {event.get('title', '')}: {event.get('long_analysis', '')[:400]}"
         for event in event_analyses[:8]
     )
+    is_backfill_mode = (
+        str(position.get("analysis_mode") or "").strip().lower() == "sp500_backfill"
+    )
     prompt = f"""Position:
     - Ticker: {position.get("ticker", "")}
     - Sector: {position.get("sector", "unknown")}
-    - Shares: {position.get("shares", 0)}
-    - Purchase price: {position.get("purchase_price", 0)}
     - Inferred labels: {", ".join(inferred_labels) if inferred_labels else "unknown"}
     """
+
+    if is_backfill_mode:
+        prompt += """
+Backfill context:
+- This is a synthetic ticker-level backfill snapshot, not a live user position.
+- Do not infer conviction, entry timing, position sizing, or portfolio intent from placeholder shares or purchase price fields.
+"""
+    else:
+        prompt += f"""
+- Shares: {position.get("shares", 0)}
+- Purchase price: {position.get("purchase_price", 0)}
+"""
 
     if macro_context and macro_context.get("overnight_macro"):
         macro_brief = macro_context["overnight_macro"].get("brief", "")
@@ -151,30 +175,47 @@ Event analyses:
 {event_summary}
 """
 
-    result = chatcompletion_text(
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.2,
-        max_tokens=1400,
-    )
+    try:
+        result = chatcompletion_text(
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.2,
+            max_tokens=1400,
+        )
+    except Exception:
+        fallback = _fallback_position_report(position, inferred_labels, event_analyses)
+        return sanitize_public_analysis_text(
+            {
+                "summary": fallback["summary"],
+                "long_report": fallback["long_report"],
+                "methodology": fallback["methodology"],
+                "top_risks": fallback["top_risks"],
+                "watch_items": fallback["watch_items"],
+                "thesis_verifier": [],
+            }
+        )
 
     parsed = extract_json_object(result, {})
     fallback = _fallback_position_report(position, inferred_labels, event_analyses)
-    return {
-        "summary": parsed.get("summary") or fallback["summary"],
-        "long_report": parsed.get("long_report")
-        or parsed.get("summary")
-        or fallback["long_report"],
-        "methodology": parsed.get("methodology") or fallback["methodology"],
-        "top_risks": parsed.get("top_risks") or fallback["top_risks"],
-        "watch_items": parsed.get("watch_items") or fallback["watch_items"],
-        "thesis_verifier": parsed.get("thesis_verifier") or [],
-    }
+    return sanitize_public_analysis_text(
+        {
+            "summary": parsed.get("summary") or fallback["summary"],
+            "long_report": parsed.get("long_report")
+            or parsed.get("summary")
+            or fallback["long_report"],
+            "methodology": parsed.get("methodology") or fallback["methodology"],
+            "top_risks": parsed.get("top_risks") or fallback["top_risks"],
+            "watch_items": parsed.get("watch_items") or fallback["watch_items"],
+            "thesis_verifier": parsed.get("thesis_verifier") or [],
+        }
+    )
 
 
 BATCH_REPORT_PROMPT = """You write long-form investment risk reports for multiple stock positions.
+
+Use plain English for public-facing output. Do not mention internal evidence labels, body-depth terms, or implementation jargon such as full_body, title_only, or headline_summary.
 
 Return a JSON array with one object per position in order.
 Each object has:
@@ -185,10 +226,10 @@ Each object has:
 - "watch_items": ["watch item 1", "watch item 2"]
 - "thesis_verifier": [{{"macro_event": "...", "thesis_impact": "confirms|challenges|neutral", "reasoning": "..."}}]
 
-CRITICAL - Macro as Thesis Verifier:
-- For thesis_verifier, assess whether any macro context confirms, challenges, or is neutral to each position's investment thesis
-- If a position has no clear thesis, use "neutral" for thesis_impact
-- Macro should VERIFY the thesis, not drive it. If macro is neutral to the thesis, say so simply.
+CRITICAL - Macro as Risk Context:
+- For thesis_verifier, assess whether any macro context confirms, challenges, or is neutral to each position's risk profile
+- If a position has no clear setup, use "neutral" for thesis_impact
+- Macro should describe whether it confirms, challenges, or is neutral to the risk profile.
 - Only include thesis_verifier entries for macro events that actually relate to each position's sector/theme
 - If no relevant macro context exists for a position, omit thesis_verifier array for that position
 
@@ -283,16 +324,18 @@ async def build_position_reports_batch(
             )
             p = parsed[i]
             results.append(
-                {
-                    "summary": p.get("summary") or fallback["summary"],
-                    "long_report": p.get("long_report")
-                    or p.get("summary")
-                    or fallback["long_report"],
-                    "methodology": p.get("methodology") or fallback["methodology"],
-                    "top_risks": p.get("top_risks") or fallback["top_risks"],
-                    "watch_items": p.get("watch_items") or fallback["watch_items"],
-                    "thesis_verifier": p.get("thesis_verifier") or [],
-                }
+                sanitize_public_analysis_text(
+                    {
+                        "summary": p.get("summary") or fallback["summary"],
+                        "long_report": p.get("long_report")
+                        or p.get("summary")
+                        or fallback["long_report"],
+                        "methodology": p.get("methodology") or fallback["methodology"],
+                        "top_risks": p.get("top_risks") or fallback["top_risks"],
+                        "watch_items": p.get("watch_items") or fallback["watch_items"],
+                        "thesis_verifier": p.get("thesis_verifier") or [],
+                    }
+                )
             )
     else:
         for position in positions:

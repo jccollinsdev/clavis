@@ -1,0 +1,14 @@
+{
+  "run_id": "ee269998-dbdc-43f0-958c-4804c6ea87d5",
+  "started_at": "2026-04-14T19:27:31.825665+00:00",
+  "label": "sp500_backfill",
+  "user_id": "00000000-0000-0000-0000-000000000001",
+  "triggered_by": "scheduled",
+  "target_position_id": null,
+  "target_tickers": [
+    "ABBV",
+    "ABT",
+    "AOS",
+    "MMM"
+  ]
+}

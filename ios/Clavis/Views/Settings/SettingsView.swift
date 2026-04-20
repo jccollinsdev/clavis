@@ -8,83 +8,44 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                ClavisTopBar(onLogoTap: { selectedTab = 0 }) {
-                    Button {
-                        selectedTab = 1
-                    } label: {
-                        Label("Holdings", systemImage: "briefcase.fill")
-                    }
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
+                    DigestSettingsGroup(viewModel: viewModel)
 
-                    Button {
-                        selectedTab = 2
-                    } label: {
-                        Label("Digest", systemImage: "newspaper.fill")
-                    }
+                    AlertsSettingsGroup(viewModel: viewModel)
 
-                    Button {
-                        selectedTab = 3
-                    } label: {
-                        Label("Alerts", systemImage: "bell.fill")
-                    }
+                    NotificationSettingsGroup(viewModel: viewModel)
 
-                    Button {
-                        selectedTab = 4
-                    } label: {
-                        Label("Settings", systemImage: "gearshape.fill")
-                    }
+                    AccountSettingsGroup(
+                        email: viewModel.userEmail,
+                        planLabel: planLabel,
+                        onSignOut: { Task { await authViewModel.signOut() } }
+                    )
 
-                    Divider()
+                    AboutSection()
 
-                    Button {
+                    SettingsDisclaimerCard()
+
+                    SignOutGroup {
                         Task { await authViewModel.signOut() }
-                    } label: {
-                        Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
                     }
                 }
                 .padding(.horizontal, ClavisTheme.screenPadding)
-                .padding(.top, 8)
-                .padding(.bottom, 12)
-
-                ScrollView {
-                    LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                        BrandSection()
-
-                        AccountSection(
-                            userEmail: viewModel.userEmail,
-                            onSignOut: {
-                                Task { await authViewModel.signOut() }
-                            }
-                        )
-
-                        DigestSection(
-                            digestTime: $viewModel.digestTime,
-                            summaryLength: $viewModel.summaryLength,
-                            weekdayOnly: $viewModel.weekdayOnly,
-                            onDigestTimeChange: { Task { await viewModel.saveDigestTime() } },
-                            onSummaryLengthChange: { Task { await viewModel.saveSummaryLength() } },
-                            onWeekdayOnlyChange: { Task { await viewModel.saveWeekdayOnly() } }
-                        )
-
-                        AlertsSection(
-                            alertsGradeChanges: $viewModel.alertsGradeChanges,
-                            alertsMajorEvents: $viewModel.alertsMajorEvents,
-                            alertsPortfolioRisk: $viewModel.alertsPortfolioRisk,
-                            quietHoursEnabled: $viewModel.quietHoursEnabled,
-                            quietHoursStart: $viewModel.quietHoursStart,
-                            quietHoursEnd: $viewModel.quietHoursEnd,
-                            onAlertSettingsChange: { Task { await viewModel.saveAlertSettings() } }
-                        )
-
-                        AboutSection()
+                .padding(.top, ClavisTheme.largeSpacing)
+                .padding(.bottom, ClavisTheme.extraLargeSpacing)
+            }
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        selectedTab = 0
+                    } label: {
+                        Image(systemName: "house.fill")
                     }
-                    .padding(.horizontal, ClavisTheme.screenPadding)
-                    .padding(.top, ClavisTheme.largeSpacing)
-                    .padding(.bottom, ClavisTheme.extraLargeSpacing)
                 }
             }
             .background(ClavisAtmosphereBackground())
-            .toolbar(.hidden, for: .navigationBar)
             .onAppear {
                 guard !hasLoaded else { return }
                 hasLoaded = true
@@ -92,240 +53,317 @@ struct SettingsView: View {
             }
         }
     }
+
+    private var planLabel: String? {
+        switch authViewModel.subscriptionTier.lowercased() {
+        case "pro":
+            return "Clavix Pro"
+        case "admin":
+            return "Admin"
+        default:
+            return nil
+        }
+    }
 }
 
-private struct BrandSection: View {
+struct DigestSettingsGroup: View {
+    @ObservedObject var viewModel: SettingsViewModel
+
     var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-            HStack(spacing: ClavisTheme.mediumSpacing) {
-                ClavisBrandMark()
-                    .frame(width: 34, height: 34)
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("CLAVIS")
-                        .font(ClavisTypography.h2)
-                        .foregroundColor(.textPrimary)
-                        .kerning(1.4)
-
-                    Text("Minimal portfolio intelligence")
-                        .font(ClavisTypography.bodySmall)
-                        .foregroundColor(.textSecondary)
-                }
+        SettingsGroupCard(
+            title: "Digest",
+            footnote: "Morning digest is generated from overnight data. Changes save automatically."
+        ) {
+            SettingsValueRow(label: "Digest time") {
+                DatePicker("", selection: $viewModel.digestTime, displayedComponents: .hourAndMinute)
+                    .labelsHidden()
+                    .onChange(of: viewModel.digestTime) { _, _ in
+                        Task { await viewModel.saveDigestTime() }
+                    }
             }
 
-            Text("A clean shell for monitoring risk, reviewing change, and wiring in portfolio connections as the product grows.")
-                .font(ClavisTypography.body)
-                .foregroundColor(.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surface)
-    }
-}
-
-struct AccountSection: View {
-    let userEmail: String
-    let onSignOut: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-            Text("Account")
-                .font(ClavisTypography.cardTitle)
-                .foregroundColor(.textPrimary)
-
-            SettingsLabelRow(label: "Email", value: userEmail)
-
-            Button("Sign Out", role: .destructive, action: onSignOut)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.top, ClavisTheme.smallSpacing)
-        }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surface)
-    }
-}
-
-struct SettingsLabelRow: View {
-    let label: String
-    let value: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(label.uppercased())
-                .font(ClavisTypography.label)
-                .kerning(0.88)
-                .foregroundColor(.textTertiary)
-            Text(value)
-                .font(ClavisTypography.body)
-                .foregroundColor(.textSecondary)
-        }
-    }
-}
-
-struct DigestSection: View {
-    @Binding var digestTime: Date
-    @Binding var summaryLength: SummaryLength
-    @Binding var weekdayOnly: Bool
-    let onDigestTimeChange: () -> Void
-    let onSummaryLengthChange: () -> Void
-    let onWeekdayOnlyChange: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-            Text("Digest")
-                .font(ClavisTypography.cardTitle)
-                .foregroundColor(.textPrimary)
-
-            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                Text("DAILY DIGEST TIME")
-                    .font(ClavisTypography.label)
-                    .kerning(0.88)
-                    .foregroundColor(.textTertiary)
-
-                HStack {
-                    DatePicker("", selection: $digestTime, displayedComponents: .hourAndMinute)
-                        .labelsHidden()
-                        .onChange(of: digestTime) { _, _ in onDigestTimeChange() }
-                    Spacer()
-                }
-            }
-
-            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                Text("SUMMARY LENGTH")
-                    .font(ClavisTypography.label)
-                    .kerning(0.88)
-                    .foregroundColor(.textTertiary)
-
-                Picker("Summary Length", selection: $summaryLength) {
+            SettingsValueRow(label: "Summary length") {
+                Picker("Summary Length", selection: $viewModel.summaryLength) {
                     ForEach(SummaryLength.allCases, id: \.self) { length in
                         Text(length.rawValue).tag(length)
                     }
                 }
                 .pickerStyle(.segmented)
-                .onChange(of: summaryLength) { _, _ in onSummaryLengthChange() }
+                .frame(maxWidth: 180)
+                .onChange(of: viewModel.summaryLength) { _, _ in
+                    Task { await viewModel.saveSummaryLength() }
+                }
             }
 
-            Toggle("Weekday Only", isOn: $weekdayOnly)
-                .foregroundColor(.textPrimary)
-                .onChange(of: weekdayOnly) { _, _ in onWeekdayOnlyChange() }
-
-            Text("Changes are saved automatically.")
-                .font(ClavisTypography.footnote)
-                .foregroundColor(.textTertiary)
+            SettingsToggleListRow(
+                label: "Weekday only",
+                subtitle: "Skip weekend digest delivery",
+                isOn: $viewModel.weekdayOnly,
+                onChange: { Task { await viewModel.saveWeekdayOnly() } },
+                last: true
+            )
         }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surface)
     }
 }
 
-struct AlertsSection: View {
-    @Binding var alertsGradeChanges: Bool
-    @Binding var alertsMajorEvents: Bool
-    @Binding var alertsPortfolioRisk: Bool
-    @Binding var quietHoursEnabled: Bool
-    @Binding var quietHoursStart: Date
-    @Binding var quietHoursEnd: Date
-    let onAlertSettingsChange: () -> Void
+struct AlertsSettingsGroup: View {
+    @ObservedObject var viewModel: SettingsViewModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-            Text("Alerts")
-                .font(ClavisTypography.cardTitle)
-                .foregroundColor(.textPrimary)
+        SettingsGroupCard(
+            title: "Alerts",
+            footnote: "Alert rows cover grade changes, major events, portfolio risk shifts, and large price moves."
+        ) {
+            SettingsToggleListRow(
+                label: "Grade changes",
+                subtitle: "Any upgrade or downgrade",
+                isOn: $viewModel.alertsGradeChanges,
+                onChange: { Task { await viewModel.saveAlertSettings() } }
+            )
 
-            SettingsToggleRow(label: "Grade Changes", isOn: $alertsGradeChanges, onChange: onAlertSettingsChange)
-            SettingsToggleRow(label: "Major Events", isOn: $alertsMajorEvents, onChange: onAlertSettingsChange)
-            SettingsToggleRow(label: "Portfolio Risk Changes", isOn: $alertsPortfolioRisk, onChange: onAlertSettingsChange)
+            SettingsToggleListRow(
+                label: "Major events",
+                subtitle: "Holdings only",
+                isOn: $viewModel.alertsMajorEvents,
+                onChange: { Task { await viewModel.saveAlertSettings() } }
+            )
 
-            Divider()
-                .background(Color.border)
+            SettingsToggleListRow(
+                label: "Portfolio risk changes",
+                subtitle: "Composite portfolio score moves",
+                isOn: $viewModel.alertsPortfolioRisk,
+                onChange: { Task { await viewModel.saveAlertSettings() } }
+            )
 
-            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                Toggle("Quiet Hours", isOn: $quietHoursEnabled)
-                    .foregroundColor(.textPrimary)
-                    .onChange(of: quietHoursEnabled) { _, _ in onAlertSettingsChange() }
+            SettingsToggleListRow(
+                label: "Large price moves",
+                subtitle: "Significant daily moves in your holdings",
+                isOn: $viewModel.alertsLargePriceMoves,
+                onChange: { Task { await viewModel.saveAlertSettings() } }
+            )
 
-                if quietHoursEnabled {
-                    VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                        QuietHoursTimeRow(label: "From", time: $quietHoursStart, onChange: onAlertSettingsChange)
-                        QuietHoursTimeRow(label: "To", time: $quietHoursEnd, onChange: onAlertSettingsChange)
-                    }
-                    .padding(.top, ClavisTheme.smallSpacing)
+            SettingsToggleListRow(
+                label: "Quiet hours",
+                subtitle: "Suppress alerts overnight",
+                isOn: $viewModel.quietHoursEnabled,
+                onChange: { Task { await viewModel.saveAlertSettings() } },
+                last: viewModel.quietHoursEnabled == false
+            )
+
+            if viewModel.quietHoursEnabled {
+                SettingsValueRow(label: "From") {
+                    DatePicker("", selection: $viewModel.quietHoursStart, displayedComponents: .hourAndMinute)
+                        .labelsHidden()
+                        .onChange(of: viewModel.quietHoursStart) { _, _ in
+                            Task { await viewModel.saveAlertSettings() }
+                        }
+                }
+
+                SettingsValueRow(label: "To", last: true) {
+                    DatePicker("", selection: $viewModel.quietHoursEnd, displayedComponents: .hourAndMinute)
+                        .labelsHidden()
+                        .onChange(of: viewModel.quietHoursEnd) { _, _ in
+                            Task { await viewModel.saveAlertSettings() }
+                        }
                 }
             }
         }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surface)
     }
 }
 
-struct SettingsToggleRow: View {
+struct NotificationSettingsGroup: View {
+    @ObservedObject var viewModel: SettingsViewModel
+
+    var body: some View {
+        SettingsGroupCard(title: "Notifications") {
+            SettingsToggleListRow(
+                label: "Push notifications",
+                subtitle: "Controls whether the app sends digest and alert pushes",
+                isOn: $viewModel.notificationsEnabled,
+                onChange: { Task { await viewModel.saveNotifications() } },
+                last: true
+            )
+        }
+    }
+}
+
+struct AccountSettingsGroup: View {
+    let email: String
+    let planLabel: String?
+    let onSignOut: () -> Void
+
+    var body: some View {
+        SettingsGroupCard(title: "Account") {
+            SettingsStaticRow(label: "Profile", value: email)
+
+            if let planLabel {
+                SettingsStaticRow(label: "Plan", value: planLabel)
+            }
+
+            SettingsLinkRow(title: "Data & privacy", urlString: "https://clavis.app/privacy", last: true)
+        }
+    }
+}
+
+struct SettingsGroupCard<Content: View>: View {
+    let title: String?
+    let footnote: String?
+    @ViewBuilder let content: Content
+
+    init(title: String? = nil, footnote: String? = nil, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.footnote = footnote
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if let title, !title.isEmpty {
+                Text(title.uppercased())
+                    .font(ClavisTypography.label)
+                    .foregroundColor(.textSecondary)
+                    .padding(.leading, 2)
+            }
+
+            VStack(spacing: 0) {
+                content
+            }
+            .padding(.horizontal, 14)
+            .clavisCardStyle(fill: .surface)
+
+            if let footnote, !footnote.isEmpty {
+                Text(footnote)
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textSecondary)
+                    .padding(.leading, 2)
+            }
+        }
+    }
+}
+
+struct SettingsToggleListRow: View {
     let label: String
+    let subtitle: String?
     @Binding var isOn: Bool
     let onChange: () -> Void
+    var last: Bool = false
 
     var body: some View {
-        Toggle(label, isOn: $isOn)
-            .foregroundColor(.textPrimary)
-            .onChange(of: isOn) { _, _ in onChange() }
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label)
+                    .font(ClavisTypography.body)
+                    .foregroundColor(.textPrimary)
+
+                if let subtitle, !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(ClavisTypography.footnote)
+                        .foregroundColor(.textSecondary)
+                }
+            }
+
+            Spacer()
+
+            Toggle("", isOn: $isOn)
+                .labelsHidden()
+                .tint(.informational)
+                .onChange(of: isOn) { _, _ in onChange() }
+        }
+        .padding(.vertical, 13)
+        .overlay(alignment: .bottom) {
+            if !last {
+                Rectangle()
+                    .fill(Color.border)
+                    .frame(height: 1)
+            }
+        }
     }
 }
 
-struct QuietHoursTimeRow: View {
+struct SettingsValueRow<ValueView: View>: View {
     let label: String
-    @Binding var time: Date
-    let onChange: () -> Void
+    var last: Bool = false
+    @ViewBuilder let valueView: ValueView
+
+    init(label: String, last: Bool = false, @ViewBuilder valueView: () -> ValueView) {
+        self.label = label
+        self.last = last
+        self.valueView = valueView()
+    }
 
     var body: some View {
-        HStack {
+        HStack(spacing: 12) {
             Text(label)
-                .font(ClavisTypography.footnote)
-                .foregroundColor(.textTertiary)
-                .frame(width: 40, alignment: .leading)
-
-            DatePicker("", selection: $time, displayedComponents: .hourAndMinute)
-                .labelsHidden()
-                .onChange(of: time) { _, _ in onChange() }
+                .font(ClavisTypography.body)
+                .foregroundColor(.textPrimary)
 
             Spacer()
+
+            valueView
         }
-        .padding(.vertical, ClavisTheme.smallSpacing)
-        .clavisSecondaryCardStyle(fill: .surfaceElevated)
+        .padding(.vertical, 13)
+        .overlay(alignment: .bottom) {
+            if !last {
+                Rectangle()
+                    .fill(Color.border)
+                    .frame(height: 1)
+            }
+        }
+    }
+}
+
+struct SettingsStaticRow: View {
+    let label: String
+    let value: String
+    var last: Bool = false
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Text(label)
+                .font(ClavisTypography.body)
+                .foregroundColor(.textPrimary)
+
+            Spacer()
+
+            Text(value)
+                .font(ClavisTypography.footnote)
+                .foregroundColor(.textSecondary)
+        }
+        .padding(.vertical, 13)
+        .overlay(alignment: .bottom) {
+            if !last {
+                Rectangle()
+                    .fill(Color.border)
+                    .frame(height: 1)
+            }
+        }
     }
 }
 
 struct AboutSection: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-            Text("About")
-                .font(ClavisTypography.cardTitle)
-                .foregroundColor(.textPrimary)
-
-            SettingsLabelRow(label: "Version", value: "1.0.0")
-
-            Divider()
-                .background(Color.border)
+        SettingsGroupCard(title: "About") {
+            SettingsStaticRow(label: "Clavix", value: "v1.0.0")
 
             NavigationLink(destination: ScoreExplanationView()) {
-                SettingsNavigationRow(title: "Score Explanation")
+                SettingsNavigationRow(title: "Score explanation")
             }
+            .buttonStyle(.plain)
 
             NavigationLink(destination: MethodologyView()) {
-                SettingsNavigationRow(title: "Methodology Overview")
+                SettingsNavigationRow(title: "Data sources & methodology")
             }
+            .buttonStyle(.plain)
 
-            Divider()
-                .background(Color.border)
-
-            SettingsLinkRow(title: "Privacy Policy", urlString: "https://clavis.app/privacy")
-            SettingsLinkRow(title: "Terms of Service", urlString: "https://clavis.app/terms")
+            SettingsLinkRow(title: "Privacy policy", urlString: "https://clavis.app/privacy")
+            SettingsLinkRow(title: "Terms of service", urlString: "https://clavis.app/terms", last: true)
         }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surface)
     }
 }
 
 struct SettingsNavigationRow: View {
     let title: String
+    var last: Bool = false
 
     var body: some View {
         HStack {
@@ -337,13 +375,21 @@ struct SettingsNavigationRow: View {
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(.textTertiary)
         }
-        .padding(.vertical, ClavisTheme.smallSpacing)
+        .padding(.vertical, 13)
+        .overlay(alignment: .bottom) {
+            if !last {
+                Rectangle()
+                    .fill(Color.border)
+                    .frame(height: 1)
+            }
+        }
     }
 }
 
 struct SettingsLinkRow: View {
     let title: String
     let urlString: String
+    var last: Bool = false
 
     var body: some View {
         Link(destination: URL(string: urlString)!) {
@@ -356,7 +402,49 @@ struct SettingsLinkRow: View {
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(.textTertiary)
             }
-            .padding(.vertical, ClavisTheme.smallSpacing)
+            .padding(.vertical, 13)
+            .overlay(alignment: .bottom) {
+                if !last {
+                    Rectangle()
+                        .fill(Color.border)
+                        .frame(height: 1)
+                }
+            }
+        }
+    }
+}
+
+struct SettingsDisclaimerCard: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Informational only")
+                .font(ClavisTypography.label)
+                .foregroundColor(.textSecondary)
+
+            Text("Clavix provides risk intelligence for informational purposes only. Scores reflect model output based on available data and do not constitute investment advice.")
+                .font(ClavisTypography.footnote)
+                .foregroundColor(.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(14)
+        .clavisCardStyle(fill: .surfaceElevated)
+    }
+}
+
+struct SignOutGroup: View {
+    let onSignOut: () -> Void
+
+    var body: some View {
+        SettingsGroupCard {
+            Button(role: .destructive, action: onSignOut) {
+                HStack {
+                    Text("Sign out")
+                        .font(ClavisTypography.body)
+                    Spacer()
+                }
+                .padding(.vertical, 13)
+            }
+            .buttonStyle(.plain)
         }
     }
 }
@@ -382,6 +470,10 @@ struct ScoreExplanationView: View {
                     ScoreBandRow(grade: "D", range: "15–34", description: "Risky — elevated risk", color: .riskD)
                     ScoreBandRow(grade: "F", range: "0–14", description: "Critical — high risk", color: .riskF)
                 }
+
+                Text("Informational only. Scores reflect model output based on available data. They do not constitute financial advice.")
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textTertiary)
             }
             .padding(ClavisTheme.cardPadding)
         }
@@ -425,7 +517,7 @@ struct MethodologyView: View {
                         .font(ClavisTypography.sectionTitle)
                         .foregroundColor(.textPrimary)
 
-                    Text("Clavis evaluates positions across multiple risk dimensions including market structure, macro sensitivity, sentiment, and catalyst quality.")
+                    Text("Clavix evaluates positions across multiple risk dimensions including market structure, macro sensitivity, sentiment, and catalyst quality.")
                         .font(ClavisTypography.body)
                         .foregroundColor(.textSecondary)
                 }
@@ -433,9 +525,13 @@ struct MethodologyView: View {
                 VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
                     MethodologyStepRow(number: "01", title: "Data Collection", description: "Real-time price, news, and market structure signals are gathered for each position.")
                     MethodologyStepRow(number: "02", title: "Relevance Filtering", description: "Market noise is filtered out so only position-relevant stories move forward.")
-                    MethodologyStepRow(number: "03", title: "Risk Analysis", description: "Each position is scored across five dimensions: news sentiment, macro exposure, position sizing, volatility trend, and market integrity.")
+                    MethodologyStepRow(number: "03", title: "Risk Analysis", description: "Each position is scored across five dimensions: news sentiment, macro exposure, position sizing, volatility trend, and durability.")
                     MethodologyStepRow(number: "04", title: "Grade Assignment", description: "Composite scores are mapped to letter grades with fixed boundaries.")
                 }
+
+                Text("All scores are informational model outputs only. They do not constitute financial advice and should not be used as the sole basis for investment decisions.")
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textTertiary)
             }
             .padding(ClavisTheme.cardPadding)
         }

@@ -1,0 +1,24 @@
+{
+  "sequence": 16,
+  "logged_at": "2026-04-14T01:16:44.700320+00:00",
+  "model": "MiniMax-M2.7",
+  "function_name": "chatcompletion_text",
+  "caller": {
+    "file": "/app/app/pipeline/agentic_scan.py",
+    "function": "analyze_minor_events_shared_batch",
+    "line": 229
+  },
+  "messages": [
+    {
+      "role": "user",
+      "content": "You are a portfolio risk analyst.\n\nGiven multiple news items, produce a reusable base analysis for each event without assuming a specific holder.\n\nNews items to analyze:\n[0] Title: 3M Co Stock (MMM) Moved Down by 3.12% on Mar 9: A Full Analysis\n    Summary: <a href=\"https://news.google.com/rss/articles/CBMigAFBVV95cUxQaXZxSHJYbV83amcwLUFDMFRCNW9PLUR6eDZnMWdEV2l2Rnk1elU0YTFWTGQ2TllEWnN1NnctZTkxOFhPbG9rTmg5Y2RaTzRrMTJNYV9KeUNPZzM2ZW1FbllfZXRlNndzRDhJU0c2S0t3MGNTazNpN0dGQmFTSWR0OA?oc=5\" target=\"_blank\">3M Co Stock (MMM) Moved Down by 3.12% on Mar 9: A Full Analysis</a>&nbsp;\n\nFor each news item above, return a JSON object with:\n- \"analysis_text\": \"2-4 sentence analysis\"\n- \"impact_horizon\": \"immediate|near_term|long_term\"\n- \"risk_direction\": \"improving|neutral|worsening\"\n- \"confidence\": 0.0-1.0\n- \"scenario_summary\": \"one sentence\"\n- \"key_implications\": [\"...\", \"...\"]\n- \"followup_notes\": [\"...\", \"...\"]\n\nReturn a JSON array with one object per news item in order."
+    }
+  ],
+  "kwargs": {
+    "temperature": 0.2,
+    "max_tokens": 2400
+  },
+  "response": "```json\n[\n  {\n    \"analysis_text\": \"3M Co (MMM) experienced a 3.12% single-session decline on March 9, indicating negative investor sentiment or market-driven selling pressure affecting this diversified industrial holding. Such a pronounced one-day move suggests either sector rotation away from industrials or emerging concerns specific to 3M's operational outlook, restructuring initiatives, or litigation developments. For any equity position, this level of daily loss represents meaningful short-term volatility and downside risk exposure that warrants monitoring.\",\n    \"impact_horizon\": \"near_term\",\n    \"risk_direction\": \"worsening\",\n    \"confidence\": 0.75,\n    \"scenario_summary\": \"3M stock fell 3.12% in a single session, indicating heightened volatility and negative momentum for holders.\",\n    \"key_implications\": [\n      \"Equity holders face immediate unrealized losses and increased portfolio volatility\",\n      \"Risk-reward for new or additional positions has shifted, potentially requiring wider entry thresholds or de-prioritization\"\n    ],\n    \"followup_notes\": [\n      \"Identify catalysts (company announcements, sector rotation, broader market selloff) explaining the decline\",\n      \"Assess whether 3M-specific factors or macro conditions are driving the movement\",\n      \"Monitor for subsequent sessions to determine if decline is isolated or signals trend reversal\"\n    ]\n  }\n]\n```",
+  "error": null,
+  "duration_ms": 28563.32
+}

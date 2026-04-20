@@ -1,12 +1,110 @@
 import os
 import requests
+import time
+from threading import Lock
 from supabase import create_client, Client
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from ..config import get_settings
+from .polygon import polygon_get
 
 POLYGON_BASE_URL = "https://api.polygon.io/v1"
 FINNHUB_BASE_URL = "https://finnhub.io/api/v1"
+
+MAX_RETRIES = 5
+RETRY_BASE_DELAY = 5.0
+_MIN_CALL_SPACING = 0.12
+
+_last_api_call = {"finnhub": 0.0, "polygon": 0.0}
+_service_rate_limit_locks = {"finnhub": Lock(), "polygon": Lock()}
+
+STATIC_METADATA_TTL = timedelta(days=7)
+QUOTE_METADATA_TTL = timedelta(hours=24)
+
+
+def _parse_timestamp(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        normalized = str(value).replace("Z", "+00:00")
+        parsed = datetime.fromisoformat(normalized)
+        if parsed.tzinfo is None:
+            return parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(timezone.utc)
+    except Exception:
+        return None
+
+
+def _is_recent(existing: dict, field: str, ttl: timedelta) -> bool:
+    if existing.get(field) is None:
+        return False
+    updated_at = _parse_timestamp(existing.get("updated_at"))
+    if updated_at is None:
+        return False
+    return datetime.now(timezone.utc) - updated_at <= ttl
+
+
+def _reuse_cached_metadata(existing: dict | None) -> dict | None:
+    if not existing:
+        return None
+
+    static_fresh = all(
+        _is_recent(existing, field, STATIC_METADATA_TTL)
+        for field in ("company_name", "sector", "industry", "market_cap")
+    )
+    quote_fresh = all(
+        _is_recent(existing, field, QUOTE_METADATA_TTL)
+        for field in ("price", "previous_close", "day_high", "day_low")
+    )
+
+    if static_fresh and quote_fresh:
+        return existing
+    return None
+
+
+def _rate_limit(service: str):
+    lock = _service_rate_limit_locks.setdefault(service, Lock())
+    with lock:
+        now = time.monotonic()
+        elapsed = now - _last_api_call.get(service, 0)
+        if elapsed < _MIN_CALL_SPACING:
+            time.sleep(_MIN_CALL_SPACING - elapsed)
+        _last_api_call[service] = time.monotonic()
+
+
+def _retry_request(fn, *args, **kwargs):
+    """Execute fn(*args, **kwargs) with exponential backoff on 429/500/503."""
+    last_exc = None
+    for attempt in range(MAX_RETRIES):
+        try:
+            result = fn(*args, **kwargs)
+            if hasattr(result, "status_code"):
+                if result.status_code == 429:
+                    delay = RETRY_BASE_DELAY * (2**attempt)
+                    print(
+                        f"429 rate limit, sleeping {delay:.1f}s before retry {attempt + 1}"
+                    )
+                    time.sleep(delay)
+                    last_exc = Exception(f"429 rate limit on attempt {attempt + 1}")
+                    continue
+                if result.status_code == 500 or result.status_code == 503:
+                    delay = RETRY_BASE_DELAY * (2**attempt)
+                    time.sleep(delay)
+                    last_exc = Exception(
+                        f"{result.status_code} server error on attempt {attempt + 1}"
+                    )
+                    continue
+                if result.status_code != 200:
+                    return result
+            return result
+        except Exception as e:
+            last_exc = e
+            if attempt < MAX_RETRIES - 1:
+                delay = RETRY_BASE_DELAY * (2**attempt)
+                time.sleep(delay)
+    if last_exc:
+        raise last_exc
+    return None
 
 
 def get_polygon_client() -> str:
@@ -31,7 +129,9 @@ def fetch_ticker_details_from_polygon(ticker: str) -> dict | None:
     try:
         url = f"{POLYGON_BASE_URL}/meta/symbols/{ticker.upper()}"
         params = {"apiKey": api_key}
-        resp = requests.get(url, params=params, timeout=10)
+        resp = polygon_get(url, params=params, timeout=10)
+        if resp is None:
+            return None
         if resp.status_code == 200:
             data = resp.json()
             return {
@@ -51,42 +151,65 @@ def fetch_ticker_details_from_finnhub(ticker: str) -> dict | None:
     if not api_key:
         return None
 
+    _rate_limit("finnhub")
     try:
         profile_url = f"{FINNHUB_BASE_URL}/stock/profile2"
-        profile_resp = requests.get(
-            profile_url,
-            params={"symbol": ticker.upper(), "token": api_key},
-            timeout=10,
-        )
         metrics_url = f"{FINNHUB_BASE_URL}/stock/metric"
-        metrics_resp = requests.get(
-            metrics_url,
-            params={"symbol": ticker.upper(), "token": api_key, "metric": "all"},
+        quote_url = f"{FINNHUB_BASE_URL}/quote"
+        ticker_upper = ticker.upper()
+
+        profile_resp = _retry_request(
+            requests.get,
+            profile_url,
+            params={"symbol": ticker_upper, "token": api_key},
             timeout=10,
         )
+        _rate_limit("finnhub")
+        metrics_resp = _retry_request(
+            requests.get,
+            metrics_url,
+            params={"symbol": ticker_upper, "token": api_key, "metric": "all"},
+            timeout=10,
+        )
+        _rate_limit("finnhub")
+        quote_resp = _retry_request(
+            requests.get,
+            quote_url,
+            params={"symbol": ticker_upper, "token": api_key},
+            timeout=10,
+        )
+
+        if not profile_resp or not metrics_resp or not quote_resp:
+            print(f"Retry failed for Finnhub ticker details for {ticker}")
+            return None
+
         profile_data = profile_resp.json() if profile_resp.status_code == 200 else {}
         metrics_data = metrics_resp.json() if metrics_resp.status_code == 200 else {}
+        quote_data = quote_resp.json() if quote_resp.status_code == 200 else {}
+        metric_values = metrics_data.get("metric", {})
 
         market_cap = profile_data.get("marketCapitalization")
         if market_cap:
             market_cap = float(market_cap) * 1e6
 
         avg_volume = None
-        if "volAvg" in metrics_data.get("metric", {}):
-            avg_volume = metrics_data["metric"]["volAvg"]
+        if "volAvg" in metric_values:
+            avg_volume = metric_values["volAvg"]
 
         ten_day_avg = None
-        if "10DayAverageTradingVolume" in metrics_data.get("metric", {}):
-            ten_day_avg = metrics_data["metric"]["10DayAverageTradingVolume"]
+        if "10DayAverageTradingVolume" in metric_values:
+            ten_day_avg = metric_values["10DayAverageTradingVolume"]
 
-        if ten_day_avg and profile_data.get("price"):
-            avg_daily_dollar_volume = float(ten_day_avg) * float(profile_data["price"])
-        elif avg_volume and profile_data.get("price"):
-            avg_daily_dollar_volume = float(avg_volume) * float(profile_data["price"])
+        price_for_volume = quote_data.get("c") or profile_data.get("price")
+        if ten_day_avg and price_for_volume:
+            avg_daily_dollar_volume = float(ten_day_avg) * 1e6 * float(price_for_volume)
+        elif avg_volume and price_for_volume:
+            avg_daily_dollar_volume = float(avg_volume) * 1e6 * float(price_for_volume)
         else:
             avg_daily_dollar_volume = None
 
-        beta = metrics_data.get("metric", {}).get("beta")
+        beta = metric_values.get("beta")
+        float_shares = metric_values.get("sharesFloat")
 
         return {
             "company_name": profile_data.get("name"),
@@ -97,6 +220,21 @@ def fetch_ticker_details_from_finnhub(ticker: str) -> dict | None:
             "market_cap": market_cap,
             "avg_daily_dollar_volume": avg_daily_dollar_volume,
             "beta": beta,
+            "float_shares": float_shares,
+            "asset_class": "large_cap_equity",
+            "pe_ratio": metric_values.get("peTTM")
+            or metric_values.get("peNormalizedAnnual"),
+            "week_52_high": metric_values.get("52WeekHigh"),
+            "week_52_low": metric_values.get("52WeekLow"),
+            "price": quote_data.get("c"),
+            "previous_close": quote_data.get("pc"),
+            "open_price": quote_data.get("o"),
+            "day_high": quote_data.get("h"),
+            "day_low": quote_data.get("l"),
+            "price_as_of": datetime.utcnow().isoformat(),
+            "avg_volume": avg_volume or ten_day_avg,
+            "last_price_source": "finnhub",
+            "is_supported": True,
         }
     except Exception as e:
         print(f"Error fetching Finnhub ticker details for {ticker}: {e}")
@@ -111,7 +249,9 @@ def fetch_market_cap_from_polygon(ticker: str) -> float | None:
     try:
         url = f"{POLYGON_BASE_URL}/meta/symbols/{ticker.upper()}"
         params = {"apiKey": api_key}
-        resp = requests.get(url, params=params, timeout=10)
+        resp = polygon_get(url, params=params, timeout=10)
+        if resp is None:
+            return None
         if resp.status_code == 200:
             data = resp.json()
             mc = data.get("market_cap")
@@ -145,29 +285,6 @@ def fetch_volatility_proxy(ticker: str, days: int = 30) -> float | None:
 
     std_dev = statistics.stdev(returns) if len(returns) > 1 else 0
     return std_dev
-
-
-def fetch_float_shares_from_finnhub(ticker: str) -> float | None:
-    api_key = get_finnhub_client()
-    if not api_key:
-        return None
-
-    try:
-        url = f"{FINNHUB_BASE_URL}/stock/metric"
-        resp = requests.get(
-            url,
-            params={"symbol": ticker.upper(), "token": api_key, "metric": "all"},
-            timeout=10,
-        )
-        if resp.status_code == 200:
-            data = resp.json()
-            shares_float = data.get("metric", {}).get("sharesFloat")
-            if shares_float:
-                return float(shares_float)
-        return None
-    except Exception as e:
-        print(f"Error fetching float shares for {ticker}: {e}")
-        return None
 
 
 def _map_polygon_type_to_asset_class(type_str: str | None) -> str:
@@ -233,13 +350,14 @@ def _get_leverage_profile(debt_to_equity: float | None) -> str:
 def build_ticker_metadata(ticker: str) -> dict | None:
     finnhub_data = fetch_ticker_details_from_finnhub(ticker)
     if not finnhub_data:
-        finnhub_data = fetch_ticker_details_from_polygon(ticker)
-        if not finnhub_data:
-            return None
+        return None
 
     market_cap = finnhub_data.get("market_cap")
-    volatility = fetch_volatility_proxy(ticker, 30)
-    float_shares = fetch_float_shares_from_finnhub(ticker)
+    float_shares = finnhub_data.get("float_shares")
+    beta = finnhub_data.get("beta")
+    volatility = None
+    if isinstance(beta, (int, float)):
+        volatility = min(max(abs(float(beta)) / 4.0, 0.05), 1.0)
 
     market_cap_bucket = _get_market_cap_bucket(market_cap)
     profitability_profile = "mixed"
@@ -260,29 +378,45 @@ def build_ticker_metadata(ticker: str) -> dict | None:
         "float_shares": float_shares,
         "avg_daily_dollar_volume": finnhub_data.get("avg_daily_dollar_volume"),
         "beta": finnhub_data.get("beta"),
+        "pe_ratio": finnhub_data.get("pe_ratio"),
+        "week_52_high": finnhub_data.get("week_52_high"),
+        "week_52_low": finnhub_data.get("week_52_low"),
+        "price": finnhub_data.get("price"),
+        "price_as_of": finnhub_data.get("price_as_of"),
+        "avg_volume": finnhub_data.get("avg_volume"),
+        "previous_close": finnhub_data.get("previous_close"),
+        "open_price": finnhub_data.get("open_price"),
+        "day_high": finnhub_data.get("day_high"),
+        "day_low": finnhub_data.get("day_low"),
+        "last_price_source": finnhub_data.get("last_price_source"),
         "volatility_proxy": volatility,
         "profitability_profile": profitability_profile,
         "leverage_profile": leverage_profile,
         "spread_proxy": spread_proxy,
+        "is_supported": True,
         "updated_at": datetime.utcnow().isoformat(),
     }
 
 
 def upsert_ticker_metadata(supabase: Client, ticker: str) -> dict | None:
-    metadata = build_ticker_metadata(ticker)
-    if not metadata:
-        return None
-
     existing = (
         supabase.table("ticker_metadata")
-        .select("id, ticker")
+        .select("*")
         .eq("ticker", ticker.upper())
         .limit(1)
         .execute()
         .data
     )
+    existing_row = existing[0] if existing else None
+    cached = _reuse_cached_metadata(existing_row)
+    if cached:
+        return cached
 
-    if existing:
+    metadata = build_ticker_metadata(ticker)
+    if not metadata:
+        return None
+
+    if existing_row:
         supabase.table("ticker_metadata").update(metadata).eq(
             "ticker", ticker.upper()
         ).execute()

@@ -1,0 +1,314 @@
+{
+  "articles_classified": [
+    {
+      "external_id": "CBMiuAFBVV95cUxNVzlKbXBqaWNLamkzZ1BBc29fdFlqZlhoUmZkMUs4MENwczY0bTR3N0NYY0VEXzhja0RrZ2w5bTUxS0hfcnJkdDF3aTdjUnVuUzh1RFZDaldfTmNzczlhaXR6RDNmZnJ3aENTWXRsUzFIU0hadTZtVnRuZ25scHJaRDdFNno4MlV4MENNT3lGVW9zNllTYjhzeHBjd2YtWGNvUWs1YXlrMWFMUGt4blJrRjRUc3c0dlMt",
+      "event_hash": "7ab598fae41c679cbeb26230a6ca0756a198f51aba479b60ae205be828ccb02d",
+      "source_type": "company_news",
+      "source": "Stock Titan",
+      "title": "AbbVie strikes up to $745M pain-drug deal with China's Haisco",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiuAFBVV95cUxNVzlKbXBqaWNLamkzZ1BBc29fdFlqZlhoUmZkMUs4MENwczY0bTR3N0NYY0VEXzhja0RrZ2w5bTUxS0hfcnJkdDF3aTdjUnVuUzh1RFZDaldfTmNzczlhaXR6RDNmZnJ3aENTWXRsUzFIU0hadTZtVnRuZ25scHJaRDdFNno4MlV4MENNT3lGVW9zNllTYjhzeHBjd2YtWGNvUWs1YXlrMWFMUGt4blJrRjRUc3c0dlMt?oc=5\" target=\"_blank\">AbbVie strikes up to $745M pain-drug deal with China's Haisco</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Stock Titan</font>",
+      "body": "Comprehensive up-to-date news coverage, aggregated from sources all over the world by Google News.",
+      "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxNVzlKbXBqaWNLamkzZ1BBc29fdFlqZlhoUmZkMUs4MENwczY0bTR3N0NYY0VEXzhja0RrZ2w5bTUxS0hfcnJkdDF3aTdjUnVuUzh1RFZDaldfTmNzczlhaXR6RDNmZnJ3aENTWXRsUzFIU0hadTZtVnRuZ25scHJaRDdFNno4MlV4MENNT3lGVW9zNllTYjhzeHBjd2YtWGNvUWs1YXlrMWFMUGt4blJrRjRUc3c0dlMt?oc=5",
+      "published_at": "2026-04-13T06:24:00+00:00",
+      "ticker_hints": [
+        "ABBV"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMiuAFBVV95cUxNVzlKbXBqaWNLamkzZ1BBc29fdFlqZlhoUmZkMUs4MENwczY0bTR3N0NYY0VEXzhja0RrZ2w5bTUxS0hfcnJkdDF3aTdjUnVuUzh1RFZDaldfTmNzczlhaXR6RDNmZnJ3aENTWXRsUzFIU0hadTZtVnRuZ25scHJaRDdFNno4MlV4MENNT3lGVW9zNllTYjhzeHBjd2YtWGNvUWs1YXlrMWFMUGt4blJrRjRUc3c0dlMt",
+        "title": "AbbVie strikes up to $745M pain-drug deal with China's Haisco",
+        "source": "Stock Titan",
+        "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxNVzlKbXBqaWNLamkzZ1BBc29fdFlqZlhoUmZkMUs4MENwczY0bTR3N0NYY0VEXzhja0RrZ2w5bTUxS0hfcnJkdDF3aTdjUnVuUzh1RFZDaldfTmNzczlhaXR6RDNmZnJ3aENTWXRsUzFIU0hadTZtVnRuZ25scHJaRDdFNno4MlV4MENNT3lGVW9zNllTYjhzeHBjd2YtWGNvUWs1YXlrMWFMUGt4blJrRjRUc3c0dlMt?oc=5",
+        "published_at": "2026-04-13T06:24:00+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiuAFBVV95cUxNVzlKbXBqaWNLamkzZ1BBc29fdFlqZlhoUmZkMUs4MENwczY0bTR3N0NYY0VEXzhja0RrZ2w5bTUxS0hfcnJkdDF3aTdjUnVuUzh1RFZDaldfTmNzczlhaXR6RDNmZnJ3aENTWXRsUzFIU0hadTZtVnRuZ25scHJaRDdFNno4MlV4MENNT3lGVW9zNllTYjhzeHBjd2YtWGNvUWs1YXlrMWFMUGt4blJrRjRUc3c0dlMt?oc=5\" target=\"_blank\">AbbVie strikes up to $745M pain-drug deal with China's Haisco</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Stock Titan</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "ABBV",
+        "company_name": "AbbVie Inc",
+        "query": "AbbVie Inc stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "ABBV"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "Up to $745M pain-drug deal with Haisco expands ABBV's pipeline and growth opportunities."
+      },
+      "resolved_url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxNVzlKbXBqaWNLamkzZ1BBc29fdFlqZlhoUmZkMUs4MENwczY0bTR3N0NYY0VEXzhja0RrZ2w5bTUxS0hfcnJkdDF3aTdjUnVuUzh1RFZDaldfTmNzczlhaXR6RDNmZnJ3aENTWXRsUzFIU0hadTZtVnRuZ25scHJaRDdFNno4MlV4MENNT3lGVW9zNllTYjhzeHBjd2YtWGNvUWs1YXlrMWFMUGt4blJrRjRUc3c0dlMt?oc=5&hl=en-US&gl=US&ceid=US:en",
+      "content_source": "news.google.com",
+      "scrape_status": "ok"
+    },
+    {
+      "external_id": "CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTkJ2TmN1UQ",
+      "event_hash": "71a87b2621d105df3c8f0a0fb770e159ab85bc38f158166270abf676acef956b",
+      "source_type": "company_news",
+      "source": "National Today",
+      "title": "Factory Mutual Insurance Co. Decreases AbbVie Stock Position",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTkJ2TmN1UQ?oc=5\" target=\"_blank\">Factory Mutual Insurance Co. Decreases AbbVie Stock Position</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">National Today</font>",
+      "body": "Comprehensive up-to-date news coverage, aggregated from sources all over the world by Google News.",
+      "url": "https://news.google.com/rss/articles/CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTkJ2TmN1UQ?oc=5",
+      "published_at": "2026-04-11T13:38:22+00:00",
+      "ticker_hints": [
+        "ABBV"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTkJ2TmN1UQ",
+        "title": "Factory Mutual Insurance Co. Decreases AbbVie Stock Position",
+        "source": "National Today",
+        "url": "https://news.google.com/rss/articles/CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTkJ2TmN1UQ?oc=5",
+        "published_at": "2026-04-11T13:38:22+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTkJ2TmN1UQ?oc=5\" target=\"_blank\">Factory Mutual Insurance Co. Decreases AbbVie Stock Position</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">National Today</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "ABBV",
+        "company_name": "AbbVie Inc",
+        "query": "AbbVie Inc stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "ABBV"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "Institutional investor (Factory Mutual) reducing their AbbVie position signals potential sentiment shift for ABBV."
+      },
+      "resolved_url": "https://news.google.com/rss/articles/CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTkJ2TmN1UQ?oc=5&hl=en-US&gl=US&ceid=US:en",
+      "content_source": "news.google.com",
+      "scrape_status": "ok"
+    },
+    {
+      "external_id": "CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz",
+      "event_hash": "7d47e5b020e88983bc7b8c9a2f5a3211c6d34961c1e8edcd818edf3ddda97f08",
+      "source_type": "company_news",
+      "source": "Yahoo Finance",
+      "title": "Battle of Big Pharma: Is AbbVie Stock Pulling Ahead of Pfizer?",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz?oc=5\" target=\"_blank\">Battle of Big Pharma: Is AbbVie Stock Pulling Ahead of Pfizer?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Finance</font>",
+      "body": "Comprehensive up-to-date news coverage, aggregated from sources all over the world by Google News.",
+      "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz?oc=5",
+      "published_at": "2026-04-10T13:32:00+00:00",
+      "ticker_hints": [
+        "ABBV"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz",
+        "title": "Battle of Big Pharma: Is AbbVie Stock Pulling Ahead of Pfizer?",
+        "source": "Yahoo Finance",
+        "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz?oc=5",
+        "published_at": "2026-04-10T13:32:00+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz?oc=5\" target=\"_blank\">Battle of Big Pharma: Is AbbVie Stock Pulling Ahead of Pfizer?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Finance</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "ABBV",
+        "company_name": "AbbVie Inc",
+        "query": "AbbVie Inc stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "ABBV"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "Article compares AbbVie's stock performance against Pfizer, directly relevant to the ABBV growth position."
+      },
+      "resolved_url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz?oc=5&hl=en-US&gl=US&ceid=US:en",
+      "content_source": "news.google.com",
+      "scrape_status": "ok"
+    },
+    {
+      "external_id": "CBMiXkFVX3lxTE91ZHpGQVZnVmtOVFpoemtmVThSd1B2RDhrbHE0N2tDQlo5ejBhUjZzLUozaGo0MUtjNVVjRk9ZVDd1SGVVLU5Fb3BVUEJXdVM5a19heTdDblNhN2h5Z1E",
+      "event_hash": "ed395fdf22cf66410048fe60fa79897a9451b1945b5c6ca5e45fcd5d3f459abf",
+      "source_type": "company_news",
+      "source": "ChartMill",
+      "title": "ABT Stock Price, Quote & Chart | ABBOTT LABORATORIES (NYSE:ABT)",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiXkFVX3lxTE91ZHpGQVZnVmtOVFpoemtmVThSd1B2RDhrbHE0N2tDQlo5ejBhUjZzLUozaGo0MUtjNVVjRk9ZVDd1SGVVLU5Fb3BVUEJXdVM5a19heTdDblNhN2h5Z1E?oc=5\" target=\"_blank\">ABT Stock Price, Quote & Chart | ABBOTT LABORATORIES (NYSE:ABT)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">ChartMill</font>",
+      "body": "Comprehensive up-to-date news coverage, aggregated from sources all over the world by Google News.",
+      "url": "https://news.google.com/rss/articles/CBMiXkFVX3lxTE91ZHpGQVZnVmtOVFpoemtmVThSd1B2RDhrbHE0N2tDQlo5ejBhUjZzLUozaGo0MUtjNVVjRk9ZVDd1SGVVLU5Fb3BVUEJXdVM5a19heTdDblNhN2h5Z1E?oc=5",
+      "published_at": "2026-04-10T07:00:00+00:00",
+      "ticker_hints": [
+        "ABT"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMiXkFVX3lxTE91ZHpGQVZnVmtOVFpoemtmVThSd1B2RDhrbHE0N2tDQlo5ejBhUjZzLUozaGo0MUtjNVVjRk9ZVDd1SGVVLU5Fb3BVUEJXdVM5a19heTdDblNhN2h5Z1E",
+        "title": "ABT Stock Price, Quote & Chart | ABBOTT LABORATORIES (NYSE:ABT)",
+        "source": "ChartMill",
+        "url": "https://news.google.com/rss/articles/CBMiXkFVX3lxTE91ZHpGQVZnVmtOVFpoemtmVThSd1B2RDhrbHE0N2tDQlo5ejBhUjZzLUozaGo0MUtjNVVjRk9ZVDd1SGVVLU5Fb3BVUEJXdVM5a19heTdDblNhN2h5Z1E?oc=5",
+        "published_at": "2026-04-10T07:00:00+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiXkFVX3lxTE91ZHpGQVZnVmtOVFpoemtmVThSd1B2RDhrbHE0N2tDQlo5ejBhUjZzLUozaGo0MUtjNVVjRk9ZVDd1SGVVLU5Fb3BVUEJXdVM5a19heTdDblNhN2h5Z1E?oc=5\" target=\"_blank\">ABT Stock Price, Quote & Chart | ABBOTT LABORATORIES (NYSE:ABT)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">ChartMill</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "ABT",
+        "company_name": "Abbott Laboratories",
+        "query": "Abbott Laboratories stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "ABT"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "ABT stock price tracking provides current valuation data relevant to growth archetype positioning."
+      },
+      "resolved_url": "https://news.google.com/rss/articles/CBMiXkFVX3lxTE91ZHpGQVZnVmtOVFpoemtmVThSd1B2RDhrbHE0N2tDQlo5ejBhUjZzLUozaGo0MUtjNVVjRk9ZVDd1SGVVLU5Fb3BVUEJXdVM5a19heTdDblNhN2h5Z1E?oc=5&hl=en-US&gl=US&ceid=US:en",
+      "content_source": "news.google.com",
+      "scrape_status": "ok"
+    },
+    {
+      "external_id": "CBMiXkFVX3lxTE8tcTBuZDRpeTUxdk93d3VlLTE0aGZMVlZ0RmlJazFnQjRaMllpSG9vTmhNUGpVejBBQ29QbmMyRWk3aXcwSy1pTHItMDg3eFZSSmN2TWJaR3pwci1KYUE",
+      "event_hash": "448cc37c170b53a346ba51f8358b960299d23e675e4a2dc2fe401da858892439",
+      "source_type": "company_news",
+      "source": "ChartMill",
+      "title": "AOS Stock Price, Quote & Chart | SMITH (A.O.) CORP (NYSE:AOS)",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiXkFVX3lxTE8tcTBuZDRpeTUxdk93d3VlLTE0aGZMVlZ0RmlJazFnQjRaMllpSG9vTmhNUGpVejBBQ29QbmMyRWk3aXcwSy1pTHItMDg3eFZSSmN2TWJaR3pwci1KYUE?oc=5\" target=\"_blank\">AOS Stock Price, Quote & Chart | SMITH (A.O.) CORP (NYSE:AOS)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">ChartMill</font>",
+      "body": "Comprehensive up-to-date news coverage, aggregated from sources all over the world by Google News.",
+      "url": "https://news.google.com/rss/articles/CBMiXkFVX3lxTE8tcTBuZDRpeTUxdk93d3VlLTE0aGZMVlZ0RmlJazFnQjRaMllpSG9vTmhNUGpVejBBQ29QbmMyRWk3aXcwSy1pTHItMDg3eFZSSmN2TWJaR3pwci1KYUE?oc=5",
+      "published_at": "2026-04-10T07:00:00+00:00",
+      "ticker_hints": [
+        "AOS"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMiXkFVX3lxTE8tcTBuZDRpeTUxdk93d3VlLTE0aGZMVlZ0RmlJazFnQjRaMllpSG9vTmhNUGpVejBBQ29QbmMyRWk3aXcwSy1pTHItMDg3eFZSSmN2TWJaR3pwci1KYUE",
+        "title": "AOS Stock Price, Quote & Chart | SMITH (A.O.) CORP (NYSE:AOS)",
+        "source": "ChartMill",
+        "url": "https://news.google.com/rss/articles/CBMiXkFVX3lxTE8tcTBuZDRpeTUxdk93d3VlLTE0aGZMVlZ0RmlJazFnQjRaMllpSG9vTmhNUGpVejBBQ29QbmMyRWk3aXcwSy1pTHItMDg3eFZSSmN2TWJaR3pwci1KYUE?oc=5",
+        "published_at": "2026-04-10T07:00:00+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiXkFVX3lxTE8tcTBuZDRpeTUxdk93d3VlLTE0aGZMVlZ0RmlJazFnQjRaMllpSG9vTmhNUGpVejBBQ29QbmMyRWk3aXcwSy1pTHItMDg3eFZSSmN2TWJaR3pwci1KYUE?oc=5\" target=\"_blank\">AOS Stock Price, Quote & Chart | SMITH (A.O.) CORP (NYSE:AOS)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">ChartMill</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "AOS",
+        "company_name": "A O Smith Corp",
+        "query": "A O Smith Corp stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "AOS"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "This is a generic stock quote/chart page rather than news content with actionable information for the AOS position."
+      },
+      "resolved_url": "https://news.google.com/rss/articles/CBMiXkFVX3lxTE8tcTBuZDRpeTUxdk93d3VlLTE0aGZMVlZ0RmlJazFnQjRaMllpSG9vTmhNUGpVejBBQ29QbmMyRWk3aXcwSy1pTHItMDg3eFZSSmN2TWJaR3pwci1KYUE?oc=5&hl=en-US&gl=US&ceid=US:en",
+      "content_source": "news.google.com",
+      "scrape_status": "ok"
+    },
+    {
+      "external_id": "CBMiXkFVX3lxTE5IMXhxNnFSdVpIbFhFSFRra3M2ZHJIT1N4ZEYzeFlGR3dQeGtUSURRVVFNbzR1SGNZTFpXaGdDM3pMTExZeW9Ldm5EZXZoN2hoV3hldE1IaU9FS251dEE",
+      "event_hash": "735d4e62239414b211b08dc4181d7095853bf5528ea3903e89c10f7ce2a71b16",
+      "source_type": "company_news",
+      "source": "ChartMill",
+      "title": "MMM Stock Price, Quote & Chart | 3M CO (NYSE:MMM)",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiXkFVX3lxTE5IMXhxNnFSdVpIbFhFSFRra3M2ZHJIT1N4ZEYzeFlGR3dQeGtUSURRVVFNbzR1SGNZTFpXaGdDM3pMTExZeW9Ldm5EZXZoN2hoV3hldE1IaU9FS251dEE?oc=5\" target=\"_blank\">MMM Stock Price, Quote & Chart | 3M CO (NYSE:MMM)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">ChartMill</font>",
+      "body": "Comprehensive up-to-date news coverage, aggregated from sources all over the world by Google News.",
+      "url": "https://news.google.com/rss/articles/CBMiXkFVX3lxTE5IMXhxNnFSdVpIbFhFSFRra3M2ZHJIT1N4ZEYzeFlGR3dQeGtUSURRVVFNbzR1SGNZTFpXaGdDM3pMTExZeW9Ldm5EZXZoN2hoV3hldE1IaU9FS251dEE?oc=5",
+      "published_at": "2026-04-10T07:00:00+00:00",
+      "ticker_hints": [
+        "MMM"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMiXkFVX3lxTE5IMXhxNnFSdVpIbFhFSFRra3M2ZHJIT1N4ZEYzeFlGR3dQeGtUSURRVVFNbzR1SGNZTFpXaGdDM3pMTExZeW9Ldm5EZXZoN2hoV3hldE1IaU9FS251dEE",
+        "title": "MMM Stock Price, Quote & Chart | 3M CO (NYSE:MMM)",
+        "source": "ChartMill",
+        "url": "https://news.google.com/rss/articles/CBMiXkFVX3lxTE5IMXhxNnFSdVpIbFhFSFRra3M2ZHJIT1N4ZEYzeFlGR3dQeGtUSURRVVFNbzR1SGNZTFpXaGdDM3pMTExZeW9Ldm5EZXZoN2hoV3hldE1IaU9FS251dEE?oc=5",
+        "published_at": "2026-04-10T07:00:00+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiXkFVX3lxTE5IMXhxNnFSdVpIbFhFSFRra3M2ZHJIT1N4ZEYzeFlGR3dQeGtUSURRVVFNbzR1SGNZTFpXaGdDM3pMTExZeW9Ldm5EZXZoN2hoV3hldE1IaU9FS251dEE?oc=5\" target=\"_blank\">MMM Stock Price, Quote & Chart | 3M CO (NYSE:MMM)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">ChartMill</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "MMM",
+        "company_name": "3M Co",
+        "query": "3M Co stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "MMM"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "This is just a stock quote/chart page with no actual news, analysis, or actionable information for portfolio decisions."
+      },
+      "resolved_url": "https://news.google.com/rss/articles/CBMiXkFVX3lxTE5IMXhxNnFSdVpIbFhFSFRra3M2ZHJIT1N4ZEYzeFlGR3dQeGtUSURRVVFNbzR1SGNZTFpXaGdDM3pMTExZeW9Ldm5EZXZoN2hoV3hldE1IaU9FS251dEE?oc=5&hl=en-US&gl=US&ceid=US:en",
+      "content_source": "news.google.com",
+      "scrape_status": "ok"
+    }
+  ],
+  "significance_cache": {
+    "00199102b53f2778cc1b752999d56e52bda617eea6e047ddec6ae96bf6d65cac": {
+      "confidence": 0.92,
+      "event_type": "other",
+      "significance": "minor",
+      "why_it_matters": "This is analyst commentary asking if ABT is attractive after a price pullback, not a material corporate announcement or catalyst."
+    },
+    "5ece00b917bf5cab3f121b595a7eaffa2cf424615e75e0028b805136f59df054": {
+      "confidence": 0.9,
+      "event_type": "other",
+      "significance": "minor",
+      "why_it_matters": "Simply Wall St value analysis asking if Abbott Laboratories is undervalued after price weakness, not a rating change."
+    },
+    "9fed14e5aa90a676312e30b1fa05eb66fb060176c564ae8da60c424a595df6f1": {
+      "confidence": 0.95,
+      "event_type": "other",
+      "significance": "minor",
+      "why_it_matters": "This is a routine update on a mutual fund's portfolio holdings with no new corporate announcements or material catalysts."
+    },
+    "59d66734ce28fd9f389e9f793b6013857cbf53850720414dde340c860ae8cc34": {
+      "rule": "keyword",
+      "confidence": 0.95,
+      "event_type": "other",
+      "significance": "major",
+      "why_it_matters": "Keyword detected major event"
+    },
+    "c0cc7865a779930bae22864c75efe4db5d344a9242acce3b8bb4c59d8d905f88": {
+      "rule": "keyword",
+      "confidence": 0.95,
+      "event_type": "other",
+      "significance": "major",
+      "why_it_matters": "Keyword detected major event"
+    },
+    "056c3b580566f967e413e8321bdbbae788b846a33f6d5dfa1154254c69bacec8": {
+      "confidence": 0.82,
+      "event_type": "management",
+      "significance": "minor",
+      "why_it_matters": "Group President's small open-market stock buys are routine insider activity below the threshold for material significance."
+    },
+    "7ab598fae41c679cbeb26230a6ca0756a198f51aba479b60ae205be828ccb02d": {
+      "significance": "major",
+      "event_type": "mna",
+      "why_it_matters": "AbbVie's up to $745M deal with Haisco for a pain drug represents a significant strategic partnership that could materially impact AbbVie's pipeline and future revenue streams.",
+      "confidence": 0.85
+    },
+    "71a87b2621d105df3c8f0a0fb770e159ab85bc38f158166270abf676acef956b": {
+      "significance": "minor",
+      "event_type": "other",
+      "why_it_matters": "Factory Mutual Insurance reducing its AbbVie position is routine institutional portfolio rebalancing and does not reflect changes in AbbVie's underlying fundamentals.",
+      "confidence": 0.9
+    },
+    "7d47e5b020e88983bc7b8c9a2f5a3211c6d34961c1e8edcd818edf3ddda97f08": {
+      "significance": "minor",
+      "event_type": "other",
+      "why_it_matters": "This is analytical commentary comparing AbbVie and Pfizer stock performance without any material new catalyst from either company.",
+      "confidence": 0.92
+    },
+    "ed395fdf22cf66410048fe60fa79897a9451b1945b5c6ca5e45fcd5d3f459abf": {
+      "significance": "minor",
+      "event_type": "other",
+      "why_it_matters": "This is a stock price quote and chart page with no news content or corporate announcement.",
+      "confidence": 0.98
+    },
+    "448cc37c170b53a346ba51f8358b960299d23e675e4a2dc2fe401da858892439": {
+      "significance": "minor",
+      "event_type": "other",
+      "why_it_matters": "This is a stock price quote and chart page with no news content or corporate announcement.",
+      "confidence": 0.98
+    },
+    "735d4e62239414b211b08dc4181d7095853bf5528ea3903e89c10f7ce2a71b16": {
+      "significance": "minor",
+      "event_type": "other",
+      "why_it_matters": "Classification unavailable.",
+      "confidence": 0.3
+    }
+  }
+}

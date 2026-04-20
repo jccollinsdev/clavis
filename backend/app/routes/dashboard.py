@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response
 
 from ..services.supabase import get_supabase
+from ..services.ticker_cache_service import enrich_positions_with_ticker_cache
 from .analysis_runs import _enrich_run
 from .holdings import refresh_position_price
 
@@ -19,50 +20,13 @@ def _enrich_positions(
     for pos in positions:
         if pos.get("current_price") is None:
             background_tasks.add_task(refresh_position_price, pos["id"], pos["ticker"])
-
-        scores = (
-            supabase.table("risk_scores")
-            .select("grade, total_score, calculated_at")
-            .eq("position_id", pos["id"])
-            .order("calculated_at", desc=True)
-            .limit(2)
-            .execute()
-            .data
-        )
-        analyses = (
-            supabase.table("position_analyses")
-            .select(
-                "inferred_labels, summary, status, progress_message, source_count, updated_at, created_at"
-            )
-            .eq("position_id", pos["id"])
-            .order("updated_at", desc=True)
-            .order("created_at", desc=True)
-            .limit(1)
-            .execute()
-            .data
-        )
-
-        if len(scores) >= 1:
-            pos["risk_grade"] = scores[0].get("grade")
-            pos["total_score"] = scores[0].get("total_score")
-            pos["last_analyzed_at"] = scores[0].get("calculated_at")
-        else:
-            pos["risk_grade"] = None
-            pos["total_score"] = None
-            pos["last_analyzed_at"] = None
-
-        pos["previous_grade"] = scores[1].get("grade") if len(scores) >= 2 else None
-        pos["inferred_labels"] = (
-            analyses[0].get("inferred_labels") if analyses else None
-        )
-        pos["summary"] = analyses[0].get("summary") if analyses else None
-
-    return positions
+    return enrich_positions_with_ticker_cache(positions, supabase)
 
 
 def _latest_digest_and_run(supabase, user_id: str):
-    today = datetime.utcnow().date()
-    tomorrow = today + timedelta(days=1)
+    now = datetime.utcnow()
+    freshness_window = timedelta(hours=24)
+    cutoff = now - freshness_window
 
     latest_run_result = (
         supabase.table("analysis_runs")
@@ -88,8 +52,8 @@ def _latest_digest_and_run(supabase, user_id: str):
         supabase.table("digests")
         .select("*")
         .eq("user_id", user_id)
-        .gte("generated_at", today.isoformat())
-        .lt("generated_at", tomorrow.isoformat())
+        .gte("generated_at", cutoff.isoformat())
+        .lt("generated_at", now.isoformat())
         .order("generated_at", desc=True)
         .limit(1)
         .execute()

@@ -51,7 +51,7 @@ Grades translate the total score into a severity signal. The scale is fixed and 
 
 | Grade | Score Range | What It Means |
 |---|---|---|
-| **A** | 80–100 | Risk is low. Market conditions and company fundamentals are cooperating with your position's thesis. |
+| **A** | 80–100 | Risk is low. Market conditions and company fundamentals are cooperating with your position's current setup. |
 | **B** | 65–79 | No immediate concerns. Conditions are net positive but worth watching. |
 | **C** | 50–64 | Mixed signals. The position is neither clearly safe nor clearly at risk. Watch for developments. |
 | **D** | 35–49 | Risk is elevated. Things have deteriorated enough that the downside is material. |

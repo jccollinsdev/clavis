@@ -1,0 +1,28 @@
+{
+  "sequence": 2,
+  "logged_at": "2026-04-14T10:23:49.706364+00:00",
+  "model": "MiniMax-M2.7",
+  "function_name": "chatcompletion_text",
+  "caller": {
+    "file": "/usr/local/lib/python3.11/concurrent/futures/thread.py",
+    "function": "run",
+    "line": 58
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a relevance classifier for a portfolio risk app.\n\nFor each article below, determine if it's relevant to any of the given positions.\n\nPositions:\n{positions}\n\nArticles:\n{articles}\n\nReturn JSON array where each entry has:\n- \"article_index\": 0-based index\n- \"relevant\": true/false\n- \"affected_tickers\": [\"NVDA\", \"AAPL\"] (if relevant)\n- \"event_type\": \"company_specific|macro|sector|theme|irrelevant\"\n- \"why_it_matters\": one sentence\n\nRules:\n- If article mentions a held ticker by name or alias \u2192 relevant (company_specific)\n- If macro/financial news matches position themes \u2192 relevant (macro/sector)\n- Analyst downgrades/upgrades with price targets \u2192 minor, still relevant\n- General market commentary with no specific tickers \u2192 irrelevant unless macro theme matches\n- Only flag articles as relevant if there's a clear connection to held positions\n"
+    },
+    {
+      "role": "user",
+      "content": "Positions:\n- ABBV: growth archetype\n\nArticles:\n[0] Title: Battle of Big Pharma: Is AbbVie Stock Pulling Ahead of Pfizer?\n    Summary: <a href=\"https://news.google.com/rss/articles/CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz?oc=5\" target=\"_blank\">Battle of B\n\n[1] Title: AbbVie Inc. stock underperforms Friday when compared to competitors\n    Summary: <a href=\"https://news.google.com/rss/articles/CBMixAFBVV95cUxQdm13R3Q3YUJvQjI0cWlSNjZKSG5tWFhFNzFmNlVfclZEMjFrTnh6X0tDbUZRSzJCa09LUUlrSUc1T1FZcV96Uml6aElfUjhmNC04eEdJV3Zob2ljbG5zc0lUYjhtUzY3ODBxRmdncW15MUVVOTJiZnZIczhPLVFtU0hsV3dvalRTTmJ4NWc1d3pBdmxVV1l3TEJKQ2FUd0xSa3lZOU5aNmdLSEQzdWRhMl9ERVlmbzZta3\n\n[2] Title: AbbVie: Fairly Valued And Positioned For Growth (NYSE:ABBV)\n    Summary: <a href=\"https://news.google.com/rss/articles/CBMikwFBVV95cUxOOUF3elBnTjkzMmcwd0hubHRMbHl5czc4RWE2djNiM2hibS1sZUxsaks5bGtxcGk2WjFTSFRYZlRjWmNtTUxCVTE3M2FhOUdidHZhblFBZXFvVmZES2l5dGtKd0VaZTVFenEwMHljRThsU25kM3FJRmlSR2dqZkNra3htUUxUS3JlcGJybjFhd3gxTWM?oc=5\" target=\"_blank\">AbbVie: Fairly Valued And Po\n\n[3] Title: RBC Capital reiterates Abbvie stock Outperform rating at $260 target\n    Summary: <a href=\"https://news.google.com/rss/articles/CBMixgFBVV95cUxNWmlXMzgzeWpNMHhTLV94MVNkeFRfMnNqM3dJNjgwMk50VFlHd3lEMkVjcXhmTS1JWlgyT19wYWw4ZHVqTlM3RzZjLXlhZ0U5dnlBb3VsejIzMllJWmhXY3ZudEVyejVQeXRPLU02eGlMazFwV0NVREgyZ2RETGl3UTJiUmNWYi0xa2hzLVVFTTMwR181WWhqOEllcFJuX2hFY0ZsLS1pOF9SbjYwdEwzX3pQbk9hcW4wQ2\n\n[4] Title: Factory Mutual Insurance Co. Decreases AbbVie Stock Position\n    Summary: <a href=\"https://news.google.com/rss/articles/CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTk\n"
+    }
+  ],
+  "kwargs": {
+    "temperature": 0.1,
+    "max_tokens": 2500
+  },
+  "response": "```json\n[\n  {\n    \"article_index\": 0,\n    \"relevant\": true,\n    \"affected_tickers\": [\"ABBV\"],\n    \"event_type\": \"company_specific\",\n    \"why_it_matters\": \"Article compares AbbVie's stock performance against Pfizer, directly relevant to the ABBV growth position.\"\n  },\n  {\n    \"article_index\": 1,\n    \"relevant\": true,\n    \"affected_tickers\": [\"ABBV\"],\n    \"event_type\": \"company_specific\",\n    \"why_it_matters\": \"AbbVie stock underperformed competitors on Friday, which is directly relevant to tracking the ABBV position performance.\"\n  },\n  {\n    \"article_index\": 2,\n    \"relevant\": true,\n    \"affected_tickers\": [\"ABBV\"],\n    \"event_type\": \"company_specific\",\n    \"why_it_matters\": \"Article assesses AbbVie's fair valuation and growth positioning, directly relevant to the ABBV growth archetype.\"\n  },\n  {\n    \"article_index\": 3,\n    \"relevant\": true,\n    \"affected_tickers\": [\"ABBV\"],\n    \"event_type\": \"company_specific\",\n    \"why_it_matters\": \"RBC Capital's reiteration of Outperform rating at $260 target provides analyst support for the ABBV position.\"\n  },\n  {\n    \"article_index\": 4,\n    \"relevant\": true,\n    \"affected_tickers\": [\"ABBV\"],\n    \"event_type\": \"company_specific\",\n    \"why_it_matters\": \"Institutional investor (Factory Mutual) reducing their AbbVie position signals potential sentiment shift for ABBV.\"\n  }\n]\n```",
+  "error": null,
+  "duration_ms": 14204.54
+}

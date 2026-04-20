@@ -1,0 +1,552 @@
+{
+  "position": {
+    "id": "05f45e96-bbe1-4dd5-9799-1c55542d15b1",
+    "user_id": "00000000-0000-0000-0000-000000000001",
+    "ticker": "AOS",
+    "shares": 0.0,
+    "purchase_price": 0.0,
+    "archetype": "growth",
+    "created_at": "2026-04-12T23:57:58.424725+00:00",
+    "updated_at": "2026-04-12T23:57:58.424725+00:00",
+    "current_price": 67.18,
+    "analysis_started_at": null
+  },
+  "inferred_labels": [
+    "growth"
+  ],
+  "related_articles": [
+    {
+      "external_id": "CBMiiAFBVV95cUxQSHRHRVR6eWVZQUxLVzRkdGN3MXRVUDJwYVVoaC0yMkdpd1U0UmpjNHFVTU5BNXpydW81bTBlNUF1eVdma2VaSHFZdDVWeGo5cGxVTTdwUGozZGlHdGJ4bjFhekVvRzVOM3BWdzk4Z1IwbUFRbUZPZEpLY0FsMjJySDE3SUthOTV2",
+      "event_hash": "9fed14e5aa90a676312e30b1fa05eb66fb060176c564ae8da60c424a595df6f1",
+      "source_type": "company_news",
+      "source": "GuruFocus",
+      "title": "AVE MARIA VALUE FOCUSED FUND's A.O. Smith Corp(AOS) Holding History",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiiAFBVV95cUxQSHRHRVR6eWVZQUxLVzRkdGN3MXRVUDJwYVVoaC0yMkdpd1U0UmpjNHFVTU5BNXpydW81bTBlNUF1eVdma2VaSHFZdDVWeGo5cGxVTTdwUGozZGlHdGJ4bjFhekVvRzVOM3BWdzk4Z1IwbUFRbUZPZEpLY0FsMjJySDE3SUthOTV2?oc=5\" target=\"_blank\">AVE MARIA VALUE FOCUSED FUND's A.O. Smith Corp(AOS) Holding History</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">GuruFocus</font>",
+      "body": "Comprehensive up-to-date news coverage, aggregated from sources all over the world by Google News.",
+      "url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxQSHRHRVR6eWVZQUxLVzRkdGN3MXRVUDJwYVVoaC0yMkdpd1U0UmpjNHFVTU5BNXpydW81bTBlNUF1eVdma2VaSHFZdDVWeGo5cGxVTTdwUGozZGlHdGJ4bjFhekVvRzVOM3BWdzk4Z1IwbUFRbUZPZEpLY0FsMjJySDE3SUthOTV2?oc=5",
+      "published_at": "2026-04-12T02:58:30+00:00",
+      "ticker_hints": [
+        "AOS"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMiiAFBVV95cUxQSHRHRVR6eWVZQUxLVzRkdGN3MXRVUDJwYVVoaC0yMkdpd1U0UmpjNHFVTU5BNXpydW81bTBlNUF1eVdma2VaSHFZdDVWeGo5cGxVTTdwUGozZGlHdGJ4bjFhekVvRzVOM3BWdzk4Z1IwbUFRbUZPZEpLY0FsMjJySDE3SUthOTV2",
+        "title": "AVE MARIA VALUE FOCUSED FUND's A.O. Smith Corp(AOS) Holding History",
+        "source": "GuruFocus",
+        "url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxQSHRHRVR6eWVZQUxLVzRkdGN3MXRVUDJwYVVoaC0yMkdpd1U0UmpjNHFVTU5BNXpydW81bTBlNUF1eVdma2VaSHFZdDVWeGo5cGxVTTdwUGozZGlHdGJ4bjFhekVvRzVOM3BWdzk4Z1IwbUFRbUZPZEpLY0FsMjJySDE3SUthOTV2?oc=5",
+        "published_at": "2026-04-12T02:58:30+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiiAFBVV95cUxQSHRHRVR6eWVZQUxLVzRkdGN3MXRVUDJwYVVoaC0yMkdpd1U0UmpjNHFVTU5BNXpydW81bTBlNUF1eVdma2VaSHFZdDVWeGo5cGxVTTdwUGozZGlHdGJ4bjFhekVvRzVOM3BWdzk4Z1IwbUFRbUZPZEpLY0FsMjJySDE3SUthOTV2?oc=5\" target=\"_blank\">AVE MARIA VALUE FOCUSED FUND's A.O. Smith Corp(AOS) Holding History</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">GuruFocus</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "AOS",
+        "company_name": "A O Smith Corp",
+        "query": "A O Smith Corp stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "AOS"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "Fund holding history shows institutional positioning which can signal sentiment changes for AOS."
+      },
+      "resolved_url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxQSHRHRVR6eWVZQUxLVzRkdGN3MXRVUDJwYVVoaC0yMkdpd1U0UmpjNHFVTU5BNXpydW81bTBlNUF1eVdma2VaSHFZdDVWeGo5cGxVTTdwUGozZGlHdGJ4bjFhekVvRzVOM3BWdzk4Z1IwbUFRbUZPZEpLY0FsMjJySDE3SUthOTV2?oc=5&hl=en-US&gl=US&ceid=US:en",
+      "content_source": "news.google.com",
+      "scrape_status": "ok"
+    },
+    {
+      "external_id": "CBMiXkFVX3lxTE8tcTBuZDRpeTUxdk93d3VlLTE0aGZMVlZ0RmlJazFnQjRaMllpSG9vTmhNUGpVejBBQ29QbmMyRWk3aXcwSy1pTHItMDg3eFZSSmN2TWJaR3pwci1KYUE",
+      "event_hash": "448cc37c170b53a346ba51f8358b960299d23e675e4a2dc2fe401da858892439",
+      "source_type": "company_news",
+      "source": "ChartMill",
+      "title": "AOS Stock Price, Quote & Chart | SMITH (A.O.) CORP (NYSE:AOS)",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiXkFVX3lxTE8tcTBuZDRpeTUxdk93d3VlLTE0aGZMVlZ0RmlJazFnQjRaMllpSG9vTmhNUGpVejBBQ29QbmMyRWk3aXcwSy1pTHItMDg3eFZSSmN2TWJaR3pwci1KYUE?oc=5\" target=\"_blank\">AOS Stock Price, Quote & Chart | SMITH (A.O.) CORP (NYSE:AOS)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">ChartMill</font>",
+      "body": "Comprehensive up-to-date news coverage, aggregated from sources all over the world by Google News.",
+      "url": "https://news.google.com/rss/articles/CBMiXkFVX3lxTE8tcTBuZDRpeTUxdk93d3VlLTE0aGZMVlZ0RmlJazFnQjRaMllpSG9vTmhNUGpVejBBQ29QbmMyRWk3aXcwSy1pTHItMDg3eFZSSmN2TWJaR3pwci1KYUE?oc=5",
+      "published_at": "2026-04-10T07:00:00+00:00",
+      "ticker_hints": [
+        "AOS"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMiXkFVX3lxTE8tcTBuZDRpeTUxdk93d3VlLTE0aGZMVlZ0RmlJazFnQjRaMllpSG9vTmhNUGpVejBBQ29QbmMyRWk3aXcwSy1pTHItMDg3eFZSSmN2TWJaR3pwci1KYUE",
+        "title": "AOS Stock Price, Quote & Chart | SMITH (A.O.) CORP (NYSE:AOS)",
+        "source": "ChartMill",
+        "url": "https://news.google.com/rss/articles/CBMiXkFVX3lxTE8tcTBuZDRpeTUxdk93d3VlLTE0aGZMVlZ0RmlJazFnQjRaMllpSG9vTmhNUGpVejBBQ29QbmMyRWk3aXcwSy1pTHItMDg3eFZSSmN2TWJaR3pwci1KYUE?oc=5",
+        "published_at": "2026-04-10T07:00:00+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiXkFVX3lxTE8tcTBuZDRpeTUxdk93d3VlLTE0aGZMVlZ0RmlJazFnQjRaMllpSG9vTmhNUGpVejBBQ29QbmMyRWk3aXcwSy1pTHItMDg3eFZSSmN2TWJaR3pwci1KYUE?oc=5\" target=\"_blank\">AOS Stock Price, Quote & Chart | SMITH (A.O.) CORP (NYSE:AOS)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">ChartMill</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "AOS",
+        "company_name": "A O Smith Corp",
+        "query": "A O Smith Corp stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "AOS"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "This is a generic stock quote/chart page rather than news content with actionable information for the AOS position."
+      },
+      "resolved_url": "https://news.google.com/rss/articles/CBMiXkFVX3lxTE8tcTBuZDRpeTUxdk93d3VlLTE0aGZMVlZ0RmlJazFnQjRaMllpSG9vTmhNUGpVejBBQ29QbmMyRWk3aXcwSy1pTHItMDg3eFZSSmN2TWJaR3pwci1KYUE?oc=5&hl=en-US&gl=US&ceid=US:en",
+      "content_source": "news.google.com",
+      "scrape_status": "ok"
+    },
+    {
+      "external_id": "CBMiwwFBVV95cUxNRkduQkEyQ3kyQ0NrV2dTTS1HdTlhSTBMbkJZQ0ZGUWNRSlJqN0JJai1scndiQndBcG5sLXlJaHcyNnd1SkNjVFRNeUpIaW42anEzajRlcmhuX2lPazZxVjRJNmNKaDVPbzB3SkhRQ1V3U25SbF9oMzJIUFpOZ1dUYkRPYnhoam9KVDZ4NGpuSHROVkN3NUdRM016bldpRDE2NWVZbFNhVl9qZFJ2VnZIaEZmM1p0YjBMMUJfbXBDRU1rSFk",
+      "event_hash": "59d66734ce28fd9f389e9f793b6013857cbf53850720414dde340c860ae8cc34",
+      "source_type": "company_news",
+      "source": "FinancialContent",
+      "title": "Earnings Preview: What to Expect From A. O. Smith's Report",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiwwFBVV95cUxNRkduQkEyQ3kyQ0NrV2dTTS1HdTlhSTBMbkJZQ0ZGUWNRSlJqN0JJai1scndiQndBcG5sLXlJaHcyNnd1SkNjVFRNeUpIaW42anEzajRlcmhuX2lPazZxVjRJNmNKaDVPbzB3SkhRQ1V3U25SbF9oMzJIUFpOZ1dUYkRPYnhoam9KVDZ4NGpuSHROVkN3NUdRM016bldpRDE2NWVZbFNhVl9qZFJ2VnZIaEZmM1p0YjBMMUJfbXBDRU1rSFk?oc=5\" target=\"_blank\">Earnings Preview: What to Expect From A. O. Smith's Report</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">FinancialContent</font>",
+      "body": "Comprehensive up-to-date news coverage, aggregated from sources all over the world by Google News.",
+      "url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxNRkduQkEyQ3kyQ0NrV2dTTS1HdTlhSTBMbkJZQ0ZGUWNRSlJqN0JJai1scndiQndBcG5sLXlJaHcyNnd1SkNjVFRNeUpIaW42anEzajRlcmhuX2lPazZxVjRJNmNKaDVPbzB3SkhRQ1V3U25SbF9oMzJIUFpOZ1dUYkRPYnhoam9KVDZ4NGpuSHROVkN3NUdRM016bldpRDE2NWVZbFNhVl9qZFJ2VnZIaEZmM1p0YjBMMUJfbXBDRU1rSFk?oc=5",
+      "published_at": "2026-04-12T22:13:00+00:00",
+      "ticker_hints": [
+        "AOS"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMiwwFBVV95cUxNRkduQkEyQ3kyQ0NrV2dTTS1HdTlhSTBMbkJZQ0ZGUWNRSlJqN0JJai1scndiQndBcG5sLXlJaHcyNnd1SkNjVFRNeUpIaW42anEzajRlcmhuX2lPazZxVjRJNmNKaDVPbzB3SkhRQ1V3U25SbF9oMzJIUFpOZ1dUYkRPYnhoam9KVDZ4NGpuSHROVkN3NUdRM016bldpRDE2NWVZbFNhVl9qZFJ2VnZIaEZmM1p0YjBMMUJfbXBDRU1rSFk",
+        "title": "Earnings Preview: What to Expect From A. O. Smith's Report",
+        "source": "FinancialContent",
+        "url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxNRkduQkEyQ3kyQ0NrV2dTTS1HdTlhSTBMbkJZQ0ZGUWNRSlJqN0JJai1scndiQndBcG5sLXlJaHcyNnd1SkNjVFRNeUpIaW42anEzajRlcmhuX2lPazZxVjRJNmNKaDVPbzB3SkhRQ1V3U25SbF9oMzJIUFpOZ1dUYkRPYnhoam9KVDZ4NGpuSHROVkN3NUdRM016bldpRDE2NWVZbFNhVl9qZFJ2VnZIaEZmM1p0YjBMMUJfbXBDRU1rSFk?oc=5",
+        "published_at": "2026-04-12T22:13:00+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiwwFBVV95cUxNRkduQkEyQ3kyQ0NrV2dTTS1HdTlhSTBMbkJZQ0ZGUWNRSlJqN0JJai1scndiQndBcG5sLXlJaHcyNnd1SkNjVFRNeUpIaW42anEzajRlcmhuX2lPazZxVjRJNmNKaDVPbzB3SkhRQ1V3U25SbF9oMzJIUFpOZ1dUYkRPYnhoam9KVDZ4NGpuSHROVkN3NUdRM016bldpRDE2NWVZbFNhVl9qZFJ2VnZIaEZmM1p0YjBMMUJfbXBDRU1rSFk?oc=5\" target=\"_blank\">Earnings Preview: What to Expect From A. O. Smith's Report</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">FinancialContent</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "AOS",
+        "company_name": "A O Smith Corp",
+        "query": "A O Smith Corp stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "AOS"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "Earnings previews provide insight into A.O. Smith's financial performance and growth trajectory, directly relevant for the growth archetype position."
+      },
+      "resolved_url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxNRkduQkEyQ3kyQ0NrV2dTTS1HdTlhSTBMbkJZQ0ZGUWNRSlJqN0JJai1scndiQndBcG5sLXlJaHcyNnd1SkNjVFRNeUpIaW42anEzajRlcmhuX2lPazZxVjRJNmNKaDVPbzB3SkhRQ1V3U25SbF9oMzJIUFpOZ1dUYkRPYnhoam9KVDZ4NGpuSHROVkN3NUdRM016bldpRDE2NWVZbFNhVl9qZFJ2VnZIaEZmM1p0YjBMMUJfbXBDRU1rSFk?oc=5&hl=en-US&gl=US&ceid=US:en",
+      "content_source": "news.google.com",
+      "scrape_status": "ok"
+    }
+  ],
+  "event_analyses": [
+    {
+      "analysis_run_id": "77fd4aaf-4179-4396-a7fd-4a266a2f67d5",
+      "position_id": "05f45e96-bbe1-4dd5-9799-1c55542d15b1",
+      "event_hash": "9fed14e5aa90a676312e30b1fa05eb66fb060176c564ae8da60c424a595df6f1",
+      "external_event_id": "CBMiiAFBVV95cUxQSHRHRVR6eWVZQUxLVzRkdGN3MXRVUDJwYVVoaC0yMkdpd1U0UmpjNHFVTU5BNXpydW81bTBlNUF1eVdma2VaSHFZdDVWeGo5cGxVTTdwUGozZGlHdGJ4bjFhekVvRzVOM3BWdzk4Z1IwbUFRbUZPZEpLY0FsMjJySDE3SUthOTV2",
+      "title": "AVE MARIA VALUE FOCUSED FUND's A.O. Smith Corp(AOS) Holding History",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiiAFBVV95cUxQSHRHRVR6eWVZQUxLVzRkdGN3MXRVUDJwYVVoaC0yMkdpd1U0UmpjNHFVTU5BNXpydW81bTBlNUF1eVdma2VaSHFZdDVWeGo5cGxVTTdwUGozZGlHdGJ4bjFhekVvRzVOM3BWdzk4Z1IwbUFRbUZPZEpLY0FsMjJySDE3SUthOTV2?oc=5\" target=\"_blank\">AVE MARIA VALUE FOCUSED FUND's A.O. Smith Corp(AOS) Holding History</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">GuruFocus</font>",
+      "source": "GuruFocus",
+      "source_url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxQSHRHRVR6eWVZQUxLVzRkdGN3MXRVUDJwYVVoaC0yMkdpd1U0UmpjNHFVTU5BNXpydW81bTBlNUF1eVdma2VaSHFZdDVWeGo5cGxVTTdwUGozZGlHdGJ4bjFhekVvRzVOM3BWdzk4Z1IwbUFRbUZPZEpLY0FsMjJySDE3SUthOTV2?oc=5",
+      "published_at": "2026-04-12T02:58:30+00:00",
+      "event_type": "other",
+      "significance": "minor",
+      "classification": {
+        "confidence": 0.95,
+        "event_type": "other",
+        "significance": "minor",
+        "why_it_matters": "This is a routine update on a mutual fund's portfolio holdings with no new corporate announcements or material catalysts."
+      },
+      "classification_evidence": {
+        "relevance": {
+          "relevant": true,
+          "affected_tickers": [
+            "AOS"
+          ],
+          "event_type": "company_specific",
+          "why_it_matters": "Fund holding history shows institutional positioning which can signal sentiment changes for AOS."
+        },
+        "significance": {
+          "confidence": 0.95,
+          "event_type": "other",
+          "significance": "minor",
+          "why_it_matters": "This is a routine update on a mutual fund's portfolio holdings with no new corporate announcements or material catalysts."
+        }
+      },
+      "analysis_source": "minimax",
+      "long_analysis": "AVE MARIA VALUE FOCUSED FUND's A.O. Smith Corp holding history indicates institutional investor activity in the water heater and filtration company. Value-focused funds typically maintain positions in stable industrial names like AOS for steady dividend income and moderate growth. This historical holding data suggests the fund has had a sustained position in the stock, which may reflect confidence in AOS's business model serving residential and commercial water treatment markets. This is direct company coverage for AOS.",
+      "confidence": 0.83,
+      "impact_horizon": "near_term",
+      "risk_direction": "neutral",
+      "scenario_summary": "A value-focused institutional fund maintains a position in water infrastructure company A.O. Smith, reflecting stable institutional confidence in the sector. This is direct company coverage for AOS.",
+      "key_implications": [
+        "Potential trading activity could affect AOS stock price if fund rebalances position",
+        "Indicates institutional validation of AOS business fundamentals"
+      ],
+      "recommended_followups": [
+        "Monitor for significant position changes in next 13F filing",
+        "Compare AOS holdings across other value-focused funds for sector sentiment",
+        "Review the read-through against AOS's current labels: growth."
+      ]
+    },
+    {
+      "analysis_run_id": "77fd4aaf-4179-4396-a7fd-4a266a2f67d5",
+      "position_id": "05f45e96-bbe1-4dd5-9799-1c55542d15b1",
+      "event_hash": "448cc37c170b53a346ba51f8358b960299d23e675e4a2dc2fe401da858892439",
+      "external_event_id": "CBMiXkFVX3lxTE8tcTBuZDRpeTUxdk93d3VlLTE0aGZMVlZ0RmlJazFnQjRaMllpSG9vTmhNUGpVejBBQ29QbmMyRWk3aXcwSy1pTHItMDg3eFZSSmN2TWJaR3pwci1KYUE",
+      "title": "AOS Stock Price, Quote & Chart | SMITH (A.O.) CORP (NYSE:AOS)",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiXkFVX3lxTE8tcTBuZDRpeTUxdk93d3VlLTE0aGZMVlZ0RmlJazFnQjRaMllpSG9vTmhNUGpVejBBQ29QbmMyRWk3aXcwSy1pTHItMDg3eFZSSmN2TWJaR3pwci1KYUE?oc=5\" target=\"_blank\">AOS Stock Price, Quote & Chart | SMITH (A.O.) CORP (NYSE:AOS)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">ChartMill</font>",
+      "source": "ChartMill",
+      "source_url": "https://news.google.com/rss/articles/CBMiXkFVX3lxTE8tcTBuZDRpeTUxdk93d3VlLTE0aGZMVlZ0RmlJazFnQjRaMllpSG9vTmhNUGpVejBBQ29QbmMyRWk3aXcwSy1pTHItMDg3eFZSSmN2TWJaR3pwci1KYUE?oc=5",
+      "published_at": "2026-04-10T07:00:00+00:00",
+      "event_type": "other",
+      "significance": "minor",
+      "classification": {
+        "significance": "minor",
+        "event_type": "other",
+        "why_it_matters": "This is a stock price quote and chart page with no news content or corporate announcement.",
+        "confidence": 0.98
+      },
+      "classification_evidence": {
+        "relevance": {
+          "relevant": true,
+          "affected_tickers": [
+            "AOS"
+          ],
+          "event_type": "company_specific",
+          "why_it_matters": "This is a generic stock quote/chart page rather than news content with actionable information for the AOS position."
+        },
+        "significance": {
+          "significance": "minor",
+          "event_type": "other",
+          "why_it_matters": "This is a stock price quote and chart page with no news content or corporate announcement.",
+          "confidence": 0.98
+        }
+      },
+      "analysis_source": "minimax",
+      "long_analysis": "The AOS stock price reflects the current sentiment for the industrial\u2010goods sector on the NYSE. With no new fundamental drivers or corporate announcements apparent, the share price is likely to experience normal, day\u2011to\u2011day fluctuations driven by broader market forces. Investors should therefore monitor sector\u2011wide trends and macroeconomic data for any shifts that could influence short\u2011term price action. This is direct company coverage for AOS.",
+      "confidence": 0.53,
+      "impact_horizon": "immediate",
+      "risk_direction": "neutral",
+      "scenario_summary": "AOS is expected to trade in line with market averages, showing limited short\u2011term directional bias absent specific news. This is direct company coverage for AOS.",
+      "key_implications": [
+        "Sector performance and macro\u2011economic indicators are the primary drivers of AOS price movement in the near term.",
+        "Absence of company\u2011specific news suggests the stock will largely follow broader equity market dynamics."
+      ],
+      "recommended_followups": [
+        "Track upcoming earnings releases, industry reports, and Federal Reserve communications for potential impacts on the industrial sector.",
+        "Review technical chart patterns and volume trends to identify any emerging short\u2011term support or resistance levels.",
+        "Review the read-through against AOS's current labels: growth."
+      ]
+    },
+    {
+      "analysis_run_id": "77fd4aaf-4179-4396-a7fd-4a266a2f67d5",
+      "position_id": "05f45e96-bbe1-4dd5-9799-1c55542d15b1",
+      "event_hash": "59d66734ce28fd9f389e9f793b6013857cbf53850720414dde340c860ae8cc34",
+      "external_event_id": "CBMiwwFBVV95cUxNRkduQkEyQ3kyQ0NrV2dTTS1HdTlhSTBMbkJZQ0ZGUWNRSlJqN0JJai1scndiQndBcG5sLXlJaHcyNnd1SkNjVFRNeUpIaW42anEzajRlcmhuX2lPazZxVjRJNmNKaDVPbzB3SkhRQ1V3U25SbF9oMzJIUFpOZ1dUYkRPYnhoam9KVDZ4NGpuSHROVkN3NUdRM016bldpRDE2NWVZbFNhVl9qZFJ2VnZIaEZmM1p0YjBMMUJfbXBDRU1rSFk",
+      "title": "Earnings Preview: What to Expect From A. O. Smith's Report",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiwwFBVV95cUxNRkduQkEyQ3kyQ0NrV2dTTS1HdTlhSTBMbkJZQ0ZGUWNRSlJqN0JJai1scndiQndBcG5sLXlJaHcyNnd1SkNjVFRNeUpIaW42anEzajRlcmhuX2lPazZxVjRJNmNKaDVPbzB3SkhRQ1V3U25SbF9oMzJIUFpOZ1dUYkRPYnhoam9KVDZ4NGpuSHROVkN3NUdRM016bldpRDE2NWVZbFNhVl9qZFJ2VnZIaEZmM1p0YjBMMUJfbXBDRU1rSFk?oc=5\" target=\"_blank\">Earnings Preview: What to Expect From A. O. Smith's Report</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">FinancialContent</font>",
+      "source": "FinancialContent",
+      "source_url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxNRkduQkEyQ3kyQ0NrV2dTTS1HdTlhSTBMbkJZQ0ZGUWNRSlJqN0JJai1scndiQndBcG5sLXlJaHcyNnd1SkNjVFRNeUpIaW42anEzajRlcmhuX2lPazZxVjRJNmNKaDVPbzB3SkhRQ1V3U25SbF9oMzJIUFpOZ1dUYkRPYnhoam9KVDZ4NGpuSHROVkN3NUdRM016bldpRDE2NWVZbFNhVl9qZFJ2VnZIaEZmM1p0YjBMMUJfbXBDRU1rSFk?oc=5",
+      "published_at": "2026-04-12T22:13:00+00:00",
+      "event_type": "other",
+      "significance": "major",
+      "classification": {
+        "rule": "keyword",
+        "confidence": 0.95,
+        "event_type": "other",
+        "significance": "major",
+        "why_it_matters": "Keyword detected major event"
+      },
+      "classification_evidence": {
+        "relevance": {
+          "relevant": true,
+          "affected_tickers": [
+            "AOS"
+          ],
+          "event_type": "company_specific",
+          "why_it_matters": "Earnings previews provide insight into A.O. Smith's financial performance and growth trajectory, directly relevant for the growth archetype position."
+        },
+        "significance": {
+          "rule": "keyword",
+          "confidence": 0.95,
+          "event_type": "other",
+          "significance": "major",
+          "why_it_matters": "Keyword detected major event"
+        }
+      },
+      "analysis_source": "minimax_fallback",
+      "long_analysis": "A. O. Smith earnings preview signals market anticipation ahead of the company's quarterly report, with analyst consensus expectations already embedded in current valuations. As a manufacturer of water heaters and water treatment products, A. O. Smith's performance is closely tied to residential construction trends, replacement demand, and consumer confidence in housing markets. Any guidance adjustment or revenue/earnings guidance shift in the preview could move the stock meaningfully given its relatively stable, utility-like business profile. The key fundamental driver to watch is whether management signals sustained demand strength or a deceleration in the water treatment segment, which has been a growth engine. Valuation multiples for industrial-consumer companies like A. O. Smith tend to compress if growth expectations soften. This is direct company coverage for AOS.",
+      "confidence": 0.76,
+      "impact_horizon": "immediate",
+      "risk_direction": "neutral",
+      "scenario_summary": "A. O. Smith earnings preview sets market expectations for a report that could validate or challenge current valuation levels, depending on forward guidance tone and segment performance signals. This is direct company coverage for AOS.",
+      "key_implications": [
+        "Water heater replacement cycle health will be a critical read on consumer spending power",
+        "Management guidance tone (upgrades,\u7ef4\u6301, or cuts) will likely move shares 3-7% on report day",
+        "Chinese water treatment business performance is a key idiosyncratic variable given export sensitivity"
+      ],
+      "recommended_followups": [
+        "Compare consensus EPS estimate to any guidance midpoint disclosed in the preview",
+        "Monitor management commentary on housing starts and residential remodel activity",
+        "Await actual earnings release for the directional risk signal to materialize"
+      ]
+    }
+  ],
+  "position_report": {
+    "summary": "A.O. Smith (AOS) is a building products manufacturer specializing in water heaters and water treatment solutions, with performance closely tied to residential construction trends and replacement demand. With zero shares currently held and a major earnings preview underway, this position warrants careful monitoring of the upcoming quarterly report and guidance for near-term thesis validation. The growth label is somewhat nuanced for this industrial name, as the company also exhibits value characteristics through steady dividend income, making it sensitive to both housing market cycles and consumer confidence shifts.",
+    "long_report": "A.O. Smith operates as a mid-cap industrial manufacturer in the building products space, producing residential and commercial water heaters, boilers, and water treatment systems. The company's near-term catalyst centers on the upcoming earnings release, where analyst consensus expectations are already priced into current valuations\u2014any positive or negative surprises relative to these embedded forecasts will drive significant price movement. AOS's revenue exposure to residential construction makes it a cyclical growth name, with replacement demand in existing homes providing a partially counter-cyclical buffer. Interest rate sensitivity is material given its housing market linkage; higher rates dampen new construction activity while potentially supporting renovation spending. The institutional presence from value-focused funds suggests the name attracts investors seeking both dividend yield and moderate capital appreciation, balancing growth and income characteristics. Longer-term, water quality concerns and energy efficiency regulations could drive demand for higher-margin water treatment products, supporting margin expansion if successfully captured.",
+    "methodology": "This risk assessment analyzes AOS through a cyclical growth framework, incorporating the major earnings catalyst as the primary near-term catalyst, sector-specific demand drivers (residential construction, replacement cycles, consumer confidence), and institutional positioning signals. The 0.0 share position suggests either a planned entry or recent exit, prompting focus on thesis development and key monitoring triggers rather than position-level risk management.",
+    "top_risks": [
+      "Housing market downturn could significantly reduce new construction demand for water heaters and related products",
+      "Earnings miss or weak guidance could trigger valuation contraction given elevated analyst expectations",
+      "Rising interest rates may suppress both new construction activity and consumer discretionary spending on replacements"
+    ],
+    "watch_items": [
+      "Earnings release date and analyst consensus vs. actual results, particularly revenue and guidance",
+      "Housing starts data and existing home sales trends as leading indicators for demand",
+      "Interest rate trajectory and Federal Reserve policy signals affecting housing affordability"
+    ],
+    "thesis_verifier": [
+      {
+        "macro_event": "No overnight macro developments occurred, with markets in a calm, risk-on posture absent policy surprises",
+        "thesis_impact": "neutral",
+        "reasoning": "Absence of macro catalysts preserves current sentiment and keeps focus squarely on company-specific earnings dynamics for near-term thesis validation"
+      }
+    ]
+  },
+  "position_payload": {
+    "id": "05f45e96-bbe1-4dd5-9799-1c55542d15b1",
+    "user_id": "00000000-0000-0000-0000-000000000001",
+    "ticker": "AOS",
+    "shares": 0.0,
+    "purchase_price": 0.0,
+    "archetype": "growth",
+    "created_at": "2026-04-12T23:57:58.424725+00:00",
+    "updated_at": "2026-04-12T23:57:58.424725+00:00",
+    "current_price": 67.18,
+    "analysis_started_at": null,
+    "analysis_mode": "sp500_backfill",
+    "previous_grade": "D",
+    "previous_total_score": 47.0,
+    "summary": "A.O. Smith (AOS) is a building products manufacturer specializing in water heaters and water treatment solutions, with performance closely tied to residential construction trends and replacement demand. With zero shares currently held and a major earnings preview underway, this position warrants careful monitoring of the upcoming quarterly report and guidance for near-term thesis validation. The growth label is somewhat nuanced for this industrial name, as the company also exhibits value characteristics through steady dividend income, making it sensitive to both housing market cycles and consumer confidence shifts.",
+    "long_report": "A.O. Smith operates as a mid-cap industrial manufacturer in the building products space, producing residential and commercial water heaters, boilers, and water treatment systems. The company's near-term catalyst centers on the upcoming earnings release, where analyst consensus expectations are already priced into current valuations\u2014any positive or negative surprises relative to these embedded forecasts will drive significant price movement. AOS's revenue exposure to residential construction makes it a cyclical growth name, with replacement demand in existing homes providing a partially counter-cyclical buffer. Interest rate sensitivity is material given its housing market linkage; higher rates dampen new construction activity while potentially supporting renovation spending. The institutional presence from value-focused funds suggests the name attracts investors seeking both dividend yield and moderate capital appreciation, balancing growth and income characteristics. Longer-term, water quality concerns and energy efficiency regulations could drive demand for higher-margin water treatment products, supporting margin expansion if successfully captured.",
+    "top_risks": [
+      "Housing market downturn could significantly reduce new construction demand for water heaters and related products",
+      "Earnings miss or weak guidance could trigger valuation contraction given elevated analyst expectations",
+      "Rising interest rates may suppress both new construction activity and consumer discretionary spending on replacements"
+    ],
+    "watch_items": [
+      "Earnings release date and analyst consensus vs. actual results, particularly revenue and guidance",
+      "Housing starts data and existing home sales trends as leading indicators for demand",
+      "Interest rate trajectory and Federal Reserve policy signals affecting housing affordability"
+    ],
+    "top_news": [
+      "AVE MARIA VALUE FOCUSED FUND's A.O. Smith Corp(AOS) Holding History",
+      "AOS Stock Price, Quote & Chart | SMITH (A.O.) CORP (NYSE:AOS)",
+      "Earnings Preview: What to Expect From A. O. Smith's Report"
+    ],
+    "inferred_labels": [
+      "growth"
+    ],
+    "methodology": "This risk assessment analyzes AOS through a cyclical growth framework, incorporating the major earnings catalyst as the primary near-term catalyst, sector-specific demand drivers (residential construction, replacement cycles, consumer confidence), and institutional positioning signals. The 0.0 share position suggests either a planned entry or recent exit, prompting focus on thesis development and key monitoring triggers rather than position-level risk management.",
+    "mirofish_used": false,
+    "thesis_verifier": [
+      {
+        "macro_event": "No overnight macro developments occurred, with markets in a calm, risk-on posture absent policy surprises",
+        "thesis_impact": "neutral",
+        "reasoning": "Absence of macro catalysts preserves current sentiment and keeps focus squarely on company-specific earnings dynamics for near-term thesis validation"
+      }
+    ],
+    "event_analyses": [
+      {
+        "analysis_run_id": "77fd4aaf-4179-4396-a7fd-4a266a2f67d5",
+        "position_id": "05f45e96-bbe1-4dd5-9799-1c55542d15b1",
+        "event_hash": "9fed14e5aa90a676312e30b1fa05eb66fb060176c564ae8da60c424a595df6f1",
+        "external_event_id": "CBMiiAFBVV95cUxQSHRHRVR6eWVZQUxLVzRkdGN3MXRVUDJwYVVoaC0yMkdpd1U0UmpjNHFVTU5BNXpydW81bTBlNUF1eVdma2VaSHFZdDVWeGo5cGxVTTdwUGozZGlHdGJ4bjFhekVvRzVOM3BWdzk4Z1IwbUFRbUZPZEpLY0FsMjJySDE3SUthOTV2",
+        "title": "AVE MARIA VALUE FOCUSED FUND's A.O. Smith Corp(AOS) Holding History",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiiAFBVV95cUxQSHRHRVR6eWVZQUxLVzRkdGN3MXRVUDJwYVVoaC0yMkdpd1U0UmpjNHFVTU5BNXpydW81bTBlNUF1eVdma2VaSHFZdDVWeGo5cGxVTTdwUGozZGlHdGJ4bjFhekVvRzVOM3BWdzk4Z1IwbUFRbUZPZEpLY0FsMjJySDE3SUthOTV2?oc=5\" target=\"_blank\">AVE MARIA VALUE FOCUSED FUND's A.O. Smith Corp(AOS) Holding History</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">GuruFocus</font>",
+        "source": "GuruFocus",
+        "source_url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxQSHRHRVR6eWVZQUxLVzRkdGN3MXRVUDJwYVVoaC0yMkdpd1U0UmpjNHFVTU5BNXpydW81bTBlNUF1eVdma2VaSHFZdDVWeGo5cGxVTTdwUGozZGlHdGJ4bjFhekVvRzVOM3BWdzk4Z1IwbUFRbUZPZEpLY0FsMjJySDE3SUthOTV2?oc=5",
+        "published_at": "2026-04-12T02:58:30+00:00",
+        "event_type": "other",
+        "significance": "minor",
+        "classification": {
+          "confidence": 0.95,
+          "event_type": "other",
+          "significance": "minor",
+          "why_it_matters": "This is a routine update on a mutual fund's portfolio holdings with no new corporate announcements or material catalysts."
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "AOS"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "Fund holding history shows institutional positioning which can signal sentiment changes for AOS."
+          },
+          "significance": {
+            "confidence": 0.95,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "This is a routine update on a mutual fund's portfolio holdings with no new corporate announcements or material catalysts."
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "AVE MARIA VALUE FOCUSED FUND's A.O. Smith Corp holding history indicates institutional investor activity in the water heater and filtration company. Value-focused funds typically maintain positions in stable industrial names like AOS for steady dividend income and moderate growth. This historical holding data suggests the fund has had a sustained position in the stock, which may reflect confidence in AOS's business model serving residential and commercial water treatment markets. This is direct company coverage for AOS.",
+        "confidence": 0.83,
+        "impact_horizon": "near_term",
+        "risk_direction": "neutral",
+        "scenario_summary": "A value-focused institutional fund maintains a position in water infrastructure company A.O. Smith, reflecting stable institutional confidence in the sector. This is direct company coverage for AOS.",
+        "key_implications": [
+          "Potential trading activity could affect AOS stock price if fund rebalances position",
+          "Indicates institutional validation of AOS business fundamentals"
+        ],
+        "recommended_followups": [
+          "Monitor for significant position changes in next 13F filing",
+          "Compare AOS holdings across other value-focused funds for sector sentiment",
+          "Review the read-through against AOS's current labels: growth."
+        ]
+      },
+      {
+        "analysis_run_id": "77fd4aaf-4179-4396-a7fd-4a266a2f67d5",
+        "position_id": "05f45e96-bbe1-4dd5-9799-1c55542d15b1",
+        "event_hash": "448cc37c170b53a346ba51f8358b960299d23e675e4a2dc2fe401da858892439",
+        "external_event_id": "CBMiXkFVX3lxTE8tcTBuZDRpeTUxdk93d3VlLTE0aGZMVlZ0RmlJazFnQjRaMllpSG9vTmhNUGpVejBBQ29QbmMyRWk3aXcwSy1pTHItMDg3eFZSSmN2TWJaR3pwci1KYUE",
+        "title": "AOS Stock Price, Quote & Chart | SMITH (A.O.) CORP (NYSE:AOS)",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiXkFVX3lxTE8tcTBuZDRpeTUxdk93d3VlLTE0aGZMVlZ0RmlJazFnQjRaMllpSG9vTmhNUGpVejBBQ29QbmMyRWk3aXcwSy1pTHItMDg3eFZSSmN2TWJaR3pwci1KYUE?oc=5\" target=\"_blank\">AOS Stock Price, Quote & Chart | SMITH (A.O.) CORP (NYSE:AOS)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">ChartMill</font>",
+        "source": "ChartMill",
+        "source_url": "https://news.google.com/rss/articles/CBMiXkFVX3lxTE8tcTBuZDRpeTUxdk93d3VlLTE0aGZMVlZ0RmlJazFnQjRaMllpSG9vTmhNUGpVejBBQ29QbmMyRWk3aXcwSy1pTHItMDg3eFZSSmN2TWJaR3pwci1KYUE?oc=5",
+        "published_at": "2026-04-10T07:00:00+00:00",
+        "event_type": "other",
+        "significance": "minor",
+        "classification": {
+          "significance": "minor",
+          "event_type": "other",
+          "why_it_matters": "This is a stock price quote and chart page with no news content or corporate announcement.",
+          "confidence": 0.98
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "AOS"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "This is a generic stock quote/chart page rather than news content with actionable information for the AOS position."
+          },
+          "significance": {
+            "significance": "minor",
+            "event_type": "other",
+            "why_it_matters": "This is a stock price quote and chart page with no news content or corporate announcement.",
+            "confidence": 0.98
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "The AOS stock price reflects the current sentiment for the industrial\u2010goods sector on the NYSE. With no new fundamental drivers or corporate announcements apparent, the share price is likely to experience normal, day\u2011to\u2011day fluctuations driven by broader market forces. Investors should therefore monitor sector\u2011wide trends and macroeconomic data for any shifts that could influence short\u2011term price action. This is direct company coverage for AOS.",
+        "confidence": 0.53,
+        "impact_horizon": "immediate",
+        "risk_direction": "neutral",
+        "scenario_summary": "AOS is expected to trade in line with market averages, showing limited short\u2011term directional bias absent specific news. This is direct company coverage for AOS.",
+        "key_implications": [
+          "Sector performance and macro\u2011economic indicators are the primary drivers of AOS price movement in the near term.",
+          "Absence of company\u2011specific news suggests the stock will largely follow broader equity market dynamics."
+        ],
+        "recommended_followups": [
+          "Track upcoming earnings releases, industry reports, and Federal Reserve communications for potential impacts on the industrial sector.",
+          "Review technical chart patterns and volume trends to identify any emerging short\u2011term support or resistance levels.",
+          "Review the read-through against AOS's current labels: growth."
+        ]
+      },
+      {
+        "analysis_run_id": "77fd4aaf-4179-4396-a7fd-4a266a2f67d5",
+        "position_id": "05f45e96-bbe1-4dd5-9799-1c55542d15b1",
+        "event_hash": "59d66734ce28fd9f389e9f793b6013857cbf53850720414dde340c860ae8cc34",
+        "external_event_id": "CBMiwwFBVV95cUxNRkduQkEyQ3kyQ0NrV2dTTS1HdTlhSTBMbkJZQ0ZGUWNRSlJqN0JJai1scndiQndBcG5sLXlJaHcyNnd1SkNjVFRNeUpIaW42anEzajRlcmhuX2lPazZxVjRJNmNKaDVPbzB3SkhRQ1V3U25SbF9oMzJIUFpOZ1dUYkRPYnhoam9KVDZ4NGpuSHROVkN3NUdRM016bldpRDE2NWVZbFNhVl9qZFJ2VnZIaEZmM1p0YjBMMUJfbXBDRU1rSFk",
+        "title": "Earnings Preview: What to Expect From A. O. Smith's Report",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiwwFBVV95cUxNRkduQkEyQ3kyQ0NrV2dTTS1HdTlhSTBMbkJZQ0ZGUWNRSlJqN0JJai1scndiQndBcG5sLXlJaHcyNnd1SkNjVFRNeUpIaW42anEzajRlcmhuX2lPazZxVjRJNmNKaDVPbzB3SkhRQ1V3U25SbF9oMzJIUFpOZ1dUYkRPYnhoam9KVDZ4NGpuSHROVkN3NUdRM016bldpRDE2NWVZbFNhVl9qZFJ2VnZIaEZmM1p0YjBMMUJfbXBDRU1rSFk?oc=5\" target=\"_blank\">Earnings Preview: What to Expect From A. O. Smith's Report</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">FinancialContent</font>",
+        "source": "FinancialContent",
+        "source_url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxNRkduQkEyQ3kyQ0NrV2dTTS1HdTlhSTBMbkJZQ0ZGUWNRSlJqN0JJai1scndiQndBcG5sLXlJaHcyNnd1SkNjVFRNeUpIaW42anEzajRlcmhuX2lPazZxVjRJNmNKaDVPbzB3SkhRQ1V3U25SbF9oMzJIUFpOZ1dUYkRPYnhoam9KVDZ4NGpuSHROVkN3NUdRM016bldpRDE2NWVZbFNhVl9qZFJ2VnZIaEZmM1p0YjBMMUJfbXBDRU1rSFk?oc=5",
+        "published_at": "2026-04-12T22:13:00+00:00",
+        "event_type": "other",
+        "significance": "major",
+        "classification": {
+          "rule": "keyword",
+          "confidence": 0.95,
+          "event_type": "other",
+          "significance": "major",
+          "why_it_matters": "Keyword detected major event"
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "AOS"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "Earnings previews provide insight into A.O. Smith's financial performance and growth trajectory, directly relevant for the growth archetype position."
+          },
+          "significance": {
+            "rule": "keyword",
+            "confidence": 0.95,
+            "event_type": "other",
+            "significance": "major",
+            "why_it_matters": "Keyword detected major event"
+          }
+        },
+        "analysis_source": "minimax_fallback",
+        "long_analysis": "A. O. Smith earnings preview signals market anticipation ahead of the company's quarterly report, with analyst consensus expectations already embedded in current valuations. As a manufacturer of water heaters and water treatment products, A. O. Smith's performance is closely tied to residential construction trends, replacement demand, and consumer confidence in housing markets. Any guidance adjustment or revenue/earnings guidance shift in the preview could move the stock meaningfully given its relatively stable, utility-like business profile. The key fundamental driver to watch is whether management signals sustained demand strength or a deceleration in the water treatment segment, which has been a growth engine. Valuation multiples for industrial-consumer companies like A. O. Smith tend to compress if growth expectations soften. This is direct company coverage for AOS.",
+        "confidence": 0.76,
+        "impact_horizon": "immediate",
+        "risk_direction": "neutral",
+        "scenario_summary": "A. O. Smith earnings preview sets market expectations for a report that could validate or challenge current valuation levels, depending on forward guidance tone and segment performance signals. This is direct company coverage for AOS.",
+        "key_implications": [
+          "Water heater replacement cycle health will be a critical read on consumer spending power",
+          "Management guidance tone (upgrades,\u7ef4\u6301, or cuts) will likely move shares 3-7% on report day",
+          "Chinese water treatment business performance is a key idiosyncratic variable given export sensitivity"
+        ],
+        "recommended_followups": [
+          "Compare consensus EPS estimate to any guidance midpoint disclosed in the preview",
+          "Monitor management commentary on housing starts and residential remodel activity",
+          "Await actual earnings release for the directional risk signal to materialize"
+        ]
+      }
+    ],
+    "ticker_metadata": {
+      "id": "b620a37d-1eb9-4ad8-9f8e-9655ce6d118e",
+      "ticker": "AOS",
+      "company_name": "A O Smith Corp",
+      "asset_class": null,
+      "sector": "Building",
+      "industry": null,
+      "exchange": "NEW YORK STOCK EXCHANGE, INC.",
+      "market_cap": 9116070861.614391,
+      "market_cap_bucket": "moderate",
+      "float_shares": null,
+      "avg_daily_dollar_volume": 86263150.80000001,
+      "spread_proxy": 0.001,
+      "beta": 1.3580234,
+      "volatility_proxy": 0.33950585,
+      "profitability_profile": "mixed",
+      "leverage_profile": "moderate",
+      "macro_sensitivity": null,
+      "structural_fragility": null,
+      "liquidity_risk": null,
+      "updated_at": "2026-04-13T20:15:14.79077+00:00",
+      "created_at": "2026-04-12T21:58:04.088884+00:00",
+      "pe_ratio": 16.6647,
+      "week_52_high": 81.865,
+      "week_52_low": 58.83,
+      "price": 67.18,
+      "price_as_of": "2026-04-13T20:15:14.639817+00:00",
+      "avg_volume": 1.28406,
+      "previous_close": 65.92,
+      "open_price": 65.79,
+      "day_high": 67.21,
+      "day_low": 65.427,
+      "last_price_source": "finnhub",
+      "is_supported": true
+    },
+    "macro_impact": {
+      "ticker": "AOS",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    }
+  }
+}

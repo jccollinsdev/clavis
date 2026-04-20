@@ -1,5 +1,9 @@
 import asyncio
+import time
 import logging
+import httpx
+from collections import Counter
+from itertools import zip_longest
 from datetime import datetime, timedelta, timezone
 from dateutil.parser import isoparse
 
@@ -7,10 +11,13 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 from .analysis_utils import utcnow_iso, clamp_score
-from .news_normalizer import normalize_news_batch
+from .news_normalizer import normalize_news_batch, _evidence_quality
 from .portfolio_compiler import compile_portfolio_digest
 from .position_classifier import classify_position
-from .relevance import classify_relevance
+from .relevance import (
+    classify_relevance,
+    _is_low_value_article as is_low_value_relevance_article,
+)
 from .risk_scorer import score_position, score_to_grade, score_position_structural
 from .portfolio_risk import calculate_portfolio_risk_score
 from .structural_scorer import calculate_structural_base_score, get_daily_move_cap
@@ -18,11 +25,27 @@ from ..services.ticker_metadata import (
     refresh_all_positions_metadata,
     upsert_ticker_metadata,
 )
+from ..services.backfill_artifacts import (
+    begin_artifact_session,
+    end_artifact_session,
+    get_run_artifact_dir,
+    record_position_artifact,
+    record_stage,
+    write_named_json,
+)
+from ..services.article_scraper import enrich_articles_content
+from ..services.ticker_cache_service import (
+    ensure_sp500_universe_seeded,
+    list_active_sp500_tickers,
+    get_latest_risk_snapshot_history_map,
+    refresh_ticker_snapshot,
+)
 
 logger = logging.getLogger(__name__)
 
 scheduler = AsyncIOScheduler()
 active_runs: dict[str, asyncio.Task] = {}
+active_sp500_backfills: dict[str, asyncio.Task] = {}
 PROCESS_STARTED_AT = datetime.now(timezone.utc)
 RUN_TIMEOUT_SECONDS = 25 * 60
 STALE_RUN_HOURS = 1
@@ -30,8 +53,15 @@ POSITION_CONCURRENCY = 2
 MAX_ARTICLES_PER_POSITION = 3
 SCHEDULER_TABLE = "scheduler_jobs"
 CACHE_TABLE = "analysis_cache"
+COMPANY_ARTICLE_ENRICHMENT_CACHE_KIND = "company_article_enrichment_v1"
+COMPANY_ARTICLE_ENRICHMENT_CACHE_TTL_HOURS = 24 * 365
 DEFAULT_DIGEST_TIME = "07:00"
 JOB_PREFIX = "user_"
+SP500_DAILY_JOB_ID = "system_sp500_daily_refresh"
+HOLDINGS_DAILY_AI_JOB_ID = "system_holdings_daily_ai_refresh"
+SP500_BACKFILL_JOB_ID = "system_sp500_backfill"
+SYSTEM_SP500_USER_ID = "00000000-0000-0000-0000-000000000001"
+SP500_BACKFILL_TRIGGER = "sp500_backfill"
 MAJOR_PRIORITY_KEYWORDS = (
     "earnings",
     "guidance",
@@ -50,11 +80,197 @@ MAJOR_PRIORITY_KEYWORDS = (
 )
 
 
+def _is_junk_article(article: dict) -> tuple[bool, str]:
+    return is_low_value_relevance_article(article)
+
+
 def _dedupe_articles(articles: list[dict]) -> list[dict]:
     deduped = {}
     for article in articles:
         deduped[article["event_hash"]] = article
     return list(deduped.values())
+
+
+def _article_targets_ticker(article: dict, ticker: str) -> bool:
+    ticker_upper = str(ticker or "").strip().upper()
+    if not ticker_upper:
+        return False
+
+    candidates = set()
+    for value in article.get("ticker_hints", []) or []:
+        normalized = str(value).strip().upper()
+        if normalized:
+            candidates.add(normalized)
+    relevance = article.get("relevance") or {}
+    for value in relevance.get("affected_tickers", []) or []:
+        normalized = str(value).strip().upper()
+        if normalized:
+            candidates.add(normalized)
+    article_ticker = str(article.get("ticker") or "").strip().upper()
+    if article_ticker:
+        candidates.add(article_ticker)
+    return ticker_upper in candidates
+
+
+def _refresh_company_article_evidence_quality(article: dict) -> dict:
+    body = str(article.get("body") or "").strip()
+    summary = str(article.get("summary") or "").strip()
+    title = str(article.get("title") or "").strip()
+    refreshed_quality = _evidence_quality(
+        title, body, summary, raw_body=article.get("body")
+    )
+    relevance = dict(article.get("relevance") or {})
+    if relevance:
+        relevance["evidence_quality"] = refreshed_quality
+    return {
+        **article,
+        "evidence_quality": refreshed_quality,
+        "relevance": relevance or article.get("relevance") or {},
+    }
+
+
+def _company_article_resolution_report(
+    company_articles: list[dict], company_articles_enriched: list[dict]
+) -> dict:
+    report = {
+        "input_count": len(company_articles),
+        "enriched_count": len(company_articles_enriched),
+        "resolved_with_body": 0,
+        "wrapper_only": 0,
+        "error_count": 0,
+        "resolved_search_count": 0,
+        "by_ticker": {},
+        "status_counts": {},
+        "failure_reason_counts": {},
+        "top_failure_reasons": [],
+        "sample_resolved_titles": [],
+        "sample_wrapper_titles": [],
+        "coverage_rate": 0.0,
+        "coverage_ok": False,
+    }
+
+    status_counts: Counter[str] = Counter()
+    failure_reasons: Counter[str] = Counter()
+    by_ticker: dict[str, dict[str, object]] = {}
+
+    for raw_article, enriched_article in zip_longest(
+        company_articles, company_articles_enriched, fillvalue={}
+    ):
+        ticker = (
+            str(raw_article.get("ticker") or enriched_article.get("ticker") or "")
+            .strip()
+            .upper()
+        )
+        ticker_bucket = by_ticker.setdefault(
+            ticker or "UNKNOWN",
+            {
+                "input_count": 0,
+                "resolved_with_body": 0,
+                "wrapper_only": 0,
+                "error_count": 0,
+                "resolved_search_count": 0,
+                "status_counts": {},
+            },
+        )
+        ticker_bucket["input_count"] = int(ticker_bucket["input_count"]) + 1
+
+        status = (
+            str(enriched_article.get("scrape_status") or "unknown").strip() or "unknown"
+        )
+        status_counts[status] += 1
+        ticker_status_counts = Counter(ticker_bucket["status_counts"])
+        ticker_status_counts[status] += 1
+        ticker_bucket["status_counts"] = dict(ticker_status_counts)
+
+        body = str(enriched_article.get("body") or "").strip()
+        title = str(
+            enriched_article.get("title") or raw_article.get("title") or ""
+        ).strip()
+
+        if body:
+            report["resolved_with_body"] += 1
+            ticker_bucket["resolved_with_body"] = (
+                int(ticker_bucket["resolved_with_body"]) + 1
+            )
+            if status == "resolved_search":
+                report["resolved_search_count"] += 1
+                ticker_bucket["resolved_search_count"] = (
+                    int(ticker_bucket["resolved_search_count"]) + 1
+                )
+            if len(report["sample_resolved_titles"]) < 5 and title:
+                report["sample_resolved_titles"].append(
+                    {"ticker": ticker or "UNKNOWN", "title": title, "status": status}
+                )
+        else:
+            report["wrapper_only"] += 1
+            ticker_bucket["wrapper_only"] = int(ticker_bucket["wrapper_only"]) + 1
+            failure_reason = str(
+                enriched_article.get("resolution_failure_reason") or status or "unknown"
+            ).strip()
+            if status.startswith("error"):
+                report["error_count"] += 1
+                ticker_bucket["error_count"] = int(ticker_bucket["error_count"]) + 1
+            failure_reasons[failure_reason or "unknown"] += 1
+            if len(report["sample_wrapper_titles"]) < 5 and title:
+                report["sample_wrapper_titles"].append(
+                    {"ticker": ticker or "UNKNOWN", "title": title, "status": status}
+                )
+
+    report["by_ticker"] = by_ticker
+    report["status_counts"] = dict(status_counts)
+    report["failure_reason_counts"] = dict(failure_reasons)
+    report["top_failure_reasons"] = [
+        {"reason": reason, "count": count}
+        for reason, count in failure_reasons.most_common(10)
+    ]
+    report["coverage_rate"] = (
+        round(report["resolved_with_body"] / report["input_count"], 3)
+        if report["input_count"]
+        else 0.0
+    )
+    report["coverage_ok"] = report["coverage_rate"] >= 0.35
+    return report
+
+
+def _project_shared_event_analysis(
+    base_analysis: dict,
+    article: dict,
+    position: dict,
+    inferred_labels: list[str] | None = None,
+) -> dict:
+    ticker = str(position.get("ticker") or "").strip().upper()
+    direct_company = _article_targets_ticker(article, ticker)
+    event_type = str((article.get("relevance") or {}).get("event_type") or "other")
+    projection_note = (
+        f"This is direct company coverage for {ticker}."
+        if direct_company
+        else f"This event is applied to {ticker} through a broader {event_type} read-through."
+    )
+
+    confidence = float(base_analysis.get("confidence") or 0.5)
+    if direct_company:
+        confidence = min(0.98, confidence + 0.08)
+    else:
+        confidence = max(0.3, confidence - 0.05)
+
+    key_implications = list(base_analysis.get("key_implications") or [])
+    recommended_followups = list(base_analysis.get("recommended_followups") or [])
+    labels = ", ".join(inferred_labels or [])
+    if labels:
+        recommended_followups.append(
+            f"Review the read-through against {ticker}'s current labels: {labels}."
+        )
+
+    return {
+        **base_analysis,
+        "analysis_text": f"{base_analysis.get('analysis_text', '').strip()} {projection_note}".strip(),
+        "scenario_summary": (
+            f"{base_analysis.get('scenario_summary', '').strip()} {projection_note}"
+        ).strip(),
+        "confidence": confidence,
+        "key_implications": key_implications[:3],
+        "recommended_followups": recommended_followups[:3],
+    }
 
 
 def _position_weight(position: dict) -> float:
@@ -107,6 +323,10 @@ def _article_priority(article: dict, ticker: str) -> tuple[float, float]:
     ticker_token = ticker.lower()
     score = 0.0
 
+    is_junk, _ = _is_junk_article(article)
+    if is_junk:
+        score -= 12
+
     if ticker_token in text:
         score += 5
 
@@ -119,17 +339,45 @@ def _article_priority(article: dict, ticker: str) -> tuple[float, float]:
     elif article.get("source_type") == "rss":
         score += 1
 
+    if article.get("scrape_status") == "google_wrapper":
+        score -= 4
+
+    if not str(article.get("body") or "").strip():
+        score -= 2
+
+    low_value_markers = (
+        "stock price",
+        "quote & chart",
+        "price, quote & chart",
+        "stock underperforms",
+        "underperforms friday when compared to competitors",
+    )
+    if any(marker in text for marker in low_value_markers):
+        score -= 8
+
     score += sum(2 for keyword in MAJOR_PRIORITY_KEYWORDS if keyword in text)
     published_at = _parse_article_timestamp(article.get("published_at"))
-    recency_bonus = max(
-        0.0, 72.0 - (datetime.now(timezone.utc) - published_at).total_seconds() / 3600.0
-    )
+    age_hours = (datetime.now(timezone.utc) - published_at).total_seconds() / 3600.0
+    if age_hours > 24 * 7:
+        score -= 6
+    if age_hours > 24 * 14:
+        score -= 10
+    recency_bonus = max(0.0, 72.0 - age_hours)
     return score, recency_bonus
 
 
 def _top_articles_for_position(articles: list[dict], ticker: str) -> list[dict]:
+    filtered_articles = []
+    for article in articles:
+        is_junk, _ = _is_junk_article(article)
+        if not is_junk:
+            filtered_articles.append(article)
+
+    if not filtered_articles:
+        return []
+
     ranked = sorted(
-        articles,
+        filtered_articles,
         key=lambda article: _article_priority(article, ticker),
         reverse=True,
     )
@@ -141,8 +389,59 @@ def _parse_time_window_hours(hours: int) -> str:
     return threshold.isoformat()
 
 
+def _is_retryable_supabase_error(exc: Exception) -> bool:
+    if isinstance(
+        exc,
+        (
+            httpx.ConnectError,
+            httpx.ReadError,
+            httpx.ReadTimeout,
+            httpx.RemoteProtocolError,
+            httpx.WriteError,
+            httpx.WriteTimeout,
+        ),
+    ):
+        return True
+    return "Server disconnected" in str(exc)
+
+
+def _execute_supabase_with_retry(
+    operation,
+    *,
+    context: str,
+    attempts: int = 3,
+    base_delay: float = 1.0,
+):
+    last_exc = None
+    for attempt in range(1, attempts + 1):
+        try:
+            return operation()
+        except Exception as exc:
+            last_exc = exc
+            if not _is_retryable_supabase_error(exc) or attempt >= attempts:
+                raise
+            delay = base_delay * (2 ** (attempt - 1))
+            logger.warning(
+                "Retrying Supabase operation for %s after transient error (attempt %s/%s): %s",
+                context,
+                attempt,
+                attempts,
+                exc,
+            )
+            time.sleep(delay)
+    raise last_exc
+
+
 def _update_analysis_run(supabase, analysis_run_id: str, **fields):
-    supabase.table("analysis_runs").update(fields).eq("id", analysis_run_id).execute()
+    _execute_supabase_with_retry(
+        lambda: (
+            supabase.table("analysis_runs")
+            .update(fields)
+            .eq("id", analysis_run_id)
+            .execute()
+        ),
+        context=f"analysis_runs update {analysis_run_id}",
+    )
 
 
 def _set_analysis_stage(
@@ -158,6 +457,14 @@ def _set_analysis_stage(
         current_stage=stage,
         current_stage_message=message[:300],
         **extra_fields,
+    )
+    record_stage(
+        stage,
+        {
+            "analysis_run_id": analysis_run_id,
+            "message": message[:300],
+            **extra_fields,
+        },
     )
 
 
@@ -254,6 +561,7 @@ def _load_analysis_cache(
     kind: str,
     cache_key: str,
     max_age_hours: int = 24,
+    article: dict | None = None,
 ) -> dict | None:
     threshold = datetime.now(timezone.utc) - timedelta(hours=max_age_hours)
     result = (
@@ -265,7 +573,33 @@ def _load_analysis_cache(
         .limit(1)
         .execute()
     )
-    return result.data[0]["payload"] if result.data else None
+    payload = result.data[0]["payload"] if result.data else None
+    if not isinstance(payload, dict):
+        return None
+
+    why = str(payload.get("why_it_matters") or "").strip().lower()
+    if why == "llm call failed":
+        return None
+
+    if kind == "relevance":
+        if article is not None:
+            is_junk, _ = _is_junk_article(article)
+            if is_junk:
+                return None
+            if (
+                str(article.get("source_type") or "") == "company_news"
+                and str(article.get("body") or "").strip()
+                and int(payload.get("cache_version") or 0) < 2
+            ):
+                return None
+        event_type = str(payload.get("event_type") or "").strip().lower()
+        affected = payload.get("affected_tickers") or []
+        if payload.get("relevant") and not affected:
+            return None
+        if not event_type:
+            return None
+
+    return payload
 
 
 def _store_analysis_cache(
@@ -300,6 +634,111 @@ def _store_analysis_cache(
         )
     else:
         supabase.table(CACHE_TABLE).insert(row).execute()
+
+
+def _should_enrich_company_article(article: dict) -> bool:
+    if str(article.get("source_type") or "") != "company_news":
+        return False
+
+    evidence_quality = str(article.get("evidence_quality") or "").strip().lower()
+    if evidence_quality == "full_body":
+        return False
+
+    body_text = str(article.get("body") or "").strip()
+    if not body_text:
+        return True
+
+    return evidence_quality in {"title_only", "partial_body"}
+
+
+async def _enrich_company_articles_with_cache(
+    supabase,
+    articles: list[dict],
+) -> list[dict]:
+    if not articles:
+        return []
+
+    unique_articles: list[dict] = []
+    seen_hashes: set[str] = set()
+    for article in articles:
+        event_hash = str(article.get("event_hash") or "").strip()
+        if not event_hash or event_hash in seen_hashes:
+            continue
+        seen_hashes.add(event_hash)
+        unique_articles.append(article)
+
+    if not unique_articles:
+        return []
+
+    cache_keys = [
+        str(article.get("event_hash") or "").strip() for article in unique_articles
+    ]
+    threshold = datetime.now(timezone.utc) - timedelta(
+        hours=COMPANY_ARTICLE_ENRICHMENT_CACHE_TTL_HOURS
+    )
+    cached_rows = (
+        supabase.table(CACHE_TABLE)
+        .select("cache_key, payload")
+        .eq("kind", COMPANY_ARTICLE_ENRICHMENT_CACHE_KIND)
+        .in_("cache_key", cache_keys)
+        .gte("updated_at", threshold.isoformat())
+        .execute()
+        .data
+    )
+    cached_by_hash = {
+        str(row.get("cache_key") or "").strip(): row.get("payload")
+        for row in cached_rows
+        if isinstance(row.get("payload"), dict)
+    }
+
+    enriched_by_hash: dict[str, dict] = {}
+    pending_articles: list[dict] = []
+    for article in unique_articles:
+        event_hash = str(article.get("event_hash") or "").strip()
+        cached = cached_by_hash.get(event_hash)
+        if cached:
+            enriched_by_hash[event_hash] = cached
+            continue
+        pending_articles.append(article)
+
+    if pending_articles:
+        pending_started_at = time.monotonic()
+        pending_enriched = await enrich_articles_content(pending_articles)
+        print(
+            f"[ARTICLE_ENRICH] Cache miss enriched {len(pending_enriched)}/{len(pending_articles)} "
+            f"company articles in {time.monotonic() - pending_started_at:.1f}s"
+        )
+        for article in pending_enriched:
+            event_hash = str(article.get("event_hash") or "").strip()
+            if not event_hash:
+                continue
+            enriched_by_hash[event_hash] = article
+            _store_analysis_cache(
+                supabase,
+                kind=COMPANY_ARTICLE_ENRICHMENT_CACHE_KIND,
+                cache_key=event_hash,
+                payload=article,
+            )
+
+    ordered: list[dict] = []
+    cache_hits = 0
+    cache_misses = 0
+    for article in unique_articles:
+        event_hash = str(article.get("event_hash") or "").strip()
+        enriched = enriched_by_hash.get(event_hash)
+        if enriched:
+            ordered.append(enriched)
+            if event_hash in cached_by_hash:
+                cache_hits += 1
+            else:
+                cache_misses += 1
+        else:
+            ordered.append(article)
+
+    print(
+        f"[ARTICLE_ENRICH] Company cache hits={cache_hits} misses={cache_misses} total={len(unique_articles)}"
+    )
+    return ordered
 
 
 def _sync_user_job(
@@ -532,6 +971,175 @@ def _store_relevant_news_items(
                 continue
 
 
+async def _load_ticker_metadata_map(
+    supabase,
+    tickers: list[str],
+) -> dict[str, dict]:
+    normalized_tickers = sorted(
+        {str(ticker).strip().upper() for ticker in tickers if str(ticker).strip()}
+    )
+    if not normalized_tickers:
+        return {}
+
+    result = (
+        supabase.table("ticker_metadata")
+        .select("*")
+        .in_("ticker", normalized_tickers)
+        .execute()
+        .data
+    )
+    return {row["ticker"]: row for row in (result or []) if row.get("ticker")}
+
+
+async def _build_shared_news_payload(
+    tickers: list[str],
+    ticker_metadata_map: dict[str, dict],
+) -> dict:
+    started_at = time.monotonic()
+    timings: dict[str, float] = {}
+
+    async def _time_fetch(name: str, awaitable):
+        fetch_started_at = time.monotonic()
+        result = await awaitable
+        timings[name] = time.monotonic() - fetch_started_at
+        return result
+
+    from .finnhub_news import fetch_market_news
+    from .macro_classifier import summarize_sector_overview
+    from .rss_ingest import (
+        fetch_cnbc_macro_rss,
+        fetch_cnbc_sector_rss,
+        fetch_google_company_rss,
+        fetch_google_sector_rss,
+    )
+
+    sector_names = sorted(
+        {
+            str(metadata.get("sector", "")).strip()
+            for metadata in ticker_metadata_map.values()
+            if str(metadata.get("sector", "")).strip()
+        }
+    )
+
+    macro_task = asyncio.create_task(
+        _time_fetch("macro", fetch_cnbc_macro_rss(limit=12))
+    )
+    cnbc_sector_task = asyncio.create_task(
+        _time_fetch(
+            "cnbc_sector", fetch_cnbc_sector_rss(sector_names, limit_per_sector=10)
+        )
+    )
+    google_sector_task = asyncio.create_task(
+        _time_fetch(
+            "google_sector", fetch_google_sector_rss(sector_names, limit_per_sector=6)
+        )
+    )
+    company_task = asyncio.create_task(
+        _time_fetch(
+            "company",
+            fetch_google_company_rss(tickers, ticker_metadata_map, limit_per_ticker=4),
+        )
+    )
+    market_task = asyncio.create_task(_time_fetch("market", fetch_market_news()))
+
+    macro_articles = await macro_task
+    cnbc_sector_articles = await cnbc_sector_task
+    google_sector_articles = await google_sector_task
+    company_articles = await company_task
+    market_articles = await market_task
+
+    sector_articles = cnbc_sector_articles + google_sector_articles
+    sector_articles_by_name: dict[str, list[dict]] = {}
+    for article in sector_articles:
+        sector_name = (
+            str(article.get("sector_hint") or article.get("sector") or "")
+            .strip()
+            .lower()
+        )
+        if sector_name and sector_name not in {"unknown", "none", "null", "n/a"}:
+            sector_articles_by_name.setdefault(sector_name, []).append(article)
+
+    sector_context_started_at = time.monotonic()
+    sector_context = await summarize_sector_overview(sector_articles_by_name)
+    timings["sector_context"] = time.monotonic() - sector_context_started_at
+
+    normalize_started_at = time.monotonic()
+    raw_articles = []
+    raw_articles.extend(normalize_news_batch(company_articles, "company_news"))
+    raw_articles.extend(normalize_news_batch(macro_articles, "cnbc_macro_rss"))
+    raw_articles.extend(normalize_news_batch(sector_articles, "cnbc_sector_rss"))
+    raw_articles.extend(normalize_news_batch(market_articles, "market_news"))
+    timings["normalize"] = time.monotonic() - normalize_started_at
+
+    dedupe_started_at = time.monotonic()
+    normalized_articles = _dedupe_articles(raw_articles)
+    timings["dedupe"] = time.monotonic() - dedupe_started_at
+
+    elapsed = time.monotonic() - started_at
+    print(
+        f"[SHARED_NEWS] Built shared news payload for {len(tickers)} tickers in {elapsed:.1f}s: "
+        f"macro={len(macro_articles)} sector={len(sector_articles)} company={len(company_articles)} market={len(market_articles)} "
+        f"timings=macro:{timings.get('macro', 0.0):.1f}s cnbc_sector:{timings.get('cnbc_sector', 0.0):.1f}s "
+        f"google_sector:{timings.get('google_sector', 0.0):.1f}s company:{timings.get('company', 0.0):.1f}s "
+        f"market:{timings.get('market', 0.0):.1f}s sector_context:{timings.get('sector_context', 0.0):.1f}s "
+        f"normalize:{timings.get('normalize', 0.0):.1f}s dedupe:{timings.get('dedupe', 0.0):.1f}s"
+    )
+
+    return {
+        "macro_articles": macro_articles,
+        "cnbc_sector_articles": cnbc_sector_articles,
+        "google_sector_articles": google_sector_articles,
+        "sector_articles": sector_articles,
+        "company_articles": company_articles,
+        "market_articles": market_articles,
+        "sector_names": sector_names,
+        "sector_context": sector_context,
+        "raw_articles": raw_articles,
+        "normalized_articles": normalized_articles,
+    }
+
+
+async def _refresh_position_prices_from_finnhub(positions: list[dict]) -> None:
+    from ..services.finnhub_prices import fetch_current_price_from_finnhub
+    from ..services.supabase import get_supabase
+
+    supabase = get_supabase()
+    semaphore = asyncio.Semaphore(6)
+
+    def _persist_price(position_id: str, ticker: str, price: float) -> None:
+        supabase.table("positions").update({"current_price": price}).eq(
+            "id", position_id
+        ).execute()
+        supabase.table("prices").insert({"ticker": ticker, "price": price}).execute()
+
+    async def _refresh_one(position: dict) -> None:
+        ticker = str(position.get("ticker") or "").strip().upper()
+        position_id = str(position.get("id") or "").strip()
+        if not ticker or not position_id:
+            return
+
+        async with semaphore:
+            try:
+                price = await asyncio.wait_for(
+                    asyncio.to_thread(fetch_current_price_from_finnhub, ticker),
+                    timeout=6,
+                )
+            except Exception as exc:
+                print(f"Error fetching Finnhub price for {ticker}: {exc}")
+                return
+
+            if not price:
+                return
+
+            try:
+                await asyncio.to_thread(_persist_price, position_id, ticker, price)
+                print(f"Updated {ticker} price to ${price}")
+            except Exception as exc:
+                print(f"Error saving Finnhub price for {ticker}: {exc}")
+
+    await asyncio.gather(*(_refresh_one(position) for position in positions))
+
+
 def _upsert_draft_position_snapshot(
     supabase,
     *,
@@ -616,40 +1224,62 @@ def _build_position_analysis_payload(
 def _load_completed_position_payloads(
     supabase, user_id: str, analysis_run_id: str
 ) -> list[dict]:
-    positions = (
-        supabase.table("positions").select("*").eq("user_id", user_id).execute().data
+    positions = _execute_supabase_with_retry(
+        lambda: (
+            supabase.table("positions")
+            .select("*")
+            .eq("user_id", user_id)
+            .execute()
+            .data
+        ),
+        context=f"positions load for partial run {analysis_run_id}",
     )
     payloads = []
     for position in positions:
-        score_rows = (
-            supabase.table("risk_scores")
-            .select("*")
-            .eq("analysis_run_id", analysis_run_id)
-            .eq("position_id", position["id"])
-            .limit(1)
-            .execute()
-            .data
+        score_rows = _execute_supabase_with_retry(
+            lambda: (
+                supabase.table("risk_scores")
+                .select("*")
+                .eq("analysis_run_id", analysis_run_id)
+                .eq("position_id", position["id"])
+                .limit(1)
+                .execute()
+                .data
+            ),
+            context=(
+                f"risk_scores load for partial run {analysis_run_id} "
+                f"position {position['id']}"
+            ),
         )
-        analysis_rows = (
-            supabase.table("position_analyses")
-            .select("*")
-            .eq("analysis_run_id", analysis_run_id)
-            .eq("position_id", position["id"])
-            .limit(1)
-            .execute()
-            .data
+        analysis_rows = _execute_supabase_with_retry(
+            lambda: (
+                supabase.table("position_analyses")
+                .select("*")
+                .eq("analysis_run_id", analysis_run_id)
+                .eq("position_id", position["id"])
+                .limit(1)
+                .execute()
+                .data
+            ),
+            context=(
+                f"position_analyses load for partial run {analysis_run_id} "
+                f"position {position['id']}"
+            ),
         )
         if not score_rows or not analysis_rows:
             continue
 
-        history_rows = (
-            supabase.table("risk_scores")
-            .select("analysis_run_id, grade")
-            .eq("position_id", position["id"])
-            .order("calculated_at", desc=True)
-            .limit(2)
-            .execute()
-            .data
+        history_rows = _execute_supabase_with_retry(
+            lambda: (
+                supabase.table("risk_scores")
+                .select("analysis_run_id, grade")
+                .eq("position_id", position["id"])
+                .order("calculated_at", desc=True)
+                .limit(2)
+                .execute()
+                .data
+            ),
+            context=f"risk_scores history load for position {position['id']}",
         )
         previous_grade = None
         if len(history_rows) >= 2:
@@ -688,39 +1318,55 @@ async def _finalize_partial_run(
         return False
 
     events_processed = (
-        supabase.table("event_analyses")
-        .select("id", count="exact")
-        .eq("analysis_run_id", analysis_run_id)
-        .execute()
-        .count
+        _execute_supabase_with_retry(
+            lambda: (
+                supabase.table("event_analyses")
+                .select("id", count="exact")
+                .eq("analysis_run_id", analysis_run_id)
+                .execute()
+                .count
+            ),
+            context=f"event_analyses count for partial run {analysis_run_id}",
+        )
         or 0
     )
     portfolio_score, overall_grade = _compute_portfolio_grade(position_payloads)
     digest = await compile_portfolio_digest(position_payloads, overall_grade)
 
-    existing_digest = (
-        supabase.table("digests")
-        .select("id")
-        .eq("analysis_run_id", analysis_run_id)
-        .limit(1)
-        .execute()
-        .data
+    existing_digest = _execute_supabase_with_retry(
+        lambda: (
+            supabase.table("digests")
+            .select("id")
+            .eq("analysis_run_id", analysis_run_id)
+            .limit(1)
+            .execute()
+            .data
+        ),
+        context=f"digest lookup for partial run {analysis_run_id}",
     )
     if not existing_digest:
-        supabase.table("digests").insert(
-            {
-                "user_id": user_id,
-                "analysis_run_id": analysis_run_id,
-                "content": digest["content"],
-                "grade_summary": {
-                    payload["ticker"]: payload["grade"] for payload in position_payloads
-                },
-                "overall_grade": overall_grade,
-                "overall_score": portfolio_score,
-                "structured_sections": digest["sections"],
-                "summary": digest["overall_summary"],
-            }
-        ).execute()
+        _execute_supabase_with_retry(
+            lambda: (
+                supabase.table("digests")
+                .insert(
+                    {
+                        "user_id": user_id,
+                        "analysis_run_id": analysis_run_id,
+                        "content": digest["content"],
+                        "grade_summary": {
+                            payload["ticker"]: payload["grade"]
+                            for payload in position_payloads
+                        },
+                        "overall_grade": overall_grade,
+                        "overall_score": portfolio_score,
+                        "structured_sections": digest["sections"],
+                        "summary": digest["overall_summary"],
+                    }
+                )
+                .execute()
+            ),
+            context=f"digest insert for partial run {analysis_run_id}",
+        )
 
     _set_analysis_stage(
         supabase,
@@ -782,6 +1428,7 @@ def _fail_stale_runs(supabase):
         supabase.table("analysis_runs")
         .select("id")
         .in_("status", ["queued", "running"])
+        .neq("triggered_by", SP500_BACKFILL_TRIGGER)
         .lt("started_at", stale_cutoff)
         .execute()
         .data
@@ -822,6 +1469,10 @@ async def _execute_with_timeout(
     analysis_run_id: str,
     triggered_by: str,
     target_position_id: str | None = None,
+    skip_metadata_refresh: bool = False,
+    target_tickers: list[str] | None = None,
+    artifact_label: str | None = None,
+    shared_news_payload: dict | None = None,
 ):
     from ..services.supabase import get_supabase
 
@@ -829,18 +1480,28 @@ async def _execute_with_timeout(
     try:
         return await asyncio.wait_for(
             execute_analysis_run(
-                user_id, analysis_run_id, triggered_by, target_position_id
+                user_id,
+                analysis_run_id,
+                triggered_by,
+                target_position_id,
+                skip_metadata_refresh=skip_metadata_refresh,
+                target_tickers=target_tickers,
+                artifact_label=artifact_label,
+                shared_news_payload=shared_news_payload,
             ),
             timeout=RUN_TIMEOUT_SECONDS,
         )
     except asyncio.TimeoutError:
-        run = (
-            supabase.table("analysis_runs")
-            .select("current_stage, current_stage_message")
-            .eq("id", analysis_run_id)
-            .limit(1)
-            .execute()
-            .data
+        run = _execute_supabase_with_retry(
+            lambda: (
+                supabase.table("analysis_runs")
+                .select("current_stage, current_stage_message")
+                .eq("id", analysis_run_id)
+                .limit(1)
+                .execute()
+                .data
+            ),
+            context=f"analysis_runs timeout lookup {analysis_run_id}",
         )
         current_stage = run[0].get("current_stage") if run else None
         current_message = run[0].get("current_stage_message") if run else None
@@ -879,12 +1540,40 @@ def _run_analysis_in_thread(
     analysis_run_id: str,
     triggered_by: str,
     target_position_id: str | None = None,
+    skip_metadata_refresh: bool = False,
+    target_tickers: list[str] | None = None,
+    artifact_label: str | None = None,
+    shared_news_payload: dict | None = None,
 ):
     asyncio.run(
         _execute_with_timeout(
-            user_id, analysis_run_id, triggered_by, target_position_id
+            user_id,
+            analysis_run_id,
+            triggered_by,
+            target_position_id,
+            skip_metadata_refresh=skip_metadata_refresh,
+            target_tickers=target_tickers,
+            artifact_label=artifact_label,
+            shared_news_payload=shared_news_payload,
         )
     )
+
+
+def _log_analysis_task_result(analysis_run_id: str, task: asyncio.Task) -> None:
+    try:
+        exc = task.exception()
+    except asyncio.CancelledError:
+        logger.warning(
+            "Background analysis task was cancelled for run %s", analysis_run_id
+        )
+        return
+
+    if exc is not None:
+        logger.error(
+            "Background analysis task failed for run %s",
+            analysis_run_id,
+            exc_info=(type(exc), exc, exc.__traceback__),
+        )
 
 
 async def execute_analysis_run(
@@ -892,8 +1581,11 @@ async def execute_analysis_run(
     analysis_run_id: str,
     triggered_by: str,
     target_position_id: str | None = None,
+    skip_metadata_refresh: bool = False,
+    target_tickers: list[str] | None = None,
+    artifact_label: str | None = None,
+    shared_news_payload: dict | None = None,
 ):
-    from ..services.polygon import fetch_aggs, store_prices, update_position_prices
     from ..services.supabase import get_supabase
     from .finnhub_news import fetch_market_news
     from .notifier import (
@@ -906,12 +1598,27 @@ async def execute_analysis_run(
         fetch_cnbc_macro_rss,
         fetch_cnbc_sector_rss,
         fetch_google_company_rss,
+        fetch_google_sector_rss,
     )
 
     supabase = get_supabase()
+    artifact_enabled = bool(artifact_label)
+    coverage_gate: dict = {}
 
     if triggered_by == "scheduled":
         _record_scheduled_run_start(supabase, user_id)
+
+    if artifact_enabled:
+        begin_artifact_session(
+            analysis_run_id,
+            {
+                "label": artifact_label,
+                "user_id": user_id,
+                "triggered_by": triggered_by,
+                "target_position_id": target_position_id,
+                "target_tickers": target_tickers or [],
+            },
+        )
 
     _set_analysis_stage(
         supabase,
@@ -924,9 +1631,33 @@ async def execute_analysis_run(
 
     try:
         positions_query = supabase.table("positions").select("*").eq("user_id", user_id)
+        normalized_target_tickers = sorted(
+            {
+                str(ticker).strip().upper()
+                for ticker in (target_tickers or [])
+                if str(ticker).strip()
+            }
+        )
+        is_internal_sp500_batch_run = (
+            user_id == SYSTEM_SP500_USER_ID
+            and triggered_by == "scheduled"
+            and not target_position_id
+            and bool(normalized_target_tickers)
+        )
         if target_position_id:
             positions_query = positions_query.eq("id", target_position_id)
+        elif normalized_target_tickers:
+            positions_query = positions_query.in_("ticker", normalized_target_tickers)
         positions = positions_query.execute().data
+        if artifact_enabled:
+            write_named_json(
+                "positions.json",
+                {
+                    "positions": positions,
+                    "target_position_id": target_position_id,
+                    "target_tickers": normalized_target_tickers,
+                },
+            )
         if not positions:
             empty_message = (
                 "Target position not found."
@@ -949,20 +1680,15 @@ async def execute_analysis_run(
 
         tickers = [p["ticker"] for p in positions]
 
-        _set_analysis_stage(
-            supabase,
-            analysis_run_id,
-            "refreshing_metadata",
-            f"Refreshing ticker metadata for {len(tickers)} holdings.",
-        )
-        metadata_refresh_limit = max(1, min(4, len(tickers)))
-        metadata_refresh_semaphore = asyncio.Semaphore(metadata_refresh_limit)
-
-        async def _refresh_metadata(ticker: str) -> None:
-            async with metadata_refresh_semaphore:
+        if not skip_metadata_refresh:
+            _set_analysis_stage(
+                supabase,
+                analysis_run_id,
+                "refreshing_metadata",
+                f"Refreshing ticker metadata for {len(tickers)} holdings.",
+            )
+            for ticker in tickers:
                 await asyncio.to_thread(upsert_ticker_metadata, supabase, ticker)
-
-        await asyncio.gather(*(_refresh_metadata(ticker) for ticker in tickers))
 
         ticker_metadata_map = {}
         for ticker in tickers:
@@ -975,6 +1701,8 @@ async def execute_analysis_run(
             )
             if meta_result.data:
                 ticker_metadata_map[ticker] = meta_result.data[0]
+        if artifact_enabled:
+            write_named_json("ticker_metadata.json", ticker_metadata_map)
 
         sector_names = sorted(
             {
@@ -984,45 +1712,78 @@ async def execute_analysis_run(
             }
         )
 
-        macro_rss_task = asyncio.create_task(fetch_cnbc_macro_rss())
-        sector_rss_task = asyncio.create_task(fetch_cnbc_sector_rss(sector_names))
-        company_rss_task = asyncio.create_task(
-            fetch_google_company_rss(tickers, ticker_metadata_map)
-        )
-
         _set_analysis_stage(
             supabase,
             analysis_run_id,
-            "fetching_news",
+            "fetching_news" if not shared_news_payload else "loading_shared_news",
             (
-                f"Fetching CNBC macro and sector news for {tickers[0]}."
-                if len(tickers) == 1
-                else f"Fetching CNBC macro and sector news for {len(tickers)} holdings."
+                f"Loading shared news cache for {len(tickers)} holdings."
+                if shared_news_payload
+                else (
+                    f"Fetching CNBC macro and sector news for {tickers[0]}."
+                    if len(tickers) == 1
+                    else f"Fetching CNBC macro and sector news for {len(tickers)} holdings."
+                )
             ),
         )
-        macro_articles = await macro_rss_task
-        sector_articles = await sector_rss_task
-        company_articles = await company_rss_task
-        sector_articles_by_name: dict[str, list[dict]] = {}
-        for article in sector_articles:
-            sector_name = (
-                str(article.get("sector_hint") or article.get("sector") or "")
-                .strip()
-                .lower()
+        if shared_news_payload:
+            macro_articles = list(shared_news_payload.get("macro_articles") or [])
+            cnbc_sector_articles = list(
+                shared_news_payload.get("cnbc_sector_articles") or []
             )
-            if sector_name and sector_name not in {"unknown", "none", "null", "n/a"}:
-                sector_articles_by_name.setdefault(sector_name, []).append(article)
+            google_sector_articles = list(
+                shared_news_payload.get("google_sector_articles") or []
+            )
+            sector_articles = list(shared_news_payload.get("sector_articles") or [])
+            market_articles = list(shared_news_payload.get("market_articles") or [])
+            sector_context = shared_news_payload.get("sector_context") or {}
+            shared_company_articles = list(
+                shared_news_payload.get("company_articles") or []
+            )
+            ticker_set = {ticker.upper() for ticker in tickers}
+            company_articles = [
+                article
+                for article in shared_company_articles
+                if str(article.get("ticker") or "").strip().upper() in ticker_set
+            ]
+            print(
+                f"[SHARED_NEWS] Reusing shared payload for {len(tickers)} tickers: "
+                f"company_scoped={len(company_articles)}/{len(shared_company_articles)} "
+                f"macro={len(macro_articles)} sector={len(sector_articles)} market={len(market_articles)}"
+            )
+        else:
+            macro_articles = await fetch_cnbc_macro_rss()
+            cnbc_sector_articles = await fetch_cnbc_sector_rss(sector_names)
+            google_sector_articles = await fetch_google_sector_rss(sector_names)
+            sector_articles = cnbc_sector_articles + google_sector_articles
+            company_articles = await fetch_google_company_rss(
+                tickers, ticker_metadata_map
+            )
+            market_articles_task = asyncio.create_task(fetch_market_news())
+            sector_articles_by_name: dict[str, list[dict]] = {}
+            for article in sector_articles:
+                sector_name = (
+                    str(article.get("sector_hint") or article.get("sector") or "")
+                    .strip()
+                    .lower()
+                )
+                if sector_name and sector_name not in {
+                    "unknown",
+                    "none",
+                    "null",
+                    "n/a",
+                }:
+                    sector_articles_by_name.setdefault(sector_name, []).append(article)
 
-        from .macro_classifier import summarize_sector_overview
+            from .macro_classifier import summarize_sector_overview
 
-        sector_context = await summarize_sector_overview(sector_articles_by_name)
+            sector_context = await summarize_sector_overview(sector_articles_by_name)
+            market_articles = await market_articles_task
         raw_articles = []
         raw_articles.extend(normalize_news_batch(company_articles, "company_news"))
         raw_articles.extend(normalize_news_batch(macro_articles, "cnbc_macro_rss"))
         raw_articles.extend(normalize_news_batch(sector_articles, "cnbc_sector_rss"))
-        raw_articles.extend(
-            normalize_news_batch(await fetch_market_news(), "market_news")
-        )
+        raw_articles.extend(normalize_news_batch(market_articles, "market_news"))
         normalized_articles = _dedupe_articles(raw_articles)
 
         _set_analysis_stage(
@@ -1048,7 +1809,8 @@ async def execute_analysis_run(
                     supabase,
                     kind="relevance",
                     cache_key=event_hash,
-                    max_age_hours=24,
+                    max_age_hours=72,
+                    article=article,
                 )
                 if cached:
                     relevance_cache[event_hash] = cached
@@ -1075,14 +1837,19 @@ async def execute_analysis_run(
 
         all_batch_results: list[dict] = []
         if articles_to_classify:
+            article_count = len(articles_to_classify)
+            relevance_batch_size = (
+                5 if article_count < 200 else (20 if article_count < 2000 else 30)
+            )
             fresh_results = await classify_relevance_batch(
-                articles_to_classify, positions, batch_size=15
+                articles_to_classify, positions, batch_size=relevance_batch_size
             )
             for r in fresh_results:
                 article = r.get("article") or {}
                 event_hash = article.get("event_hash", "")
                 if event_hash:
                     cache_payload = {k: v for k, v in r.items() if k != "article"}
+                    cache_payload["cache_version"] = 2
                     _store_analysis_cache(
                         supabase,
                         kind="relevance",
@@ -1090,6 +1857,15 @@ async def execute_analysis_run(
                         payload=cache_payload,
                     )
                 all_batch_results.append(r)
+        if artifact_enabled:
+            write_named_json(
+                "stages/relevance_outputs.json",
+                {
+                    "cached_count": len(relevance_cache),
+                    "uncached_count": len(articles_to_classify),
+                    "results": all_batch_results,
+                },
+            )
 
         for event_hash, cached in relevance_cache.items():
             article = cached.pop("article", {})
@@ -1121,6 +1897,15 @@ async def execute_analysis_run(
 
         for result in all_batch_results:
             article = result.get("article") or normalized_copy[result["article_index"]]
+            is_junk, junk_reason = _is_junk_article(article)
+            if is_junk:
+                article["relevance"] = {
+                    "relevant": False,
+                    "affected_tickers": [],
+                    "event_type": "irrelevant",
+                    "why_it_matters": junk_reason,
+                }
+                continue
             affected_tickers = [
                 str(t).upper()
                 for t in result.get("affected_tickers", [])
@@ -1134,7 +1919,19 @@ async def execute_analysis_run(
                 for t in article.get("ticker_hints", [])
                 if str(t).strip().upper() in held_tickers
             ]
-            if article.get("source_type") == "company_news" and ticker_hints:
+            article_evidence_quality = str(
+                article.get("evidence_quality") or "title_only"
+            )
+            can_force_promote = article_evidence_quality in {
+                "headline_summary",
+                "partial_body",
+                "full_body",
+            }
+            if (
+                article.get("source_type") == "company_news"
+                and ticker_hints
+                and can_force_promote
+            ):
                 if not affected_tickers:
                     affected_tickers = ticker_hints
                 if not result.get("relevant"):
@@ -1151,14 +1948,9 @@ async def execute_analysis_run(
                     "affected_tickers": affected_tickers,
                     "event_type": result.get("event_type", "company_specific"),
                     "why_it_matters": result.get("why_it_matters", ""),
+                    "evidence_quality": article_evidence_quality,
                 }
                 relevant_articles.append(article)
-                _store_relevant_news_items(
-                    supabase,
-                    user_id=user_id,
-                    analysis_run_id=analysis_run_id,
-                    relevant_articles=[article],
-                )
                 for ticker in affected_tickers:
                     if ticker in articles_by_ticker:
                         articles_by_ticker[ticker].append(article)
@@ -1191,6 +1983,7 @@ async def execute_analysis_run(
                     "affected_tickers": [],
                     "event_type": "irrelevant",
                     "why_it_matters": "",
+                    "evidence_quality": article_evidence_quality,
                 }
 
         for ticker in tickers:
@@ -1199,9 +1992,108 @@ async def execute_analysis_run(
                 ticker,
             )
 
+        selected_articles_by_hash: dict[str, dict] = {}
+        for articles in articles_by_ticker.values():
+            for article in articles:
+                event_hash = str(article.get("event_hash") or "").strip()
+                if event_hash:
+                    selected_articles_by_hash[event_hash] = article
+
+        articles_to_enrich = [
+            article
+            for article in selected_articles_by_hash.values()
+            if _should_enrich_company_article(article)
+        ]
+        enriched_articles_by_hash: dict[str, dict] = {}
+        if articles_to_enrich:
+            enriched_articles = await _enrich_company_articles_with_cache(
+                supabase,
+                articles_to_enrich,
+            )
+            enriched_articles_by_hash = {
+                str(article.get("event_hash") or "").strip(): article
+                for article in enriched_articles
+                if str(article.get("event_hash") or "").strip()
+            }
+
+        if enriched_articles_by_hash:
+            for ticker in tickers:
+                articles_by_ticker[ticker] = [
+                    _refresh_company_article_evidence_quality(
+                        enriched_articles_by_hash.get(
+                            article.get("event_hash"), article
+                        )
+                    )
+                    for article in articles_by_ticker.get(ticker, [])
+                ]
+            relevant_articles = [
+                _refresh_company_article_evidence_quality(
+                    enriched_articles_by_hash.get(article.get("event_hash"), article)
+                )
+                for article in relevant_articles
+            ]
+
+        if relevant_articles:
+            _store_relevant_news_items(
+                supabase,
+                user_id=user_id,
+                analysis_run_id=analysis_run_id,
+                relevant_articles=relevant_articles,
+            )
+
+        company_articles_enriched = list(enriched_articles_by_hash.values())
+        coverage_report = _company_article_resolution_report(
+            company_articles, company_articles_enriched
+        )
+        coverage_gate = {
+            "limited_evidence": not coverage_report.get("coverage_ok", False),
+            "coverage_ok": coverage_report.get("coverage_ok", False),
+            "coverage_rate": coverage_report.get("coverage_rate", 0.0),
+            "threshold": 0.35,
+            "resolved_with_body": coverage_report.get("resolved_with_body", 0),
+            "input_count": coverage_report.get("input_count", 0),
+        }
+        if artifact_enabled:
+            write_named_json(
+                "stages/relevant_articles_by_ticker.json",
+                {
+                    "relevant_articles": relevant_articles,
+                    "articles_by_ticker": articles_by_ticker,
+                    "scraped_event_hashes": sorted(enriched_articles_by_hash.keys()),
+                },
+            )
+            write_named_json(
+                "feeds/raw_feeds.json",
+                {
+                    "macro_articles": macro_articles,
+                    "cnbc_sector_articles": cnbc_sector_articles,
+                    "google_sector_articles": google_sector_articles,
+                    "sector_articles": sector_articles,
+                    "company_articles": company_articles,
+                    "company_articles_enriched": company_articles_enriched,
+                    "market_articles": market_articles,
+                    "sector_names": sector_names,
+                },
+            )
+            write_named_json(
+                "feeds/company_article_resolution_report.json",
+                coverage_report,
+            )
+            write_named_json("feeds/coverage_gate.json", coverage_gate)
+            record_stage("coverage_gate", coverage_gate)
+            write_named_json(
+                "feeds/normalized_articles.json",
+                {
+                    "sector_context": sector_context,
+                    "raw_articles": raw_articles,
+                    "normalized_articles": normalized_articles,
+                    "company_articles_enriched": company_articles_enriched,
+                },
+            )
+
         prefs = (
             supabase.table("user_preferences")
-            .select("apns_token, notifications_enabled")
+            .select("apns_token, notifications_enabled, summary_length, weekday_only")
             .eq("user_id", user_id)
             .limit(1)
             .execute()
@@ -1209,6 +2101,8 @@ async def execute_analysis_run(
         )
         notifications_enabled = bool(prefs and prefs[0].get("notifications_enabled"))
         apns_token = prefs[0].get("apns_token") if prefs else None
+        summary_length = (prefs[0].get("summary_length") or "standard") if prefs else "standard"
+        weekday_only = bool(prefs and prefs[0].get("weekday_only"))
 
         _set_analysis_stage(
             supabase,
@@ -1233,6 +2127,8 @@ async def execute_analysis_run(
             macro_context = await classify_overnight_macro(
                 macro_articles[-20:], positions
             )
+        if artifact_enabled:
+            write_named_json("stages/macro_context.json", macro_context)
 
         _set_analysis_stage(
             supabase,
@@ -1248,6 +2144,8 @@ async def execute_analysis_run(
             ticker: articles_by_ticker.get(ticker, []) for ticker in tickers
         }
         position_labels = await classify_position_batch(positions, all_events_by_ticker)
+        if artifact_enabled:
+            write_named_json("stages/position_labels.json", position_labels)
         inferred_map: dict[str, list[str]] = {}
         for p in positions:
             ticker = p["ticker"]
@@ -1284,7 +2182,7 @@ async def execute_analysis_run(
                     supabase,
                     kind="significance",
                     cache_key=event_hash,
-                    max_age_hours=24,
+                    max_age_hours=72,
                 )
                 if cached:
                     significance_cache[event_hash] = cached
@@ -1309,6 +2207,14 @@ async def execute_analysis_run(
                     cache_key=event_hash,
                     payload=significance,
                 )
+        if artifact_enabled:
+            write_named_json(
+                "stages/significance_outputs.json",
+                {
+                    "articles_classified": all_articles_to_classify,
+                    "significance_cache": significance_cache,
+                },
+            )
 
         _set_analysis_stage(
             supabase,
@@ -1344,6 +2250,12 @@ async def execute_analysis_run(
             ticker = position["ticker"]
             related_articles = all_events_by_ticker_for_analysis.get(ticker, [])
             inferred_labels = inferred_map.get(ticker, ["core"])
+            analyzable_related_articles = [
+                article
+                for article in related_articles
+                if str(article.get("evidence_quality") or "title_only")
+                in {"headline_summary", "partial_body", "full_body"}
+            ]
 
             top_headlines = [
                 article.get("title", "")
@@ -1378,7 +2290,7 @@ async def execute_analysis_run(
             major_articles = []
             significance_by_hash = {}
 
-            for article in related_articles:
+            for article in analyzable_related_articles:
                 event_hash = article.get("event_hash", "")
                 significance = significance_cache.get(event_hash)
                 if significance:
@@ -1393,12 +2305,11 @@ async def execute_analysis_run(
 
             for article in minor_articles:
                 event_hash = article.get("event_hash", "")
-                minor_cache_key = f"{event_hash}:{ticker}"
                 cached = _load_analysis_cache(
                     supabase,
-                    kind="minor_event_analysis",
-                    cache_key=minor_cache_key,
-                    max_age_hours=18,
+                    kind="minor_event_analysis_shared",
+                    cache_key=event_hash,
+                    max_age_hours=72,
                 )
                 if cached:
                     minor_article_analysis_results.append(
@@ -1411,10 +2322,10 @@ async def execute_analysis_run(
                     )
 
             if minor_uncached_articles:
-                from .agentic_scan import analyze_minor_events_batch
+                from .agentic_scan import analyze_minor_events_shared_batch
 
-                batch_results = await analyze_minor_events_batch(
-                    minor_uncached_articles, position, inferred_labels
+                batch_results = await analyze_minor_events_shared_batch(
+                    minor_uncached_articles
                 )
                 result_idx = 0
                 for item in minor_article_analysis_results:
@@ -1422,11 +2333,10 @@ async def execute_analysis_run(
                         item["analysis"] = batch_results[result_idx]
                         result_idx += 1
                         event_hash = item["article"].get("event_hash", "")
-                        minor_cache_key = f"{event_hash}:{ticker}"
                         _store_analysis_cache(
                             supabase,
-                            kind="minor_event_analysis",
-                            cache_key=minor_cache_key,
+                            kind="minor_event_analysis_shared",
+                            cache_key=event_hash,
                             payload=item["analysis"],
                         )
 
@@ -1436,12 +2346,11 @@ async def execute_analysis_run(
 
             for article in major_articles:
                 event_hash = article.get("event_hash", "")
-                major_cache_key = f"{event_hash}:{ticker}"
                 cached = _load_analysis_cache(
                     supabase,
-                    kind="major_event_analysis",
-                    cache_key=major_cache_key,
-                    max_age_hours=24,
+                    kind="major_event_analysis_shared",
+                    cache_key=event_hash,
+                    max_age_hours=120,
                 )
                 if cached:
                     major_article_analysis_results.append(
@@ -1454,11 +2363,10 @@ async def execute_analysis_run(
                     )
 
             if major_uncached_articles:
-                from .mirofish_analyze import mirofish_analyze_batch
+                from .major_event_analyzer import analyze_major_events_shared_batch
 
-                batch_results = await mirofish_analyze_batch(
-                    major_uncached_articles,
-                    {**position, "inferred_labels": inferred_labels},
+                batch_results = await analyze_major_events_shared_batch(
+                    major_uncached_articles
                 )
                 result_idx = 0
                 for item in major_article_analysis_results:
@@ -1466,18 +2374,19 @@ async def execute_analysis_run(
                         item["analysis"] = batch_results[result_idx]
                         result_idx += 1
                         event_hash = item["article"].get("event_hash", "")
-                        major_cache_key = f"{event_hash}:{ticker}"
                         _store_analysis_cache(
                             supabase,
-                            kind="major_event_analysis",
-                            cache_key=major_cache_key,
+                            kind="major_event_analysis_shared",
+                            cache_key=event_hash,
                             payload=item["analysis"],
                         )
 
             event_analyses = []
             for item in minor_article_analysis_results:
                 article = item["article"]
-                result = item["analysis"]
+                result = _project_shared_event_analysis(
+                    item["analysis"] or {}, article, position, inferred_labels
+                )
                 event_hash = article.get("event_hash", "")
                 significance = significance_by_hash.get(event_hash, {})
                 event_record = {
@@ -1521,14 +2430,15 @@ async def execute_analysis_run(
 
             for item in major_article_analysis_results:
                 article = item["article"]
-                result = item["analysis"]
+                result = _project_shared_event_analysis(
+                    item["analysis"] or {}, article, position, inferred_labels
+                )
                 event_hash = article.get("event_hash", "")
                 significance = significance_by_hash.get(event_hash, {})
                 analysis_source = (
-                    result.get("provider", "mirofish") if result else "mirofish"
+                    result.get("provider", "minimax") if result else "minimax"
                 )
-                if analysis_source == "mirofish":
-                    mirofish_used = True
+                mirofish_used = False
                 event_record = {
                     "analysis_run_id": analysis_run_id,
                     "position_id": position["id"],
@@ -1605,13 +2515,41 @@ async def execute_analysis_run(
                 source_count=len(related_articles),
             )
 
+            ticker_meta_result = (
+                supabase.table("ticker_metadata")
+                .select("*")
+                .eq("ticker", ticker.upper())
+                .limit(1)
+                .execute()
+            )
+            ticker_metadata = (
+                ticker_meta_result.data[0] if ticker_meta_result.data else None
+            )
+
             from .position_report_builder import build_position_report
 
             position_report = await build_position_report(
-                position,
+                {
+                    **position,
+                    "sector": (ticker_metadata or {}).get("sector"),
+                    "analysis_mode": (
+                        "sp500_backfill"
+                        if user_id == SYSTEM_SP500_USER_ID
+                        else "default"
+                    ),
+                },
                 inferred_labels,
                 event_analyses,
                 macro_context=macro_context,
+            )
+
+            macro_impact = next(
+                (
+                    impact
+                    for impact in macro_context.get("position_impacts", [])
+                    if str(impact.get("ticker") or "").strip().upper() == ticker.upper()
+                ),
+                None,
             )
 
             mirofish_used = mirofish_used or any(
@@ -1620,6 +2558,9 @@ async def execute_analysis_run(
 
             position_payload = {
                 **position,
+                "analysis_mode": (
+                    "sp500_backfill" if user_id == SYSTEM_SP500_USER_ID else "default"
+                ),
                 "previous_grade": previous_grades_by_ticker.get(ticker),
                 "previous_total_score": previous_total_scores_by_ticker.get(ticker),
                 "summary": position_report["summary"],
@@ -1631,7 +2572,26 @@ async def execute_analysis_run(
                 "methodology": position_report["methodology"],
                 "mirofish_used": mirofish_used,
                 "thesis_verifier": position_report.get("thesis_verifier", []),
+                "event_analyses": event_analyses,
+                "ticker_metadata": ticker_metadata or {},
+                "macro_impact": macro_impact or {},
+                "current_price": (ticker_metadata or {}).get("price")
+                or position.get("current_price")
+                or position.get("purchase_price"),
             }
+            if artifact_enabled:
+                record_position_artifact(
+                    ticker,
+                    "analysis",
+                    {
+                        "position": position,
+                        "inferred_labels": inferred_labels,
+                        "related_articles": related_articles,
+                        "event_analyses": event_analyses,
+                        "position_report": position_report,
+                        "position_payload": position_payload,
+                    },
+                )
             return position_index, position_payload, event_analyses
 
         position_concurrency = max(1, min(4, len(positions)))
@@ -1694,6 +2654,8 @@ async def execute_analysis_run(
             for i, scores in enumerate(batch_risk_scores):
                 if i < len(position_payloads):
                     position_payloads[i].update(scores)
+            if artifact_enabled:
+                write_named_json("stages/batch_risk_scores.json", batch_risk_scores)
 
             suspicious_score_count = 0
             for i, position in enumerate(positions):
@@ -1811,7 +2773,21 @@ async def execute_analysis_run(
                     ),
                     "macro_adjustment": structural_scores.get("macro_adjustment"),
                     "event_adjustment": structural_scores.get("event_adjustment"),
-                    "factor_breakdown": structural_scores.get("factor_breakdown"),
+                    "factor_breakdown": {
+                        **(
+                            structural_scores.get("factor_breakdown")
+                            if isinstance(
+                                structural_scores.get("factor_breakdown"), dict
+                            )
+                            else {}
+                        ),
+                        "ai_dimensions": {
+                            "news_sentiment": ai_scores.get("news_sentiment"),
+                            "macro_exposure": ai_scores.get("macro_exposure"),
+                            "position_sizing": ai_scores.get("position_sizing"),
+                            "volatility_trend": ai_scores.get("volatility_trend"),
+                        },
+                    },
                     "grade": grade,
                     "reasoning": ai_scores.get("reasoning"),
                     "grade_reason": ai_scores.get("grade_reason"),
@@ -1821,6 +2797,16 @@ async def execute_analysis_run(
                         "mirofish_used", structural_scores.get("mirofish_used", False)
                     ),
                 }
+                if artifact_enabled:
+                    record_position_artifact(
+                        ticker,
+                        "risk_payload",
+                        {
+                            "structural_scores": structural_scores,
+                            "ai_scores": ai_scores,
+                            "risk_payload": risk_payload,
+                        },
+                    )
                 supabase.table("risk_scores").insert(risk_payload).execute()
 
                 _upsert_position_analysis(
@@ -1892,18 +2878,12 @@ async def execute_analysis_run(
             (
                 f"Refreshing price history for {tickers[0]}."
                 if len(tickers) == 1
-                else "Refreshing price history for analyzed holdings."
+                else "Refreshing price snapshots for analyzed holdings."
             ),
             positions_processed=len(position_payloads),
             events_processed=total_event_count,
         )
-        await asyncio.to_thread(update_position_prices, positions)
-
-        for position in positions:
-            ticker = position["ticker"]
-            aggs = await asyncio.to_thread(fetch_aggs, ticker, 30)
-            if aggs:
-                store_prices(ticker, aggs)
+        await _refresh_position_prices_from_finnhub(positions)
 
         _set_analysis_stage(
             supabase,
@@ -1963,7 +2943,7 @@ async def execute_analysis_run(
 
         digest_alert_created = False
         overall_grade = None
-        if not target_position_id:
+        if not target_position_id and not is_internal_sp500_batch_run:
             _set_analysis_stage(
                 supabase,
                 analysis_run_id,
@@ -1972,6 +2952,45 @@ async def execute_analysis_run(
                 positions_processed=len(position_payloads),
                 events_processed=total_event_count,
             )
+            snapshot_history_map = get_latest_risk_snapshot_history_map(
+                supabase,
+                [p["ticker"] for p in position_payloads],
+                per_ticker=2,
+            )
+            if user_id != SYSTEM_SP500_USER_ID:
+                for payload in position_payloads:
+                    ticker = payload.get("ticker")
+                    if not ticker:
+                        continue
+                    snapshots = snapshot_history_map.get(ticker, [])
+                    latest_snapshot = snapshots[0] if snapshots else None
+                    previous_snapshot = snapshots[1] if len(snapshots) > 1 else None
+                    if latest_snapshot:
+                        payload["grade"] = latest_snapshot.get("grade") or payload.get(
+                            "grade"
+                        )
+                        payload["safety_score"] = latest_snapshot.get(
+                            "safety_score"
+                        ) or payload.get("safety_score")
+                        payload["total_score"] = latest_snapshot.get(
+                            "safety_score"
+                        ) or payload.get("total_score")
+                        payload["confidence"] = latest_snapshot.get(
+                            "confidence"
+                        ) or payload.get("confidence")
+                        payload["structural_base_score"] = latest_snapshot.get(
+                            "structural_base_score"
+                        ) or payload.get("structural_base_score")
+                        payload["summary"] = (
+                            latest_snapshot.get("news_summary")
+                            or latest_snapshot.get("reasoning")
+                            or payload.get("summary")
+                        )
+                        payload["previous_grade"] = (
+                            previous_snapshot.get("grade")
+                            if previous_snapshot
+                            else payload.get("previous_grade")
+                        )
             portfolio_score, overall_grade = _compute_portfolio_grade(position_payloads)
             digest = await compile_portfolio_digest(
                 position_payloads,
@@ -1979,6 +2998,7 @@ async def execute_analysis_run(
                 portfolio_risk,
                 macro_context=macro_context,
                 sector_context=sector_context,
+                summary_length=summary_length,
             )
             previous_digest = (
                 supabase.table("digests")
@@ -2027,24 +3047,16 @@ async def execute_analysis_run(
 
             previous_scores_for_alerts = {}
             for p in positions:
-                prev_result = (
-                    supabase.table("risk_scores")
-                    .select("safety_score")
-                    .eq("position_id", p["id"])
-                    .order("calculated_at", desc=True)
-                    .limit(2)
-                    .execute()
-                    .data
-                )
-                if len(prev_result) >= 2:
-                    previous_scores_for_alerts[p["id"]] = prev_result[1].get(
+                snapshots = snapshot_history_map.get(p["ticker"], [])
+                if len(snapshots) >= 2:
+                    previous_scores_for_alerts[p["id"]] = snapshots[1].get(
                         "safety_score"
                     )
 
             for p in positions:
                 ticker = p["ticker"]
                 position_id = p["id"]
-                current_score = p.get("safety_score")
+                current_score = p.get("safety_score") or p.get("total_score")
                 if not current_score:
                     continue
                 previous_score = previous_scores_for_alerts.get(position_id)
@@ -2144,8 +3156,27 @@ async def execute_analysis_run(
                 )
         if triggered_by == "scheduled":
             _record_scheduled_run_result(supabase, user_id, status="completed")
+        if artifact_enabled:
+            write_named_json(
+                "final_outputs.json",
+                {
+                    "position_payloads": position_payloads,
+                    "portfolio_risk": portfolio_risk,
+                    "overall_grade": overall_grade,
+                    "digest_alert_created": digest_alert_created,
+                    "coverage_gate": coverage_gate,
+                },
+            )
         return digest_alert_created
     except Exception as exc:
+        if artifact_enabled:
+            record_stage(
+                "error",
+                {
+                    "analysis_run_id": analysis_run_id,
+                    "error": str(exc),
+                },
+            )
         _set_analysis_stage(
             supabase,
             analysis_run_id,
@@ -2166,28 +3197,44 @@ async def execute_analysis_run(
         raise
     finally:
         active_runs.pop(analysis_run_id, None)
+        if artifact_enabled:
+            end_artifact_session(
+                {
+                    "analysis_run_id": analysis_run_id,
+                    "completed_at": utcnow_iso(),
+                }
+            )
 
 
 async def enqueue_analysis_run(
     user_id: str,
     triggered_by: str = "manual",
     target_position_id: str | None = None,
+    skip_metadata_refresh: bool = False,
+    target_tickers: list[str] | None = None,
+    artifact_label: str | None = None,
+    allow_parallel_runs: bool = False,
+    shared_news_payload: dict | None = None,
 ) -> dict:
     from ..services.supabase import get_supabase
 
     supabase = get_supabase()
     _fail_stale_runs(supabase)
-    _fail_orphaned_runs(supabase)
 
-    existing = (
-        supabase.table("analysis_runs")
-        .select("id, status, started_at, target_position_id")
-        .eq("user_id", user_id)
-        .in_("status", ["queued", "running"])
-        .order("started_at", desc=True)
-        .execute()
-        .data
-    )
+    existing = []
+    if not allow_parallel_runs:
+        existing = (
+            supabase.table("analysis_runs")
+            .select("id, status, started_at, target_position_id, triggered_by")
+            .eq("user_id", user_id)
+            .in_("status", ["queued", "running"])
+            .order("started_at", desc=True)
+            .execute()
+            .data
+        )
+        existing = [
+            run for run in existing if run.get("triggered_by") != SP500_BACKFILL_TRIGGER
+        ]
     if existing:
         blocking_run = None
         if target_position_id:
@@ -2238,6 +3285,15 @@ async def enqueue_analysis_run(
             run["id"],
             triggered_by,
             target_position_id,
+            skip_metadata_refresh,
+            target_tickers,
+            artifact_label,
+            shared_news_payload,
+        )
+    )
+    task.add_done_callback(
+        lambda completed_task, run_id=run["id"]: _log_analysis_task_result(
+            run_id, completed_task
         )
     )
     active_runs[run["id"]] = task
@@ -2256,7 +3312,244 @@ async def trigger_user_digest(user_id: str):
 
 
 async def trigger_scheduled_digest(user_id: str):
+    from datetime import datetime, timezone
+    from ..services.supabase import get_supabase
+
+    supabase = get_supabase()
+    prefs_row = (
+        supabase.table("user_preferences")
+        .select("weekday_only")
+        .eq("user_id", user_id)
+        .limit(1)
+        .execute()
+        .data
+    )
+    weekday_only = bool(prefs_row and prefs_row[0].get("weekday_only"))
+    if weekday_only and datetime.now(timezone.utc).weekday() >= 5:
+        logger.info(f"Skipping scheduled digest for {user_id}: weekday_only=True and today is weekend")
+        return None
+
     return await enqueue_analysis_run(user_id, "scheduled")
+
+
+def _create_sp500_backfill_run(
+    supabase,
+    *,
+    requested_by_user_id: str,
+    job_type: str,
+    limit: int | None,
+    batch_size: int,
+) -> dict:
+    payload = {
+        "user_id": SYSTEM_SP500_USER_ID,
+        "status": "queued",
+        "triggered_by": SP500_BACKFILL_TRIGGER,
+        "current_stage": "queued",
+        "current_stage_message": (
+            f"Queued S&P 500 {job_type} run"
+            + (f" for limit {limit}" if limit else "")
+            + f" with batch size {batch_size}."
+        )[:300],
+        "error_message": None,
+    }
+    result = supabase.table("analysis_runs").insert(payload).execute()
+    return result.data[0]
+
+
+def create_sp500_backfill_run(
+    *,
+    requested_by_user_id: str,
+    job_type: str = "backfill",
+    limit: int | None = None,
+    batch_size: int = 10,
+) -> dict:
+    from ..services.supabase import get_supabase
+
+    supabase = get_supabase()
+    return _create_sp500_backfill_run(
+        supabase,
+        requested_by_user_id=requested_by_user_id,
+        job_type=job_type,
+        limit=limit,
+        batch_size=batch_size,
+    )
+
+
+async def _execute_sp500_backfill_run(
+    analysis_run_id: str,
+    *,
+    requested_by_user_id: str,
+    limit: int | None,
+    job_type: str,
+    batch_size: int,
+    skip_structural: bool = False,
+) -> None:
+    from ..services.supabase import get_supabase
+
+    supabase = get_supabase()
+    try:
+        _set_analysis_stage(
+            supabase,
+            analysis_run_id,
+            "starting",
+            "Starting S&P 500 backfill controller.",
+            status="running",
+            started_at=utcnow_iso(),
+        )
+        result = await run_sp500_full_ai_analysis_fast(
+            limit=limit,
+            job_type=job_type,
+            batch_size=batch_size,
+            backfill_run_id=analysis_run_id,
+            skip_structural=skip_structural,
+        )
+        refreshed = int(result.get("refreshed") or 0)
+        failed = result.get("failed") or []
+        if result.get("status") == "ok":
+            _set_analysis_stage(
+                supabase,
+                analysis_run_id,
+                "completed",
+                f"Completed S&P 500 {job_type} run. Synced {refreshed} tickers.",
+                status="completed",
+                completed_at=utcnow_iso(),
+                error_message=None,
+                positions_processed=refreshed,
+            )
+            return
+
+        if result.get("status") == "partial":
+            _set_analysis_stage(
+                supabase,
+                analysis_run_id,
+                "completed",
+                f"Completed S&P 500 {job_type} run with {len(failed)} failures. Synced {refreshed} tickers.",
+                status="partial",
+                completed_at=utcnow_iso(),
+                error_message=(str(failed[:3])[:500] if failed else None),
+                positions_processed=refreshed,
+            )
+            return
+
+        _set_analysis_stage(
+            supabase,
+            analysis_run_id,
+            "failed",
+            f"S&P 500 {job_type} run failed.",
+            status="failed",
+            completed_at=utcnow_iso(),
+            error_message=(str(failed[:3])[:500] if failed else "Backfill failed."),
+            positions_processed=refreshed,
+        )
+    except Exception as exc:
+        _set_analysis_stage(
+            supabase,
+            analysis_run_id,
+            "failed",
+            "S&P 500 backfill controller failed.",
+            status="failed",
+            completed_at=utcnow_iso(),
+            error_message=str(exc)[:500],
+        )
+        raise
+    finally:
+        active_sp500_backfills.pop(analysis_run_id, None)
+
+
+def run_sp500_backfill_worker(
+    analysis_run_id: str,
+    *,
+    requested_by_user_id: str,
+    limit: int | None = None,
+    job_type: str = "backfill",
+    batch_size: int = 10,
+    skip_structural: bool = False,
+) -> None:
+    asyncio.run(
+        _execute_sp500_backfill_run(
+            analysis_run_id,
+            requested_by_user_id=requested_by_user_id,
+            limit=limit,
+            job_type=job_type,
+            batch_size=batch_size,
+            skip_structural=skip_structural,
+        )
+    )
+
+
+async def enqueue_sp500_backfill_run(
+    *,
+    requested_by_user_id: str,
+    limit: int | None = None,
+    job_type: str = "backfill",
+    batch_size: int = 10,
+) -> dict:
+    from ..services.supabase import get_supabase
+
+    supabase = get_supabase()
+    existing = (
+        supabase.table("analysis_runs")
+        .select("id, status, started_at")
+        .eq("user_id", SYSTEM_SP500_USER_ID)
+        .eq("triggered_by", SP500_BACKFILL_TRIGGER)
+        .in_("status", ["queued", "running"])
+        .order("started_at", desc=True)
+        .limit(1)
+        .execute()
+        .data
+    )
+    if existing:
+        blocking_run = existing[0]
+        if blocking_run["id"] not in active_sp500_backfills:
+            _update_analysis_run(
+                supabase,
+                blocking_run["id"],
+                status="failed",
+                current_stage="failed",
+                current_stage_message="Previous S&P 500 backfill was interrupted.",
+                completed_at=utcnow_iso(),
+                error_message="Previous S&P 500 backfill was interrupted before completion. Please run it again.",
+            )
+        else:
+            return {
+                "status": blocking_run["status"],
+                "analysis_run_id": blocking_run["id"],
+                "user_id": SYSTEM_SP500_USER_ID,
+                "positions_processed": 0,
+                "events_processed": 0,
+                "overall_grade": None,
+            }
+
+    run = _create_sp500_backfill_run(
+        supabase,
+        requested_by_user_id=requested_by_user_id,
+        job_type=job_type,
+        limit=limit,
+        batch_size=batch_size,
+    )
+    task = asyncio.create_task(
+        _execute_sp500_backfill_run(
+            run["id"],
+            requested_by_user_id=requested_by_user_id,
+            limit=limit,
+            job_type=job_type,
+            batch_size=batch_size,
+        )
+    )
+    task.add_done_callback(
+        lambda completed_task, run_id=run["id"]: _log_analysis_task_result(
+            run_id, completed_task
+        )
+    )
+    active_sp500_backfills[run["id"]] = task
+    return {
+        "status": "queued",
+        "user_id": SYSTEM_SP500_USER_ID,
+        "analysis_run_id": run["id"],
+        "positions_processed": 0,
+        "events_processed": 0,
+        "overall_grade": None,
+    }
 
 
 async def trigger_structural_refresh(user_id: str):
@@ -2436,6 +3729,916 @@ def get_scheduler_status_for_user(user_id: str) -> dict:
     }
 
 
+def get_sp500_cache_status(limit: int = 10) -> dict:
+    from ..services.supabase import get_supabase
+
+    supabase = get_supabase()
+    ensure_sp500_universe_seeded(supabase)
+    universe = list_active_sp500_tickers(supabase)
+    latest_jobs = (
+        supabase.table("ticker_refresh_jobs")
+        .select("ticker, status, job_type, created_at, completed_at, error_message")
+        .order("created_at", desc=True)
+        .limit(max(limit, 25))
+        .execute()
+        .data
+        or []
+    )
+    latest_snapshots = (
+        supabase.table("ticker_risk_snapshots")
+        .select("ticker, analysis_as_of, snapshot_type")
+        .order("analysis_as_of", desc=True)
+        .limit(max(limit, 25))
+        .execute()
+        .data
+        or []
+    )
+    snapshot_tickers = {row["ticker"] for row in latest_snapshots}
+    completed_jobs = [row for row in latest_jobs if row.get("status") == "completed"]
+
+    return {
+        "universe_size": len(universe),
+        "coverage_count": len(snapshot_tickers),
+        "daily_job_present": scheduler.get_job(SP500_DAILY_JOB_ID) is not None,
+        "daily_next_run_at": _serialize_datetime(
+            scheduler.get_job(SP500_DAILY_JOB_ID).next_run_time
+            if scheduler.get_job(SP500_DAILY_JOB_ID)
+            else None
+        ),
+        "recent_jobs": latest_jobs[:limit],
+        "recent_snapshots": latest_snapshots[:limit],
+        "completed_job_count_sample": len(completed_jobs),
+    }
+
+
+async def _get_or_create_sp500_system_user(supabase) -> str:
+    existing = (
+        supabase.table("user_preferences")
+        .select("user_id")
+        .eq("user_id", SYSTEM_SP500_USER_ID)
+        .limit(1)
+        .execute()
+    )
+    if not existing.data:
+        supabase.table("user_preferences").insert(
+            {
+                "user_id": SYSTEM_SP500_USER_ID,
+                "notifications_enabled": False,
+            }
+        ).execute()
+    return SYSTEM_SP500_USER_ID
+
+
+async def _ensure_sp500_system_positions(supabase, tickers: list[str]) -> None:
+    user_id = await _get_or_create_sp500_system_user(supabase)
+    existing = (
+        supabase.table("positions").select("ticker").eq("user_id", user_id).execute()
+    )
+    existing_tickers = {row["ticker"] for row in (existing.data or [])}
+    missing_tickers = [t for t in tickers if t not in existing_tickers]
+    if not missing_tickers:
+        return
+    rows = [
+        {
+            "user_id": user_id,
+            "ticker": t.upper(),
+            "shares": 0.0,
+            "purchase_price": 0.0,
+            "archetype": "growth",
+        }
+        for t in missing_tickers
+    ]
+    for chunk_start in range(0, len(rows), 100):
+        chunk = rows[chunk_start : chunk_start + 100]
+        supabase.table("positions").insert(chunk).execute()
+
+
+async def _sync_ai_scores_to_ticker_snapshots(
+    supabase, ticker: str, job_type: str
+) -> None:
+    await asyncio.to_thread(
+        _sync_ai_scores_to_ticker_snapshots_sync, supabase, ticker, job_type
+    )
+
+
+def _sync_ai_scores_to_ticker_snapshots_sync(
+    supabase, ticker: str, job_type: str
+) -> None:
+    from .risk_scorer import score_to_grade
+    from ..services.ticker_cache_service import _upsert_ticker_snapshot
+
+    user_id = SYSTEM_SP500_USER_ID
+    position_rows = (
+        supabase.table("positions")
+        .select("id, ticker")
+        .eq("user_id", user_id)
+        .eq("ticker", ticker.upper())
+        .limit(1)
+        .execute()
+        .data
+    )
+    if not position_rows:
+        return
+    position_id = position_rows[0]["id"]
+    latest_score_rows = (
+        supabase.table("risk_scores")
+        .select("*")
+        .eq("position_id", position_id)
+        .order("calculated_at", desc=True)
+        .limit(1)
+        .execute()
+        .data
+    )
+    if not latest_score_rows:
+        return
+    ai_score = latest_score_rows[0]
+    latest_analysis_rows = (
+        supabase.table("position_analyses")
+        .select("*")
+        .eq("position_id", position_id)
+        .order("updated_at", desc=True)
+        .limit(1)
+        .execute()
+        .data
+    )
+    analysis = latest_analysis_rows[0] if latest_analysis_rows else {}
+    now_iso = utcnow_iso()
+    safety_score = ai_score.get("safety_score") or ai_score.get("total_score") or 50
+    grade = ai_score.get("grade") or score_to_grade(safety_score)
+    factor_breakdown = ai_score.get("factor_breakdown") or {}
+    if isinstance(factor_breakdown, str):
+        import json
+
+        try:
+            factor_breakdown = json.loads(factor_breakdown)
+        except Exception:
+            factor_breakdown = {}
+    stored_ai_dims = factor_breakdown.get("ai_dimensions") or {}
+    factor_breakdown = {
+        **factor_breakdown,
+        "ai_dimensions": {
+            "news_sentiment": stored_ai_dims.get("news_sentiment")
+            or ai_score.get("news_sentiment"),
+            "macro_exposure": stored_ai_dims.get("macro_exposure")
+            or ai_score.get("macro_exposure"),
+            "position_sizing": stored_ai_dims.get("position_sizing")
+            or ai_score.get("position_sizing"),
+            "volatility_trend": stored_ai_dims.get("volatility_trend")
+            or ai_score.get("volatility_trend"),
+        },
+    }
+    payload = {
+        "ticker": ticker.upper(),
+        "snapshot_date": datetime.utcnow().date().isoformat(),
+        "snapshot_type": job_type,
+        "grade": grade,
+        "safety_score": round(float(safety_score), 1),
+        "structural_base_score": ai_score.get("structural_base_score"),
+        "macro_adjustment": ai_score.get("macro_adjustment") or 0.0,
+        "event_adjustment": ai_score.get("event_adjustment") or 0.0,
+        "confidence": ai_score.get("confidence"),
+        "factor_breakdown": factor_breakdown,
+        "dimension_rationale": ai_score.get("dimension_rationale") or {},
+        "reasoning": ai_score.get("reasoning") or analysis.get("summary") or "",
+        "news_summary": analysis.get("summary") or "",
+        "source_count": ai_score.get("source_count", 0),
+        "methodology_version": (
+            "sp500-ai-backfill-v2" if job_type == "backfill" else "sp500-ai-analysis-v2"
+        ),
+        "analysis_as_of": ai_score.get("calculated_at") or now_iso,
+        "refresh_triggered_by_user_id": None,
+        "updated_at": now_iso,
+    }
+    _upsert_ticker_snapshot(
+        supabase,
+        ticker=ticker.upper(),
+        snapshot_type=job_type,
+        payload=payload,
+    )
+
+
+async def refresh_sp500_cache(
+    limit: int | None = None, job_type: str = "daily"
+) -> dict:
+    from ..services.supabase import get_supabase
+
+    supabase = get_supabase()
+    ensure_sp500_universe_seeded(supabase)
+    tickers = list_active_sp500_tickers(supabase, limit=limit)
+
+    await _ensure_sp500_system_positions(supabase, tickers)
+
+    user_id = SYSTEM_SP500_USER_ID
+    system_positions = (
+        supabase.table("positions")
+        .select("id, ticker")
+        .eq("user_id", user_id)
+        .in_("ticker", [t.upper() for t in tickers])
+        .execute()
+        .data
+    )
+    if not system_positions:
+        return {
+            "status": "error",
+            "job_type": job_type,
+            "requested": len(tickers),
+            "refreshed": 0,
+            "failed": [{"error": "No system positions found for SP500 tickers"}],
+        }
+
+    refreshed = 0
+    failed: list[dict] = []
+
+    for pos in system_positions:
+        ticker = pos["ticker"]
+        try:
+            await asyncio.to_thread(
+                refresh_ticker_snapshot,
+                supabase,
+                ticker=ticker,
+                job_type=job_type,
+                requested_by_user_id=None,
+            )
+            refreshed += 1
+        except Exception as exc:
+            failed.append({"ticker": ticker, "error": str(exc)})
+
+    return {
+        "status": "ok" if not failed else "partial",
+        "job_type": job_type,
+        "requested": len(tickers),
+        "refreshed": refreshed,
+        "failed": failed,
+    }
+
+
+async def run_sp500_full_ai_analysis(
+    limit: int | None = None, job_type: str = "daily"
+) -> dict:
+    """Run full AI analysis for S&P 500 tickers and sync results to ticker_risk_snapshots.
+
+    This replaces the formula-only structural scoring with actual AI-powered analysis:
+    - Creates system SP500 positions if they don't exist
+    - Runs the full analysis pipeline (news, relevance, significance, events, AI scoring)
+    - Syncs AI scores to ticker_risk_snapshots so the position page shows real AI analysis
+    """
+    from ..services.supabase import get_supabase
+
+    supabase = get_supabase()
+    ensure_sp500_universe_seeded(supabase)
+    tickers = list_active_sp500_tickers(supabase, limit=limit)
+
+    await _ensure_sp500_system_positions(supabase, tickers)
+
+    user_id = SYSTEM_SP500_USER_ID
+    system_positions = (
+        supabase.table("positions")
+        .select("id, ticker")
+        .eq("user_id", user_id)
+        .in_("ticker", [t.upper() for t in tickers])
+        .execute()
+        .data
+    )
+    if not system_positions:
+        return {
+            "status": "error",
+            "job_type": job_type,
+            "requested": len(tickers),
+            "refreshed": 0,
+            "failed": [{"error": "No system positions found for SP500 tickers"}],
+        }
+
+    refreshed = 0
+    failed: list[dict] = []
+
+    for pos in system_positions:
+        ticker = pos["ticker"]
+        position_id = pos["id"]
+        try:
+            result = await enqueue_analysis_run(
+                user_id=user_id,
+                triggered_by="scheduled",
+                target_position_id=position_id,
+                skip_metadata_refresh=True,
+            )
+            if result.get("status") in ("queued", "running"):
+                import time
+
+                run_id = result.get("analysis_run_id")
+                for _ in range(300):
+                    await asyncio.sleep(2)
+                    run_check = (
+                        supabase.table("analysis_runs")
+                        .select("status")
+                        .eq("id", run_id)
+                        .limit(1)
+                        .execute()
+                        .data
+                    )
+                    if run_check and run_check[0]["status"] in ("completed", "failed"):
+                        break
+            await _sync_ai_scores_to_ticker_snapshots(supabase, ticker, job_type)
+            refreshed += 1
+        except Exception as exc:
+            failed.append({"ticker": ticker, "error": str(exc)})
+            print(f"Error running AI analysis for {ticker}: {exc}")
+
+    return {
+        "status": "ok" if not failed else "partial",
+        "job_type": job_type,
+        "requested": len(tickers),
+        "refreshed": refreshed,
+        "failed": failed,
+    }
+
+
+async def run_sp500_full_ai_analysis_fast(
+    limit: int | None = None,
+    job_type: str = "daily",
+    batch_size: int = 10,
+    backfill_run_id: str | None = None,
+    skip_structural: bool = False,
+    tickers_override: list[str] | None = None,
+) -> dict:
+    """Efficient batch AI analysis for S&P 500 tickers.
+
+    Optimizations:
+    1. Optional structural refresh (can be skipped when metadata is fresh)
+    2. Parallel structural refreshes (4 concurrent) scoped to limited tickers
+    3. Chunked AI analysis runs with capped concurrency
+    4. Batch sync of AI scores to ticker_risk_snapshots
+    """
+    import logging
+
+    for _logger_name in (
+        "requests",
+        "urllib3",
+        "http.client",
+        "requests.packages.urllib3",
+    ):
+        _l = logging.getLogger(_logger_name)
+        _l.setLevel(logging.WARNING)
+        _l.disabled = True
+
+    from ..services.supabase import get_supabase
+
+    supabase = get_supabase()
+
+    def _update_backfill_progress(message: str, **extra_fields) -> None:
+        if not backfill_run_id:
+            return
+        _set_analysis_stage(
+            supabase,
+            backfill_run_id,
+            "sp500_running_batches",
+            message,
+            status="running",
+            **extra_fields,
+        )
+
+    if tickers_override is not None:
+        tickers = sorted({t.strip().upper() for t in tickers_override if t.strip()})
+    else:
+        ensure_sp500_universe_seeded(supabase)
+        tickers = list_active_sp500_tickers(supabase, limit=limit)
+
+    await _ensure_sp500_system_positions(supabase, tickers)
+
+    user_id = SYSTEM_SP500_USER_ID
+    system_positions = (
+        supabase.table("positions")
+        .select("id, ticker")
+        .eq("user_id", user_id)
+        .in_("ticker", [t.upper() for t in tickers])
+        .execute()
+        .data
+    )
+    if not system_positions:
+        return {
+            "status": "error",
+            "job_type": job_type,
+            "requested": len(tickers),
+            "refreshed": 0,
+            "failed": [{"error": "No system positions found for SP500 tickers"}],
+        }
+
+    REFRESH_CONCURRENCY = 4
+
+    def _print_ticker_analysis(ticker: str, meta: dict) -> None:
+        pe = meta.get("pe_ratio") or "N/A"
+        high52 = meta.get("week_52_high") or "N/A"
+        low52 = meta.get("week_52_low") or "N/A"
+        price = meta.get("price") or "N/A"
+        vol = meta.get("volatility_proxy")
+        vol_str = f"{vol:.3f}" if vol is not None else "N/A"
+        liq = meta.get("avg_daily_dollar_volume")
+        liq_str = f"${liq / 1e6:.1f}M" if liq is not None else "N/A"
+        beta = meta.get("beta") or "N/A"
+        market_cap = meta.get("market_cap")
+        mc_str = f"${market_cap / 1e9:.1f}B" if market_cap is not None else "N/A"
+        sector = meta.get("sector") or "N/A"
+
+        snap = (
+            supabase.table("ticker_risk_snapshots")
+            .select("grade, safety_score, factor_breakdown")
+            .eq("ticker", ticker.upper())
+            .eq("snapshot_type", job_type)
+            .order("created_at", desc=True)
+            .limit(1)
+            .execute()
+            .data
+        )
+        grade = "N/A"
+        score = "N/A"
+        if snap:
+            grade = snap[0].get("grade") or "N/A"
+            score = snap[0].get("safety_score") or "N/A"
+            fb = snap[0].get("factor_breakdown") or {}
+            if isinstance(fb, str):
+                import json
+
+                try:
+                    fb = json.loads(fb)
+                except Exception:
+                    fb = {}
+            liq_score = fb.get("liquidity_score", "N/A")
+            vol_score = fb.get("volatility_score", "N/A")
+            lev_score = fb.get("leverage_score", "N/A")
+            prof_score = fb.get("profitability_score", "N/A")
+            print(
+                f"[{ticker}] Structural: Price=${price} | PE={pe} | 52W: ${low52}-${high52} | "
+                f"Grade={grade} Score={score} | Liquidity={liq_score} | Volatility={vol_score} | "
+                f"Leverage={lev_score} | Profitability={prof_score} | Beta={beta} | "
+                f"MC={mc_str} | Sector={sector}"
+            )
+            return
+
+        print(
+            f"[{ticker}] Structural: Price=${price} | PE={pe} | 52W: ${low52}-${high52} | "
+            f"Grade={grade} Score={score} | Liquidity={liq_str} Vol={vol_str} | "
+            f"Beta={beta} | MC={mc_str} | Sector={sector}"
+        )
+
+    failed_refresh: list[dict] = []
+    successful = [p["ticker"] for p in system_positions]
+    shared_news_payload = await _build_shared_news_payload(
+        successful,
+        await _load_ticker_metadata_map(supabase, successful),
+    )
+    _update_backfill_progress(
+        f"Shared news cache built for {len(successful)} tickers.",
+        positions_processed=0,
+    )
+
+    if skip_structural:
+        print(
+            f"[SP500] Skipping structural refresh (using cached metadata for {len(successful)} tickers)..."
+        )
+        _update_backfill_progress(
+            f"Skipping structural refresh. Starting AI analysis for {len(successful)} tickers.",
+            positions_processed=0,
+        )
+    else:
+        print(
+            f"[SP500] Starting structural refresh for {len(system_positions)} tickers (scoped to limit={limit})..."
+        )
+        _update_backfill_progress(
+            f"Refreshing structural data for {len(system_positions)} S&P tickers.",
+            positions_processed=0,
+        )
+        semaphore = asyncio.Semaphore(REFRESH_CONCURRENCY)
+
+        async def _refresh_one(pos: dict) -> str:
+            ticker = pos["ticker"]
+            async with semaphore:
+                try:
+                    await asyncio.to_thread(
+                        refresh_ticker_snapshot,
+                        supabase,
+                        ticker=ticker,
+                        job_type=job_type,
+                        requested_by_user_id=None,
+                    )
+                    meta = (
+                        supabase.table("ticker_metadata")
+                        .select(
+                            "pe_ratio, week_52_high, week_52_low, price, volatility_proxy, "
+                            "avg_daily_dollar_volume, beta, market_cap, sector"
+                        )
+                        .eq("ticker", ticker.upper())
+                        .limit(1)
+                        .execute()
+                        .data
+                    )
+                    if meta:
+                        _print_ticker_analysis(ticker, meta[0])
+                    return ticker
+                except Exception as exc:
+                    failed_refresh.append({"ticker": ticker, "error": str(exc)})
+                    print(f"[SP500] Refresh error for {ticker}: {exc}")
+                    return None
+
+        # `asyncio.gather()` already schedules the refresh coroutines; wrapping it
+        # in `create_task()` is invalid because it returns a Future, not a coroutine.
+        refresh_task = asyncio.gather(
+            *(_refresh_one(p) for p in system_positions), return_exceptions=True
+        )
+
+    batch_size = max(1, int(batch_size))
+    total_batches = (len(successful) + batch_size - 1) // batch_size
+    print(
+        f"[SP500] Starting batch AI analysis for {len(successful)} tickers in {total_batches} batches of {batch_size}..."
+    )
+    _update_backfill_progress(
+        f"Starting {total_batches} AI batches for {len(successful)} tickers.",
+        positions_processed=0,
+    )
+
+    synced = 0
+    artifact_dirs: list[str] = []
+    failed_batches: list[dict] = []
+    failed_sync: list[dict] = []
+    progress_lock = asyncio.Lock()
+
+    def _print_ai_scores(ticker: str, meta: dict, analysis_run_id: str) -> None:
+        position_rows = (
+            supabase.table("positions")
+            .select("id")
+            .eq("user_id", user_id)
+            .eq("ticker", ticker.upper())
+            .limit(1)
+            .execute()
+            .data
+        )
+        latest_score = None
+        if position_rows:
+            latest_score_rows = (
+                supabase.table("risk_scores")
+                .select(
+                    "news_sentiment, macro_exposure, position_sizing, volatility_trend, total_score, reasoning, analysis_run_id"
+                )
+                .eq("position_id", position_rows[0]["id"])
+                .eq("analysis_run_id", analysis_run_id)
+                .order("calculated_at", desc=True)
+                .limit(1)
+                .execute()
+                .data
+            )
+            latest_score = latest_score_rows[0] if latest_score_rows else None
+
+        snap = (
+            supabase.table("ticker_risk_snapshots")
+            .select("grade, safety_score, reasoning, methodology_version")
+            .eq("ticker", ticker.upper())
+            .eq("snapshot_type", job_type)
+            .order("created_at", desc=True)
+            .limit(1)
+            .execute()
+            .data
+        )
+        if not snap:
+            print(f"[{ticker}] AI: no snapshot found")
+            return
+        s = snap[0]
+        grade = s.get("grade") or "N/A"
+        score = s.get("safety_score") or "N/A"
+        method = s.get("methodology_version") or ""
+        news_sent = latest_score.get("news_sentiment") if latest_score else "N/A"
+        macro_exp = latest_score.get("macro_exposure") if latest_score else "N/A"
+        pos_size = latest_score.get("position_sizing") if latest_score else "N/A"
+        vol_trend = latest_score.get("volatility_trend") if latest_score else "N/A"
+        reasoning = (latest_score or {}).get("reasoning") or s.get("reasoning") or ""
+        short_reasoning = reasoning[:80] + "..." if len(reasoning) > 80 else reasoning
+        ai_tag = " [AI]" if "sp500-ai" in method else ""
+        print(
+            f"[{ticker}] AI{ai_tag}: Grade={grade} Score={score} | "
+            f"NewsSentiment={news_sent} | MacroExposure={macro_exp} | "
+            f"PositionSizing={pos_size} | VolatilityTrend={vol_trend} | "
+            f"Reasoning: {short_reasoning}"
+        )
+
+    async def _run_batch(batch_number: int, batch_tickers: list[str]) -> dict:
+        nonlocal synced
+
+        print(
+            f"[SP500] Running batch {batch_number}/{total_batches} with {len(batch_tickers)} tickers..."
+        )
+        _update_backfill_progress(
+            f"Running batch {batch_number}/{total_batches} with {len(batch_tickers)} tickers.",
+            positions_processed=synced,
+        )
+        result = await enqueue_analysis_run(
+            user_id=user_id,
+            triggered_by="scheduled",
+            target_position_id=None,
+            skip_metadata_refresh=True,
+            target_tickers=batch_tickers,
+            artifact_label=f"sp500_{job_type}_batch_{batch_number}",
+            allow_parallel_runs=True,
+            shared_news_payload=shared_news_payload,
+        )
+        run_id = result.get("analysis_run_id")
+        if not run_id:
+            failure = {
+                "batch": batch_number,
+                "tickers": batch_tickers,
+                "error": "Failed to enqueue analysis run",
+            }
+            print(f"[SP500] Failed to enqueue batch {batch_number}/{total_batches}")
+            return {
+                "batch": batch_number,
+                "synced": 0,
+                "artifact_dir": None,
+                "failed_batch": failure,
+                "failed_sync": [],
+            }
+
+        artifact_dir = str(get_run_artifact_dir(run_id))
+        print(
+            f"[SP500] Saving debug artifacts for batch {batch_number} to {artifact_dir}"
+        )
+        print(
+            f"[SP500] Waiting for batch {batch_number}/{total_batches} run {run_id} to complete..."
+        )
+        _update_backfill_progress(
+            f"Waiting for batch {batch_number}/{total_batches} run {run_id} to finish.",
+            positions_processed=synced,
+        )
+
+        run_state = None
+        for i in range(600):
+            await asyncio.sleep(5)
+            try:
+                run_check = _execute_supabase_with_retry(
+                    lambda: (
+                        supabase.table("analysis_runs")
+                        .select(
+                            "status, current_stage, current_stage_message, error_message"
+                        )
+                        .eq("id", run_id)
+                        .limit(1)
+                        .execute()
+                        .data
+                    ),
+                    context=f"analysis_runs batch status poll {run_id}",
+                )
+            except Exception as exc:
+                print(
+                    f"[SP500] Batch {batch_number}/{total_batches} status read failed: {exc}"
+                )
+                continue
+            if run_check:
+                run_state = run_check[0]
+            if run_state and run_state["status"] in ("completed", "failed"):
+                print(
+                    f"[SP500] Batch {batch_number}/{total_batches} analysis run {run_state['status']}"
+                    + (
+                        f": {run_state.get('error_message') or run_state.get('current_stage_message') or ''}"
+                        if run_state["status"] != "completed"
+                        else ""
+                    )
+                )
+                break
+            if i % 12 == 0:
+                print(
+                    f"[SP500] Batch {batch_number}/{total_batches} still running... ({i * 5}s elapsed)"
+                )
+
+        if not run_state:
+            failure = {
+                "batch": batch_number,
+                "tickers": batch_tickers,
+                "run_id": run_id,
+                "error": f"Unable to read analysis run status for {run_id}",
+            }
+            return {
+                "batch": batch_number,
+                "synced": 0,
+                "artifact_dir": artifact_dir,
+                "failed_batch": failure,
+                "failed_sync": [],
+            }
+
+        if run_state.get("status") != "completed":
+            failure = {
+                "batch": batch_number,
+                "tickers": batch_tickers,
+                "run_id": run_id,
+                "stage": run_state.get("current_stage"),
+                "error": run_state.get("error_message")
+                or run_state.get("current_stage_message")
+                or "Analysis did not complete successfully",
+            }
+            return {
+                "batch": batch_number,
+                "synced": 0,
+                "artifact_dir": artifact_dir,
+                "failed_batch": failure,
+                "failed_sync": [],
+            }
+
+        print(
+            f"[SP500] Syncing AI scores for batch {batch_number}/{total_batches} ({len(batch_tickers)} tickers)..."
+        )
+        _update_backfill_progress(
+            f"Syncing AI scores for batch {batch_number}/{total_batches}.",
+            positions_processed=synced,
+        )
+        sync_semaphore = asyncio.Semaphore(4)
+
+        async def _sync_one_ticker(ticker: str):
+            async with sync_semaphore:
+                await _sync_ai_scores_to_ticker_snapshots(supabase, ticker, job_type)
+                return ticker
+
+        sync_results = await asyncio.gather(
+            *(_sync_one_ticker(ticker) for ticker in batch_tickers),
+            return_exceptions=True,
+        )
+        batch_failed_sync: list[dict] = []
+        batch_synced = 0
+        for ticker, sync_result in zip(batch_tickers, sync_results):
+            if isinstance(sync_result, Exception):
+                batch_failed_sync.append({"ticker": ticker, "error": str(sync_result)})
+                print(f"[{ticker}] Sync error: {sync_result}")
+                continue
+
+            meta = (
+                supabase.table("ticker_metadata")
+                .select("pe_ratio, price, sector")
+                .eq("ticker", ticker.upper())
+                .limit(1)
+                .execute()
+                .data
+            )
+            if meta:
+                m = meta[0]
+                print(
+                    f"[{ticker}] Final: Price=${m.get('price') or 'N/A'} | PE=${m.get('pe_ratio') or 'N/A'} | Sector={m.get('sector') or 'N/A'} | Methodology={job_type}"
+                )
+            _print_ai_scores(ticker, meta[0] if meta else {}, run_id)
+            batch_synced += 1
+
+        async with progress_lock:
+            synced += batch_synced
+            current_synced = synced
+
+        _update_backfill_progress(
+            f"Finished batch {batch_number}/{total_batches}. Synced {current_synced}/{len(successful)} tickers so far.",
+            positions_processed=current_synced,
+        )
+        return {
+            "batch": batch_number,
+            "synced": batch_synced,
+            "artifact_dir": artifact_dir,
+            "failed_batch": None,
+            "failed_sync": batch_failed_sync,
+        }
+
+    batch_jobs: list[tuple[int, list[str]]] = [
+        (
+            (batch_index // batch_size) + 1,
+            successful[batch_index : batch_index + batch_size],
+        )
+        for batch_index in range(0, len(successful), batch_size)
+    ]
+    batch_concurrency = max(1, min(4, len(batch_jobs)))
+    print(
+        f"[SP500] Running {len(batch_jobs)} analysis batches with concurrency {batch_concurrency}..."
+    )
+    batch_results: list[dict] = []
+    for chunk_start in range(0, len(batch_jobs), batch_concurrency):
+        chunk = batch_jobs[chunk_start : chunk_start + batch_concurrency]
+        chunk_results = await asyncio.gather(
+            *(
+                _run_batch(batch_number, batch_tickers)
+                for batch_number, batch_tickers in chunk
+            ),
+            return_exceptions=True,
+        )
+        for result in chunk_results:
+            if isinstance(result, Exception):
+                failed_batches.append({"error": str(result)})
+                print(f"[SP500] Batch worker error: {result}")
+                continue
+            batch_results.append(result)
+
+    if not skip_structural:
+        refresh_results = await refresh_task
+        refresh_successful = [
+            r for r in refresh_results if r and not isinstance(r, Exception)
+        ]
+        refresh_failed = [r for r in refresh_results if isinstance(r, Exception)]
+        if refresh_failed:
+            failed_refresh.extend(
+                [{"ticker": str(r), "error": str(r)} for r in refresh_failed]
+            )
+        print(
+            f"[SP500] Structural refresh complete: {len(refresh_successful)}/{len(system_positions)} succeeded"
+        )
+
+    for result in sorted(batch_results, key=lambda item: item.get("batch", 0)):
+        if result.get("artifact_dir"):
+            artifact_dirs.append(result["artifact_dir"])
+        if result.get("failed_batch"):
+            failed_batches.append(result["failed_batch"])
+        if result.get("failed_sync"):
+            failed_sync.extend(result["failed_sync"])
+
+    all_failed = failed_refresh + failed_batches + failed_sync
+    print(
+        f"[SP500] Done. Synced {synced}/{len(successful)} snapshots across {len(artifact_dirs)} batches. Failed: {len(all_failed)}"
+    )
+    return {
+        "status": "ok" if not all_failed else "partial",
+        "job_type": job_type,
+        "requested": len(tickers),
+        "refreshed": synced,
+        "artifact_dir": artifact_dirs[-1] if artifact_dirs else None,
+        "artifact_dirs": artifact_dirs,
+        "failed": all_failed,
+    }
+
+
+async def seed_sp500_universe() -> dict:
+    from ..services.supabase import get_supabase
+
+    supabase = get_supabase()
+    before = len(list_active_sp500_tickers(supabase))
+    ensure_sp500_universe_seeded(supabase)
+    after = len(list_active_sp500_tickers(supabase))
+    return {"status": "ok", "tracked_tickers": after, "added": max(after - before, 0)}
+
+
+def _get_all_user_held_tickers(supabase) -> list[str]:
+    rows = (
+        supabase.table("positions")
+        .select("ticker")
+        .neq("user_id", SYSTEM_SP500_USER_ID)
+        .execute()
+        .data
+    )
+    return sorted(
+        {str(r["ticker"]).strip().upper() for r in (rows or []) if r.get("ticker")}
+    )
+
+
+async def run_user_holdings_daily_ai_refresh(
+    backfill_run_id: str | None = None,
+) -> dict:
+    from ..services.supabase import get_supabase
+
+    supabase = get_supabase()
+    tickers = _get_all_user_held_tickers(supabase)
+    if not tickers:
+        logger.info(
+            "[HOLDINGS_AI] No user-held tickers found — skipping daily AI refresh."
+        )
+        return {"status": "skipped", "reason": "no_user_tickers", "refreshed": 0}
+
+    logger.info(
+        "[HOLDINGS_AI] Starting daily AI refresh for %d user-held tickers: %s",
+        len(tickers),
+        tickers,
+    )
+    try:
+        result = await run_sp500_full_ai_analysis_fast(
+            job_type="daily",
+            batch_size=25,
+            backfill_run_id=backfill_run_id,
+            skip_structural=False,
+            tickers_override=tickers,
+        )
+        logger.info("[HOLDINGS_AI] Daily AI refresh complete: %s", result)
+        return result
+    except Exception as exc:
+        logger.error("[HOLDINGS_AI] Daily AI refresh failed: %s", exc, exc_info=True)
+        return {"status": "error", "error": str(exc), "refreshed": 0}
+
+
+def _schedule_holdings_daily_ai_refresh() -> None:
+    if scheduler.get_job(HOLDINGS_DAILY_AI_JOB_ID):
+        scheduler.remove_job(HOLDINGS_DAILY_AI_JOB_ID)
+    scheduler.add_job(
+        lambda: asyncio.create_task(run_user_holdings_daily_ai_refresh()),
+        trigger=CronTrigger(hour=2, minute=0),
+        id=HOLDINGS_DAILY_AI_JOB_ID,
+        replace_existing=True,
+        misfire_grace_time=3600,
+    )
+
+
+def _schedule_sp500_daily_refresh() -> None:
+    if scheduler.get_job(SP500_DAILY_JOB_ID):
+        scheduler.remove_job(SP500_DAILY_JOB_ID)
+    scheduler.add_job(
+        lambda: asyncio.create_task(refresh_sp500_cache(job_type="daily")),
+        trigger=CronTrigger(hour=3, minute=0),
+        id=SP500_DAILY_JOB_ID,
+        replace_existing=True,
+    )
+
+
 def start_scheduler():
     from ..services.supabase import get_supabase
 
@@ -2445,6 +4648,9 @@ def start_scheduler():
 
     if not scheduler.running:
         scheduler.start()
+
+    _schedule_sp500_daily_refresh()
+    _schedule_holdings_daily_ai_refresh()
 
     current_jobs = [
         job.id for job in scheduler.get_jobs() if job.id.startswith(JOB_PREFIX)

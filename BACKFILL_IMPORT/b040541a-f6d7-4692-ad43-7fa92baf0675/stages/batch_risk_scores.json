@@ -1,0 +1,82 @@
+[
+  {
+    "news_sentiment": 50,
+    "macro_exposure": 62,
+    "position_sizing": null,
+    "thesis_risk": 62,
+    "volatility_trend": 75,
+    "total_score": 62.2,
+    "grade": "B",
+    "reasoning": "Deterministic score built from cached event analysis, macro context, and ticker metadata. News=50, Macro=62, Thesis=62, Volatility=75. Grade held at B to stay consistent near the threshold.",
+    "grade_reason": "Deterministic score built from cached event analysis, macro context, and ticker metadata. News=50, Macro=62, Thesis=62, Volatility=75. Grade held at B to stay consistent near the threshold.",
+    "evidence_summary": "No material new risk events were identified for ABBV in this cycle.",
+    "dimension_rationale": {
+      "news_sentiment": "No strong event evidence was available, so the score stays near neutral.",
+      "macro_exposure": "no clear overnight macro change was detected",
+      "position_sizing": "Backfill mode omits position sizing because this is a ticker-level snapshot rather than a live portfolio holding.",
+      "thesis_risk": "Derived from the last week's event set: 0 major worsening, 0 major improving, and 0 total analyzed events.",
+      "volatility_trend": "Uses beta 0.32785282 and volatility proxy 0.081963205 with recent event pressure layered in."
+    },
+    "mirofish_used": false
+  },
+  {
+    "news_sentiment": 50,
+    "macro_exposure": 62,
+    "position_sizing": null,
+    "thesis_risk": 62,
+    "volatility_trend": 70,
+    "total_score": 61.0,
+    "grade": "C",
+    "reasoning": "Deterministic score built from cached event analysis, macro context, and ticker metadata. News=50, Macro=62, Thesis=62, Volatility=70.",
+    "grade_reason": "Deterministic score built from cached event analysis, macro context, and ticker metadata. News=50, Macro=62, Thesis=62, Volatility=70.",
+    "evidence_summary": "No material new risk events were identified for ABT in this cycle.",
+    "dimension_rationale": {
+      "news_sentiment": "No strong event evidence was available, so the score stays near neutral.",
+      "macro_exposure": "no clear overnight macro change was detected",
+      "position_sizing": "Backfill mode omits position sizing because this is a ticker-level snapshot rather than a live portfolio holding.",
+      "thesis_risk": "Derived from the last week's event set: 0 major worsening, 0 major improving, and 0 total analyzed events.",
+      "volatility_trend": "Uses beta 0.78056407 and volatility proxy 0.1951410175 with recent event pressure layered in."
+    },
+    "mirofish_used": false
+  },
+  {
+    "news_sentiment": 50,
+    "macro_exposure": 62,
+    "position_sizing": null,
+    "thesis_risk": 62,
+    "volatility_trend": 61,
+    "total_score": 58.8,
+    "grade": "C",
+    "reasoning": "Deterministic score built from cached event analysis, macro context, and ticker metadata. News=50, Macro=62, Thesis=62, Volatility=61.",
+    "grade_reason": "Deterministic score built from cached event analysis, macro context, and ticker metadata. News=50, Macro=62, Thesis=62, Volatility=61.",
+    "evidence_summary": "No material new risk events were identified for AOS in this cycle.",
+    "dimension_rationale": {
+      "news_sentiment": "No strong event evidence was available, so the score stays near neutral.",
+      "macro_exposure": "no clear overnight macro change was detected",
+      "position_sizing": "Backfill mode omits position sizing because this is a ticker-level snapshot rather than a live portfolio holding.",
+      "thesis_risk": "Derived from the last week's event set: 0 major worsening, 0 major improving, and 0 total analyzed events.",
+      "volatility_trend": "Uses beta 1.3580234 and volatility proxy 0.33950585 with recent event pressure layered in."
+    },
+    "mirofish_used": false
+  },
+  {
+    "news_sentiment": 50,
+    "macro_exposure": 62,
+    "position_sizing": null,
+    "thesis_risk": 62,
+    "volatility_trend": 66,
+    "total_score": 60.0,
+    "grade": "C",
+    "reasoning": "Deterministic score built from cached event analysis, macro context, and ticker metadata. News=50, Macro=62, Thesis=62, Volatility=66.",
+    "grade_reason": "Deterministic score built from cached event analysis, macro context, and ticker metadata. News=50, Macro=62, Thesis=62, Volatility=66.",
+    "evidence_summary": "No material new risk events were identified for MMM in this cycle.",
+    "dimension_rationale": {
+      "news_sentiment": "No strong event evidence was available, so the score stays near neutral.",
+      "macro_exposure": "no clear overnight macro change was detected",
+      "position_sizing": "Backfill mode omits position sizing because this is a ticker-level snapshot rather than a live portfolio holding.",
+      "thesis_risk": "Derived from the last week's event set: 0 major worsening, 0 major improving, and 0 total analyzed events.",
+      "volatility_trend": "Uses beta 1.0989659 and volatility proxy 0.274741475 with recent event pressure layered in."
+    },
+    "mirofish_used": false
+  }
+]

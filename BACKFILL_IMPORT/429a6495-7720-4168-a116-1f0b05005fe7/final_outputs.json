@@ -1,0 +1,2521 @@
+{
+  "position_payloads": [
+    {
+      "id": "de7efb1a-ed76-4d8a-b265-401f1963dba3",
+      "user_id": "00000000-0000-0000-0000-000000000001",
+      "ticker": "A",
+      "shares": 0.0,
+      "purchase_price": 0.0,
+      "archetype": "growth",
+      "created_at": "2026-04-13T00:47:15.797313+00:00",
+      "updated_at": "2026-04-13T00:47:15.797313+00:00",
+      "current_price": 117.5,
+      "analysis_started_at": null,
+      "analysis_mode": "sp500_backfill",
+      "previous_grade": "C",
+      "previous_total_score": 46.2,
+      "summary": "Agilent Technologies (A) shows mixed signals with a maintained Buy rating but reduced price target ($147 vs $157), suggesting analyst caution on near-term growth amid single-day underperformance versus peers. The stock appears to be in a watchlist phase with 0 shares held, indicating potential entry opportunity awaiting confirmation of fundamental strength. No overnight macro catalysts provide directional read-through, leaving company-specific catalysts as primary decision drivers.",
+      "long_report": "Agilent Technologies is a life sciences company operating in sectors that typically benefit from secular growth trends in diagnostics and laboratory equipment. The position shows zero shares and zero purchase price, which may indicate a recently exited position or a watch-only status awaiting re-entry. The most significant development is CCLA Investment Management's disclosed purchase of Agilent shares\u2014a positive signal from an ethical/institutional investor whose mandates often attract follow-on interest from similar quality-focused funds. This institutional accumulation could provide support for the stock. Conversely, TD Cowen's reduction of its price target to $147 from $157 while maintaining a Buy rating signals that near-term earnings expectations or growth projections have been revised downward, possibly reflecting sector headwinds or softer demand in certain end markets. The stock's Thursday underperformance relative to competitors adds near-term technical pressure. For a growth-oriented investor, the key question is whether recent weakness represents a compelling entry point or reflects fundamental concerns about business momentum. The absence of macro catalysts means company-specific developments\u2014upcoming earnings, guidance revisions, or competitive dynamics\u2014will dominate near-term direction.",
+      "top_risks": [
+        "Analyst expectations may still be too high if TD Cowen's downward revision reflects broader sector trend rather than idiosyncratic concerns",
+        "Single-day underperformance could signal early-stage rotation away from life sciences growth names if confirmed in subsequent trading sessions",
+        "Growth positioning may face headwinds if interest rates or risk sentiment shift unfavorably in the broader market"
+      ],
+      "watch_items": [
+        "Monitor for confirmation of the underperformance trend\u2014continued relative weakness versus peers would increase risk assessment",
+        "Watch for follow-on institutional buying activity in upcoming 13F filings that could validate or contradict the CCLA signal",
+        "Track upcoming earnings and guidance for any revisions that align with or contradict the TD Cowen price target reduction"
+      ],
+      "top_news": [
+        "TD Cowen Adjusts Price Target on Agilent Technologies to $147 From $157, Maintains Buy Rating",
+        "Agilent Technologies Inc. stock underperforms Thursday when compared to competitors",
+        "Agilent Technologies, Inc. $A Shares Bought by CCLA Investment Management"
+      ],
+      "inferred_labels": [
+        "growth"
+      ],
+      "methodology": "This report synthesizes the three provided event analyses using a framework that weights institutional buying activity as a moderately bullish signal, analyst target reductions as caution indicators, and relative stock performance as a technical near-term factor. The growth label infers the investor's time horizon and expected return profile. Macro context was assessed but deemed non-material for this specific holding given the absence of relevant overnight developments.",
+      "mirofish_used": false,
+      "thesis_verifier": [],
+      "event_analyses": [
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "de7efb1a-ed76-4d8a-b265-401f1963dba3",
+          "event_hash": "c861cd107767a6f2f52013cfe4a2ba463e8b4e511c0eb52261bc0488b4988c82",
+          "external_event_id": "CBMi2wFBVV95cUxOMDIwYWNFMDdvWmpkUjQtUEVfZVlBNF82SWxhVy14MzVQOUNqVmx5bzhpTWN4bWRRSVpIUW40SnpJeTNyaXRFdWJoUWJmN2I0OWxUSllNMlo2WGFaWUlxM1gtRFpURXM0bVFWckttVXR5bVNRWjA1aVVRM3pHenRTdDJDQVN1U1pabS0yVDRDTVdCQXdFM194QXc1c0xmNldsSEpCVk54SlJValpDUkZzc3BaZE93aHFHOC1TQmF1T2dNRjNRVnVFM0RUMk9qbXFJb3A1dFFmdFpkSEk",
+          "title": "TD Cowen Adjusts Price Target on Agilent Technologies to $147 From $157, Maintains Buy Rating",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMi2wFBVV95cUxOMDIwYWNFMDdvWmpkUjQtUEVfZVlBNF82SWxhVy14MzVQOUNqVmx5bzhpTWN4bWRRSVpIUW40SnpJeTNyaXRFdWJoUWJmN2I0OWxUSllNMlo2WGFaWUlxM1gtRFpURXM0bVFWckttVXR5bVNRWjA1aVVRM3pHenRTdDJDQVN1U1pabS0yVDRDTVdCQXdFM194QXc1c0xmNldsSEpCVk54SlJValpDUkZzc3BaZE93aHFHOC1TQmF1T2dNRjNRVnVFM0RUMk9qbXFJb3A1dFFmdFpkSEk?oc=5\" target=\"_blank\">TD Cowen Adjusts Price Target on Agilent Technologies to $147 From $157, Maintains Buy Rating</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">marketscreener.com</font>",
+          "source": "marketscreener.com",
+          "source_url": "https://news.google.com/rss/articles/CBMi2wFBVV95cUxOMDIwYWNFMDdvWmpkUjQtUEVfZVlBNF82SWxhVy14MzVQOUNqVmx5bzhpTWN4bWRRSVpIUW40SnpJeTNyaXRFdWJoUWJmN2I0OWxUSllNMlo2WGFaWUlxM1gtRFpURXM0bVFWckttVXR5bVNRWjA1aVVRM3pHenRTdDJDQVN1U1pabS0yVDRDTVdCQXdFM194QXc1c0xmNldsSEpCVk54SlJValpDUkZzc3BaZE93aHFHOC1TQmF1T2dNRjNRVnVFM0RUMk9qbXFJb3A1dFFmdFpkSEk?oc=5",
+          "published_at": "2026-04-13T12:24:32+00:00",
+          "event_type": "other",
+          "significance": "minor",
+          "classification": {
+            "rule": "keyword",
+            "confidence": 0.85,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "Keyword detected routine minor event"
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "A"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "TD Cowen's price target adjustment and maintained Buy rating on Agilent Technologies directly affects the A position with a revised outlook."
+            },
+            "significance": {
+              "rule": "keyword",
+              "confidence": 0.85,
+              "event_type": "other",
+              "significance": "minor",
+              "why_it_matters": "Keyword detected routine minor event"
+            }
+          },
+          "analysis_source": "minimax",
+          "long_analysis": "TD Cowen's decision to lower the price target from $157 to $147 while maintaining a Buy rating suggests underlying caution about near-term performance, possibly due to updated earnings expectations or sector headwinds, though the sustained bullish stance indicates continued confidence in the company's long-term value proposition. The reduction in target price may reflect revised growth projections or market conditions rather than fundamental concerns about Agilent's business model. Investors should note that analyst actions often signal anticipated movements in earnings or revenue trajectories. This is direct company coverage for A.",
+          "confidence": 0.7999999999999999,
+          "impact_horizon": "near_term",
+          "risk_direction": "neutral",
+          "scenario_summary": "Analyst maintains positive outlook but reduces price target, suggesting near-term caution amid potential market or sector adjustments. This is direct company coverage for A.",
+          "key_implications": [
+            "Current price may be approaching the reduced target, suggesting limited immediate upside per TD Cowen's model",
+            "Maintenance of Buy rating indicates continued confidence in fundamental business strength despite reduced expectations"
+          ],
+          "recommended_followups": [
+            "Monitor upcoming earnings reports for confirmation of the analyst's revised expectations",
+            "Watch for similar adjustments from other analysts covering Agilent to gauge broader sentiment shifts",
+            "Review the read-through against A's current labels: growth."
+          ]
+        },
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "de7efb1a-ed76-4d8a-b265-401f1963dba3",
+          "event_hash": "3bf5c649b3e5a82a73dd560c93e5c48e2b680d35a0874469cf40d08c3cb8c1b4",
+          "external_event_id": "CBMi2gFBVV95cUxPTXBDTWZ5TkduQmFOU3BldDh1VElfckQ0cndRaUdGeXBveVZjTFExeVhxRWo0RkhzZkxyNWY1SGtKOUFCSjNaX3BKcEIzWUI5dDhnd2p3RWZNZ240WlZsS1l0X3VhSXBRQjYtQXNYb2ZRdmt1VG9McjIzQ0NkSHcyS24wcW9wVXJ2M0lZMERqbVhRcDZLU1ljU1ZpYjdkWkJTeDBVZHNwRVRnM2Z3UjllNTlUUTA1LWxfVEx2SFFSQzVMTGZob21nTkktMVBUR2dxMDh1d3dSTUtXQQ",
+          "title": "Agilent Technologies Inc. stock underperforms Thursday when compared to competitors",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMi2gFBVV95cUxPTXBDTWZ5TkduQmFOU3BldDh1VElfckQ0cndRaUdGeXBveVZjTFExeVhxRWo0RkhzZkxyNWY1SGtKOUFCSjNaX3BKcEIzWUI5dDhnd2p3RWZNZ240WlZsS1l0X3VhSXBRQjYtQXNYb2ZRdmt1VG9McjIzQ0NkSHcyS24wcW9wVXJ2M0lZMERqbVhRcDZLU1ljU1ZpYjdkWkJTeDBVZHNwRVRnM2Z3UjllNTlUUTA1LWxfVEx2SFFSQzVMTGZob21nTkktMVBUR2dxMDh1d3dSTUtXQQ?oc=5\" target=\"_blank\">Agilent Technologies Inc. stock underperforms Thursday when compared to competitors</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">MarketWatch</font>",
+          "source": "MarketWatch",
+          "source_url": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxPTXBDTWZ5TkduQmFOU3BldDh1VElfckQ0cndRaUdGeXBveVZjTFExeVhxRWo0RkhzZkxyNWY1SGtKOUFCSjNaX3BKcEIzWUI5dDhnd2p3RWZNZ240WlZsS1l0X3VhSXBRQjYtQXNYb2ZRdmt1VG9McjIzQ0NkSHcyS24wcW9wVXJ2M0lZMERqbVhRcDZLU1ljU1ZpYjdkWkJTeDBVZHNwRVRnM2Z3UjllNTlUUTA1LWxfVEx2SFFSQzVMTGZob21nTkktMVBUR2dxMDh1d3dSTUtXQQ?oc=5",
+          "published_at": "2026-04-09T20:56:00+00:00",
+          "event_type": "other",
+          "significance": "minor",
+          "classification": {
+            "rule": "keyword",
+            "confidence": 0.85,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "Keyword detected routine minor event"
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "A"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "LLM call failed"
+            },
+            "significance": {
+              "rule": "keyword",
+              "confidence": 0.85,
+              "event_type": "other",
+              "significance": "minor",
+              "why_it_matters": "Keyword detected routine minor event"
+            }
+          },
+          "analysis_source": "minimax",
+          "long_analysis": "Single-day underperformance relative to competitors may reflect sector rotation dynamics or company-specific concerns surfacing. Underperformance vs peer group on a given day warrants attention but requires trend confirmation to assess materiality. This could indicate market preference shifting toward competitors or sector-specific headwinds affecting Agilent. Without context on the broader market movement, the relative underperformance may be amplified or mitigated. This is direct company coverage for A.",
+          "confidence": 0.6599999999999999,
+          "impact_horizon": "immediate",
+          "risk_direction": "neutral",
+          "scenario_summary": "One-day relative underperformance suggests short-term sentiment pressure but lacks sufficient evidence to indicate structural concerns without follow-through. This is direct company coverage for A.",
+          "key_implications": [
+            "Peer comparison reveals relative weakness that markets are pricing in",
+            "Short-term technical or sentiment factors may be dominating price action"
+          ],
+          "recommended_followups": [
+            "Track performance over subsequent days to confirm or deny trend",
+            "Compare against sector ETF performance to isolate company vs industry factors",
+            "Review volume patterns to assess if selling pressure is structural or transient"
+          ]
+        },
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "de7efb1a-ed76-4d8a-b265-401f1963dba3",
+          "event_hash": "879b0c5fe002d4a38e7d4573986cda25d4f6ccb158be3fbe2d50f299b91e8a3a",
+          "external_event_id": "CBMiywFBVV95cUxQWXp2dFI1d2hPMU1tNmtNUi1LWTlwdWlTMDM0VndjUlRBSWh0NG13NTNxSWl6a3JzNTFGS25aNldwVVdoNmVYUXFLalJROFlsTlIwYm1heXNFWFYtc0EzSklCMmlULXNNanRuQ2ZhYmNqVnBRSWRhenNkaVdNeno4U1hPQUNPdmVwZDVNTGhLbnFYclNWNDNLeUpHd2VxTzR4dFlzQmlIbkpBSWVWbG1Vd2IzQnF1S2NLX2J2bGw5TEMzOGhQZm5pYmI3bw",
+          "title": "Agilent Technologies, Inc. $A Shares Bought by CCLA Investment Management",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMiywFBVV95cUxQWXp2dFI1d2hPMU1tNmtNUi1LWTlwdWlTMDM0VndjUlRBSWh0NG13NTNxSWl6a3JzNTFGS25aNldwVVdoNmVYUXFLalJROFlsTlIwYm1heXNFWFYtc0EzSklCMmlULXNNanRuQ2ZhYmNqVnBRSWRhenNkaVdNeno4U1hPQUNPdmVwZDVNTGhLbnFYclNWNDNLeUpHd2VxTzR4dFlzQmlIbkpBSWVWbG1Vd2IzQnF1S2NLX2J2bGw5TEMzOGhQZm5pYmI3bw?oc=5\" target=\"_blank\">Agilent Technologies, Inc. $A Shares Bought by CCLA Investment Management</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">MarketBeat</font>",
+          "source": "MarketBeat",
+          "source_url": "https://news.google.com/rss/articles/CBMiywFBVV95cUxQWXp2dFI1d2hPMU1tNmtNUi1LWTlwdWlTMDM0VndjUlRBSWh0NG13NTNxSWl6a3JzNTFGS25aNldwVVdoNmVYUXFLalJROFlsTlIwYm1heXNFWFYtc0EzSklCMmlULXNNanRuQ2ZhYmNqVnBRSWRhenNkaVdNeno4U1hPQUNPdmVwZDVNTGhLbnFYclNWNDNLeUpHd2VxTzR4dFlzQmlIbkpBSWVWbG1Vd2IzQnF1S2NLX2J2bGw5TEMzOGhQZm5pYmI3bw?oc=5",
+          "published_at": "2026-04-09T09:10:19+00:00",
+          "event_type": "other",
+          "significance": "major",
+          "classification": {
+            "rule": "keyword",
+            "confidence": 0.95,
+            "event_type": "other",
+            "significance": "major",
+            "why_it_matters": "Keyword detected major event"
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "A"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "LLM call failed"
+            },
+            "significance": {
+              "rule": "keyword",
+              "confidence": 0.95,
+              "event_type": "other",
+              "significance": "major",
+              "why_it_matters": "Keyword detected major event"
+            }
+          },
+          "analysis_source": "minimax_fallback",
+          "long_analysis": "CCLA Investment Management's purchase of Agilent Technologies shares represents a positive signal from a quality-focused institutional investor. CCLA is a well-known institutional investor managing assets for charitable and ethical mandates, and their disclosed buy could attract attention from other institutional investors monitoring 13F filings. However, the actual impact on Agilent's valuation depends on the scale of the position relative to the company's market capitalization and total shares outstanding. Agilent operates in the life sciences and diagnostics sector, which remains structurally robust given ongoing demand for laboratory equipment and instruments. Without specific share count or dollar value details in this report, the market signal remains moderate rather than strongly bullish. The filing may have minor positive price pressure if the market interprets CCLA's involvement as a validation of Agilent's fundamental value. This is direct company coverage for A.",
+          "confidence": 0.63,
+          "impact_horizon": "near_term",
+          "risk_direction": "neutral",
+          "scenario_summary": "CCLA's disclosed purchase provides modest positive sentiment for Agilent without materially altering its fundamental outlook or valuation trajectory. This is direct company coverage for A.",
+          "key_implications": [
+            "Institutional buying from CCLA adds a positive sentiment data point for Agilent's shareholder base",
+            "The actual portfolio impact depends on position size relative to Agilent's $30-40B market cap",
+            "Agilent's life sciences exposure continues to support stable demand fundamentals"
+          ],
+          "recommended_followups": [
+            "Check the full 13F filing for position size and percentage of shares outstanding",
+            "Monitor if other institutional investors increase positions in the same quarter",
+            "Review Agilent's upcoming earnings for any guidance changes that could interact with this ownership signal"
+          ]
+        }
+      ],
+      "ticker_metadata": {
+        "id": "a2fddffc-1af1-495a-a03b-6249110a120f",
+        "ticker": "A",
+        "company_name": "Agilent Technologies Inc",
+        "asset_class": null,
+        "sector": "Life Sciences Tools & Services",
+        "industry": null,
+        "exchange": "NEW YORK STOCK EXCHANGE, INC.",
+        "market_cap": 32516223393.09819,
+        "market_cap_bucket": "moderate_high",
+        "float_shares": null,
+        "avg_daily_dollar_volume": 166798300.0,
+        "spread_proxy": 0.001,
+        "beta": 1.3009752,
+        "volatility_proxy": 0.3252438,
+        "profitability_profile": "mixed",
+        "leverage_profile": "moderate",
+        "macro_sensitivity": null,
+        "structural_fragility": null,
+        "liquidity_risk": null,
+        "updated_at": "2026-04-13T20:15:55.883633+00:00",
+        "created_at": "2026-04-12T21:58:17.893437+00:00",
+        "pe_ratio": 25.2611,
+        "week_52_high": 160.27,
+        "week_52_low": 96.43,
+        "price": 117.5,
+        "price_as_of": "2026-04-13T20:15:55.751222+00:00",
+        "avg_volume": 1.41956,
+        "previous_close": 115.06,
+        "open_price": 114.94,
+        "day_high": 117.75,
+        "day_low": 114.67,
+        "last_price_source": "finnhub",
+        "is_supported": true
+      },
+      "macro_impact": {
+        "ticker": "A",
+        "macro_relevance": "neutral",
+        "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+      },
+      "news_sentiment": 45,
+      "macro_exposure": 60,
+      "position_sizing": 30,
+      "volatility_trend": 40,
+      "total_score": 57.0,
+      "grade": "D",
+      "reasoning": "",
+      "grade_reason": "",
+      "evidence_summary": "Agilent Technologies (A) presents a mixed near-term outlook with institutional buying activity offset by analyst price target reductions and underperformance versus peers. The absence of shares in the position suggests either a recently closed or pending allocation, warranting close monitoring before commitment.",
+      "dimension_rationale": {},
+      "safety_score": 57.0,
+      "confidence": 0.75,
+      "structural_base_score": 57
+    },
+    {
+      "id": "3785a9c9-1699-4068-b096-611fe9967dfb",
+      "user_id": "00000000-0000-0000-0000-000000000001",
+      "ticker": "ABBV",
+      "shares": 0.0,
+      "purchase_price": 0.0,
+      "archetype": "growth",
+      "created_at": "2026-04-13T00:47:15.797313+00:00",
+      "updated_at": "2026-04-13T00:47:15.797313+00:00",
+      "current_price": 206.47,
+      "analysis_started_at": null,
+      "analysis_mode": "sp500_backfill",
+      "previous_grade": "C",
+      "previous_total_score": 47.0,
+      "summary": "Latest shared S&P ticker snapshot for ABBV built from the cached structural profile.",
+      "long_report": "AbbVie's recent price decline reflects market disappointment that could stem from concerns about near-term earnings trajectory or pipeline uncertainties, signaling a negative sentiment shift in the near term. The neuroscience franchise presents both opportunity and risk heading into Q1\u2014successful drug adoption could provide meaningful revenue catalysts, while slower uptake or competitive/reimbursement pressures would maintain a modest growth profile. The stock's current trading near recent levels without fundamental catalysts suggests a holding pattern where investors await Q1 results for directional signals. Absent macro drivers, ABBV's performance will be heavily dependent on whether the company can demonstrate pipeline progress and solid product revenue growth. The growth-oriented positioning implies investor confidence in long-term pipeline value, but this thesis requires validation through upcoming quarterly performance.",
+      "top_risks": [
+        "Earnings miss or guidance reduction could accelerate the recent price decline and extend volatility",
+        "Pipeline setbacks or competitive pressures in neuroscience could undermine growth thesis",
+        "Reimbursement challenges or slower drug adoption could constrain revenue upside in key franchises"
+      ],
+      "watch_items": [
+        "Q1 neuroscience franchise revenue performance and management commentary on drug launch trajectory",
+        "Any pipeline development announcements that could address or exacerbate current market concerns"
+      ],
+      "top_news": [
+        "What is behind AbbVie stock's recent drop in value today",
+        "Will AbbVie's Neuroscience Franchise Aid Top-line Growth in Q1?",
+        "abbv stock: AbbVie Inc. (ABBV) \u2014 Stock"
+      ],
+      "inferred_labels": [
+        "growth"
+      ],
+      "methodology": "Analysis based on recent stock price movement signals, Q1 growth catalyst assessment from neuroscience franchise coverage, and current trading dynamics. Risk factors identified through event severity classification and sector-specific considerations. No macro read-through exists given limited overnight developments, making company-specific events the primary analytical driver.",
+      "mirofish_used": false,
+      "thesis_verifier": [],
+      "event_analyses": [
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "3785a9c9-1699-4068-b096-611fe9967dfb",
+          "event_hash": "9ebe7ed46af0d5ece09b8514cbfd206eabede913e032bfefa8eecf336f8f0cf2",
+          "external_event_id": "CBMimAFBVV95cUxQekRKOXdRMkNMdEN1YmFwTFdsRjBwcFdUVlItc0YzLW5Sa3hHMWRKU0V6MU9FYVpCUHFqTW9BTmhXQTV3SmJRVlpiU3o4MEU3a3cwZWFpLVpwMHFxdVB0cllJb2JGVmNCbjh4ci1Iekp1enJEellFRGxPWm4xc0dBa2JMYmZxMWxQb19LbzBaUTZiQ29LR1hhaQ",
+          "title": "What is behind AbbVie stock's recent drop in value today",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMimAFBVV95cUxQekRKOXdRMkNMdEN1YmFwTFdsRjBwcFdUVlItc0YzLW5Sa3hHMWRKU0V6MU9FYVpCUHFqTW9BTmhXQTV3SmJRVlpiU3o4MEU3a3cwZWFpLVpwMHFxdVB0cllJb2JGVmNCbjh4ci1Iekp1enJEellFRGxPWm4xc0dBa2JMYmZxMWxQb19LbzBaUTZiQ29LR1hhaQ?oc=5\" target=\"_blank\">What is behind AbbVie stock's recent drop in value today</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Traders Union</font>",
+          "source": "Traders Union",
+          "source_url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxQekRKOXdRMkNMdEN1YmFwTFdsRjBwcFdUVlItc0YzLW5Sa3hHMWRKU0V6MU9FYVpCUHFqTW9BTmhXQTV3SmJRVlpiU3o4MEU3a3cwZWFpLVpwMHFxdVB0cllJb2JGVmNCbjh4ci1Iekp1enJEellFRGxPWm4xc0dBa2JMYmZxMWxQb19LbzBaUTZiQ29LR1hhaQ?oc=5",
+          "published_at": "2026-04-13T16:36:12+00:00",
+          "event_type": "other",
+          "significance": "minor",
+          "classification": {
+            "confidence": 0.92,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "This is market commentary explaining AbbVie's stock price movement, not a material corporate announcement."
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "ABBV"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "LLM call failed"
+            },
+            "significance": {
+              "confidence": 0.92,
+              "event_type": "other",
+              "significance": "minor",
+              "why_it_matters": "This is market commentary explaining AbbVie's stock price movement, not a material corporate announcement."
+            }
+          },
+          "analysis_source": "minimax",
+          "long_analysis": "The article highlights a sudden decline in AbbVie\u2019s share price, reflecting market disappointment possibly tied to recent news or data that raised concerns about the company\u2019s near\u2011term outlook. This price drop signals heightened volatility and a negative sentiment shift among investors in the short term. The underlying drivers\u2014such as a potential earnings miss or pipeline setback\u2014could weigh on the stock if not addressed promptly. Overall, the immediate risk environment appears to be worsening, with limited clarity on the catalyst. This is direct company coverage for ABBV.",
+          "confidence": 0.7999999999999999,
+          "impact_horizon": "immediate",
+          "risk_direction": "worsening",
+          "scenario_summary": "AbbVie faces short\u2011term price pressure from a recent negative development, raising downside risk. This is direct company coverage for ABBV.",
+          "key_implications": [
+            "Investor sentiment may remain fragile, leading to further selling if the cause of the drop is not clarified.",
+            "Sector peers could experience spill\u2011over selling, affecting broader biotech indices."
+          ],
+          "recommended_followups": [
+            "Review the upcoming earnings call for management commentary on the drop.",
+            "Monitor analyst reports for target price adjustments and any changes to recommendations.",
+            "Review the read-through against ABBV's current labels: growth."
+          ]
+        },
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "3785a9c9-1699-4068-b096-611fe9967dfb",
+          "event_hash": "aa5897f479b72b9e764ddff4d15fdb30a2db6cc6c54889f786a5e6dd88076039",
+          "external_event_id": "CBMipAFBVV95cUxNUS1BaUZxQUxaWDdzNGxxUnpzbV95SDkxczh3ekNpM0tFT3N4ZllYa2NTTl9OQjRiQlB5aGdnNVNtV2xBcVVfZmlua1hSVzh3bV80RGIta2dxemlPbWNOeFp5TjJabXNNanFjVE8xdEdOU0k2ZzJZYXB1NFBfWHVhQTlpb1k5cHFiekx1aThfWjhLRWNYaWlsMGRMb3BLc3JwVHZMag",
+          "title": "Will AbbVie's Neuroscience Franchise Aid Top-line Growth in Q1?",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMipAFBVV95cUxNUS1BaUZxQUxaWDdzNGxxUnpzbV95SDkxczh3ekNpM0tFT3N4ZllYa2NTTl9OQjRiQlB5aGdnNVNtV2xBcVVfZmlua1hSVzh3bV80RGIta2dxemlPbWNOeFp5TjJabXNNanFjVE8xdEdOU0k2ZzJZYXB1NFBfWHVhQTlpb1k5cHFiekx1aThfWjhLRWNYaWlsMGRMb3BLc3JwVHZMag?oc=5\" target=\"_blank\">Will AbbVie's Neuroscience Franchise Aid Top-line Growth in Q1?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Zacks Investment Research</font>",
+          "source": "Zacks Investment Research",
+          "source_url": "https://news.google.com/rss/articles/CBMipAFBVV95cUxNUS1BaUZxQUxaWDdzNGxxUnpzbV95SDkxczh3ekNpM0tFT3N4ZllYa2NTTl9OQjRiQlB5aGdnNVNtV2xBcVVfZmlua1hSVzh3bV80RGIta2dxemlPbWNOeFp5TjJabXNNanFjVE8xdEdOU0k2ZzJZYXB1NFBfWHVhQTlpb1k5cHFiekx1aThfWjhLRWNYaWlsMGRMb3BLc3JwVHZMag?oc=5",
+          "published_at": "2026-04-13T11:23:27+00:00",
+          "event_type": "other",
+          "significance": "minor",
+          "classification": {
+            "confidence": 0.9,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "Zacks analysis speculating on AbbVie's neuroscience franchise potential, not an actual earnings announcement."
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "ABBV"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "LLM call failed"
+            },
+            "significance": {
+              "confidence": 0.9,
+              "event_type": "other",
+              "significance": "minor",
+              "why_it_matters": "Zacks analysis speculating on AbbVie's neuroscience franchise potential, not an actual earnings announcement."
+            }
+          },
+          "analysis_source": "minimax",
+          "long_analysis": "The piece explores whether AbbVie\u2019s neuroscience franchise can contribute meaningfully to top\u2011line growth in the upcoming Q1 results, highlighting both the opportunity from new drug launches and the challenges of competition and reimbursement. Positive momentum in this franchise could provide a revenue catalyst, whereas slower adoption would keep growth modest. The analysis suggests a moderate probability that the franchise will support revenue, making the risk direction slightly improving if execution matches expectations. Confidence in this projection is tempered by uncertainty around prescription trends and regulatory status. This is direct company coverage for ABBV.",
+          "confidence": 0.71,
+          "impact_horizon": "near_term",
+          "risk_direction": "improving",
+          "scenario_summary": "AbbVie\u2019s neuroscience portfolio may lift Q1 revenue if demand for new therapies accelerates. This is direct company coverage for ABBV.",
+          "key_implications": [
+            "A successful neuroscience launch could boost full\u2011year guidance and positively affect stock valuation.",
+            "Any shortfall in sales could limit the upside and keep the risk profile neutral to negative."
+          ],
+          "recommended_followups": [
+            "Track prescription monitoring data and payer coverage updates for key neuroscience products.",
+            "Watch the Q1 earnings release for explicit commentary on franchise performance and guidance adjustments.",
+            "Review the read-through against ABBV's current labels: growth."
+          ]
+        },
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "3785a9c9-1699-4068-b096-611fe9967dfb",
+          "event_hash": "6f9b8c6ca53b5d1a27eeb291a9fd7dc6d9908af082c7d6d34e2cb34989025800",
+          "external_event_id": "CBMiT0FVX3lxTE8xclZscVJ0NnBXQ0ctWGJEdjN1WW10M1NUYks5UEw0MzRiSGhtbWpOQVVuVGl4dktnTVhFdkMydzlkWGxaNFBVTU02MUZhNm8",
+          "title": "abbv stock: AbbVie Inc. (ABBV) \u2014 Stock",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMiT0FVX3lxTE8xclZscVJ0NnBXQ0ctWGJEdjN1WW10M1NUYks5UEw0MzRiSGhtbWpOQVVuVGl4dktnTVhFdkMydzlkWGxaNFBVTU02MUZhNm8?oc=5\" target=\"_blank\">abbv stock: AbbVie Inc. (ABBV) \u2014 Stock</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Bitget</font>",
+          "source": "Bitget",
+          "source_url": "https://news.google.com/rss/articles/CBMiT0FVX3lxTE8xclZscVJ0NnBXQ0ctWGJEdjN1WW10M1NUYks5UEw0MzRiSGhtbWpOQVVuVGl4dktnTVhFdkMydzlkWGxaNFBVTU02MUZhNm8?oc=5",
+          "published_at": "2026-04-13T07:06:55+00:00",
+          "event_type": "other",
+          "significance": "minor",
+          "classification": {
+            "confidence": 0.95,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "Routine stock data summary page from Bitget, not a material corporate event."
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "ABBV"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "LLM call failed"
+            },
+            "significance": {
+              "confidence": 0.95,
+              "event_type": "other",
+              "significance": "minor",
+              "why_it_matters": "Routine stock data summary page from Bitget, not a material corporate event."
+            }
+          },
+          "analysis_source": "minimax",
+          "long_analysis": "The brief stock summary presents current price and basic metrics for AbbVie, indicating that the shares are trading near recent levels without major fundamental news. This suggests a neutral short\u2011term risk environment where market participants are likely reacting to broader sector movements rather than company\u2011specific events. The absence of new information implies limited near\u2011term catalysts, leaving the risk direction essentially unchanged. Confidence in this neutral stance is high given the lack of new disclosures. This is direct company coverage for ABBV.",
+          "confidence": 0.9299999999999999,
+          "impact_horizon": "immediate",
+          "risk_direction": "neutral",
+          "scenario_summary": "AbbVie\u2019s stock is steady with no new fundamental shift, maintaining a neutral risk outlook. This is direct company coverage for ABBV.",
+          "key_implications": [
+            "Short\u2011term traders may see limited price movement until the next material announcement.",
+            "Long\u2011term investors can focus on underlying fundamentals and upcoming catalysts for future direction."
+          ],
+          "recommended_followups": [
+            "Watch for upcoming earnings, drug approvals, or regulatory decisions that could alter the neutral stance.",
+            "Monitor macro factors and sector trends that may indirectly influence AbbVie\u2019s share price.",
+            "Review the read-through against ABBV's current labels: growth."
+          ]
+        }
+      ],
+      "ticker_metadata": {
+        "id": "a732512e-b96d-4c34-a1a1-4e13f6f417b7",
+        "ticker": "ABBV",
+        "company_name": "AbbVie Inc",
+        "asset_class": null,
+        "sector": "Biotechnology",
+        "industry": null,
+        "exchange": "NEW YORK STOCK EXCHANGE, INC.",
+        "market_cap": 365196362377.69086,
+        "market_cap_bucket": "high",
+        "float_shares": null,
+        "avg_daily_dollar_volume": 1251837933.5,
+        "spread_proxy": 0.001,
+        "beta": 0.33795568,
+        "volatility_proxy": 0.08448892,
+        "profitability_profile": "mixed",
+        "leverage_profile": "moderate",
+        "macro_sensitivity": null,
+        "structural_fragility": null,
+        "liquidity_risk": null,
+        "updated_at": "2026-04-14T01:07:46.550886+00:00",
+        "created_at": "2026-04-12T21:58:07.473359+00:00",
+        "pe_ratio": 86.4087,
+        "week_52_high": 244.81,
+        "week_52_low": 164.39,
+        "price": 206.47,
+        "price_as_of": "2026-04-14T01:07:46.545708+00:00",
+        "avg_volume": 6.06305,
+        "previous_close": 207.94,
+        "open_price": 206.43,
+        "day_high": 208.08,
+        "day_low": 203.01,
+        "last_price_source": "finnhub",
+        "is_supported": true
+      },
+      "macro_impact": {
+        "ticker": "ABBV",
+        "macro_relevance": "neutral",
+        "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+      },
+      "news_sentiment": 35,
+      "macro_exposure": 55,
+      "position_sizing": 30,
+      "volatility_trend": 35,
+      "total_score": 60,
+      "grade": "C",
+      "reasoning": "",
+      "grade_reason": "",
+      "evidence_summary": "AbbVie faces near-term headwinds from recent stock price weakness, likely tied to market concerns over earnings outlook or pipeline developments, creating elevated short-term volatility. The Q1 neuroscience franchise performance represents a critical near-term catalyst that could either validate or undermine growth expectations. With no clear macro tailwinds currently, company-specific developments will drive performance in the near term.",
+      "dimension_rationale": {},
+      "safety_score": 60,
+      "confidence": 0.85,
+      "structural_base_score": 60
+    },
+    {
+      "id": "2d4cf841-b6c2-4c21-a88d-87c7c996c3f4",
+      "user_id": "00000000-0000-0000-0000-000000000001",
+      "ticker": "ABT",
+      "shares": 0.0,
+      "purchase_price": 0.0,
+      "archetype": "growth",
+      "created_at": "2026-04-12T23:57:58.424725+00:00",
+      "updated_at": "2026-04-12T23:57:58.424725+00:00",
+      "current_price": 100.69,
+      "analysis_started_at": null,
+      "analysis_mode": "sp500_backfill",
+      "previous_grade": "C",
+      "previous_total_score": 47.5,
+      "summary": "Abbott Laboratories shows recent price weakness (-3.04% on April 10) creating potential entry opportunity for a growth-oriented position, though current market context provides no clear macro catalyst to drive near-term performance. The stock appears to be trading with value appeal following the pullback, but the absence of confirmed thesis-changing developments suggests patience may be warranted before deploying capital.",
+      "long_report": "ABT has attracted analyst attention following recent price weakness, with multiple outlets flagging potential value after the pullback\u2014though these analyses lack confirmed fundamental triggers. The April 10 decline of 3.04% appears to be part of broader market quietude rather than company-specific bad news, suggesting the weakness may reflect rotation or macro sentiment rather than deteriorating fundamentals. For a growth-labeled healthcare holding like ABT, the absence of pipeline catalysts, FDA decisions, or earnings misses in the recent flow is notable\u2014value arguments are being made on technicals rather than upcoming binary events. The calm macro environment means ABT's thesis will be tested primarily through its own quarterly performance and product cycle updates rather than broad economic headwinds. Until position size is established, the current watchlist status seems appropriate given the lack of high-conviction entry signals.",
+      "top_risks": [
+        "Lack of confirmed bullish catalysts leaves timing uncertain\u2014value arguments alone may not trigger near-term re-rating",
+        "Growth label implies expectations for earnings acceleration; any slowdown in Diagnostics or MedTech segments could challenge the thesis",
+        "Zero position size means no real-time performance feedback loop to validate or disprove investment hypothesis"
+      ],
+      "watch_items": [
+        "Monitor for any FDA approvals, pipeline announcements, or earnings guidance changes that could shift the risk-reward calculus",
+        "Watch whether subsequent price weakness develops beyond the 3% pullback level, which could either deepen value appeal or signal fundamental concerns"
+      ],
+      "top_news": [
+        "Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback?",
+        "Is Abbott Laboratories (ABT) Offering Value After Recent Share Price Weakness?",
+        "Abbott Laboratories Stock (ABT) Moved Down by 3.04% on Apr 10: A Full Analysis"
+      ],
+      "inferred_labels": [
+        "growth"
+      ],
+      "methodology": "Event analysis focused on categorizing news significance and assessing whether recent developments represent confirmed catalysts versus speculative commentary. Price movement data (April 10 decline) used to contextualize the timing of value discussions. Macro context filtered for read-through relevance to healthcare/medical devices sector. Growth thesis framework applied to assess whether current news flow aligns with or challenges growth positioning.",
+      "mirofish_used": false,
+      "thesis_verifier": [
+        {
+          "macro_event": "Markets calm with no significant policy shifts or economic surprises overnight",
+          "thesis_impact": "neutral",
+          "reasoning": "ABT's healthcare/growth thesis is driven by company-specific factors rather than macro conditions, so the quiet overnight environment neither confirms nor challenges the investment case"
+        }
+      ],
+      "event_analyses": [
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "2d4cf841-b6c2-4c21-a88d-87c7c996c3f4",
+          "event_hash": "00199102b53f2778cc1b752999d56e52bda617eea6e047ddec6ae96bf6d65cac",
+          "external_event_id": "CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYklnRzdYQ19CaFJOM0dlUFpaOEMwUkhBN3k5UzQzTFZDdnl1blJrNHQzVHNQc0Y3WTRldkZndGk",
+          "title": "Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback?",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYklnRzdYQ19CaFJOM0dlUFpaOEMwUkhBN3k5UzQzTFZDdnl1blJrNHQzVHNQc0Y3WTRldkZndGk?oc=5\" target=\"_blank\">Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Finance</font>",
+          "source": "Yahoo Finance",
+          "source_url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYklnRzdYQ19CaFJOM0dlUFpaOEMwUkhBN3k5UzQzTFZDdnl1blJrNHQzVHNQc0Y3WTRldkZndGk?oc=5",
+          "published_at": "2026-04-11T00:24:00+00:00",
+          "event_type": "other",
+          "significance": "minor",
+          "classification": {
+            "confidence": 0.92,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "This is analyst commentary asking if ABT is attractive after a price pullback, not a material corporate announcement or catalyst."
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "ABT"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "Analysis of ABT after pullback directly addresses value assessment for growth archetype position."
+            },
+            "significance": {
+              "confidence": 0.92,
+              "event_type": "other",
+              "significance": "minor",
+              "why_it_matters": "This is analyst commentary asking if ABT is attractive after a price pullback, not a material corporate announcement or catalyst."
+            }
+          },
+          "analysis_source": "minimax",
+          "long_analysis": "Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback? <a href=\"https://news.google.com/rss/articles/CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYkln This looks like a monitorable development rather than a confirmed thesis-changing catalyst without stronger follow-through. This is direct company coverage for ABT.",
+          "confidence": 0.53,
+          "impact_horizon": "near_term",
+          "risk_direction": "neutral",
+          "scenario_summary": "The event changes context more than it changes fundamentals at this stage. This is direct company coverage for ABT.",
+          "key_implications": [
+            "Track whether follow-on reporting changes the significance of 'Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback?'."
+          ],
+          "recommended_followups": [
+            "Watch for management commentary, earnings, regulatory filings, or additional reporting that changes the fundamental read-through.",
+            "Review the read-through against ABT's current labels: growth."
+          ]
+        },
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "2d4cf841-b6c2-4c21-a88d-87c7c996c3f4",
+          "event_hash": "5ece00b917bf5cab3f121b595a7eaffa2cf424615e75e0028b805136f59df054",
+          "external_event_id": "CBMi0wFBVV95cUxPUzV5eUZ4WTg4aHpLTl9CMEJOQl9CMy0ybHdLOEcwcE5KOE5tQ25PRHptdlNINlBFYUZNM09sNHYyNkRMX3k3Z3ZlajhjZjRlVlR6akUwUXo0czdrNlJnb2tEdV9FZ3lHcXRNWEpyMXBXTzIteWNZRUJuYnRORTNHTTcxQWRfTGotM2dWWjE4TU51cy1SQ1BzSFEyZlh3SG9BYjFqem1RREd6RDUtLXlMbzBYdi1sWnFDSVpwSEVKUmpHWElYNE95NlZLaUdwSzhpWURj0gHYAUFVX3lxTE5BUmZGV3VhVmYtSzVENVpvalRobl91THV2M1N1VllScU1TNjZPOGM1M2h2eEpRWkpTTEZJajZhSGdNRFhkZVhzaTZVeTJmb2FVUnF0M0dLa3BYTm9xT3lMYVFTMkNPdlVOR0VKdkpIYzF2aEpOc2dlQnF4dkczUjkwb0oyV0RBN09rT2tVRUhnQU5TLU5JUnRlaEM1c1ozQzBCWFZjTWE3UFZTTENBTWFTRVZxTkNSQVd6OFptcUdTaEh2aE5pb1I0TlVNaGk5LTIxYVlDU0FDNQ",
+          "title": "Is Abbott Laboratories (ABT) Offering Value After Recent Share Price Weakness?",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMi0wFBVV95cUxPUzV5eUZ4WTg4aHpLTl9CMEJOQl9CMy0ybHdLOEcwcE5KOE5tQ25PRHptdlNINlBFYUZNM09sNHYyNkRMX3k3Z3ZlajhjZjRlVlR6akUwUXo0czdrNlJnb2tEdV9FZ3lHcXRNWEpyMXBXTzIteWNZRUJuYnRORTNHTTcxQWRfTGotM2dWWjE4TU51cy1SQ1BzSFEyZlh3SG9BYjFqem1RREd6RDUtLXlMbzBYdi1sWnFDSVpwSEVKUmpHWElYNE95NlZLaUdwSzhpWURj0gHYAUFVX3lxTE5BUmZGV3VhVmYtSzVENVpvalRobl91THV2M1N1VllScU1TNjZPOGM1M2h2eEpRWkpTTEZJajZhSGdNRFhkZVhzaTZVeTJmb2FVUnF0M0dLa3BYTm9xT3lMYVFTMkNPdlVOR0VKdkpIYzF2aEpOc2dlQnF4dkczUjkwb0oyV0RBN09rT2tVRUhnQU5TLU5JUnRlaEM1c1ozQzBCWFZjTWE3UFZTTENBTWFTRVZxTkNSQVd6OFptcUdTaEh2aE5pb1I0TlVNaGk5LTIxYVlDU0FDNQ?oc=5\" target=\"_blank\">Is Abbott Laboratories (ABT) Offering Value After Recent Share Price Weakness?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">simplywall.st</font>",
+          "source": "simplywall.st",
+          "source_url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxPUzV5eUZ4WTg4aHpLTl9CMEJOQl9CMy0ybHdLOEcwcE5KOE5tQ25PRHptdlNINlBFYUZNM09sNHYyNkRMX3k3Z3ZlajhjZjRlVlR6akUwUXo0czdrNlJnb2tEdV9FZ3lHcXRNWEpyMXBXTzIteWNZRUJuYnRORTNHTTcxQWRfTGotM2dWWjE4TU51cy1SQ1BzSFEyZlh3SG9BYjFqem1RREd6RDUtLXlMbzBYdi1sWnFDSVpwSEVKUmpHWElYNE95NlZLaUdwSzhpWURj0gHYAUFVX3lxTE5BUmZGV3VhVmYtSzVENVpvalRobl91THV2M1N1VllScU1TNjZPOGM1M2h2eEpRWkpTTEZJajZhSGdNRFhkZVhzaTZVeTJmb2FVUnF0M0dLa3BYTm9xT3lMYVFTMkNPdlVOR0VKdkpIYzF2aEpOc2dlQnF4dkczUjkwb0oyV0RBN09rT2tVRUhnQU5TLU5JUnRlaEM1c1ozQzBCWFZjTWE3UFZTTENBTWFTRVZxTkNSQVd6OFptcUdTaEh2aE5pb1I0TlVNaGk5LTIxYVlDU0FDNQ?oc=5",
+          "published_at": "2026-03-29T07:00:00+00:00",
+          "event_type": "other",
+          "significance": "minor",
+          "classification": {
+            "confidence": 0.9,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "Simply Wall St value analysis asking if Abbott Laboratories is undervalued after price weakness, not a rating change."
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "ABT"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "Value analysis after ABT weakness provides investment thesis evaluation for growth holding."
+            },
+            "significance": {
+              "confidence": 0.9,
+              "event_type": "other",
+              "significance": "minor",
+              "why_it_matters": "Simply Wall St value analysis asking if Abbott Laboratories is undervalued after price weakness, not a rating change."
+            }
+          },
+          "analysis_source": "minimax",
+          "long_analysis": "Is Abbott Laboratories (ABT) Offering Value After Recent Share Price Weakness? <a href=\"https://news.google.com/rss/articles/CBMi0wFBVV95cUxPUzV5eUZ4WTg4aHpLTl9CMEJOQl9CMy0ybHdLOEcwcE5KOE5tQ25PRHptdlNINlBFYUZNM09sNHYyNkRMX3k3Z3ZlajhjZjRlVlR6akUwUXo0czdrNlJnb2tEdV9FZ3lHcXRNWEpyMXB This looks like a monitorable development rather than a confirmed thesis-changing catalyst without stronger follow-through. This is direct company coverage for ABT.",
+          "confidence": 0.53,
+          "impact_horizon": "near_term",
+          "risk_direction": "neutral",
+          "scenario_summary": "The event changes context more than it changes fundamentals at this stage. This is direct company coverage for ABT.",
+          "key_implications": [
+            "Track whether follow-on reporting changes the significance of 'Is Abbott Laboratories (ABT) Offering Value After Recent Share Price Weakness?'."
+          ],
+          "recommended_followups": [
+            "Watch for management commentary, earnings, regulatory filings, or additional reporting that changes the fundamental read-through.",
+            "Review the read-through against ABT's current labels: growth."
+          ]
+        },
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "2d4cf841-b6c2-4c21-a88d-87c7c996c3f4",
+          "event_hash": "47e14cd37dda390ab67eb378a2091da34d4800879c436e35c680bd59c876edb7",
+          "external_event_id": "CBMiigFBVV95cUxPWEhMMG9LSXZZSWNJcHItbmdDUmY1UWlZdTNvQXZIWllpXzJJZnhpU2VPbzJsRkhOWXBRbGZFVlBjcjZRdlZsNERFYk1ySmtfb2R2Z0FUcUVRWXpmakw4MGdzeE5rUF9neFJ6MkF5S1plazRBMVRVTUxodl9VZmpEaExEaXp2REQ0M1E",
+          "title": "Abbott Laboratories Stock (ABT) Moved Down by 3.04% on Apr 10: A Full Analysis",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMiigFBVV95cUxPWEhMMG9LSXZZSWNJcHItbmdDUmY1UWlZdTNvQXZIWllpXzJJZnhpU2VPbzJsRkhOWXBRbGZFVlBjcjZRdlZsNERFYk1ySmtfb2R2Z0FUcUVRWXpmakw4MGdzeE5rUF9neFJ6MkF5S1plazRBMVRVTUxodl9VZmpEaExEaXp2REQ0M1E?oc=5\" target=\"_blank\">Abbott Laboratories Stock (ABT) Moved Down by 3.04% on Apr 10: A Full Analysis</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">TradingKey</font>",
+          "source": "TradingKey",
+          "source_url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxPWEhMMG9LSXZZSWNJcHItbmdDUmY1UWlZdTNvQXZIWllpXzJJZnhpU2VPbzJsRkhOWXBRbGZFVlBjcjZRdlZsNERFYk1ySmtfb2R2Z0FUcUVRWXpmakw4MGdzeE5rUF9neFJ6MkF5S1plazRBMVRVTUxodl9VZmpEaExEaXp2REQ0M1E?oc=5",
+          "published_at": "2026-04-10T18:15:19+00:00",
+          "event_type": "other",
+          "significance": "minor",
+          "classification": {
+            "confidence": 0.93,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "Reporting on stock price movement without revealing a new material corporate event or fundamental change."
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "ABT"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "Detailed analysis of ABT's 3.04% decline helps assess whether move is fundamental or market noise."
+            },
+            "significance": {
+              "confidence": 0.93,
+              "event_type": "other",
+              "significance": "minor",
+              "why_it_matters": "Reporting on stock price movement without revealing a new material corporate event or fundamental change."
+            }
+          },
+          "analysis_source": "minimax",
+          "long_analysis": "Abbott Laboratories Stock (ABT) Moved Down by 3.04% on Apr 10: A Full Analysis <a href=\"https://news.google.com/rss/articles/CBMiigFBVV95cUxPWEhMMG9LSXZZSWNJcHItbmdDUmY1UWlZdTNvQXZIWllpXzJJZnhpU2VPbzJsRkhOWXBRbGZFVlBjcjZRdlZsNERFYk1ySmtfb2R2Z0FUcUVRWXpmakw4MGdzeE5rUF9neFJ6MkF5S1p This looks like a monitorable development rather than a confirmed thesis-changing catalyst without stronger follow-through. This is direct company coverage for ABT.",
+          "confidence": 0.53,
+          "impact_horizon": "near_term",
+          "risk_direction": "neutral",
+          "scenario_summary": "The event changes context more than it changes fundamentals at this stage. This is direct company coverage for ABT.",
+          "key_implications": [
+            "Track whether follow-on reporting changes the significance of 'Abbott Laboratories Stock (ABT) Moved Down by 3.04% on Apr 10: A Full Analysis'."
+          ],
+          "recommended_followups": [
+            "Watch for management commentary, earnings, regulatory filings, or additional reporting that changes the fundamental read-through.",
+            "Review the read-through against ABT's current labels: growth."
+          ]
+        }
+      ],
+      "ticker_metadata": {
+        "id": "278a73d7-7378-4c67-83f4-3b0848f58942",
+        "ticker": "ABT",
+        "company_name": "Abbott Laboratories",
+        "asset_class": null,
+        "sector": "Health Care",
+        "industry": null,
+        "exchange": "NEW YORK STOCK EXCHANGE, INC.",
+        "market_cap": 174688234144.21143,
+        "market_cap_bucket": "high",
+        "float_shares": null,
+        "avg_daily_dollar_volume": 953533293.1,
+        "spread_proxy": 0.001,
+        "beta": 0.78056407,
+        "volatility_proxy": 0.1951410175,
+        "profitability_profile": "mixed",
+        "leverage_profile": "moderate",
+        "macro_sensitivity": null,
+        "structural_fragility": null,
+        "liquidity_risk": null,
+        "updated_at": "2026-04-13T20:15:15.577334+00:00",
+        "created_at": "2026-04-12T21:58:05.756473+00:00",
+        "pe_ratio": 26.7229,
+        "week_52_high": 139.06,
+        "week_52_low": 99.34,
+        "price": 100.69,
+        "price_as_of": "2026-04-13T20:15:15.453361+00:00",
+        "avg_volume": 9.46999,
+        "previous_close": 100.3,
+        "open_price": 100.125,
+        "day_high": 100.895,
+        "day_low": 99.05,
+        "last_price_source": "finnhub",
+        "is_supported": true
+      },
+      "macro_impact": {
+        "ticker": "ABT",
+        "macro_relevance": "neutral",
+        "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+      },
+      "news_sentiment": 45,
+      "macro_exposure": 55,
+      "position_sizing": 30,
+      "volatility_trend": 45,
+      "total_score": 60.0,
+      "grade": "D",
+      "reasoning": "",
+      "grade_reason": "",
+      "evidence_summary": "Abbott Laboratories (ABT) is experiencing recent price weakness with a 3.04% decline on April 10, creating potential entry interest among value-seekers. The current news cycle shows no thesis-changing catalysts\u2014only analysis pieces noting the pullback and debating valuation attractiveness. With zero position size currently, this appears to be a watch-and-wait scenario pending either a larger pullback or clearer fundamental signals.",
+      "dimension_rationale": {},
+      "safety_score": 60.0,
+      "confidence": 0.8,
+      "structural_base_score": 60
+    },
+    {
+      "id": "551d5410-388d-4c62-b0c2-ba9ab0f49e3b",
+      "user_id": "00000000-0000-0000-0000-000000000001",
+      "ticker": "ACN",
+      "shares": 0.0,
+      "purchase_price": 0.0,
+      "archetype": "growth",
+      "created_at": "2026-04-13T00:47:15.797313+00:00",
+      "updated_at": "2026-04-13T00:47:15.797313+00:00",
+      "current_price": 191.95,
+      "analysis_started_at": null,
+      "analysis_mode": "sp500_backfill",
+      "previous_grade": "C",
+      "previous_total_score": 58.8,
+      "summary": "Latest shared S&P ticker snapshot for ACN built from the cached structural profile.",
+      "long_report": "Accenture's federal business expansion is a strategically important development that directly reinforces the 'growth' label associated with this holding. Government technology work offers multi-year contract durations and higher switching costs for clients, providing revenue visibility that corporate consulting alone cannot match. This diversification reduces reliance on cyclical corporate IT spending and positions ACN to benefit from ongoing federal digital modernization initiatives\u2014a structural tailwind. On valuation, the recent 6.9% gain brings the stock within striking distance of the GF fair-value estimate of $353.9, meaning near-term upside may be limited without positive earnings revisions or additional contract announcements. The Deprince Race & Zollo purchase signals that at current levels, sophisticated value-oriented investors see favorable risk/reward, but this is a mild rather than aggressive bullish signal. For a growth-oriented position, the narrowing valuation discount suggests investors should monitor whether ACN can sustain elevated multiples or if earnings growth must accelerate to justify further upside. In the near term, the combination of momentum-driven gains and reduced valuation cushion elevates downside risk if macro conditions deteriorate or if Q&A fiscal year guidance disappoints.",
+      "top_risks": [
+        "Valuation pullback risk: the 6.9% gain has narrowed the discount to fair value, increasing susceptibility to reversals if price momentum exceeds earnings delivery",
+        "Federal spending uncertainty: shifts in government budget priorities or procurement delays could pressure the newly won contract revenues before they fully materialize",
+        "Earnings growth dependency: sustaining current multiples requires consistent revenue and EPS growth, as the valuation cushion is now minimal"
+      ],
+      "watch_items": [
+        "Q3/Q4 earnings growth rates and federal revenue contribution as a percentage of total sales",
+        "Federal budget allocations for technology modernization in upcoming appropriations cycles",
+        "Any additional contract announcements or large federal IT awards that would validate the diversification thesis",
+        "Broader market risk sentiment if macro conditions shift risk-off, given the reduced valuation buffer"
+      ],
+      "top_news": [
+        "Accenture plc (ACN): Leveraging Federal Wins to Strengthen Long-Term Growth Visibility",
+        "A Look at Accenture PLC (ACN) After 6.9% Gain -- GF Value $353.9",
+        "Deprince Race & Zollo Inc. Acquires 15,599 Shares of Accenture PLC $ACN"
+      ],
+      "inferred_labels": [
+        "growth"
+      ],
+      "methodology": "This report anchors analysis to three key event signals: the federal contract wins as a structural growth driver (major), institutional accumulation as a valuation confirmation (major), and the recent price surge bringing fair-value proximity as a near-term risk indicator (minor). The 'growth' label and absence of sector-specific macro context inform the forward-looking risk assessment, while valuation benchmarks provide objective anchoring points.",
+      "mirofish_used": false,
+      "thesis_verifier": [
+        {
+          "macro_event": "Overnight macro was calm with no significant policy shifts; markets stable with limited developments",
+          "thesis_impact": "neutral",
+          "reasoning": "Absent macro catalysts, the thesis remains anchored to company-specific federal wins and earnings quality rather than external macro drivers"
+        },
+        {
+          "macro_event": "Institutional investor Deprince Race & Zollo Inc. acquired 15,599 ACN shares, a value-oriented signal at current levels",
+          "thesis_impact": "confirms",
+          "reasoning": "Value-oriented institutional buying confirms the growth thesis by validating that at present valuations, ACN's risk/reward is favorable relative to alternative equity opportunities"
+        }
+      ],
+      "event_analyses": [
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "551d5410-388d-4c62-b0c2-ba9ab0f49e3b",
+          "event_hash": "30a59cabe11fe22f0a22e4a7d15b9bb1549ecd94cc8b53a365200716d9566a24",
+          "external_event_id": "CBMirwFBVV95cUxQNUxEdHpwTk5qeVYtaE13Mlg0S1VOTUZ0aWdTVEJiXzJaNG9SX0txZHFwSERtSjA5bFctUEI0YmRkcjIzUVZ2c1J4UDRPeFB5cHd5RjRENGI0WFFwQ2ViR3RXYVJzX2hvcmdLcVo2OWV4UWU3UmlPRmhUUkRkRVVjQko0X2lwZlFQRDdxcjBLYkMxelFvcmVzcXN4WmpEblg3cGU4ZjFfZmhSQ011NWw4",
+          "title": "A Look at Accenture PLC (ACN) After 6.9% Gain -- GF Value $353.9",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMirwFBVV95cUxQNUxEdHpwTk5qeVYtaE13Mlg0S1VOTUZ0aWdTVEJiXzJaNG9SX0txZHFwSERtSjA5bFctUEI0YmRkcjIzUVZ2c1J4UDRPeFB5cHd5RjRENGI0WFFwQ2ViR3RXYVJzX2hvcmdLcVo2OWV4UWU3UmlPRmhUUkRkRVVjQko0X2lwZlFQRDdxcjBLYkMxelFvcmVzcXN4WmpEblg3cGU4ZjFfZmhSQ011NWw4?oc=5\" target=\"_blank\">A Look at Accenture PLC (ACN) After 6.9% Gain -- GF Value $353.9</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">GuruFocus</font>",
+          "source": "GuruFocus",
+          "source_url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxQNUxEdHpwTk5qeVYtaE13Mlg0S1VOTUZ0aWdTVEJiXzJaNG9SX0txZHFwSERtSjA5bFctUEI0YmRkcjIzUVZ2c1J4UDRPeFB5cHd5RjRENGI0WFFwQ2ViR3RXYVJzX2hvcmdLcVo2OWV4UWU3UmlPRmhUUkRkRVVjQko0X2lwZlFQRDdxcjBLYkMxelFvcmVzcXN4WmpEblg3cGU4ZjFfZmhSQ011NWw4?oc=5",
+          "published_at": "2026-04-13T21:29:37+00:00",
+          "event_type": "other",
+          "significance": "minor",
+          "classification": {
+            "confidence": 0.92,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "GuruFocus valuation analysis of Accenture's stock price versus intrinsic value, not an analyst rating."
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "ACN"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "Accenture showing 6.9% gain and strong GF value rating supports the growth archetype holding."
+            },
+            "significance": {
+              "confidence": 0.92,
+              "event_type": "other",
+              "significance": "minor",
+              "why_it_matters": "GuruFocus valuation analysis of Accenture's stock price versus intrinsic value, not an analyst rating."
+            }
+          },
+          "analysis_source": "minimax",
+          "long_analysis": "Accenture's recent 6.9% price gain brings the stock closer to its GuruFocus (GF) fair\u2011value estimate of $353.9, indicating short\u2011term upward momentum that may narrow the valuation discount. While the move suggests improving investor sentiment, the proximity to the GF value raises the risk of a pullback if the price overshoots without underlying earnings support. The market's reaction also reflects heightened volatility in the IT\u2011services sector, making near\u2011term price swings more likely. This is direct company coverage for ACN.",
+          "confidence": 0.73,
+          "impact_horizon": "near_term",
+          "risk_direction": "improving",
+          "scenario_summary": "Accenture's price has risen 6.9% toward its GF fair\u2011value estimate, signaling short\u2011term upside momentum but also a potential reversal risk if the stock reaches overvaluation. This is direct company coverage for ACN.",
+          "key_implications": [
+            "The stock's approach to the GF value could attract value\u2011oriented investors, but also prompt profit\u2011taking if the price exceeds the estimate.",
+            "Increased volatility around the $353.9 level may create trading opportunities but also elevate downside risk.",
+            "Sector\u2011wide trends in IT services will be a key driver of whether the momentum sustains."
+          ],
+          "recommended_followups": [
+            "Monitor whether Accenture's price stabilizes near or above the $353.9 GF value to assess if the upside is sustainable.",
+            "Track upcoming earnings releases and guidance for any revisions to the company\u2019s growth outlook that could affect the GF estimate.",
+            "Keep an eye on broader IT\u2011services sector benchmarks and macroeconomic factors that could influence investor risk appetite."
+          ]
+        },
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "551d5410-388d-4c62-b0c2-ba9ab0f49e3b",
+          "event_hash": "051db58512767551183c572dca3ceda8eed7bb69b7e141efb5219fe365d205d2",
+          "external_event_id": "CBMiowFBVV95cUxQR0U1YlczRVM3b1NOQUtIek9qcGVjeEkzbnJEMElKRGZ0U3RtYUFxakVpV2NRbmtiMENKbVY0SldHZ3A3YWRMWVBNeC14eWhreWRjRi1aY3Q0ckRBRVNVSjF0OXFTTF9ZZXNyMFdrWG5ZYXVQOXJPdS1oWVprZENvemZIMkl3dFA5UWdTN1BKRS1OV0g3RjdRU2lvbFFxM1RpelZv",
+          "title": "Accenture plc (ACN): Leveraging Federal Wins to Strengthen Long-Term Growth Visibility",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMiowFBVV95cUxQR0U1YlczRVM3b1NOQUtIek9qcGVjeEkzbnJEMElKRGZ0U3RtYUFxakVpV2NRbmtiMENKbVY0SldHZ3A3YWRMWVBNeC14eWhreWRjRi1aY3Q0ckRBRVNVSjF0OXFTTF9ZZXNyMFdrWG5ZYXVQOXJPdS1oWVprZENvemZIMkl3dFA5UWdTN1BKRS1OV0g3RjdRU2lvbFFxM1RpelZv?oc=5\" target=\"_blank\">Accenture plc (ACN): Leveraging Federal Wins to Strengthen Long-Term Growth Visibility</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Finance</font>",
+          "source": "Yahoo Finance",
+          "source_url": "https://news.google.com/rss/articles/CBMiowFBVV95cUxQR0U1YlczRVM3b1NOQUtIek9qcGVjeEkzbnJEMElKRGZ0U3RtYUFxakVpV2NRbmtiMENKbVY0SldHZ3A3YWRMWVBNeC14eWhreWRjRi1aY3Q0ckRBRVNVSjF0OXFTTF9ZZXNyMFdrWG5ZYXVQOXJPdS1oWVprZENvemZIMkl3dFA5UWdTN1BKRS1OV0g3RjdRU2lvbFFxM1RpelZv?oc=5",
+          "published_at": "2026-04-12T18:18:10+00:00",
+          "event_type": "other",
+          "significance": "major",
+          "classification": {
+            "rule": "keyword",
+            "confidence": 0.95,
+            "event_type": "other",
+            "significance": "major",
+            "why_it_matters": "Keyword detected major event"
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "ACN"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "LLM call failed"
+            },
+            "significance": {
+              "rule": "keyword",
+              "confidence": 0.95,
+              "event_type": "other",
+              "significance": "major",
+              "why_it_matters": "Keyword detected major event"
+            }
+          },
+          "analysis_source": "minimax_fallback",
+          "long_analysis": "Accenture's federal contract wins represent a meaningful diversification of revenue streams, as government technology work tends to offer long-duration, sticky contracts that improve revenue visibility over multi-year horizons. Federal work also typically carries higher barriers to entry for competitors, providing ACN with a defensible niche in a growing digital modernization market. This development reinforces Accenture's positioning as a preferred vendor for large-scale transformation programs, which can support pricing power and contract backlog stability. The headline framing explicitly ties federal wins to long-term growth visibility, signaling management confidence in sustained revenue generation from this vertical. This is direct company coverage for ACN.",
+          "confidence": 0.7999999999999999,
+          "impact_horizon": "long_term",
+          "risk_direction": "improving",
+          "scenario_summary": "Accenture's federal contract wins deepen revenue diversification and contract backlog visibility, supporting a more predictable long-term earnings profile amid a mixed commercial consulting environment. This is direct company coverage for ACN.",
+          "key_implications": [
+            "Federal backlog provides a revenue floor and multi-year visibility absent in purely commercial consulting lines",
+            "Increased government technology spend (digital modernization, cybersecurity) creates a durable demand tailwind",
+            "Federal wins strengthen ACN's competitive moat given stringent security clearances and compliance requirements that limit peer competition"
+          ],
+          "recommended_followups": [
+            "Track federal contract announcement cadence and aggregate contract value to assess backlog growth rate",
+            "Monitor ACN's government segment revenue as a disclosed sub-segment in earnings presentations",
+            "Evaluate whether federal wins are offsetting commercial consulting softness in Q4/fiscal year reporting"
+          ]
+        },
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "551d5410-388d-4c62-b0c2-ba9ab0f49e3b",
+          "event_hash": "2647446533a4baceb972d39743ac0fa9c7a6623d8dfa522d63d856cee96b8969",
+          "external_event_id": "CBMixgFBVV95cUxNZFN6Y2hQNWZweWZmelp5dDE4aG9YSXJpelM4ZWJFYjEwZHpUc2kxTnFCVHktLU9WcHg3ZVFnTDRHc1hoLWRRcEdSM0Z6SlJfR0xfMXJ0djRLanlqN0ZnSll2ZjdESXVGVmc5VEdieWMwVWFBZXc1aEdLc3hvdEd2VnphOGUtcV95c041TVpzZ0NCNkd2Mi1WM0Yzc1NyVW9yY1FXNjh3Nm56emhkSGZPRkFqVGFZQkhrbTAtdzY0Z3RHNnVRSFE",
+          "title": "Deprince Race & Zollo Inc. Acquires 15,599 Shares of Accenture PLC $ACN",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMixgFBVV95cUxNZFN6Y2hQNWZweWZmelp5dDE4aG9YSXJpelM4ZWJFYjEwZHpUc2kxTnFCVHktLU9WcHg3ZVFnTDRHc1hoLWRRcEdSM0Z6SlJfR0xfMXJ0djRLanlqN0ZnSll2ZjdESXVGVmc5VEdieWMwVWFBZXc1aEdLc3hvdEd2VnphOGUtcV95c041TVpzZ0NCNkd2Mi1WM0Yzc1NyVW9yY1FXNjh3Nm56emhkSGZPRkFqVGFZQkhrbTAtdzY0Z3RHNnVRSFE?oc=5\" target=\"_blank\">Deprince Race & Zollo Inc. Acquires 15,599 Shares of Accenture PLC $ACN</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">MarketBeat</font>",
+          "source": "MarketBeat",
+          "source_url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxNZFN6Y2hQNWZweWZmelp5dDE4aG9YSXJpelM4ZWJFYjEwZHpUc2kxTnFCVHktLU9WcHg3ZVFnTDRHc1hoLWRRcEdSM0Z6SlJfR0xfMXJ0djRLanlqN0ZnSll2ZjdESXVGVmc5VEdieWMwVWFBZXc1aEdLc3hvdEd2VnphOGUtcV95c041TVpzZ0NCNkd2Mi1WM0Yzc1NyVW9yY1FXNjh3Nm56emhkSGZPRkFqVGFZQkhrbTAtdzY0Z3RHNnVRSFE?oc=5",
+          "published_at": "2026-04-13T08:21:12+00:00",
+          "event_type": "other",
+          "significance": "major",
+          "classification": {
+            "rule": "keyword",
+            "confidence": 0.95,
+            "event_type": "other",
+            "significance": "major",
+            "why_it_matters": "Keyword detected major event"
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "ACN"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "Institutional accumulation data is routine; no material news affecting ACN fundamentals."
+            },
+            "significance": {
+              "rule": "keyword",
+              "confidence": 0.95,
+              "event_type": "other",
+              "significance": "major",
+              "why_it_matters": "Keyword detected major event"
+            }
+          },
+          "analysis_source": "minimax_fallback",
+          "long_analysis": "Deprince Race & Zollo Inc.'s purchase of 15,599 ACN shares represents a direct equity allocation decision by a value-oriented institutional investor, which is a mildly bullish signal for near-term price support. The trade size, while not transformative, signals that at current valuations the firm views Accenture's risk/reward as favorable relative to alternative equity opportunities. This type of insider-adjacent buying can catalyze investor confidence, particularly if it contrasts with broader tech consultancy sector sentiment. However, 15,599 shares is a relatively modest position relative to ACN's market cap, so the market impact is likely limited to signaling rather than price-moving volume. This is direct company coverage for ACN.",
+          "confidence": 0.73,
+          "impact_horizon": "near_term",
+          "risk_direction": "neutral",
+          "scenario_summary": "Institutional buying by Deprince Race & Zollo provides a modest positive sentiment signal, supporting near-term price floors but unlikely to materially alter ACN's valuation trajectory on its own. This is direct company coverage for ACN.",
+          "key_implications": [
+            "The purchase signals institutional conviction that ACN is attractively valued at prevailing prices",
+            "Near-term price support is likely, as buying activity counters selling pressure from passive rebalancing",
+            "A single firm's buying activity is insufficient to drive material upside without corroborating fundamental catalysts"
+          ],
+          "recommended_followups": [
+            "Cross-reference against 13F filings for the full quarter to confirm whether the position was scaled up or is part of an existing thesis",
+            "Watch for additional institutional buying activity in ACN across other 13F filers in the same period",
+            "Assess whether the purchase timing aligns with ACN's post-earnings quiet period or dividend ex-date"
+          ]
+        }
+      ],
+      "ticker_metadata": {
+        "id": "e61952a5-b988-4409-a602-17bb0a7f2698",
+        "ticker": "ACN",
+        "company_name": "Accenture PLC",
+        "asset_class": null,
+        "sector": "Technology",
+        "industry": null,
+        "exchange": "NEW YORK STOCK EXCHANGE, INC.",
+        "market_cap": 117845642078.78432,
+        "market_cap_bucket": "high",
+        "float_shares": null,
+        "avg_daily_dollar_volume": 1043182986.9999999,
+        "spread_proxy": 0.001,
+        "beta": 1.1984261,
+        "volatility_proxy": 0.299606525,
+        "profitability_profile": "mixed",
+        "leverage_profile": "moderate",
+        "macro_sensitivity": null,
+        "structural_fragility": null,
+        "liquidity_risk": null,
+        "updated_at": "2026-04-14T01:07:48.776421+00:00",
+        "created_at": "2026-04-12T21:58:09.401112+00:00",
+        "pe_ratio": 14.6978,
+        "week_52_high": 325.71,
+        "week_52_low": 177.5,
+        "price": 191.95,
+        "price_as_of": "2026-04-14T01:07:48.772705+00:00",
+        "avg_volume": 5.43466,
+        "previous_close": 179.53,
+        "open_price": 180.98,
+        "day_high": 192.04,
+        "day_low": 180.37,
+        "last_price_source": "finnhub",
+        "is_supported": true
+      },
+      "macro_impact": {
+        "ticker": "ACN",
+        "macro_relevance": "neutral",
+        "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+      },
+      "news_sentiment": 75,
+      "macro_exposure": 70,
+      "position_sizing": 50,
+      "volatility_trend": 50,
+      "total_score": 60,
+      "grade": "C",
+      "reasoning": "",
+      "grade_reason": "",
+      "evidence_summary": "Accenture's federal contract wins represent a meaningful structural advantage, offering long-duration, sticky revenue streams in a growing digital modernization market with high barriers to entry; combined with institutional buying from a value-oriented firm, the long-term growth thesis remains intact. However, the recent 6.9% price surge has pushed shares near the GuruFocus fair-value estimate of $353.9, introducing near-term pullback risk if momentum overshoots without fresh earnings catalysts. The position appears supported by improving investor sentiment, though valuation headroom has narrowed significantly.",
+      "dimension_rationale": {},
+      "safety_score": 60,
+      "confidence": 0.75,
+      "structural_base_score": 60
+    },
+    {
+      "id": "04a8fb04-866f-46c2-aa9f-d63eedf54197",
+      "user_id": "00000000-0000-0000-0000-000000000001",
+      "ticker": "ADBE",
+      "shares": 0.0,
+      "purchase_price": 0.0,
+      "archetype": "growth",
+      "created_at": "2026-04-13T00:47:15.797313+00:00",
+      "updated_at": "2026-04-13T00:47:15.797313+00:00",
+      "current_price": 240.11,
+      "analysis_started_at": null,
+      "analysis_mode": "sp500_backfill",
+      "previous_grade": "C",
+      "previous_total_score": 43.8,
+      "summary": "Latest shared S&P ticker snapshot for ADBE built from the cached structural profile.",
+      "long_report": "Adobe's recent stock weakness coinciding with a CEO transition and regulatory settlement introduces a multi-layered risk profile that warrants careful attention. The leadership change creates inherent execution risk, as new executives typically require 2-4 quarters to articulate and implement strategic pivots that markets can price positively. This uncertainty historically\u538b\u5728 valuation multiples until institutional trust is re-established through concrete operational guidance. The regulatory settlement adds financial and reputational dimensions that could constrain near-term capital allocation flexibility, potentially affecting AI infrastructure investment or shareholder return programs. The 6.5% gain referenced in recent value analysis suggests the market may be reassessing intrinsic value, with GF Value suggesting potential upside at current levels. However, without clarity on new CEO priorities\u2014whether AI product velocity, pricing strategy, or margin expansion\u2014the risk-reward remains asymmetric until concrete strategic signals emerge. The comprehensive 2026 generative AI analysis indicates the company's long-term thesis remains tied to competitive positioning in artificial intelligence capabilities.",
+      "top_risks": [
+        "CEO transition execution risk: new leadership may pursue strategic pivots that diverge from market expectations, creating uncertainty in revenue trajectory",
+        "Regulatory settlement costs: financial and operational implications of settlement could constrain investment capacity and capital return programs",
+        "AI competition intensification: accelerating competitive landscape in generative AI could pressure Adobe's market share and pricing power",
+        "Valuation compression: market may continue to discount valuation multiples until new CEO establishes credibility and strategic clarity"
+      ],
+      "watch_items": [
+        "New CEO strategic communications and first 100-day priorities",
+        "Q1/Q2 earnings guidance relative to pre-transition consensus",
+        "Settlement implementation timeline and any operational restrictions",
+        "AI product velocity and competitive feature releases versus peers"
+      ],
+      "top_news": [
+        "Adobe (ADBE) Valuation Check After Stock Slide CEO Transition And Regulatory Settlement",
+        "A Look at Adobe Inc (ADBE) After 6.5% Gain -- GF Value $617.88 v",
+        "Adobe Inc. (ADBE): Navigating the Generative Frontier \u2013 A 2026 Comprehensive Analysis"
+      ],
+      "inferred_labels": [
+        "growth"
+      ],
+      "methodology": "Analysis based on company-specific event catalysts (CEO transition, regulatory settlement, recent stock performance) assessed against Adobe's fundamental growth positioning. Valuation reference points from GF Value framework provide anchoring context. Risk assessment employs layered framework examining near-term execution uncertainty against longer-term AI-driven growth thesis. Macro context assessed as neutral given limited overnight developments.",
+      "mirofish_used": false,
+      "thesis_verifier": [
+        {
+          "macro_event": "Overnight markets remained calm with no significant policy shifts or economic surprises",
+          "thesis_impact": "neutral",
+          "reasoning": "Limited macro catalysts mean Adobe's near-term performance will be driven by company-specific developments rather than broader market forces"
+        }
+      ],
+      "event_analyses": [
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "04a8fb04-866f-46c2-aa9f-d63eedf54197",
+          "event_hash": "73d107ab3d34112e491aa64fd7a00deacb24b8dc61e91661b566c1eb91033e5e",
+          "external_event_id": "CBMiqwFBVV95cUxPU2ZjM1hySUpQRFY5UDdPWElsd3FqOFJfdTAyZWNTR0h0VG52Nm1ZZWswVy1YamExQ2RNN1BQSV8yYVY0ZkxSN09vYV83bHluWU5zR2x2Y25WOWJ4WHhhMG9FcVU3OGdQbUlVa0YyN3RvMUZlT0Q4ZF9KTFJvU3dNcXFkMG1JTGNKUUlUX3VWWGg3cDc4V2ZuYnptcl9MWWo1NklrUWtiaEhsVG8",
+          "title": "A Look at Adobe Inc (ADBE) After 6.5% Gain -- GF Value $617.88 v",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMiqwFBVV95cUxPU2ZjM1hySUpQRFY5UDdPWElsd3FqOFJfdTAyZWNTR0h0VG52Nm1ZZWswVy1YamExQ2RNN1BQSV8yYVY0ZkxSN09vYV83bHluWU5zR2x2Y25WOWJ4WHhhMG9FcVU3OGdQbUlVa0YyN3RvMUZlT0Q4ZF9KTFJvU3dNcXFkMG1JTGNKUUlUX3VWWGg3cDc4V2ZuYnptcl9MWWo1NklrUWtiaEhsVG8?oc=5\" target=\"_blank\">A Look at Adobe Inc (ADBE) After 6.5% Gain -- GF Value $617.88 v</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">GuruFocus</font>",
+          "source": "GuruFocus",
+          "source_url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPU2ZjM1hySUpQRFY5UDdPWElsd3FqOFJfdTAyZWNTR0h0VG52Nm1ZZWswVy1YamExQ2RNN1BQSV8yYVY0ZkxSN09vYV83bHluWU5zR2x2Y25WOWJ4WHhhMG9FcVU3OGdQbUlVa0YyN3RvMUZlT0Q4ZF9KTFJvU3dNcXFkMG1JTGNKUUlUX3VWWGg3cDc4V2ZuYnptcl9MWWo1NklrUWtiaEhsVG8?oc=5",
+          "published_at": "2026-04-13T21:29:37+00:00",
+          "event_type": "other",
+          "significance": "minor",
+          "classification": {
+            "confidence": 0.92,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "GuruFocus valuation analysis of Adobe's stock price versus intrinsic value, not an analyst rating."
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "ADBE"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "Adobe's 6.5% gain and favorable GF value ($617.88) aligns with growth archetype positioning."
+            },
+            "significance": {
+              "confidence": 0.92,
+              "event_type": "other",
+              "significance": "minor",
+              "why_it_matters": "GuruFocus valuation analysis of Adobe's stock price versus intrinsic value, not an analyst rating."
+            }
+          },
+          "analysis_source": "minimax",
+          "long_analysis": "A Look at Adobe Inc (ADBE) After 6.5% Gain -- GF Value $617.88 v <a href=\"https://news.google.com/rss/articles/CBMiqwFBVV95cUxPU2ZjM1hySUpQRFY5UDdPWElsd3FqOFJfdTAyZWNTR0h0VG52Nm1ZZWswVy1YamExQ2RNN1BQSV8yYVY0ZkxSN09vYV83bHluWU5zR2x2Y25WOWJ4WHhhMG9FcVU3OGdQbUlVa0YyN3RvMUZlT0Q4ZF9KT This looks like a monitorable development rather than a confirmed thesis-changing catalyst without stronger follow-through. This is direct company coverage for ADBE.",
+          "confidence": 0.53,
+          "impact_horizon": "near_term",
+          "risk_direction": "neutral",
+          "scenario_summary": "The event changes context more than it changes fundamentals at this stage. This is direct company coverage for ADBE.",
+          "key_implications": [
+            "Track whether follow-on reporting changes the significance of 'A Look at Adobe Inc (ADBE) After 6.5% Gain -- GF Value $617.88 v'."
+          ],
+          "recommended_followups": [
+            "Watch for management commentary, earnings, regulatory filings, or additional reporting that changes the fundamental read-through.",
+            "Review the read-through against ADBE's current labels: growth."
+          ]
+        },
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "04a8fb04-866f-46c2-aa9f-d63eedf54197",
+          "event_hash": "5e9aa7315207c60dc3556cc30c2b9bf4b90905265c0765cc44092dd8043aa7e4",
+          "external_event_id": "CBMi5AFBVV95cUxQVDE5d3R6SVRQT2EtUl9DVjNNeW4tM0VlUXpXSnR4VHJfT0ZjR1BwTDEwMi1EYklvdGpKVkVJVXpfYmE3MURhLWFoYmYwbklwYm1BekFJSTF0OUUwUHZhR0R6MERpZl8tdFBnMEZXNUhtd0hOM2xMWjNLSklJTElxUS1UaHRPOGd6UTlsOVRRTlBkNkRWV1d0aEllSjdyTVg3WG1VU3dwVm80ZEYtclJlVzgyY2M4ZHIyLWdWbXN6NE90bVBUS3dZcjJrUEdNY243LTVtSU0tZWhza0phNHJmem4tR1I",
+          "title": "Adobe Inc. (ADBE): Navigating the Generative Frontier \u2013 A 2026 Comprehensive Analysis",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMi5AFBVV95cUxQVDE5d3R6SVRQT2EtUl9DVjNNeW4tM0VlUXpXSnR4VHJfT0ZjR1BwTDEwMi1EYklvdGpKVkVJVXpfYmE3MURhLWFoYmYwbklwYm1BekFJSTF0OUUwUHZhR0R6MERpZl8tdFBnMEZXNUhtd0hOM2xMWjNLSklJTElxUS1UaHRPOGd6UTlsOVRRTlBkNkRWV1d0aEllSjdyTVg3WG1VU3dwVm80ZEYtclJlVzgyY2M4ZHIyLWdWbXN6NE90bVBUS3dZcjJrUEdNY243LTVtSU0tZWhza0phNHJmem4tR1I?oc=5\" target=\"_blank\">Adobe Inc. (ADBE): Navigating the Generative Frontier \u2013 A 2026 Comprehensive Analysis</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">FinancialContent</font>",
+          "source": "FinancialContent",
+          "source_url": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxQVDE5d3R6SVRQT2EtUl9DVjNNeW4tM0VlUXpXSnR4VHJfT0ZjR1BwTDEwMi1EYklvdGpKVkVJVXpfYmE3MURhLWFoYmYwbklwYm1BekFJSTF0OUUwUHZhR0R6MERpZl8tdFBnMEZXNUhtd0hOM2xMWjNLSklJTElxUS1UaHRPOGd6UTlsOVRRTlBkNkRWV1d0aEllSjdyTVg3WG1VU3dwVm80ZEYtclJlVzgyY2M4ZHIyLWdWbXN6NE90bVBUS3dZcjJrUEdNY243LTVtSU0tZWhza0phNHJmem4tR1I?oc=5",
+          "published_at": "2026-04-13T14:04:00+00:00",
+          "event_type": "other",
+          "significance": "minor",
+          "classification": {
+            "confidence": 0.85,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "Comprehensive analysis of Adobe's strategic positioning in generative AI, not a product launch announcement."
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "ADBE"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "LLM call failed"
+            },
+            "significance": {
+              "confidence": 0.85,
+              "event_type": "other",
+              "significance": "minor",
+              "why_it_matters": "Comprehensive analysis of Adobe's strategic positioning in generative AI, not a product launch announcement."
+            }
+          },
+          "analysis_source": "minimax",
+          "long_analysis": "Adobe Inc. (ADBE): Navigating the Generative Frontier \u2013 A 2026 Comprehensive Analysis <a href=\"https://news.google.com/rss/articles/CBMi5AFBVV95cUxQVDE5d3R6SVRQT2EtUl9DVjNNeW4tM0VlUXpXSnR4VHJfT0ZjR1BwTDEwMi1EYklvdGpKVkVJVXpfYmE3MURhLWFoYmYwbklwYm1BekFJSTF0OUUwUHZhR0R6MERpZl8tdFBn This looks like a monitorable development rather than a confirmed thesis-changing catalyst without stronger follow-through. This is direct company coverage for ADBE.",
+          "confidence": 0.53,
+          "impact_horizon": "near_term",
+          "risk_direction": "neutral",
+          "scenario_summary": "The event changes context more than it changes fundamentals at this stage. This is direct company coverage for ADBE.",
+          "key_implications": [
+            "Track whether follow-on reporting changes the significance of 'Adobe Inc. (ADBE): Navigating the Generative Frontier \u2013 A 2026 Comprehensive Analysis'."
+          ],
+          "recommended_followups": [
+            "Watch for management commentary, earnings, regulatory filings, or additional reporting that changes the fundamental read-through.",
+            "Review the read-through against ADBE's current labels: growth."
+          ]
+        },
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "04a8fb04-866f-46c2-aa9f-d63eedf54197",
+          "event_hash": "5a20597ea75ecfd204c623a27765bc39980483dd9dd23249d21fda62a9555107",
+          "external_event_id": "CBMingFBVV95cUxOUXJnTFVyNnZIcU1nVlpHaHdTVC0xb1l2UUtSMlhhZHJzNmxtWEZVQ1g5NVlsWE5HZ05pbzNCVXFMaTRBQVJSTEw4LTYtSXVGMFJWdE04UmRwUTAwN2ZRQVZzT19mUEZhWEJ2SDFQZVNic241Mng2WjJwM0U2NlQ4UlNuMHhWRmFmQjJ4WWhIblRqaWlpU3M5bXVpbDRldw",
+          "title": "Adobe (ADBE) Valuation Check After Stock Slide CEO Transition And Regulatory Settlement",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMingFBVV95cUxOUXJnTFVyNnZIcU1nVlpHaHdTVC0xb1l2UUtSMlhhZHJzNmxtWEZVQ1g5NVlsWE5HZ05pbzNCVXFMaTRBQVJSTEw4LTYtSXVGMFJWdE04UmRwUTAwN2ZRQVZzT19mUEZhWEJ2SDFQZVNic241Mng2WjJwM0U2NlQ4UlNuMHhWRmFmQjJ4WWhIblRqaWlpU3M5bXVpbDRldw?oc=5\" target=\"_blank\">Adobe (ADBE) Valuation Check After Stock Slide CEO Transition And Regulatory Settlement</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Finance</font>",
+          "source": "Yahoo Finance",
+          "source_url": "https://news.google.com/rss/articles/CBMingFBVV95cUxOUXJnTFVyNnZIcU1nVlpHaHdTVC0xb1l2UUtSMlhhZHJzNmxtWEZVQ1g5NVlsWE5HZ05pbzNCVXFMaTRBQVJSTEw4LTYtSXVGMFJWdE04UmRwUTAwN2ZRQVZzT19mUEZhWEJ2SDFQZVNic241Mng2WjJwM0U2NlQ4UlNuMHhWRmFmQjJ4WWhIblRqaWlpU3M5bXVpbDRldw?oc=5",
+          "published_at": "2026-04-10T20:14:18+00:00",
+          "event_type": "other",
+          "significance": "major",
+          "classification": {
+            "rule": "keyword",
+            "confidence": 0.95,
+            "event_type": "other",
+            "significance": "major",
+            "why_it_matters": "Keyword detected major event"
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "ADBE"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "LLM call failed"
+            },
+            "significance": {
+              "rule": "keyword",
+              "confidence": 0.95,
+              "event_type": "other",
+              "significance": "major",
+              "why_it_matters": "Keyword detected major event"
+            }
+          },
+          "analysis_source": "minimax_fallback",
+          "long_analysis": "Adobe's stock decline concurrent with a CEO transition and regulatory settlement creates a layered risk profile requiring careful deconstruction. The leadership change introduces execution risk and potential strategic pivots that the market typically discounts until new management provides clarity on priorities; this uncertainty typically\u538b\u5728 valuation multiples until trust is re-established. The regulatory settlement, while representing a near-term cost and potential behavioral constraints, likely removes a legal overhang that may have been contributing to investor caution. If Adobe's subscription-based recurring revenue model remains fundamentally intact with stable net retention rates, the valuation compression could present an improved entry point for long-term investors. However, the confluence of leadership transition and regulatory action warrants heightened scrutiny of forward guidance and new CEO strategic communications to assess whether any deeper business risks exist beyond temporary market reactions. This is direct company coverage for ADBE.",
+          "confidence": 0.73,
+          "impact_horizon": "near_term",
+          "risk_direction": "neutral",
+          "scenario_summary": "Adobe faces near-term uncertainty from leadership transition and regulatory settlement, but strong subscription fundamentals provide downside support if execution continuity is maintained through the management change. This is direct company coverage for ADBE.",
+          "key_implications": [
+            "CEO transition introduces strategic direction uncertainty lasting 12-18 months as new leadership establishes credibility",
+            "Regulatory settlement likely removes legal overhang but may impose operational constraints on certain business practices",
+            "Stock slide combined with stable earnings could compress valuation multiples creating potential value opportunity"
+          ],
+          "recommended_followups": [
+            "Monitor incoming CEO's background, strategic priorities, and first earnings call guidance",
+            "Assess settlement terms for materiality and any ongoing compliance cost structures",
+            "Evaluate whether guidance revisions reflect business deterioration or merely conservative positioning"
+          ]
+        }
+      ],
+      "ticker_metadata": {
+        "id": "ea180383-df38-462d-a6fb-5ecf6d1aa3cc",
+        "ticker": "ADBE",
+        "company_name": "Adobe Inc",
+        "asset_class": null,
+        "sector": "Technology",
+        "industry": null,
+        "exchange": "NASDAQ NMS - GLOBAL MARKET",
+        "market_cap": 97052467559.76918,
+        "market_cap_bucket": "high",
+        "float_shares": null,
+        "avg_daily_dollar_volume": 1046195286.5,
+        "spread_proxy": 0.001,
+        "beta": 1.4851192,
+        "volatility_proxy": 0.3712798,
+        "profitability_profile": "mixed",
+        "leverage_profile": "moderate",
+        "macro_sensitivity": null,
+        "structural_fragility": null,
+        "liquidity_risk": null,
+        "updated_at": "2026-04-14T01:07:50.41052+00:00",
+        "created_at": "2026-04-12T21:58:11.047882+00:00",
+        "pe_ratio": 12.6369,
+        "week_52_high": 422.95,
+        "week_52_low": 224.13,
+        "price": 240.11,
+        "price_as_of": "2026-04-14T01:07:50.406561+00:00",
+        "avg_volume": 4.35715,
+        "previous_close": 225.35,
+        "open_price": 227.14,
+        "day_high": 240.19,
+        "day_low": 226.5,
+        "last_price_source": "finnhub",
+        "is_supported": true
+      },
+      "macro_impact": {
+        "ticker": "ADBE",
+        "macro_relevance": "neutral",
+        "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+      },
+      "news_sentiment": 35,
+      "macro_exposure": 50,
+      "position_sizing": 50,
+      "volatility_trend": 40,
+      "total_score": 59,
+      "grade": "C",
+      "reasoning": "",
+      "grade_reason": "",
+      "evidence_summary": "Adobe faces elevated near-term risk from a simultaneous CEO transition and regulatory settlement, creating execution uncertainty that markets typically discount until new leadership provides strategic clarity. The stock decline offers potential value opportunity at current levels but requires monitoring of new CEO priorities and settlement implementation costs. Longer-term competitive positioning in generative AI remains the primary thesis driver.",
+      "dimension_rationale": {},
+      "safety_score": 59,
+      "confidence": 0.7,
+      "structural_base_score": 59
+    },
+    {
+      "id": "470d0056-a8a5-4572-af66-8aeae7e1d47c",
+      "user_id": "00000000-0000-0000-0000-000000000001",
+      "ticker": "AES",
+      "shares": 0.0,
+      "purchase_price": 0.0,
+      "archetype": "growth",
+      "created_at": "2026-04-13T00:47:15.797313+00:00",
+      "updated_at": "2026-04-13T00:47:15.797313+00:00",
+      "current_price": 14.4,
+      "analysis_started_at": null,
+      "analysis_mode": "sp500_backfill",
+      "previous_grade": "C",
+      "previous_total_score": 46.2,
+      "summary": "Latest shared S&P ticker snapshot for AES built from the cached structural profile.",
+      "long_report": "AES Corporation finds itself at a pivotal juncture following the announced $10.7 billion take-private transaction, which represents the most consequential development for this position in recent memory. The counterintuitive reaction\u2014shares falling rather than rising on deal announcement\u2014reveals market doubt about either the offer premium relative to intrinsic asset value or concerns about deal certainty given potential regulatory and antitrust hurdles facing a utility/infrastructure conglomerate. The market appears to be pricing in meaningful probability of deal failure or renegotiation, despite Morningstar's apparent endorsement of the transaction as optimal for shareholders. The growth label attached to this position appears somewhat misaligned with the underlying thesis, which centers more on asset valuation capture through privatization than traditional growth trajectory. Near-term, the primary risk is deal non-completion, which would likely reset shares materially lower. Longer-term, if the deal proceeds, shareholders face liquidity constraints and potential underpricing relative to intrinsic value, while if the deal fails, AES returns to public markets with a valuation disconnect that may persist absent catalyst. The utility and clean energy contracted generation portfolio and regulated subsidiary assets remain fundamentally sound, but the uncertainty window creates substantial temporary volatility risk.",
+      "top_risks": [
+        "Deal non-completion risk: If the take-private transaction fails to close due to regulatory rejection, financing issues, or failed shareholder vote, shares would likely revert materially below current levels with no clear near-term catalyst",
+        "Inadequate deal premium risk: The market's negative reaction to the acquisition announcement suggests the $10.7 billion offer undervalues the contracted generation portfolio and regulated utility subsidiaries relative to intrinsic worth, implying shareholder capture of synergies is incomplete",
+        "Regulatory and antitrust risk: Utility and infrastructure assets face inherent regulatory scrutiny from multiple jurisdictions that could delay, condition, or block the transaction, particularly given energy sector consolidation concerns"
+      ],
+      "watch_items": [
+        "Deal terms and conditions: Any modifications to offer price, conditions precedent, or extension of timeline that could signal changed deal dynamics or increased execution risk",
+        "Regulatory approval progress: Status updates from relevant utility commissions and antitrust authorities, with particular attention to any requests for additional information or public comment periods that could signal complications",
+        "Shareholder acceptance and voting: Institutional holder positioning, any proxy advisory firm recommendations, and indications of shareholder acceptance levels that could affect deal certainty"
+      ],
+      "top_news": [
+        "Is AES Corporation (AES) A Buy After Earnings?",
+        "AES shares fall after long-awaited $10.7B take-private acquisition is announced",
+        "AES' Take-Private Transaction Best Option for Shareholders"
+      ],
+      "inferred_labels": [
+        "growth"
+      ],
+      "methodology": "This analysis synthesizes the take-private acquisition announcement as the dominant event driver, interpreting the negative share price reaction as market evidence of inadequate deal pricing or skepticism about deal certainty. The assessment draws on corporate event analysis frameworks, incorporating minority shareholder valuation dynamics, regulatory risk for infrastructure assets, and the distinction between fundamental asset quality and market pricing during transaction uncertainty periods.",
+      "mirofish_used": false,
+      "thesis_verifier": [
+        {
+          "macro_event": "No overnight macro developments were detected that affect energy utilities or infrastructure sectors",
+          "thesis_impact": "neutral",
+          "reasoning": "The absence of macro catalysts means the deal-specific narrative around the take-private transaction remains the sole driver of near-term positioning"
+        }
+      ],
+      "event_analyses": [
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "470d0056-a8a5-4572-af66-8aeae7e1d47c",
+          "event_hash": "fc79e4c65b2d22dff33f5cdd773c360c3b2c6528bb6aa5d99cb739789faa2b5f",
+          "external_event_id": "CBMihAFBVV95cUxNcEdPY1VLRDhockFZRmJhX3NTT2F4NlNCcXBFYktJRzhael9KZnotYklwQ0R5MHNiSklyM3k5VFdxQVVYX2lzTmFQTmJ2aEVDbV9qMmJLM0RDZ3lJS1hDNkQ2Y0U0TkJ6WFl5NXdtSF93WjhiWDJaTjgtOHpUUWVZZDh1aW8",
+          "title": "Is AES Corporation (AES) A Buy After Earnings?",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMihAFBVV95cUxNcEdPY1VLRDhockFZRmJhX3NTT2F4NlNCcXBFYktJRzhael9KZnotYklwQ0R5MHNiSklyM3k5VFdxQVVYX2lzTmFQTmJ2aEVDbV9qMmJLM0RDZ3lJS1hDNkQ2Y0U0TkJ6WFl5NXdtSF93WjhiWDJaTjgtOHpUUWVZZDh1aW8?oc=5\" target=\"_blank\">Is AES Corporation (AES) A Buy After Earnings?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Finance</font>",
+          "source": "Yahoo Finance",
+          "source_url": "https://news.google.com/rss/articles/CBMihAFBVV95cUxNcEdPY1VLRDhockFZRmJhX3NTT2F4NlNCcXBFYktJRzhael9KZnotYklwQ0R5MHNiSklyM3k5VFdxQVVYX2lzTmFQTmJ2aEVDbV9qMmJLM0RDZ3lJS1hDNkQ2Y0U0TkJ6WFl5NXdtSF93WjhiWDJaTjgtOHpUUWVZZDh1aW8?oc=5",
+          "published_at": "2026-03-15T07:00:00+00:00",
+          "event_type": "other",
+          "significance": "major",
+          "classification": {
+            "rule": "keyword",
+            "confidence": 0.95,
+            "event_type": "other",
+            "significance": "major",
+            "why_it_matters": "Keyword detected major event"
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "AES"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "LLM call failed"
+            },
+            "significance": {
+              "rule": "keyword",
+              "confidence": 0.95,
+              "event_type": "other",
+              "significance": "major",
+              "why_it_matters": "Keyword detected major event"
+            }
+          },
+          "analysis_source": "minimax_fallback",
+          "long_analysis": "AES Corporation's post-earnings assessment likely reflects Q4/full-year results that may have met, missed, or exceeded analyst expectations, with valuation metrics under scrutiny given the utility/infrastructure sector's rate-sensitive nature. The question of whether AES is a 'buy' hinges on earnings quality, dividend sustainability, and growth pipeline progress. Without specific beats/misses visible, near-term sentiment is likely neutral-to-cautious pending clarity on forward guidance and capital allocation plans. This is direct company coverage for AES.",
+          "confidence": 0.73,
+          "impact_horizon": "near_term",
+          "risk_direction": "neutral",
+          "scenario_summary": "Post-earnings analysis evaluates AES's fundamental performance and valuation positioning, with near-term investment appeal depending on earnings beat/miss and forward guidance quality. This is direct company coverage for AES.",
+          "key_implications": [
+            "Earnings quality and forward guidance will drive near-term sentiment",
+            "Valuation multiples relative to utility sector peers are under review",
+            "Dividend coverage and sustainability are key metrics for income-oriented holders"
+          ],
+          "recommended_followups": [
+            "Review actual earnings release for revenue, EBITDA, and EPS figures vs. estimates",
+            "Assess management's stated outlook for 2024-2025 capital deployment",
+            "Compare valuation multiples to IXU and peer utilities"
+          ]
+        },
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "470d0056-a8a5-4572-af66-8aeae7e1d47c",
+          "event_hash": "b6b911c5d75852f8ba0bbb1d1ccbd32836ee4a158fd83540f3f4fe09a8a0383b",
+          "external_event_id": "CBMi-AFBVV95cUxNNENRbzJJSnFHOUZUVzE4V252ZVFvMnhzVnpjSDFEbGZFWU1uUjFpY2hGZWZ6U0pnTGMwcFdGZlc3Y19oLXNlYUJDcEtFSUJYbHJYM2YtaEtsWmp3Y1BEdS13dFFReS14NEpTbGNZMkxybUdrS0M5alo4bmtPdHFabEpQUU5ILUNQeGx6UWV1OERmX01vNk5HZDgwNXlXbHMtTjNZU2RuTkhyR2NKT0RZd2d0M241b2RoRGJ2LUU0LV9pS0NyY1lpYlB2OFlTRGs3cTgzZnhNWmNFMF9WX2VrOXhQWFlYUXpON0hFbm8zalk0WlduellKYw",
+          "title": "AES shares fall after long-awaited $10.7B take-private acquisition is announced",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMi-AFBVV95cUxNNENRbzJJSnFHOUZUVzE4V252ZVFvMnhzVnpjSDFEbGZFWU1uUjFpY2hGZWZ6U0pnTGMwcFdGZlc3Y19oLXNlYUJDcEtFSUJYbHJYM2YtaEtsWmp3Y1BEdS13dFFReS14NEpTbGNZMkxybUdrS0M5alo4bmtPdHFabEpQUU5ILUNQeGx6UWV1OERmX01vNk5HZDgwNXlXbHMtTjNZU2RuTkhyR2NKT0RZd2d0M241b2RoRGJ2LUU0LV9pS0NyY1lpYlB2OFlTRGs3cTgzZnhNWmNFMF9WX2VrOXhQWFlYUXpON0hFbm8zalk0WlduellKYw?oc=5\" target=\"_blank\">AES shares fall after long-awaited $10.7B take-private acquisition is announced</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">S&amp;P Global</font>",
+          "source": "S&P Global",
+          "source_url": "https://news.google.com/rss/articles/CBMi-AFBVV95cUxNNENRbzJJSnFHOUZUVzE4V252ZVFvMnhzVnpjSDFEbGZFWU1uUjFpY2hGZWZ6U0pnTGMwcFdGZlc3Y19oLXNlYUJDcEtFSUJYbHJYM2YtaEtsWmp3Y1BEdS13dFFReS14NEpTbGNZMkxybUdrS0M5alo4bmtPdHFabEpQUU5ILUNQeGx6UWV1OERmX01vNk5HZDgwNXlXbHMtTjNZU2RuTkhyR2NKT0RZd2d0M241b2RoRGJ2LUU0LV9pS0NyY1lpYlB2OFlTRGs3cTgzZnhNWmNFMF9WX2VrOXhQWFlYUXpON0hFbm8zalk0WlduellKYw?oc=5",
+          "published_at": "2026-03-02T08:00:00+00:00",
+          "event_type": "other",
+          "significance": "major",
+          "classification": {
+            "rule": "keyword",
+            "confidence": 0.95,
+            "event_type": "other",
+            "significance": "major",
+            "why_it_matters": "Keyword detected major event"
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "AES"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "LLM call failed"
+            },
+            "significance": {
+              "rule": "keyword",
+              "confidence": 0.95,
+              "event_type": "other",
+              "significance": "major",
+              "why_it_matters": "Keyword detected major event"
+            }
+          },
+          "analysis_source": "minimax_fallback",
+          "long_analysis": "AES Corporation faces a major corporate event with a $10.7 billion take-private acquisition announced, yet shares fell on the news\u2014a signal that the market perceives the offer as inadequate, risks the deal will not close, or harbors concerns about minority shareholder protections. The fall indicates a discount to fundamental intrinsic value or skepticism about deal certainty given regulatory/antitrust scrutiny that such large infrastructure transactions typically face. This creates a 'arb spread' risk scenario where holders face uncertainty between deal completion at the announced price versus failure. This is direct company coverage for AES.",
+          "confidence": 0.9299999999999999,
+          "impact_horizon": "immediate",
+          "risk_direction": "worsening",
+          "scenario_summary": "AES shareholders face immediate uncertainty as a take-private deal at $10.7B results in share price decline, suggesting market doubts about deal valuation adequacy or completion probability. This is direct company coverage for AES.",
+          "key_implications": [
+            "Shares falling on take-private announcement implies deal undervalues stock or faces execution risk",
+            "Deal faces potential regulatory scrutiny given infrastructure/utility sector concentration",
+            "Minority holders confront arb spread risk: deal closure vs. collapse scenarios"
+          ],
+          "recommended_followups": [
+            "Verify if $10.7B represents a premium or discount to pre-announcement market cap",
+            "Assess buyer identity and financing certainty",
+            "Monitor regulatory approval timeline and any material adverse change provisions"
+          ]
+        },
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "470d0056-a8a5-4572-af66-8aeae7e1d47c",
+          "event_hash": "54e2dc8ad23630b51764b1813210e9ac5e132e9bbac0032bc21a109956872ce3",
+          "external_event_id": "CBMirgFBVV95cUxPYVZLTHZrN0l5U2VKMU5WSnZjNDhwSEJIUFNlcTROTldPdWl5QzRPUnJVcDl0dnhyRVpxREhRN0kwd1BIejVKM3pkTmZXak92bV9TWE5yYWltNUw0SlBzR2YzZVd4Z0xvcVNSNzFMWU5qV25uYlMzcEpVZl91Z0p2R1lUX2VmQlF2TUVqZVdUME9leENmaTlKZGEzdGVYbWN4VnEwMTZSUXNkVkFYSnc",
+          "title": "AES' Take-Private Transaction Best Option for Shareholders",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMirgFBVV95cUxPYVZLTHZrN0l5U2VKMU5WSnZjNDhwSEJIUFNlcTROTldPdWl5QzRPUnJVcDl0dnhyRVpxREhRN0kwd1BIejVKM3pkTmZXak92bV9TWE5yYWltNUw0SlBzR2YzZVd4Z0xvcVNSNzFMWU5qV25uYlMzcEpVZl91Z0p2R1lUX2VmQlF2TUVqZVdUME9leENmaTlKZGEzdGVYbWN4VnEwMTZSUXNkVkFYSnc?oc=5\" target=\"_blank\">AES' Take-Private Transaction Best Option for Shareholders</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Morningstar</font>",
+          "source": "Morningstar",
+          "source_url": "https://news.google.com/rss/articles/CBMirgFBVV95cUxPYVZLTHZrN0l5U2VKMU5WSnZjNDhwSEJIUFNlcTROTldPdWl5QzRPUnJVcDl0dnhyRVpxREhRN0kwd1BIejVKM3pkTmZXak92bV9TWE5yYWltNUw0SlBzR2YzZVd4Z0xvcVNSNzFMWU5qV25uYlMzcEpVZl91Z0p2R1lUX2VmQlF2TUVqZVdUME9leENmaTlKZGEzdGVYbWN4VnEwMTZSUXNkVkFYSnc?oc=5",
+          "published_at": "2026-04-13T18:59:57+00:00",
+          "event_type": "mna",
+          "significance": "major",
+          "classification": {
+            "significance": "major",
+            "event_type": "mna",
+            "why_it_matters": "A take-private transaction represents a material corporate action that would fundamentally change AES's public ownership structure and shareholder value proposition.",
+            "confidence": 0.82
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "AES"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "Article discusses AES potentially pursuing a take-private transaction, which directly impacts the equity position and growth thesis."
+            },
+            "significance": {
+              "significance": "major",
+              "event_type": "mna",
+              "why_it_matters": "A take-private transaction represents a material corporate action that would fundamentally change AES's public ownership structure and shareholder value proposition.",
+              "confidence": 0.82
+            }
+          },
+          "analysis_source": "minimax_fallback",
+          "long_analysis": "AES' take-private transaction, if pursued, would remove the company from public markets and eliminate the shareholder value disconnect that may have developed between AES' stock price and underlying utility/clean energy asset valuations, particularly if the market is undervaluing its long-duration contracted generation portfolio and regulated utility subsidiaries. Morningstar's endorsement suggests the offer price likely reflects a reasonable premium to intrinsic value, providing near-term upside for existing shareholders while bypassing the uncertainty of waiting for gradual multiple re-rating. The fundamental impact on AES' operations would likely be neutral to slightly positive, as private ownership reduces short-term earnings pressure and provides flexibility to pursue longer-term clean energy transition investments without quarterly profit scrutiny. However, the transaction's success hinges on financing conditions, regulatory approvals, and potential shareholder litigation risks around fairness of the buyout price. The broader sector signal is notable: a take-private of a major diversified utility underscores that well-managed infrastructure assets with contracted cash flows remain attractive to private equity and infrastructure funds at current interest rate levels. This is direct company coverage for AES.",
+          "confidence": 0.73,
+          "impact_horizon": "near_term",
+          "risk_direction": "improving",
+          "scenario_summary": "A take-private offer for AES could deliver immediate shareholder value through a control premium while removing long-term public market discount pressures, contingent on deal terms, financing, and regulatory approval. This is direct company coverage for AES.",
+          "key_implications": [
+            "Take-private premium offers immediate upside vs. current market price if deal closes at reasonable valuation",
+            "AES' diversified asset base (regulated utilities + contracted generation) likely underappreciated by public markets, making it a logical take-private target",
+            "Delisting eliminates shareholder liquidity but removes ongoing discount to fundamentals"
+          ],
+          "recommended_followups": [
+            "Confirm deal offer price, premium percentage, and whether it is fully in cash or includes earnout components",
+            "Verify buyer identity and financing structure to assess deal completion probability",
+            "Assess likelihood of competing bids from other infrastructure/PE buyers given low interest rate environment"
+          ]
+        }
+      ],
+      "ticker_metadata": {
+        "id": "6360e00d-9bd8-45ea-a1ab-cd0c804e05ed",
+        "ticker": "AES",
+        "company_name": "AES Corp",
+        "asset_class": null,
+        "sector": "Utilities",
+        "industry": null,
+        "exchange": "NEW YORK STOCK EXCHANGE, INC.",
+        "market_cap": 10268232080.722723,
+        "market_cap_bucket": "moderate_high",
+        "float_shares": null,
+        "avg_daily_dollar_volume": 135665136.0,
+        "spread_proxy": 0.001,
+        "beta": 1.0074774,
+        "volatility_proxy": 0.25186935,
+        "profitability_profile": "mixed",
+        "leverage_profile": "moderate",
+        "macro_sensitivity": null,
+        "structural_fragility": null,
+        "liquidity_risk": null,
+        "updated_at": "2026-04-14T01:07:52.110249+00:00",
+        "created_at": "2026-04-12T21:58:14.588486+00:00",
+        "pe_ratio": 11.2678,
+        "week_52_high": 17.65,
+        "week_52_low": 9.46,
+        "price": 14.4,
+        "price_as_of": "2026-04-14T01:07:52.10551+00:00",
+        "avg_volume": 9.42119,
+        "previous_close": 14.39,
+        "open_price": 14.38,
+        "day_high": 14.4,
+        "day_low": 14.35,
+        "last_price_source": "finnhub",
+        "is_supported": true
+      },
+      "macro_impact": {
+        "ticker": "AES",
+        "macro_relevance": "neutral",
+        "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+      },
+      "news_sentiment": 35,
+      "macro_exposure": 50,
+      "position_sizing": 50,
+      "volatility_trend": 40,
+      "total_score": 57,
+      "grade": "C",
+      "reasoning": "",
+      "grade_reason": "",
+      "evidence_summary": "AES Corporation is undergoing a transformative corporate event with a $10.7 billion take-private acquisition, yet the share price decline on announcement signals market skepticism about deal adequacy or closure certainty\u2014the disconnect between Morningstar's implied endorsement and the market's negative reaction warrants close monitoring of deal terms and regulatory progress. The position's risk profile is dominated by deal-specific factors rather than traditional utility sector dynamics or growth positioning.",
+      "dimension_rationale": {},
+      "safety_score": 57,
+      "confidence": 0.75,
+      "structural_base_score": 57
+    },
+    {
+      "id": "b0c2a7b5-4b96-4bbe-aae2-ca00fbb0a728",
+      "user_id": "00000000-0000-0000-0000-000000000001",
+      "ticker": "AFL",
+      "shares": 0.0,
+      "purchase_price": 0.0,
+      "archetype": "growth",
+      "created_at": "2026-04-13T00:47:15.797313+00:00",
+      "updated_at": "2026-04-13T00:47:15.797313+00:00",
+      "current_price": 112.14,
+      "analysis_started_at": null,
+      "analysis_mode": "sp500_backfill",
+      "previous_grade": "C",
+      "previous_total_score": 45.0,
+      "summary": "Aflac (AFL) faces a cluster of institutional selling pressure from major Japanese stakeholders, with both Sumitomo Mitsui Trust Group and Japan Post trimming their positions. While the transaction sizes relative to daily volume suggest limited immediate price impact, the synchronized nature of these divestitures warrants attention as it may signal underlying concerns about the supplemental insurer's growth trajectory or sector valuation. The analyst revision amid mixed market indicators compounds the cautious near-term outlook.",
+      "long_report": "The significant stake reductions by Sumitomo Mitsui Trust Group and a Japan Post unit represent coordinated institutional repositioning that raises questions about the perceived risk-reward at current valuations. While each transaction alone represents modest selling pressure given Aflac's trading volume, the simultaneous nature of these divestitures from Japan's largest trust banking groups suggests a deliberate recalibration of exposure to U.S. supplemental insurers. The analyst revision reflecting mixed market indicators and uncertainty around growth drivers aligns with this institutional caution, as both events point to a more uncertain outlook for AFL. The supplemental insurance model faces ongoing questions about growth sustainability in a higher-rate environment that may compress demand for cash-value products. Market participants should monitor whether these divestitures signal broader Japanese institutional rotation away from U.S. insurance names or represent isolated rebalancing decisions.",
+      "top_risks": [
+        "Sustained institutional selling pressure as major Japanese investors rotate out of AFL, potentially establishing a new lower equilibrium for shareholder composition",
+        "Extended valuation compression driven by analyst revisions and uncertain growth catalysts, creating prolonged underperformance relative to peers",
+        "Compound reputational signal from coordinated stake sales by prominent Japanese institutions may deter new institutional buyers from establishing positions"
+      ],
+      "watch_items": [
+        "Monitor for additional Japanese institutional divestitures or 13F filings showing further reduction in AFL holdings by trust banks and regional institutions",
+        "Track analyst coverage changes and any upward revisions that could counterbalance the current cautious positioning",
+        "Watch for company-specific catalysts such as earnings guidance or capital allocation announcements that could restore institutional confidence"
+      ],
+      "top_news": [
+        "Japan Post unit trims AFLAC (NYSE: AFL) stake with 86K-share sale",
+        "Sumitomo Mitsui Trust Group Inc. Trims Stake in Aflac Incorporated $AFL",
+        "Aflac, Inc. Experiences Revision in Stock Evaluation Amid Mixed Market Indicators"
+      ],
+      "inferred_labels": [
+        "growth"
+      ],
+      "methodology": "This report analyzes the risk profile based on three discrete corporate events: two major institutional stake sales by prominent Japanese investors (Sumitomo Mitsui Trust Group and Japan Post unit) and a downward analyst revision citing mixed market conditions. The analysis evaluates the cumulative signal from institutional positioning changes, relative transaction size against daily volume to assess immediate price impact, and fundamental uncertainty around growth drivers. Risk factors are weighted by event significance and correlated impact on the investment thesis.",
+      "mirofish_used": false,
+      "thesis_verifier": [],
+      "event_analyses": [
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "b0c2a7b5-4b96-4bbe-aae2-ca00fbb0a728",
+          "event_hash": "43fade086dd29dd9ab89aa208364f6d21a43aeeb7272fe280db2164782ca5780",
+          "external_event_id": "CBMipAFBVV95cUxNem9rLWFjYW9OZ3E3ajRPUjhUSVNVNXZnaVB1Z1FDRW9FUVFyQVRLRnU0SExpVXlQU2FleF9CWVYwWktDbUxLTEtsVFFCbE1KcEpBNEpST0VtRDV2SHNkejV0QXF6UEFGMnF1dWI2MW1OaVRtMFFyMU5MbFUxYngwakNpVkRyeDV5RFV1WjhGMlluaTV3N0FEczVFY1BVZzJPMC1jUQ",
+          "title": "Japan Post unit trims AFLAC (NYSE: AFL) stake with 86K-share sale",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMipAFBVV95cUxNem9rLWFjYW9OZ3E3ajRPUjhUSVNVNXZnaVB1Z1FDRW9FUVFyQVRLRnU0SExpVXlQU2FleF9CWVYwWktDbUxLTEtsVFFCbE1KcEpBNEpST0VtRDV2SHNkejV0QXF6UEFGMnF1dWI2MW1OaVRtMFFyMU5MbFUxYngwakNpVkRyeDV5RFV1WjhGMlluaTV3N0FEczVFY1BVZzJPMC1jUQ?oc=5\" target=\"_blank\">Japan Post unit trims AFLAC (NYSE: AFL) stake with 86K-share sale</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Stock Titan</font>",
+          "source": "Stock Titan",
+          "source_url": "https://news.google.com/rss/articles/CBMipAFBVV95cUxNem9rLWFjYW9OZ3E3ajRPUjhUSVNVNXZnaVB1Z1FDRW9FUVFyQVRLRnU0SExpVXlQU2FleF9CWVYwWktDbUxLTEtsVFFCbE1KcEpBNEpST0VtRDV2SHNkejV0QXF6UEFGMnF1dWI2MW1OaVRtMFFyMU5MbFUxYngwakNpVkRyeDV5RFV1WjhGMlluaTV3N0FEczVFY1BVZzJPMC1jUQ?oc=5",
+          "published_at": "2026-04-13T13:41:21+00:00",
+          "event_type": "sector",
+          "significance": "minor",
+          "classification": {
+            "confidence": 0.88,
+            "event_type": "sector",
+            "significance": "minor",
+            "why_it_matters": "Japan Post unit reducing AFLAC stake via secondary sale is routine institutional portfolio adjustment, not a material corporate action."
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "AFL"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "LLM call failed"
+            },
+            "significance": {
+              "confidence": 0.88,
+              "event_type": "sector",
+              "significance": "minor",
+              "why_it_matters": "Japan Post unit reducing AFLAC stake via secondary sale is routine institutional portfolio adjustment, not a material corporate action."
+            }
+          },
+          "analysis_source": "minimax",
+          "long_analysis": "Japan Post's decision to trim its Aflac holding by 86,000 shares signals a reduction in a significant institutional backing. The sale introduces modest selling pressure and may erode investor confidence in the near term. However, the transaction size relative to Aflac's average daily volume suggests limited immediate price impact. Market participants should monitor for further divestitures and the underlying reasons behind Japan Post's reallocation. This is direct company coverage for AFL.",
+          "confidence": 0.76,
+          "impact_horizon": "immediate",
+          "risk_direction": "worsening",
+          "scenario_summary": "A Japan Post unit sold 86,000 Aflac shares, reducing institutional support and creating modest downside risk. This is direct company coverage for AFL.",
+          "key_implications": [
+            "Potential short\u2011term downward pressure on AFL price due to increased supply.",
+            "Shift in shareholder composition may signal broader portfolio reallocation.",
+            "Relatively small size limits severe impact but warrants monitoring."
+          ],
+          "recommended_followups": [
+            "Track daily volume and price changes following the sale.",
+            "Observe future filings for additional changes in Japan Post's holdings.",
+            "Assess underlying reasons for the divestiture (e.g., risk management, capital needs)."
+          ]
+        },
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "b0c2a7b5-4b96-4bbe-aae2-ca00fbb0a728",
+          "event_hash": "f5b24586a53080b4c89640529aa06d51a6a3c8d687c3b039728f8e126d7e9b60",
+          "external_event_id": "CBMi4gFBVV95cUxNcklhNHBCRFdmV2MxeUlPM24xZXhtZ1FqUThta0ZRbkQ5WGUxQWM4YkplVlRpaW90TlFQVnJHUnAxTFJWa1JiRnM4TUhfRE5mLTVySEJBZG1yVGRDdWd2UEdobm1XLXZOSVpRcTdUa3NweGwtU0ZrVWZGVW9TYzN6VXZJUmduVTNEb3dVWHRNRkhWcHZ6aGFnVV91ZEwwZkIxVEdSNGdWbkhDcENBQVpBMU8xUFlPcTdpQ3ZHR0tMWFVQX1E5TWx5QWVoYjZNSEVReDJsdFpWbVFUUVNreFdYV1J3",
+          "title": "Aflac, Inc. Experiences Revision in Stock Evaluation Amid Mixed Market Indicators",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMi4gFBVV95cUxNcklhNHBCRFdmV2MxeUlPM24xZXhtZ1FqUThta0ZRbkQ5WGUxQWM4YkplVlRpaW90TlFQVnJHUnAxTFJWa1JiRnM4TUhfRE5mLTVySEJBZG1yVGRDdWd2UEdobm1XLXZOSVpRcTdUa3NweGwtU0ZrVWZGVW9TYzN6VXZJUmduVTNEb3dVWHRNRkhWcHZ6aGFnVV91ZEwwZkIxVEdSNGdWbkhDcENBQVpBMU8xUFlPcTdpQ3ZHR0tMWFVQX1E5TWx5QWVoYjZNSEVReDJsdFpWbVFUUVNreFdYV1J3?oc=5\" target=\"_blank\">Aflac, Inc. Experiences Revision in Stock Evaluation Amid Mixed Market Indicators</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Markets Mojo</font>",
+          "source": "Markets Mojo",
+          "source_url": "https://news.google.com/rss/articles/CBMi4gFBVV95cUxNcklhNHBCRFdmV2MxeUlPM24xZXhtZ1FqUThta0ZRbkQ5WGUxQWM4YkplVlRpaW90TlFQVnJHUnAxTFJWa1JiRnM4TUhfRE5mLTVySEJBZG1yVGRDdWd2UEdobm1XLXZOSVpRcTdUa3NweGwtU0ZrVWZGVW9TYzN6VXZJUmduVTNEb3dVWHRNRkhWcHZ6aGFnVV91ZEwwZkIxVEdSNGdWbkhDcENBQVpBMU8xUFlPcTdpQ3ZHR0tMWFVQX1E5TWx5QWVoYjZNSEVReDJsdFpWbVFUUVNreFdYV1J3?oc=5",
+          "published_at": "2026-04-11T07:18:17+00:00",
+          "event_type": "other",
+          "significance": "minor",
+          "classification": {
+            "confidence": 0.85,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "Stock evaluation revision based on mixed market indicators is analyst-level analysis rather than a material corporate action."
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "AFL"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "LLM call failed"
+            },
+            "significance": {
+              "confidence": 0.85,
+              "event_type": "other",
+              "significance": "minor",
+              "why_it_matters": "Stock evaluation revision based on mixed market indicators is analyst-level analysis rather than a material corporate action."
+            }
+          },
+          "analysis_source": "minimax",
+          "long_analysis": "Recent mixed market indicators have prompted analysts to revise Aflac's stock evaluation, highlighting uncertainty around growth drivers and macro headwinds. The revision suggests a more cautious outlook, potentially leading to increased volatility as investors reassess valuations. While the fundamental business remains solid, the market's ambiguous signals could weigh on the stock in the near term. Stakeholders should keep an eye on upcoming earnings and macroeconomic data for further cues. This is direct company coverage for AFL.",
+          "confidence": 0.63,
+          "impact_horizon": "near_term",
+          "risk_direction": "neutral",
+          "scenario_summary": "Mixed market conditions have caused analysts to adjust Aflac's valuation, reflecting uncertain near\u2011term prospects. This is direct company coverage for AFL.",
+          "key_implications": [
+            "Increased sensitivity to macro data may lead to price swings.",
+            "Potential for downward revision of price targets if uncertainty persists.",
+            "Fundamental strengths remain but could be overshadowed by market sentiment."
+          ],
+          "recommended_followups": [
+            "Monitor upcoming earnings reports for guidance adjustments.",
+            "Track changes in analyst price targets and recommendations.",
+            "Watch macro indicators such as interest rates and consumer spending that affect insurance demand."
+          ]
+        },
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "b0c2a7b5-4b96-4bbe-aae2-ca00fbb0a728",
+          "event_hash": "63236ecbf98a34517f7d878c8ec7b3ee96cb14d5c0adc881b27ae64f9bc62a7a",
+          "external_event_id": "CBMiygFBVV95cUxPREFXVDNTU2daUUp6ck5kS1lxUTE1T3ZwTFRLQjg3UjBaaUtCU3dwS3l6bWxkcjhuNU90T213Z1BnbXpjM29xWWxKSFhVSm5NYWdFdzZsVWMwakhSemlBckttbDhGWVN6ZENycTd5OFpzbmM0YnhNNDdmYXJMeU9mVzR0ajhQUnQwSmRuUVI5NlZ2MWNPMmhKTWo1R1JoakoyYW92ejE3ZFplZlU1YzdZZGJ0cC1CdWIxS0xhcHplWFRCNVFfSU9VeXdR",
+          "title": "Sumitomo Mitsui Trust Group Inc. Trims Stake in Aflac Incorporated $AFL",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMiygFBVV95cUxPREFXVDNTU2daUUp6ck5kS1lxUTE1T3ZwTFRLQjg3UjBaaUtCU3dwS3l6bWxkcjhuNU90T213Z1BnbXpjM29xWWxKSFhVSm5NYWdFdzZsVWMwakhSemlBckttbDhGWVN6ZENycTd5OFpzbmM0YnhNNDdmYXJMeU9mVzR0ajhQUnQwSmRuUVI5NlZ2MWNPMmhKTWo1R1JoakoyYW92ejE3ZFplZlU1YzdZZGJ0cC1CdWIxS0xhcHplWFRCNVFfSU9VeXdR?oc=5\" target=\"_blank\">Sumitomo Mitsui Trust Group Inc. Trims Stake in Aflac Incorporated $AFL</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">MarketBeat</font>",
+          "source": "MarketBeat",
+          "source_url": "https://news.google.com/rss/articles/CBMiygFBVV95cUxPREFXVDNTU2daUUp6ck5kS1lxUTE1T3ZwTFRLQjg3UjBaaUtCU3dwS3l6bWxkcjhuNU90T213Z1BnbXpjM29xWWxKSFhVSm5NYWdFdzZsVWMwakhSemlBckttbDhGWVN6ZENycTd5OFpzbmM0YnhNNDdmYXJMeU9mVzR0ajhQUnQwSmRuUVI5NlZ2MWNPMmhKTWo1R1JoakoyYW92ejE3ZFplZlU1YzdZZGJ0cC1CdWIxS0xhcHplWFRCNVFfSU9VeXdR?oc=5",
+          "published_at": "2026-04-13T09:52:28+00:00",
+          "event_type": "other",
+          "significance": "major",
+          "classification": {
+            "rule": "keyword",
+            "confidence": 0.95,
+            "event_type": "other",
+            "significance": "major",
+            "why_it_matters": "Keyword detected major event"
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "AFL"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "LLM call failed"
+            },
+            "significance": {
+              "rule": "keyword",
+              "confidence": 0.95,
+              "event_type": "other",
+              "significance": "major",
+              "why_it_matters": "Keyword detected major event"
+            }
+          },
+          "analysis_source": "minimax_fallback",
+          "long_analysis": "Sumitomo Mitsui Trust Group Inc., a major Japanese institutional investor, has trimmed its stake in Aflac Incorporated, a large U.S. supplemental insurer. This represents a notable reallocation by one of Japan's largest trust banking groups, which manages substantial assets under custody. While institutional stake reductions can signal various strategic motives (rebalancing, risk management, liquidity optimization), they don't inherently indicate fundamental concerns about the target company's business. Aflac's core cancer and supplemental insurance operations remain steady, supported by the company's distinctive W reed model and strong brand recognition in Japan. The transaction's impact on Aflac's stock should be limited given its massive market capitalization and diverse shareholder base, though any large block sale could create modest near-term trading pressure. This kind of institutional rebalancing is common and typically reflects portfolio-level decisions rather than a view on target company valuation. This is direct company coverage for AFL.",
+          "confidence": 0.73,
+          "impact_horizon": "near_term",
+          "risk_direction": "neutral",
+          "scenario_summary": "A Japanese megabank-trust group reduces its Aflac position for portfolio rebalancing, with minimal lasting impact on the insurance company's fundamentals or valuation. This is direct company coverage for AFL.",
+          "key_implications": [
+            "Aflac's largest shareholders remain diversified, limiting single-transaction market impact",
+            "The sale reflects institutional portfolio management rather than concerns about Aflac's earnings power",
+            "Japanese investors broadly may be reducing U.S. equity exposure, worth monitoring for broader trends"
+          ],
+          "recommended_followups": [
+            "Monitor for follow-up filings showing whether the trim was a single transaction or systematic reduction",
+            "Check if other Japanese institutional investors are making similar moves in U.S. insurance/financials",
+            "Aflac's next earnings call could address shareholder base changes if asked by analysts"
+          ]
+        }
+      ],
+      "ticker_metadata": {
+        "id": "0dacb0a7-f39a-4df1-9bc8-0950f2178903",
+        "ticker": "AFL",
+        "company_name": "Aflac Inc",
+        "asset_class": null,
+        "sector": "Insurance",
+        "industry": null,
+        "exchange": "NEW YORK STOCK EXCHANGE, INC.",
+        "market_cap": 57162097495.7575,
+        "market_cap_bucket": "high",
+        "float_shares": null,
+        "avg_daily_dollar_volume": 217644676.2,
+        "spread_proxy": 0.001,
+        "beta": 0.65306866,
+        "volatility_proxy": 0.163267165,
+        "profitability_profile": "mixed",
+        "leverage_profile": "moderate",
+        "macro_sensitivity": null,
+        "structural_fragility": null,
+        "liquidity_risk": null,
+        "updated_at": "2026-04-13T20:15:55.178544+00:00",
+        "created_at": "2026-04-12T21:58:16.240175+00:00",
+        "pe_ratio": 15.6366,
+        "week_52_high": 119.32,
+        "week_52_low": 96.95,
+        "price": 112.14,
+        "price_as_of": "2026-04-13T20:15:55.063807+00:00",
+        "avg_volume": 1.94083,
+        "previous_close": 110.7,
+        "open_price": 109.68,
+        "day_high": 112.28,
+        "day_low": 109.08,
+        "last_price_source": "finnhub",
+        "is_supported": true
+      },
+      "macro_impact": {
+        "ticker": "AFL",
+        "macro_relevance": "neutral",
+        "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+      },
+      "news_sentiment": 35,
+      "macro_exposure": 45,
+      "position_sizing": 50,
+      "volatility_trend": 48,
+      "total_score": 60.0,
+      "grade": "D",
+      "reasoning": "",
+      "grade_reason": "",
+      "evidence_summary": "Aflac faces renewed institutional pressure as two major Japanese institutional investors\u2014Sumitomo Mitsui Trust Group and a Japan Post unit\u2014have reduced their stakes, signaling potential strategic reallocation or concern about near-term catalysts. Analyst revisions citing mixed market indicators and uncertainty around growth drivers add to the cautious backdrop, though the transaction sizes relative to daily volume suggest limited immediate price impact. The convergence of institutional selling by prominent Japanese shareholders warrants attention as it may signal broader repositioning away from AFL.",
+      "dimension_rationale": {},
+      "safety_score": 60.0,
+      "confidence": 0.8,
+      "structural_base_score": 60
+    },
+    {
+      "id": "58bd0f7a-6d49-4221-a6e0-dd0fd1b67f72",
+      "user_id": "00000000-0000-0000-0000-000000000001",
+      "ticker": "AMD",
+      "shares": 0.0,
+      "purchase_price": 0.0,
+      "archetype": "growth",
+      "created_at": "2026-04-13T00:47:15.797313+00:00",
+      "updated_at": "2026-04-13T00:47:15.797313+00:00",
+      "current_price": 246.83,
+      "analysis_started_at": null,
+      "analysis_mode": "sp500_backfill",
+      "previous_grade": "C",
+      "previous_total_score": 55.0,
+      "summary": "Latest shared S&P ticker snapshot for AMD built from the cached structural profile.",
+      "long_report": "AMD's core investment narrative centers on its meaningful positioning within the AI semiconductor ecosystem, with particular strength in data center GPUs and adaptive computing solutions. The company's continued development of its AI software ecosystem represents a strategic effort to build competitive moat beyond raw hardware specifications, addressing historical software support criticisms. However, current market sentiment reflects elevated valuation multiples that price in substantial success, creating a challenging backdrop where modest positive surprises may prove insufficient to move the stock meaningfully higher. Nvidia's dominant market position in AI training workloads presents ongoing competitive headwinds, potentially constraining AMD's ability to capture the full benefit of secular AI infrastructure buildout. Near-term earnings reports will serve as critical inflection points where growth acceleration or deceleration against already-elevated expectations could drive significant multiple re-rating in either direction. The longer-term thesis remains intact given AI infrastructure investment tailwinds, but the stock's current valuation provides limited margin of safety for execution miscues.",
+      "top_risks": [
+        "Valuation multiple compression if near-term earnings fail to meet already-elevated market expectations",
+        "Nvidia's continued dominance in AI training\u5e02\u573a\u4efd\u989d limiting AMD's ability to monetize AI infrastructure buildout",
+        "AI revenue monetization timing uncertainty creating potential for prolonged disconnect between product progress and financial results"
+      ],
+      "watch_items": [
+        "Data center segment quarterly revenue growth rate and sequential acceleration or deceleration",
+        "AI software ecosystem adoption metrics and developer ecosystem expansion",
+        "Market share dynamics relative to Nvidia in hyperscaler AI deployments",
+        "Gross margin trajectory as AI chip mix increases"
+      ],
+      "top_news": [
+        "AMD: Growth Is Real, Upside Is Not (NASDAQ:AMD)",
+        "AMD Updates AI App as Stock Slips",
+        "Here\u2019s What The Street Thinks About Advanced Micro Devices (AMD)"
+      ],
+      "inferred_labels": [
+        "growth"
+      ],
+      "methodology": "Analysis synthesizes recent analyst commentary and company-specific coverage to assess the gap between AMD's product development trajectory and market-implied expectations, evaluating near-term upside constraints from valuation dynamics and competitive positioning against longer-term AI infrastructure secular tailwinds.",
+      "mirofish_used": false,
+      "thesis_verifier": [],
+      "event_analyses": [
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "58bd0f7a-6d49-4221-a6e0-dd0fd1b67f72",
+          "event_hash": "10a8ceff75a4009088d1e0fcd38c57b05daf65e9e24dfddf3c1f4652bd6e1a5f",
+          "external_event_id": "CBMifkFVX3lxTE9xRTR6enNENm1Gc0dqWXlXQkxHUkZBSnh6LVU4b2d3aU15Vmh6LXBzbEs0d0hZY3loWlc4UXNRS0ZfWktTVXJ5Y2ZNUnlnamxydXVHdjVhYzFaR3pvWWY4SFlzQ0pJSFdFRGhlMDE2OUxPTXpiNVhCMjJpS0NnZw",
+          "title": "AMD: Growth Is Real, Upside Is Not (NASDAQ:AMD)",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMifkFVX3lxTE9xRTR6enNENm1Gc0dqWXlXQkxHUkZBSnh6LVU4b2d3aU15Vmh6LXBzbEs0d0hZY3loWlc4UXNRS0ZfWktTVXJ5Y2ZNUnlnamxydXVHdjVhYzFaR3pvWWY4SFlzQ0pJSFdFRGhlMDE2OUxPTXpiNVhCMjJpS0NnZw?oc=5\" target=\"_blank\">AMD: Growth Is Real, Upside Is Not (NASDAQ:AMD)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Seeking Alpha</font>",
+          "source": "Seeking Alpha",
+          "source_url": "https://news.google.com/rss/articles/CBMifkFVX3lxTE9xRTR6enNENm1Gc0dqWXlXQkxHUkZBSnh6LVU4b2d3aU15Vmh6LXBzbEs0d0hZY3loWlc4UXNRS0ZfWktTVXJ5Y2ZNUnlnamxydXVHdjVhYzFaR3pvWWY4SFlzQ0pJSFdFRGhlMDE2OUxPTXpiNVhCMjJpS0NnZw?oc=5",
+          "published_at": "2026-04-13T21:56:35+00:00",
+          "event_type": "other",
+          "significance": "minor",
+          "classification": {
+            "confidence": 0.9,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "Seeking Alpha opinion piece analyzing AMD's valuation is third-party commentary, not a corporate announcement or new data."
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "AMD"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "Article directly discusses AMD's growth trajectory and upside potential, which directly impacts the AMD position in the portfolio."
+            },
+            "significance": {
+              "confidence": 0.9,
+              "event_type": "other",
+              "significance": "minor",
+              "why_it_matters": "Seeking Alpha opinion piece analyzing AMD's valuation is third-party commentary, not a corporate announcement or new data."
+            }
+          },
+          "analysis_source": "minimax",
+          "long_analysis": "AMD demonstrates solid growth fundamentals with increasing data center and AI chip sales, but market concerns about valuation multiples and competition from Nvidia may limit near-term stock appreciation. The article suggests current pricing reflects high expectations that could be difficult to exceed without significant positive surprises in earnings or market share gains. This is direct company coverage for AMD.",
+          "confidence": 0.83,
+          "impact_horizon": "near_term",
+          "risk_direction": "neutral",
+          "scenario_summary": "AMD's growth trajectory remains intact while stock valuation may face headwinds from market expectations and competitive pressures. This is direct company coverage for AMD.",
+          "key_implications": [
+            "Valuation concerns may cap immediate stock upside despite operational strength",
+            "Competitive dynamics with Nvidia continue to influence investor sentiment"
+          ],
+          "recommended_followups": [
+            "Monitor forward P/E ratios relative to semiconductor sector peers",
+            "Track market share changes in data center GPU segment",
+            "Review the read-through against AMD's current labels: growth."
+          ]
+        },
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "58bd0f7a-6d49-4221-a6e0-dd0fd1b67f72",
+          "event_hash": "7d27cf90fbcc2f59ca0c81891b651dda68760b20e21abe2ba2d8dcbdc001d337",
+          "external_event_id": "CBMifEFVX3lxTFBtRjlhMW5fYm9BeHlvdjVVd3gxR3Jpd2NrZjMwWTdwLWNoQXF6MThfX2pzWmQtSjlhN2FIVjRRQXlvdThlLVlneFhUZmxBVFc5MEtHR0NfXy1xWHlvMm1LSWdiVU9vV0g3ZzUzRVJXSFlkZ2JEYWM5d3gza1o",
+          "title": "AMD Updates AI App as Stock Slips",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMifEFVX3lxTFBtRjlhMW5fYm9BeHlvdjVVd3gxR3Jpd2NrZjMwWTdwLWNoQXF6MThfX2pzWmQtSjlhN2FIVjRRQXlvdThlLVlneFhUZmxBVFc5MEtHR0NfXy1xWHlvMm1LSWdiVU9vV0g3ZzUzRVJXSFlkZ2JEYWM5d3gza1o?oc=5\" target=\"_blank\">AMD Updates AI App as Stock Slips</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">GuruFocus</font>",
+          "source": "GuruFocus",
+          "source_url": "https://news.google.com/rss/articles/CBMifEFVX3lxTFBtRjlhMW5fYm9BeHlvdjVVd3gxR3Jpd2NrZjMwWTdwLWNoQXF6MThfX2pzWmQtSjlhN2FIVjRRQXlvdThlLVlneFhUZmxBVFc5MEtHR0NfXy1xWHlvMm1LSWdiVU9vV0g3ZzUzRVJXSFlkZ2JEYWM5d3gza1o?oc=5",
+          "published_at": "2026-04-13T16:55:46+00:00",
+          "event_type": "product",
+          "significance": "minor",
+          "classification": {
+            "confidence": 0.75,
+            "event_type": "product",
+            "significance": "minor",
+            "why_it_matters": "AMD updating an AI app is a routine product maintenance release, not a major product launch or strategic shift."
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "AMD"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "LLM call failed"
+            },
+            "significance": {
+              "confidence": 0.75,
+              "event_type": "product",
+              "significance": "minor",
+              "why_it_matters": "AMD updating an AI app is a routine product maintenance release, not a major product launch or strategic shift."
+            }
+          },
+          "analysis_source": "minimax",
+          "long_analysis": "AMD is continuing to develop and update its AI software ecosystem while experiencing short-term stock price weakness, suggesting a disconnect between product advancement and market perception. This indicates ongoing commitment to the AI market but reflects broader concerns about timing of AI revenue monetization. This is direct company coverage for AMD.",
+          "confidence": 0.73,
+          "impact_horizon": "immediate",
+          "risk_direction": "neutral",
+          "scenario_summary": "Product development persists despite stock decline, highlighting market uncertainty around AI monetization timeline. This is direct company coverage for AMD.",
+          "key_implications": [
+            "AMD remains actively invested in AI software stack development",
+            "Stock weakness may represent temporary market mispricing"
+          ],
+          "recommended_followups": [
+            "Review adoption metrics for AMD's AI software updates",
+            "Assess correlation between AI product releases and stock price recovery",
+            "Review the read-through against AMD's current labels: growth."
+          ]
+        },
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "58bd0f7a-6d49-4221-a6e0-dd0fd1b67f72",
+          "event_hash": "46592bcc5584f5d576031d91d7bc8608c40785625e306535554d0445a3172563",
+          "external_event_id": "CBMisAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMtIBsAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMg",
+          "title": "Here\u2019s What The Street Thinks About Advanced Micro Devices (AMD)",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMisAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMtIBsAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMg?oc=5\" target=\"_blank\">Here\u2019s What The Street Thinks About Advanced Micro Devices (AMD)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">insidermonkey.com</font>",
+          "source": "insidermonkey.com",
+          "source_url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMtIBsAFBVV95cUxOTG1IbTBSeFhmUllUa3VTVTdVMHJfb1NkTWk4SXVSWUVqYV9PRDZMUmlaZlJ4Vi1ndndfa1ZLX1JRYm45SjRrM3Rac2tXU2xfWFB3QzdwOEcxUnBsNUNrSEFhSlcxS280dGlZRTNiU1RKbGlncUtHdGZwV2NIeC1pNE9GQ1otSlY4RmpoVUNYTG5vbHZCaTBfSHZEUFo1UmFGRjYya3lseUhqWGthQVFhMg?oc=5",
+          "published_at": "2026-04-12T18:46:56+00:00",
+          "event_type": "other",
+          "significance": "minor",
+          "classification": {
+            "confidence": 0.88,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "Summary of analyst sentiment about AMD is secondary market commentary rather than new fundamental information."
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "AMD"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "Summarizes analyst sentiment on AMD, which provides actionable intelligence for managing this position."
+            },
+            "significance": {
+              "confidence": 0.88,
+              "event_type": "other",
+              "significance": "minor",
+              "why_it_matters": "Summary of analyst sentiment about AMD is secondary market commentary rather than new fundamental information."
+            }
+          },
+          "analysis_source": "minimax",
+          "long_analysis": "Analyst sentiment on AMD reflects mixed views on growth prospects and valuation reasonableness, with consensus likely acknowledging the company's technological positioning while debating execution timing. This street perspective provides a benchmark for market expectations across different analyst coverage. This is direct company coverage for AMD.",
+          "confidence": 0.7799999999999999,
+          "impact_horizon": "near_term",
+          "risk_direction": "neutral",
+          "scenario_summary": "Street consensus presents balanced view of AMD's opportunities balanced against execution and valuation concerns. This is direct company coverage for AMD.",
+          "key_implications": [
+            "Analyst divergence suggests uncertainty around earnings trajectory",
+            "Price targets likely reflect varied assumptions on AI market capture"
+          ],
+          "recommended_followups": [
+            "Track analyst revisions following upcoming earnings reports",
+            "Compare consensus price targets to current trading ranges",
+            "Review the read-through against AMD's current labels: growth."
+          ]
+        }
+      ],
+      "ticker_metadata": {
+        "id": "5581a757-41a7-4100-87b0-ae7bc8605078",
+        "ticker": "AMD",
+        "company_name": "Advanced Micro Devices Inc",
+        "asset_class": null,
+        "sector": "Semiconductors",
+        "industry": null,
+        "exchange": "NASDAQ NMS - GLOBAL MARKET",
+        "market_cap": 402434308624.7618,
+        "market_cap_bucket": "high",
+        "float_shares": null,
+        "avg_daily_dollar_volume": 8595783169.300001,
+        "spread_proxy": 0.001,
+        "beta": 2.0540373,
+        "volatility_proxy": 0.513509325,
+        "profitability_profile": "mixed",
+        "leverage_profile": "moderate",
+        "macro_sensitivity": null,
+        "structural_fragility": null,
+        "liquidity_risk": null,
+        "updated_at": "2026-04-14T01:07:54.307953+00:00",
+        "created_at": "2026-04-12T21:58:12.947094+00:00",
+        "pe_ratio": 92.8337,
+        "week_52_high": 267.0799,
+        "week_52_low": 78.87,
+        "price": 246.83,
+        "price_as_of": "2026-04-14T01:07:54.304086+00:00",
+        "avg_volume": 34.82471,
+        "previous_close": 245.04,
+        "open_price": 245.025,
+        "day_high": 247.33,
+        "day_low": 242.03,
+        "last_price_source": "finnhub",
+        "is_supported": true
+      },
+      "macro_impact": {
+        "ticker": "AMD",
+        "macro_relevance": "neutral",
+        "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+      },
+      "news_sentiment": 45,
+      "macro_exposure": 50,
+      "position_sizing": 50,
+      "volatility_trend": 52,
+      "total_score": 58,
+      "grade": "C",
+      "reasoning": "Grade held at C to stay consistent near the threshold.",
+      "grade_reason": "Grade held at C to stay consistent near the threshold.",
+      "evidence_summary": "AMD demonstrates genuine growth fundamentals driven by expanding data center and AI chip sales, yet market skepticism about valuation multiples and intensifying Nvidia competition suggest limited near-term stock appreciation potential. The disconnect between ongoing product and software ecosystem advancement and current stock weakness indicates market pricing reflects high execution expectations that may prove difficult to consistently exceed.",
+      "dimension_rationale": {},
+      "safety_score": 58,
+      "confidence": 0.65,
+      "structural_base_score": 58
+    },
+    {
+      "id": "05f45e96-bbe1-4dd5-9799-1c55542d15b1",
+      "user_id": "00000000-0000-0000-0000-000000000001",
+      "ticker": "AOS",
+      "shares": 0.0,
+      "purchase_price": 0.0,
+      "archetype": "growth",
+      "created_at": "2026-04-12T23:57:58.424725+00:00",
+      "updated_at": "2026-04-12T23:57:58.424725+00:00",
+      "current_price": 67.18,
+      "analysis_started_at": null,
+      "analysis_mode": "sp500_backfill",
+      "previous_grade": "C",
+      "previous_total_score": 46.2,
+      "summary": "A.O. Smith Corporation (AOS) is a manufacturer of water heating and water treatment products with significant exposure to residential construction trends and replacement demand cycles. With the position showing zero shares, there is no active financial exposure, but the company represents a stable industrial name often held by value-focused funds for dividend income. Key risks center on housing market sensitivity, commodity cost pressures, and the competitive landscape in the essential services sector.",
+      "long_report": "A.O. Smith Corporation is a mid-cap industrial manufacturer specializing in water heaters and water treatment products for both residential and commercial applications, positioning the company in essential services with recurring revenue characteristics from replacement demand. The institutional ownership by AVE MARIA VALUE FOCUSED FUND indicates value-oriented investor interest seeking steady dividend income rather than aggressive capital appreciation, which creates an interesting tension with the growth label assigned to this position. Housing market sensitivity remains AOS's primary fundamental driver, as both new construction installations and existing home renovation cycles directly impact product demand; elevated mortgage rates and housing affordability challenges could pressure volumes in the near term. The earnings preview signals that Q1 results are imminent with significant investor focus, though analyst consensus expectations are already reflected in valuations, leaving limited room for positive surprises unless guidance revision occurs. Energy efficiency regulations and water quality concerns present longer-term demand drivers, though these tailwinds materialize slowly and are insufficient to offset housing cycle weakness. With zero shares indicated in the position data, this appears to be either a recently exited holding or a position monitoring scenario requiring position reconstruction before active risk management applies.",
+      "top_risks": [
+        "Housing market cycle risk: AOS performance is directly tied to residential construction trends, replacement demand, and consumer confidence in housing markets\u2014any housing market weakness from elevated mortgage rates or affordability constraints would pressure revenue and earnings",
+        "Earnings disappointment risk: Current valuations embed analyst consensus expectations ahead of the quarterly report, creating limited upside potential and downside risk if results miss or guidance gets revised downward",
+        "Growth-value positioning mismatch: Institutional ownership patterns suggest value/dividend orientation while the position carries a growth label, indicating potential fundamental disconnect requiring thesis clarification"
+      ],
+      "watch_items": [
+        "Q1 earnings report timing and results: Monitor for revenue growth relative to analyst expectations, margin performance, and any guidance adjustments reflecting housing market demand assessment",
+        "Residential construction indicators: Track housing starts, building permits, and existing home sales as leading indicators of AOS installation demand in coming quarters",
+        "Interest rate and mortgage rate developments: Federal Reserve policy direction affects housing affordability and renovation activity that drives AOS replacement demand",
+        "Position size confirmation: Verify current holdings (0 shares indicated) and whether this represents a closed position or data gap requiring position reconstruction"
+      ],
+      "top_news": [
+        "AVE MARIA VALUE FOCUSED FUND's A.O. Smith Corp(AOS) Holding History",
+        "A.O. Smith Corporation Common Stock (NY: AOS",
+        "Earnings Preview: What to Expect From A. O. Smith's Report"
+      ],
+      "inferred_labels": [
+        "growth"
+      ],
+      "methodology": "This analysis draws from event-level evidence including an institutional ownership history revealing value-oriented fund positioning, corporate business description establishing sector fundamentals, and an earnings preview identifying the near-term catalyst schedule. The report synthesizes these data points against the provided growth label to identify fundamental tensions and sector-specific risk factors. Limited macro context (no overnight policy shifts or economic surprises) means thesis verification relies primarily on company-specific and housing market indicators.",
+      "mirofish_used": false,
+      "thesis_verifier": [],
+      "event_analyses": [
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "05f45e96-bbe1-4dd5-9799-1c55542d15b1",
+          "event_hash": "9fed14e5aa90a676312e30b1fa05eb66fb060176c564ae8da60c424a595df6f1",
+          "external_event_id": "CBMiiAFBVV95cUxQSHRHRVR6eWVZQUxLVzRkdGN3MXRVUDJwYVVoaC0yMkdpd1U0UmpjNHFVTU5BNXpydW81bTBlNUF1eVdma2VaSHFZdDVWeGo5cGxVTTdwUGozZGlHdGJ4bjFhekVvRzVOM3BWdzk4Z1IwbUFRbUZPZEpLY0FsMjJySDE3SUthOTV2",
+          "title": "AVE MARIA VALUE FOCUSED FUND's A.O. Smith Corp(AOS) Holding History",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMiiAFBVV95cUxQSHRHRVR6eWVZQUxLVzRkdGN3MXRVUDJwYVVoaC0yMkdpd1U0UmpjNHFVTU5BNXpydW81bTBlNUF1eVdma2VaSHFZdDVWeGo5cGxVTTdwUGozZGlHdGJ4bjFhekVvRzVOM3BWdzk4Z1IwbUFRbUZPZEpLY0FsMjJySDE3SUthOTV2?oc=5\" target=\"_blank\">AVE MARIA VALUE FOCUSED FUND's A.O. Smith Corp(AOS) Holding History</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">GuruFocus</font>",
+          "source": "GuruFocus",
+          "source_url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxQSHRHRVR6eWVZQUxLVzRkdGN3MXRVUDJwYVVoaC0yMkdpd1U0UmpjNHFVTU5BNXpydW81bTBlNUF1eVdma2VaSHFZdDVWeGo5cGxVTTdwUGozZGlHdGJ4bjFhekVvRzVOM3BWdzk4Z1IwbUFRbUZPZEpLY0FsMjJySDE3SUthOTV2?oc=5",
+          "published_at": "2026-04-12T02:58:30+00:00",
+          "event_type": "other",
+          "significance": "minor",
+          "classification": {
+            "confidence": 0.95,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "This is a routine update on a mutual fund's portfolio holdings with no new corporate announcements or material catalysts."
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "AOS"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "Fund holding history shows institutional positioning which can signal sentiment changes for AOS."
+            },
+            "significance": {
+              "confidence": 0.95,
+              "event_type": "other",
+              "significance": "minor",
+              "why_it_matters": "This is a routine update on a mutual fund's portfolio holdings with no new corporate announcements or material catalysts."
+            }
+          },
+          "analysis_source": "minimax",
+          "long_analysis": "AVE MARIA VALUE FOCUSED FUND's A.O. Smith Corp holding history indicates institutional investor activity in the water heater and filtration company. Value-focused funds typically maintain positions in stable industrial names like AOS for steady dividend income and moderate growth. This historical holding data suggests the fund has had a sustained position in the stock, which may reflect confidence in AOS's business model serving residential and commercial water treatment markets. This is direct company coverage for AOS.",
+          "confidence": 0.83,
+          "impact_horizon": "near_term",
+          "risk_direction": "neutral",
+          "scenario_summary": "A value-focused institutional fund maintains a position in water infrastructure company A.O. Smith, reflecting stable institutional confidence in the sector. This is direct company coverage for AOS.",
+          "key_implications": [
+            "Potential trading activity could affect AOS stock price if fund rebalances position",
+            "Indicates institutional validation of AOS business fundamentals"
+          ],
+          "recommended_followups": [
+            "Monitor for significant position changes in next 13F filing",
+            "Compare AOS holdings across other value-focused funds for sector sentiment",
+            "Review the read-through against AOS's current labels: growth."
+          ]
+        },
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "05f45e96-bbe1-4dd5-9799-1c55542d15b1",
+          "event_hash": "27dce6a24c1077ffdcbea3d980b3312610e5e1f59eb022d98800d71373ed7ebe",
+          "external_event_id": "CBMimAFBVV95cUxOSFhvdmNnMVZ5X3BLTnlfNVV0bEkzRXlYeERhSnE4bkxFSzFtUUtBdUtEQjRaS3pJSFE4bVhMQ3hYdlduazdPSVNVTU11b3JNanhJTUNrVkhDeVUwZG5CMXVGazJ6ZUdXcTI3emlpd3hfZm84TWhKeFlReTFrNTBFVFY5MDhaX24xSDd3V09zeWpoaUVObFdoeA",
+          "title": "A.O. Smith Corporation Common Stock (NY: AOS",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMimAFBVV95cUxOSFhvdmNnMVZ5X3BLTnlfNVV0bEkzRXlYeERhSnE4bkxFSzFtUUtBdUtEQjRaS3pJSFE4bVhMQ3hYdlduazdPSVNVTU11b3JNanhJTUNrVkhDeVUwZG5CMXVGazJ6ZUdXcTI3emlpd3hfZm84TWhKeFlReTFrNTBFVFY5MDhaX24xSDd3V09zeWpoaUVObFdoeA?oc=5\" target=\"_blank\">A.O. Smith Corporation Common Stock (NY: AOS</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">The Chronicle-Journal</font>",
+          "source": "The Chronicle-Journal",
+          "source_url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxOSFhvdmNnMVZ5X3BLTnlfNVV0bEkzRXlYeERhSnE4bkxFSzFtUUtBdUtEQjRaS3pJSFE4bVhMQ3hYdlduazdPSVNVTU11b3JNanhJTUNrVkhDeVUwZG5CMXVGazJ6ZUdXcTI3emlpd3hfZm84TWhKeFlReTFrNTBFVFY5MDhaX24xSDd3V09zeWpoaUVObFdoeA?oc=5",
+          "published_at": "2026-04-10T23:00:00+00:00",
+          "event_type": "other",
+          "significance": "minor",
+          "classification": {
+            "confidence": 0.92,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "Stock quote/listing without a material news event or corporate announcement."
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "AOS"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "Stock listing summary for AOS - no new information relevant to the growth thesis."
+            },
+            "significance": {
+              "confidence": 0.92,
+              "event_type": "other",
+              "significance": "minor",
+              "why_it_matters": "Stock quote/listing without a material news event or corporate announcement."
+            }
+          },
+          "analysis_source": "minimax",
+          "long_analysis": "A.O. Smith Corporation common stock trades on the New York Stock Exchange under symbol AOS, representing ownership in a manufacturer of water heating and treatment products. The company's business spans residential and commercial water systems, positioning it in the essential services sector with recurring revenue characteristics. Market data on AOS stock reflects broader industrial and consumer discretionary sentiment. This is direct company coverage for AOS.",
+          "confidence": 0.9299999999999999,
+          "impact_horizon": "immediate",
+          "risk_direction": "neutral",
+          "scenario_summary": "A.O. Smith trades as a NYSE-listed industrial stock serving water infrastructure needs with stable demand characteristics. This is direct company coverage for AOS.",
+          "key_implications": [
+            "Stock performance linked to housing market activity and commercial construction",
+            "Essential services nature provides defensive characteristics in downturns"
+          ],
+          "recommended_followups": [
+            "Track price movements relative to industrial sector averages",
+            "Monitor for dividend changes which signal management confidence",
+            "Review the read-through against AOS's current labels: growth."
+          ]
+        },
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "05f45e96-bbe1-4dd5-9799-1c55542d15b1",
+          "event_hash": "59d66734ce28fd9f389e9f793b6013857cbf53850720414dde340c860ae8cc34",
+          "external_event_id": "CBMiwwFBVV95cUxNRkduQkEyQ3kyQ0NrV2dTTS1HdTlhSTBMbkJZQ0ZGUWNRSlJqN0JJai1scndiQndBcG5sLXlJaHcyNnd1SkNjVFRNeUpIaW42anEzajRlcmhuX2lPazZxVjRJNmNKaDVPbzB3SkhRQ1V3U25SbF9oMzJIUFpOZ1dUYkRPYnhoam9KVDZ4NGpuSHROVkN3NUdRM016bldpRDE2NWVZbFNhVl9qZFJ2VnZIaEZmM1p0YjBMMUJfbXBDRU1rSFk",
+          "title": "Earnings Preview: What to Expect From A. O. Smith's Report",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMiwwFBVV95cUxNRkduQkEyQ3kyQ0NrV2dTTS1HdTlhSTBMbkJZQ0ZGUWNRSlJqN0JJai1scndiQndBcG5sLXlJaHcyNnd1SkNjVFRNeUpIaW42anEzajRlcmhuX2lPazZxVjRJNmNKaDVPbzB3SkhRQ1V3U25SbF9oMzJIUFpOZ1dUYkRPYnhoam9KVDZ4NGpuSHROVkN3NUdRM016bldpRDE2NWVZbFNhVl9qZFJ2VnZIaEZmM1p0YjBMMUJfbXBDRU1rSFk?oc=5\" target=\"_blank\">Earnings Preview: What to Expect From A. O. Smith's Report</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">FinancialContent</font>",
+          "source": "FinancialContent",
+          "source_url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxNRkduQkEyQ3kyQ0NrV2dTTS1HdTlhSTBMbkJZQ0ZGUWNRSlJqN0JJai1scndiQndBcG5sLXlJaHcyNnd1SkNjVFRNeUpIaW42anEzajRlcmhuX2lPazZxVjRJNmNKaDVPbzB3SkhRQ1V3U25SbF9oMzJIUFpOZ1dUYkRPYnhoam9KVDZ4NGpuSHROVkN3NUdRM016bldpRDE2NWVZbFNhVl9qZFJ2VnZIaEZmM1p0YjBMMUJfbXBDRU1rSFk?oc=5",
+          "published_at": "2026-04-12T22:13:00+00:00",
+          "event_type": "other",
+          "significance": "major",
+          "classification": {
+            "rule": "keyword",
+            "confidence": 0.95,
+            "event_type": "other",
+            "significance": "major",
+            "why_it_matters": "Keyword detected major event"
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "AOS"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "LLM call failed"
+            },
+            "significance": {
+              "rule": "keyword",
+              "confidence": 0.95,
+              "event_type": "other",
+              "significance": "major",
+              "why_it_matters": "Keyword detected major event"
+            }
+          },
+          "analysis_source": "minimax_fallback",
+          "long_analysis": "A. O. Smith earnings preview signals market anticipation ahead of the company's quarterly report, with analyst consensus expectations already embedded in current valuations. As a manufacturer of water heaters and water treatment products, A. O. Smith's performance is closely tied to residential construction trends, replacement demand, and consumer confidence in housing markets. Any guidance adjustment or revenue/earnings guidance shift in the preview could move the stock meaningfully given its relatively stable, utility-like business profile. The key fundamental driver to watch is whether management signals sustained demand strength or a deceleration in the water treatment segment, which has been a growth engine. Valuation multiples for industrial-consumer companies like A. O. Smith tend to compress if growth expectations soften. This is direct company coverage for AOS.",
+          "confidence": 0.76,
+          "impact_horizon": "immediate",
+          "risk_direction": "neutral",
+          "scenario_summary": "A. O. Smith earnings preview sets market expectations for a report that could validate or challenge current valuation levels, depending on forward guidance tone and segment performance signals. This is direct company coverage for AOS.",
+          "key_implications": [
+            "Water heater replacement cycle health will be a critical read on consumer spending power",
+            "Management guidance tone (upgrades,\u7ef4\u6301, or cuts) will likely move shares 3-7% on report day",
+            "Chinese water treatment business performance is a key idiosyncratic variable given export sensitivity"
+          ],
+          "recommended_followups": [
+            "Compare consensus EPS estimate to any guidance midpoint disclosed in the preview",
+            "Monitor management commentary on housing starts and residential remodel activity",
+            "Await actual earnings release for the directional risk signal to materialize"
+          ]
+        }
+      ],
+      "ticker_metadata": {
+        "id": "b620a37d-1eb9-4ad8-9f8e-9655ce6d118e",
+        "ticker": "AOS",
+        "company_name": "A O Smith Corp",
+        "asset_class": null,
+        "sector": "Building",
+        "industry": null,
+        "exchange": "NEW YORK STOCK EXCHANGE, INC.",
+        "market_cap": 9116070861.614391,
+        "market_cap_bucket": "moderate",
+        "float_shares": null,
+        "avg_daily_dollar_volume": 86263150.80000001,
+        "spread_proxy": 0.001,
+        "beta": 1.3580234,
+        "volatility_proxy": 0.33950585,
+        "profitability_profile": "mixed",
+        "leverage_profile": "moderate",
+        "macro_sensitivity": null,
+        "structural_fragility": null,
+        "liquidity_risk": null,
+        "updated_at": "2026-04-13T20:15:14.79077+00:00",
+        "created_at": "2026-04-12T21:58:04.088884+00:00",
+        "pe_ratio": 16.6647,
+        "week_52_high": 81.865,
+        "week_52_low": 58.83,
+        "price": 67.18,
+        "price_as_of": "2026-04-13T20:15:14.639817+00:00",
+        "avg_volume": 1.28406,
+        "previous_close": 65.92,
+        "open_price": 65.79,
+        "day_high": 67.21,
+        "day_low": 65.427,
+        "last_price_source": "finnhub",
+        "is_supported": true
+      },
+      "macro_impact": {
+        "ticker": "AOS",
+        "macro_relevance": "neutral",
+        "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+      },
+      "news_sentiment": 48,
+      "macro_exposure": 45,
+      "position_sizing": 50,
+      "volatility_trend": 45,
+      "total_score": 53.0,
+      "grade": "D",
+      "reasoning": "",
+      "grade_reason": "",
+      "evidence_summary": "A.O. Smith Corporation (AOS) operates in the water heating and treatment space with meaningful exposure to residential construction cycles and replacement demand, creating earnings volatility tied to housing market health; however, this position shows zero shares held, suggesting either a recently closed position or data gap requiring clarification before investment action. The upcoming earnings report represents the most significant near-term catalyst, with analyst expectations already embedded in current valuations creating limited upside surprise potential.",
+      "dimension_rationale": {},
+      "safety_score": 53.0,
+      "confidence": 0.6,
+      "structural_base_score": 53
+    },
+    {
+      "id": "786062a4-1859-4be6-b0b9-189777d41c32",
+      "user_id": "00000000-0000-0000-0000-000000000001",
+      "ticker": "MMM",
+      "shares": 0.0,
+      "purchase_price": 0.0,
+      "archetype": "growth",
+      "created_at": "2026-04-12T23:57:58.424725+00:00",
+      "updated_at": "2026-04-12T23:57:58.424725+00:00",
+      "current_price": 152.79,
+      "analysis_started_at": null,
+      "analysis_mode": "sp500_backfill",
+      "previous_grade": "C",
+      "previous_total_score": 47.5,
+      "summary": "Latest shared S&P ticker snapshot for MMM built from the cached structural profile.",
+      "long_report": "3M faces a challenging transition period as the diversified industrial conglomerate works through cost-cutting initiatives while managing substantial litigation exposure, particularly from PFAS contamination and military earplug claims. The March 9th single-session decline of 3.12% suggests either sector rotation dynamics away from industrial names or emerging concerns about 3M's operational trajectory that merit investigation. SG Americas Securities' decision to increase its stake represents a meaningful bullish vote from a sophisticated institutional investor, though this reflects one firm's specific view rather than consensus improvement in fundamentals. The Group President's open-market purchases, while confidence-building, are characterized as modest relative to trading volumes, suggesting limited immediate price catalyst. The 'growth' label attached to this position appears somewhat incongruent with 3M's traditional value/dividend profile, potentially indicating a turnaround thesis around restructuring execution or litigation resolution. Near-term attention should focus on whether the March 9th decline represents temporary market noise or the beginning of a sustained sentiment shift.",
+      "top_risks": [
+        "Litigation exposure from PFAS contamination claims and military earplug lawsuits could result in material settlements or judgments not yet fully reflected in current valuations",
+        "Restructuring execution risk as cost-cutting initiatives may face implementation headwinds or fail to achieve projected savings within expected timeframes",
+        "Sector rotation pressure as investors potentially shift away from diversified industrials toward growth-oriented sectors, amplifying any company-specific concerns"
+      ],
+      "watch_items": [
+        "Any additional institutional buying or selling activity that would indicate broader sophisticated investor sentiment shifts toward 3M's turnaround narrative",
+        "Earnings reports or investor days that provide updated guidance on restructuring milestones and litigation reserve adjustments"
+      ],
+      "top_news": [
+        "SG Americas Securities LLC Boosts Stock Holdings in 3M Company $MMM",
+        "3M (MMM) Group President makes series of small open-market stock buys",
+        "3M Co Stock (MMM) Moved Down by 3.12% on Mar 9: A Full Analysis"
+      ],
+      "inferred_labels": [
+        "growth"
+      ],
+      "methodology": "This analysis synthesizes event-level evidence including insider buying activity, institutional positioning changes, and single-session price volatility to assess near-term sentiment dynamics and operational risk. Macro context was evaluated for thematic relevance, though overnight developments provided no actionable read-through given the limited policy or economic surprises noted.",
+      "mirofish_used": false,
+      "thesis_verifier": [
+        {
+          "macro_event": "Calm overnight markets with no significant policy shifts or economic surprises",
+          "thesis_impact": "neutral",
+          "reasoning": "Absence of macro catalysts means company-specific factors\u2014including litigation developments and restructuring execution\u2014will remain the primary price drivers rather than broad market forces"
+        }
+      ],
+      "event_analyses": [
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "786062a4-1859-4be6-b0b9-189777d41c32",
+          "event_hash": "056c3b580566f967e413e8321bdbbae788b846a33f6d5dfa1154254c69bacec8",
+          "external_event_id": "CBMinwFBVV95cUxPRlRhRlJWYThDMGlfbkFoZThwTTc3MlptS0huOUwxNDJ5aWFZUDlKRFQ5LUZWV2U3cmxKaC1JTzk3dkJST09jY2VTTWpsTlk4YmF5Mlg5dDRLSGN3anAtWGE3dXNxVFJsd0Z5RDJjWEJKMXg3ZnF4RFZncjQxZ3NCUDkyUGttYkhVcl9BeXFtV24tRG5yYVJUaWJ3M3o4X1U",
+          "title": "3M (MMM) Group President makes series of small open-market stock buys",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMinwFBVV95cUxPRlRhRlJWYThDMGlfbkFoZThwTTc3MlptS0huOUwxNDJ5aWFZUDlKRFQ5LUZWV2U3cmxKaC1JTzk3dkJST09jY2VTTWpsTlk4YmF5Mlg5dDRLSGN3anAtWGE3dXNxVFJsd0Z5RDJjWEJKMXg3ZnF4RFZncjQxZ3NCUDkyUGttYkhVcl9BeXFtV24tRG5yYVJUaWJ3M3o4X1U?oc=5\" target=\"_blank\">3M (MMM) Group President makes series of small open-market stock buys</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Stock Titan</font>",
+          "source": "Stock Titan",
+          "source_url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxPRlRhRlJWYThDMGlfbkFoZThwTTc3MlptS0huOUwxNDJ5aWFZUDlKRFQ5LUZWV2U3cmxKaC1JTzk3dkJST09jY2VTTWpsTlk4YmF5Mlg5dDRLSGN3anAtWGE3dXNxVFJsd0Z5RDJjWEJKMXg3ZnF4RFZncjQxZ3NCUDkyUGttYkhVcl9BeXFtV24tRG5yYVJUaWJ3M3o4X1U?oc=5",
+          "published_at": "2026-04-09T20:18:29+00:00",
+          "event_type": "management",
+          "significance": "minor",
+          "classification": {
+            "confidence": 0.82,
+            "event_type": "management",
+            "significance": "minor",
+            "why_it_matters": "Group President's small open-market stock buys are routine insider activity below the threshold for material significance."
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "MMM"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "LLM call failed"
+            },
+            "significance": {
+              "confidence": 0.82,
+              "event_type": "management",
+              "significance": "minor",
+              "why_it_matters": "Group President's small open-market stock buys are routine insider activity below the threshold for material significance."
+            }
+          },
+          "analysis_source": "minimax",
+          "long_analysis": "The open\u2011market purchase by 3M's Group President signals internal confidence in the company's strategic direction, but the transaction size is modest relative to typical trading volumes, limiting an immediate price impact. The timing aligns with recent cost\u2011cutting initiatives, which may provide a slight lift to investor sentiment in the near term. Overall, the market reaction is likely to be modest and short\u2011lived, with no strong catalyst emerging from this single trade. This is direct company coverage for MMM.",
+          "confidence": 0.53,
+          "impact_horizon": "near_term",
+          "risk_direction": "neutral",
+          "scenario_summary": "Insider purchase suggests optimism but limited market impact due to small transaction size. This is direct company coverage for MMM.",
+          "key_implications": [
+            "Executive confidence signals potential upside if future earnings meet expectations",
+            "Small purchase size limits immediate price influence and may not move the needle on its own",
+            "Investor sentiment may see a modest positive signal but lacks a strong catalyst"
+          ],
+          "recommended_followups": [
+            "Monitor subsequent insider transactions for larger purchases that could indicate stronger conviction",
+            "Track 3M's upcoming earnings reports and progress on cost\u2011cutting initiatives to gauge sustained impact",
+            "Watch broader market conditions that could either offset or amplify the modest positive signal"
+          ]
+        },
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "786062a4-1859-4be6-b0b9-189777d41c32",
+          "event_hash": "54d0be50ba337ee6c2f5e1fb35db096128c78264443ded2946f2ba3ddb070066",
+          "external_event_id": "CBMigAFBVV95cUxQaXZxSHJYbV83amcwLUFDMFRCNW9PLUR6eDZnMWdEV2l2Rnk1elU0YTFWTGQ2TllEWnN1NnctZTkxOFhPbG9rTmg5Y2RaTzRrMTJNYV9KeUNPZzM2ZW1FbllfZXRlNndzRDhJU0c2S0t3MGNTazNpN0dGQmFTSWR0OA",
+          "title": "3M Co Stock (MMM) Moved Down by 3.12% on Mar 9: A Full Analysis",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMigAFBVV95cUxQaXZxSHJYbV83amcwLUFDMFRCNW9PLUR6eDZnMWdEV2l2Rnk1elU0YTFWTGQ2TllEWnN1NnctZTkxOFhPbG9rTmg5Y2RaTzRrMTJNYV9KeUNPZzM2ZW1FbllfZXRlNndzRDhJU0c2S0t3MGNTazNpN0dGQmFTSWR0OA?oc=5\" target=\"_blank\">3M Co Stock (MMM) Moved Down by 3.12% on Mar 9: A Full Analysis</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">TradingKey</font>",
+          "source": "TradingKey",
+          "source_url": "https://news.google.com/rss/articles/CBMigAFBVV95cUxQaXZxSHJYbV83amcwLUFDMFRCNW9PLUR6eDZnMWdEV2l2Rnk1elU0YTFWTGQ2TllEWnN1NnctZTkxOFhPbG9rTmg5Y2RaTzRrMTJNYV9KeUNPZzM2ZW1FbllfZXRlNndzRDhJU0c2S0t3MGNTazNpN0dGQmFTSWR0OA?oc=5",
+          "published_at": "2026-03-09T07:00:00+00:00",
+          "event_type": "other",
+          "significance": "minor",
+          "classification": {
+            "significance": "minor",
+            "event_type": "other",
+            "why_it_matters": "This is routine market analysis of a 3.12% stock price decline without a new fundamental catalyst driving the movement.",
+            "confidence": 0.78
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "MMM"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "LLM call failed"
+            },
+            "significance": {
+              "significance": "minor",
+              "event_type": "other",
+              "why_it_matters": "This is routine market analysis of a 3.12% stock price decline without a new fundamental catalyst driving the movement.",
+              "confidence": 0.78
+            }
+          },
+          "analysis_source": "minimax",
+          "long_analysis": "3M Co (MMM) experienced a 3.12% single-session decline on March 9, indicating negative investor sentiment or market-driven selling pressure affecting this diversified industrial holding. Such a pronounced one-day move suggests either sector rotation away from industrials or emerging concerns specific to 3M's operational outlook, restructuring initiatives, or litigation developments. For any equity position, this level of daily loss represents meaningful short-term volatility and downside risk exposure that warrants monitoring. This is direct company coverage for MMM.",
+          "confidence": 0.83,
+          "impact_horizon": "near_term",
+          "risk_direction": "worsening",
+          "scenario_summary": "3M stock fell 3.12% in a single session, indicating heightened volatility and negative momentum for holders. This is direct company coverage for MMM.",
+          "key_implications": [
+            "Equity holders face immediate unrealized losses and increased portfolio volatility",
+            "Risk-reward for new or additional positions has shifted, potentially requiring wider entry thresholds or de-prioritization"
+          ],
+          "recommended_followups": [
+            "Identify catalysts (company announcements, sector rotation, broader market selloff) explaining the decline",
+            "Assess whether 3M-specific factors or macro conditions are driving the movement",
+            "Monitor for subsequent sessions to determine if decline is isolated or signals trend reversal"
+          ]
+        },
+        {
+          "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+          "position_id": "786062a4-1859-4be6-b0b9-189777d41c32",
+          "event_hash": "c0cc7865a779930bae22864c75efe4db5d344a9242acce3b8bb4c59d8d905f88",
+          "external_event_id": "CBMixgFBVV95cUxPMUVuUkluRTdUS2hQX3hkdmVuY2FKZmRKSjFMci1hTjIzMjFoSDlNd2VaSzlHRkNnR1RHUHk5UzZJRzBESE9SNzBOODhlMkNKWUQ1S3lvMmFmRUQ2MmN0cXR5T1RHZ3dBSW1jNnZVM2tZNk9NR3VRV2l3NWhpLS1FbGR2ZkFSQ1ZqcjQzOFg5VTlvTUlndXRFSFVka0NMU2ttT25jSUNPeGFSWjdCQmJrOG9fSWloVXItRlJ5aDU0X3FGbVNNLVE",
+          "title": "SG Americas Securities LLC Boosts Stock Holdings in 3M Company $MMM",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMixgFBVV95cUxPMUVuUkluRTdUS2hQX3hkdmVuY2FKZmRKSjFMci1hTjIzMjFoSDlNd2VaSzlHRkNnR1RHUHk5UzZJRzBESE9SNzBOODhlMkNKWUQ1S3lvMmFmRUQ2MmN0cXR5T1RHZ3dBSW1jNnZVM2tZNk9NR3VRV2l3NWhpLS1FbGR2ZkFSQ1ZqcjQzOFg5VTlvTUlndXRFSFVka0NMU2ttT25jSUNPeGFSWjdCQmJrOG9fSWloVXItRlJ5aDU0X3FGbVNNLVE?oc=5\" target=\"_blank\">SG Americas Securities LLC Boosts Stock Holdings in 3M Company $MMM</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">MarketBeat</font>",
+          "source": "MarketBeat",
+          "source_url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxPMUVuUkluRTdUS2hQX3hkdmVuY2FKZmRKSjFMci1hTjIzMjFoSDlNd2VaSzlHRkNnR1RHUHk5UzZJRzBESE9SNzBOODhlMkNKWUQ1S3lvMmFmRUQ2MmN0cXR5T1RHZ3dBSW1jNnZVM2tZNk9NR3VRV2l3NWhpLS1FbGR2ZkFSQ1ZqcjQzOFg5VTlvTUlndXRFSFVka0NMU2ttT25jSUNPeGFSWjdCQmJrOG9fSWloVXItRlJ5aDU0X3FGbVNNLVE?oc=5",
+          "published_at": "2026-03-25T07:00:00+00:00",
+          "event_type": "other",
+          "significance": "major",
+          "classification": {
+            "rule": "keyword",
+            "confidence": 0.95,
+            "event_type": "other",
+            "significance": "major",
+            "why_it_matters": "Keyword detected major event"
+          },
+          "classification_evidence": {
+            "relevance": {
+              "relevant": true,
+              "affected_tickers": [
+                "MMM"
+              ],
+              "event_type": "company_specific",
+              "why_it_matters": "LLM call failed"
+            },
+            "significance": {
+              "rule": "keyword",
+              "confidence": 0.95,
+              "event_type": "other",
+              "significance": "major",
+              "why_it_matters": "Keyword detected major event"
+            }
+          },
+          "analysis_source": "minimax_fallback",
+          "long_analysis": "SG Americas Securities LLC increasing its stake in 3M represents bullish positioning by a sophisticated institutional investor, suggesting potential undervaluation or confidence in the company's turnaround prospects. However, a single holder's decision to add shares reflects their specific risk tolerance and market view rather than fundamental business improvement. This type of institutional buying can provide near-term price support and signal market confidence, but shouldn't be interpreted as a definitive value indicator without corroborating evidence. The increased stake may also reflect portfolio rebalancing or sector rotation strategies unrelated to 3M's intrinsic outlook. This is direct company coverage for MMM.",
+          "confidence": 0.53,
+          "impact_horizon": "near_term",
+          "risk_direction": "neutral",
+          "scenario_summary": "Institutional buying signals short-term bullish positioning but lacks fundamental context to assess genuine value opportunity. This is direct company coverage for MMM.",
+          "key_implications": [
+            "Institutional confidence from SG Americas could signal near-term price support for MMM shares",
+            "One holder's action should be weighed against broader institutional sentiment and sentiment trends"
+          ],
+          "recommended_followups": [
+            "Monitor for other institutional filings showing similar positioning changes in 3M",
+            "Assess whether SG Americas' conviction is based on valuation metrics, earnings outlook, or catalyst expectations",
+            "Review the read-through against MMM's current labels: growth."
+          ]
+        }
+      ],
+      "ticker_metadata": {
+        "id": "1ba1eae4-7d68-4b64-8628-8e3b4a8c698f",
+        "ticker": "MMM",
+        "company_name": "3M Co",
+        "asset_class": null,
+        "sector": "Industrial Conglomerates",
+        "industry": null,
+        "exchange": "NEW YORK STOCK EXCHANGE, INC.",
+        "market_cap": 80474498786.54517,
+        "market_cap_bucket": "high",
+        "float_shares": null,
+        "avg_daily_dollar_volume": 418846282.79999995,
+        "spread_proxy": 0.001,
+        "beta": 1.0969862,
+        "volatility_proxy": 0.27424655,
+        "profitability_profile": "mixed",
+        "leverage_profile": "moderate",
+        "macro_sensitivity": null,
+        "structural_fragility": null,
+        "liquidity_risk": null,
+        "updated_at": "2026-04-14T01:07:56.489567+00:00",
+        "created_at": "2026-04-12T21:58:02.32943+00:00",
+        "pe_ratio": 24.3854,
+        "week_52_high": 177.41,
+        "week_52_low": 123.4443,
+        "price": 152.79,
+        "price_as_of": "2026-04-14T01:07:56.485695+00:00",
+        "avg_volume": 2.74132,
+        "previous_close": 150.32,
+        "open_price": 149.93,
+        "day_high": 152.79,
+        "day_low": 148.7101,
+        "last_price_source": "finnhub",
+        "is_supported": true
+      },
+      "macro_impact": {
+        "ticker": "MMM",
+        "macro_relevance": "neutral",
+        "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+      },
+      "news_sentiment": 35,
+      "macro_exposure": 45,
+      "position_sizing": 65,
+      "volatility_trend": 40,
+      "total_score": 60,
+      "grade": "C",
+      "reasoning": "",
+      "grade_reason": "",
+      "evidence_summary": "3M (MMM) presents a complex turnaround scenario with mixed signals from institutional and insider activity, including a notable 3.12% single-session decline on March 9 that warrants closer monitoring. While SG Americas Securities' stake increase signals institutional confidence in potential undervaluation, the modest scale of Group President purchases limits sentiment impact. The position carries significant litigation-related uncertainty alongside ongoing restructuring execution risk.",
+      "dimension_rationale": {},
+      "safety_score": 60,
+      "confidence": 0.75,
+      "structural_base_score": 60
+    }
+  ],
+  "portfolio_risk": {
+    "portfolio_allocation_risk_score": 15.0,
+    "confidence": 0.8,
+    "concentration_risk": 50.0,
+    "cluster_risk": 0.0,
+    "correlation_risk": 0.0,
+    "liquidity_mismatch": 0.0,
+    "macro_stack_risk": 0.0,
+    "factor_breakdown": {
+      "concentration_risk": 50.0,
+      "cluster_risk": 0.0,
+      "correlation_risk": 0.0,
+      "liquidity_mismatch": 0.0,
+      "macro_stack_risk": 0.0
+    },
+    "top_risk_drivers": [
+      {
+        "type": "concentration",
+        "tickers": []
+      }
+    ],
+    "danger_clusters": []
+  },
+  "overall_grade": "C",
+  "digest_alert_created": false
+}

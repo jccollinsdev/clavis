@@ -301,7 +301,7 @@ struct GradeTag: View {
             .font(large ? .system(size: 40, weight: .bold, design: .monospaced) : ClavisTypography.gradeTag)
             .fontWeight(.medium)
             .foregroundColor(ClavisGradeStyle.gradeBandText(for: grade))
-            .frame(width: large ? 56 : (compact ? 24 : 32), height: large ? 56 : (compact ? 24 : 32))
+            .frame(width: large ? 56 : (compact ? 24 : 32), height: large ? 56 : (compact ? 24 : 32), alignment: .center)
             .background(ClavisGradeStyle.gradeBandBg(for: grade))
             .cornerRadius(4)
     }
@@ -326,6 +326,64 @@ struct RiskBar: View {
             }
         }
         .frame(height: 4)
+    }
+}
+
+// MARK: - Gauge
+
+struct ClavixGauge: View {
+    let score: Int
+    let grade: String
+    var size: CGFloat = 112
+
+    var body: some View {
+        ZStack {
+            GaugeArc(shapeGrade: grade, progress: 1)
+                .stroke(Color.border, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+
+            GaugeArc(shapeGrade: grade, progress: progress)
+                .stroke(ClavisGradeStyle.riskColor(for: grade), style: StrokeStyle(lineWidth: 8, lineCap: .round))
+
+            VStack(spacing: 4) {
+                Text("\(score)")
+                    .font(.system(size: size * 0.27, weight: .bold, design: .monospaced))
+                    .foregroundColor(.textPrimary)
+                    .monospacedDigit()
+                Text("GRADE \(grade)")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(.textSecondary)
+                    .tracking(0.8)
+            }
+            .offset(y: 6)
+        }
+        .frame(width: size, height: size)
+    }
+
+    private var progress: CGFloat {
+        CGFloat(max(0, min(score, 100))) / 100
+    }
+}
+
+private struct GaugeArc: Shape {
+    let shapeGrade: String
+    let progress: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        let startAngle = Angle(degrees: -220)
+        let endAngle = Angle(degrees: 40)
+        let angleDelta = endAngle.degrees - startAngle.degrees
+        let currentAngle = Angle(degrees: startAngle.degrees + angleDelta * progress)
+        let radius = min(rect.width, rect.height) / 2 - 10
+
+        var path = Path()
+        path.addArc(
+            center: CGPoint(x: rect.midX, y: rect.midY),
+            radius: radius,
+            startAngle: startAngle,
+            endAngle: currentAngle,
+            clockwise: false
+        )
+        return path
     }
 }
 

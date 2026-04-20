@@ -1,0 +1,545 @@
+{
+  "position": {
+    "id": "2d4cf841-b6c2-4c21-a88d-87c7c996c3f4",
+    "user_id": "00000000-0000-0000-0000-000000000001",
+    "ticker": "ABT",
+    "shares": 0.0,
+    "purchase_price": 0.0,
+    "archetype": "growth",
+    "created_at": "2026-04-12T23:57:58.424725+00:00",
+    "updated_at": "2026-04-12T23:57:58.424725+00:00",
+    "current_price": 100.69,
+    "analysis_started_at": null
+  },
+  "inferred_labels": [
+    "growth"
+  ],
+  "related_articles": [
+    {
+      "external_id": "CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYklnRzdYQ19CaFJOM0dlUFpaOEMwUkhBN3k5UzQzTFZDdnl1blJrNHQzVHNQc0Y3WTRldkZndGk",
+      "event_hash": "00199102b53f2778cc1b752999d56e52bda617eea6e047ddec6ae96bf6d65cac",
+      "source_type": "company_news",
+      "source": "Yahoo Finance",
+      "title": "Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback?",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYklnRzdYQ19CaFJOM0dlUFpaOEMwUkhBN3k5UzQzTFZDdnl1blJrNHQzVHNQc0Y3WTRldkZndGk?oc=5\" target=\"_blank\">Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Finance</font>",
+      "body": "",
+      "url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYklnRzdYQ19CaFJOM0dlUFpaOEMwUkhBN3k5UzQzTFZDdnl1blJrNHQzVHNQc0Y3WTRldkZndGk?oc=5",
+      "published_at": "2026-04-11T00:24:00+00:00",
+      "ticker_hints": [
+        "ABT"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYklnRzdYQ19CaFJOM0dlUFpaOEMwUkhBN3k5UzQzTFZDdnl1blJrNHQzVHNQc0Y3WTRldkZndGk",
+        "title": "Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback?",
+        "source": "Yahoo Finance",
+        "source_url": "https://finance.yahoo.com",
+        "url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYklnRzdYQ19CaFJOM0dlUFpaOEMwUkhBN3k5UzQzTFZDdnl1blJrNHQzVHNQc0Y3WTRldkZndGk?oc=5",
+        "published_at": "2026-04-11T00:24:00+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYklnRzdYQ19CaFJOM0dlUFpaOEMwUkhBN3k5UzQzTFZDdnl1blJrNHQzVHNQc0Y3WTRldkZndGk?oc=5\" target=\"_blank\">Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Finance</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "ABT",
+        "company_name": "Abbott Laboratories",
+        "query": "Abbott Laboratories stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "ABT"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "Analysis of ABT after pullback directly addresses value assessment for growth archetype position."
+      },
+      "resolved_url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYklnRzdYQ19CaFJOM0dlUFpaOEMwUkhBN3k5UzQzTFZDdnl1blJrNHQzVHNQc0Y3WTRldkZndGk?oc=5&hl=en-US&gl=US&ceid=US:en",
+      "content_source": "Yahoo Finance",
+      "scrape_status": "google_wrapper"
+    },
+    {
+      "external_id": "CBMiigFBVV95cUxPWEhMMG9LSXZZSWNJcHItbmdDUmY1UWlZdTNvQXZIWllpXzJJZnhpU2VPbzJsRkhOWXBRbGZFVlBjcjZRdlZsNERFYk1ySmtfb2R2Z0FUcUVRWXpmakw4MGdzeE5rUF9neFJ6MkF5S1plazRBMVRVTUxodl9VZmpEaExEaXp2REQ0M1E",
+      "event_hash": "47e14cd37dda390ab67eb378a2091da34d4800879c436e35c680bd59c876edb7",
+      "source_type": "company_news",
+      "source": "TradingKey",
+      "title": "Abbott Laboratories Stock (ABT) Moved Down by 3.04% on Apr 10: A Full Analysis",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiigFBVV95cUxPWEhMMG9LSXZZSWNJcHItbmdDUmY1UWlZdTNvQXZIWllpXzJJZnhpU2VPbzJsRkhOWXBRbGZFVlBjcjZRdlZsNERFYk1ySmtfb2R2Z0FUcUVRWXpmakw4MGdzeE5rUF9neFJ6MkF5S1plazRBMVRVTUxodl9VZmpEaExEaXp2REQ0M1E?oc=5\" target=\"_blank\">Abbott Laboratories Stock (ABT) Moved Down by 3.04% on Apr 10: A Full Analysis</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">TradingKey</font>",
+      "body": "",
+      "url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxPWEhMMG9LSXZZSWNJcHItbmdDUmY1UWlZdTNvQXZIWllpXzJJZnhpU2VPbzJsRkhOWXBRbGZFVlBjcjZRdlZsNERFYk1ySmtfb2R2Z0FUcUVRWXpmakw4MGdzeE5rUF9neFJ6MkF5S1plazRBMVRVTUxodl9VZmpEaExEaXp2REQ0M1E?oc=5",
+      "published_at": "2026-04-10T18:15:19+00:00",
+      "ticker_hints": [
+        "ABT"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMiigFBVV95cUxPWEhMMG9LSXZZSWNJcHItbmdDUmY1UWlZdTNvQXZIWllpXzJJZnhpU2VPbzJsRkhOWXBRbGZFVlBjcjZRdlZsNERFYk1ySmtfb2R2Z0FUcUVRWXpmakw4MGdzeE5rUF9neFJ6MkF5S1plazRBMVRVTUxodl9VZmpEaExEaXp2REQ0M1E",
+        "title": "Abbott Laboratories Stock (ABT) Moved Down by 3.04% on Apr 10: A Full Analysis",
+        "source": "TradingKey",
+        "source_url": "https://www.tradingkey.com",
+        "url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxPWEhMMG9LSXZZSWNJcHItbmdDUmY1UWlZdTNvQXZIWllpXzJJZnhpU2VPbzJsRkhOWXBRbGZFVlBjcjZRdlZsNERFYk1ySmtfb2R2Z0FUcUVRWXpmakw4MGdzeE5rUF9neFJ6MkF5S1plazRBMVRVTUxodl9VZmpEaExEaXp2REQ0M1E?oc=5",
+        "published_at": "2026-04-10T18:15:19+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiigFBVV95cUxPWEhMMG9LSXZZSWNJcHItbmdDUmY1UWlZdTNvQXZIWllpXzJJZnhpU2VPbzJsRkhOWXBRbGZFVlBjcjZRdlZsNERFYk1ySmtfb2R2Z0FUcUVRWXpmakw4MGdzeE5rUF9neFJ6MkF5S1plazRBMVRVTUxodl9VZmpEaExEaXp2REQ0M1E?oc=5\" target=\"_blank\">Abbott Laboratories Stock (ABT) Moved Down by 3.04% on Apr 10: A Full Analysis</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">TradingKey</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "ABT",
+        "company_name": "Abbott Laboratories",
+        "query": "Abbott Laboratories stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "ABT"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "Detailed analysis of ABT's 3.04% decline helps assess whether move is fundamental or market noise."
+      },
+      "resolved_url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxPWEhMMG9LSXZZSWNJcHItbmdDUmY1UWlZdTNvQXZIWllpXzJJZnhpU2VPbzJsRkhOWXBRbGZFVlBjcjZRdlZsNERFYk1ySmtfb2R2Z0FUcUVRWXpmakw4MGdzeE5rUF9neFJ6MkF5S1plazRBMVRVTUxodl9VZmpEaExEaXp2REQ0M1E?oc=5&hl=en-US&gl=US&ceid=US:en",
+      "content_source": "TradingKey",
+      "scrape_status": "google_wrapper"
+    },
+    {
+      "external_id": "CBMi5AFBVV95cUxPakVZaWdUVW1QRDc4cE8yZmNUajNvTC1EVHN1NE9VVEpzWkREdGhlZDVwZEdZNE5WRC1hbmRmaFEwNFFfWlc3d1NhMlVPanJEX3ZDMGRaZjVEUlhoSVVEcFI2REgzYmJ3bWt6QXRNN3pORm1NNlgtMkkwaXRtQmNUZDNveXZCamRvcDN4Nm9hYzBoX1JTTnNTR1prdURWTl9BQ2M4OEpzeVh6eDhBVzFvNmVLaWs4NFRGM0NtR01IWnFKWXZjZ08tNWVMOVktZ2UwQXVia2stYUktQ0dTT2YwbnVvUXg",
+      "event_hash": "366d987c88be5395c7c11f3cd71b835579450aaafcf77a8efb275429b534fdd2",
+      "source_type": "company_news",
+      "source": "Benzinga",
+      "title": "Top Wall Street Forecasters Revamp Abbott Expectations Ahead Of Q1 Earnings",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi5AFBVV95cUxPakVZaWdUVW1QRDc4cE8yZmNUajNvTC1EVHN1NE9VVEpzWkREdGhlZDVwZEdZNE5WRC1hbmRmaFEwNFFfWlc3d1NhMlVPanJEX3ZDMGRaZjVEUlhoSVVEcFI2REgzYmJ3bWt6QXRNN3pORm1NNlgtMkkwaXRtQmNUZDNveXZCamRvcDN4Nm9hYzBoX1JTTnNTR1prdURWTl9BQ2M4OEpzeVh6eDhBVzFvNmVLaWs4NFRGM0NtR01IWnFKWXZjZ08tNWVMOVktZ2UwQXVia2stYUktQ0dTT2YwbnVvUXg?oc=5\" target=\"_blank\">Top Wall Street Forecasters Revamp Abbott Expectations Ahead Of Q1 Earnings</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Benzinga</font>",
+      "body": "",
+      "url": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxPakVZaWdUVW1QRDc4cE8yZmNUajNvTC1EVHN1NE9VVEpzWkREdGhlZDVwZEdZNE5WRC1hbmRmaFEwNFFfWlc3d1NhMlVPanJEX3ZDMGRaZjVEUlhoSVVEcFI2REgzYmJ3bWt6QXRNN3pORm1NNlgtMkkwaXRtQmNUZDNveXZCamRvcDN4Nm9hYzBoX1JTTnNTR1prdURWTl9BQ2M4OEpzeVh6eDhBVzFvNmVLaWs4NFRGM0NtR01IWnFKWXZjZ08tNWVMOVktZ2UwQXVia2stYUktQ0dTT2YwbnVvUXg?oc=5",
+      "published_at": "2026-04-14T10:07:07+00:00",
+      "ticker_hints": [
+        "ABT"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMi5AFBVV95cUxPakVZaWdUVW1QRDc4cE8yZmNUajNvTC1EVHN1NE9VVEpzWkREdGhlZDVwZEdZNE5WRC1hbmRmaFEwNFFfWlc3d1NhMlVPanJEX3ZDMGRaZjVEUlhoSVVEcFI2REgzYmJ3bWt6QXRNN3pORm1NNlgtMkkwaXRtQmNUZDNveXZCamRvcDN4Nm9hYzBoX1JTTnNTR1prdURWTl9BQ2M4OEpzeVh6eDhBVzFvNmVLaWs4NFRGM0NtR01IWnFKWXZjZ08tNWVMOVktZ2UwQXVia2stYUktQ0dTT2YwbnVvUXg",
+        "title": "Top Wall Street Forecasters Revamp Abbott Expectations Ahead Of Q1 Earnings",
+        "source": "Benzinga",
+        "source_url": "https://www.benzinga.com",
+        "url": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxPakVZaWdUVW1QRDc4cE8yZmNUajNvTC1EVHN1NE9VVEpzWkREdGhlZDVwZEdZNE5WRC1hbmRmaFEwNFFfWlc3d1NhMlVPanJEX3ZDMGRaZjVEUlhoSVVEcFI2REgzYmJ3bWt6QXRNN3pORm1NNlgtMkkwaXRtQmNUZDNveXZCamRvcDN4Nm9hYzBoX1JTTnNTR1prdURWTl9BQ2M4OEpzeVh6eDhBVzFvNmVLaWs4NFRGM0NtR01IWnFKWXZjZ08tNWVMOVktZ2UwQXVia2stYUktQ0dTT2YwbnVvUXg?oc=5",
+        "published_at": "2026-04-14T10:07:07+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMi5AFBVV95cUxPakVZaWdUVW1QRDc4cE8yZmNUajNvTC1EVHN1NE9VVEpzWkREdGhlZDVwZEdZNE5WRC1hbmRmaFEwNFFfWlc3d1NhMlVPanJEX3ZDMGRaZjVEUlhoSVVEcFI2REgzYmJ3bWt6QXRNN3pORm1NNlgtMkkwaXRtQmNUZDNveXZCamRvcDN4Nm9hYzBoX1JTTnNTR1prdURWTl9BQ2M4OEpzeVh6eDhBVzFvNmVLaWs4NFRGM0NtR01IWnFKWXZjZ08tNWVMOVktZ2UwQXVia2stYUktQ0dTT2YwbnVvUXg?oc=5\" target=\"_blank\">Top Wall Street Forecasters Revamp Abbott Expectations Ahead Of Q1 Earnings</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Benzinga</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "ABT",
+        "company_name": "Abbott Laboratories",
+        "query": "Abbott Laboratories stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "ABT"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "Wall Street forecasters updating Abbott expectations ahead of Q1 earnings provides material guidance information for the ABT position."
+      },
+      "resolved_url": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxPakVZaWdUVW1QRDc4cE8yZmNUajNvTC1EVHN1NE9VVEpzWkREdGhlZDVwZEdZNE5WRC1hbmRmaFEwNFFfWlc3d1NhMlVPanJEX3ZDMGRaZjVEUlhoSVVEcFI2REgzYmJ3bWt6QXRNN3pORm1NNlgtMkkwaXRtQmNUZDNveXZCamRvcDN4Nm9hYzBoX1JTTnNTR1prdURWTl9BQ2M4OEpzeVh6eDhBVzFvNmVLaWs4NFRGM0NtR01IWnFKWXZjZ08tNWVMOVktZ2UwQXVia2stYUktQ0dTT2YwbnVvUXg?oc=5&hl=en-US&gl=US&ceid=US:en",
+      "content_source": "Benzinga",
+      "scrape_status": "google_wrapper"
+    }
+  ],
+  "event_analyses": [
+    {
+      "analysis_run_id": "f8dd5653-0c3d-4017-b013-1369a3f0fbea",
+      "position_id": "2d4cf841-b6c2-4c21-a88d-87c7c996c3f4",
+      "event_hash": "00199102b53f2778cc1b752999d56e52bda617eea6e047ddec6ae96bf6d65cac",
+      "external_event_id": "CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYklnRzdYQ19CaFJOM0dlUFpaOEMwUkhBN3k5UzQzTFZDdnl1blJrNHQzVHNQc0Y3WTRldkZndGk",
+      "title": "Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback?",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYklnRzdYQ19CaFJOM0dlUFpaOEMwUkhBN3k5UzQzTFZDdnl1blJrNHQzVHNQc0Y3WTRldkZndGk?oc=5\" target=\"_blank\">Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Finance</font>",
+      "source": "Yahoo Finance",
+      "source_url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYklnRzdYQ19CaFJOM0dlUFpaOEMwUkhBN3k5UzQzTFZDdnl1blJrNHQzVHNQc0Y3WTRldkZndGk?oc=5",
+      "published_at": "2026-04-11T00:24:00+00:00",
+      "event_type": "other",
+      "significance": "minor",
+      "classification": {
+        "confidence": 0.92,
+        "event_type": "other",
+        "significance": "minor",
+        "why_it_matters": "This is analyst commentary asking if ABT is attractive after a price pullback, not a material corporate announcement or catalyst."
+      },
+      "classification_evidence": {
+        "relevance": {
+          "relevant": true,
+          "affected_tickers": [
+            "ABT"
+          ],
+          "event_type": "company_specific",
+          "why_it_matters": "Analysis of ABT after pullback directly addresses value assessment for growth archetype position."
+        },
+        "significance": {
+          "confidence": 0.92,
+          "event_type": "other",
+          "significance": "minor",
+          "why_it_matters": "This is analyst commentary asking if ABT is attractive after a price pullback, not a material corporate announcement or catalyst."
+        }
+      },
+      "analysis_source": "minimax",
+      "long_analysis": "Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback? <a href=\"https://news.google.com/rss/articles/CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYkln This looks like a monitorable development rather than a confirmed thesis-changing catalyst without stronger follow-through. This is direct company coverage for ABT.",
+      "confidence": 0.53,
+      "impact_horizon": "near_term",
+      "risk_direction": "neutral",
+      "scenario_summary": "The event changes context more than it changes fundamentals at this stage. This is direct company coverage for ABT.",
+      "key_implications": [
+        "Track whether follow-on reporting changes the significance of 'Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback?'."
+      ],
+      "recommended_followups": [
+        "Watch for management commentary, earnings, regulatory filings, or additional reporting that changes the fundamental read-through.",
+        "Review the read-through against ABT's current labels: growth."
+      ]
+    },
+    {
+      "analysis_run_id": "f8dd5653-0c3d-4017-b013-1369a3f0fbea",
+      "position_id": "2d4cf841-b6c2-4c21-a88d-87c7c996c3f4",
+      "event_hash": "47e14cd37dda390ab67eb378a2091da34d4800879c436e35c680bd59c876edb7",
+      "external_event_id": "CBMiigFBVV95cUxPWEhMMG9LSXZZSWNJcHItbmdDUmY1UWlZdTNvQXZIWllpXzJJZnhpU2VPbzJsRkhOWXBRbGZFVlBjcjZRdlZsNERFYk1ySmtfb2R2Z0FUcUVRWXpmakw4MGdzeE5rUF9neFJ6MkF5S1plazRBMVRVTUxodl9VZmpEaExEaXp2REQ0M1E",
+      "title": "Abbott Laboratories Stock (ABT) Moved Down by 3.04% on Apr 10: A Full Analysis",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiigFBVV95cUxPWEhMMG9LSXZZSWNJcHItbmdDUmY1UWlZdTNvQXZIWllpXzJJZnhpU2VPbzJsRkhOWXBRbGZFVlBjcjZRdlZsNERFYk1ySmtfb2R2Z0FUcUVRWXpmakw4MGdzeE5rUF9neFJ6MkF5S1plazRBMVRVTUxodl9VZmpEaExEaXp2REQ0M1E?oc=5\" target=\"_blank\">Abbott Laboratories Stock (ABT) Moved Down by 3.04% on Apr 10: A Full Analysis</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">TradingKey</font>",
+      "source": "TradingKey",
+      "source_url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxPWEhMMG9LSXZZSWNJcHItbmdDUmY1UWlZdTNvQXZIWllpXzJJZnhpU2VPbzJsRkhOWXBRbGZFVlBjcjZRdlZsNERFYk1ySmtfb2R2Z0FUcUVRWXpmakw4MGdzeE5rUF9neFJ6MkF5S1plazRBMVRVTUxodl9VZmpEaExEaXp2REQ0M1E?oc=5",
+      "published_at": "2026-04-10T18:15:19+00:00",
+      "event_type": "other",
+      "significance": "minor",
+      "classification": {
+        "confidence": 0.93,
+        "event_type": "other",
+        "significance": "minor",
+        "why_it_matters": "Reporting on stock price movement without revealing a new material corporate event or fundamental change."
+      },
+      "classification_evidence": {
+        "relevance": {
+          "relevant": true,
+          "affected_tickers": [
+            "ABT"
+          ],
+          "event_type": "company_specific",
+          "why_it_matters": "Detailed analysis of ABT's 3.04% decline helps assess whether move is fundamental or market noise."
+        },
+        "significance": {
+          "confidence": 0.93,
+          "event_type": "other",
+          "significance": "minor",
+          "why_it_matters": "Reporting on stock price movement without revealing a new material corporate event or fundamental change."
+        }
+      },
+      "analysis_source": "minimax",
+      "long_analysis": "Abbott Laboratories Stock (ABT) Moved Down by 3.04% on Apr 10: A Full Analysis <a href=\"https://news.google.com/rss/articles/CBMiigFBVV95cUxPWEhMMG9LSXZZSWNJcHItbmdDUmY1UWlZdTNvQXZIWllpXzJJZnhpU2VPbzJsRkhOWXBRbGZFVlBjcjZRdlZsNERFYk1ySmtfb2R2Z0FUcUVRWXpmakw4MGdzeE5rUF9neFJ6MkF5S1p This looks like a monitorable development rather than a confirmed thesis-changing catalyst without stronger follow-through. This is direct company coverage for ABT.",
+      "confidence": 0.53,
+      "impact_horizon": "near_term",
+      "risk_direction": "neutral",
+      "scenario_summary": "The event changes context more than it changes fundamentals at this stage. This is direct company coverage for ABT.",
+      "key_implications": [
+        "Track whether follow-on reporting changes the significance of 'Abbott Laboratories Stock (ABT) Moved Down by 3.04% on Apr 10: A Full Analysis'."
+      ],
+      "recommended_followups": [
+        "Watch for management commentary, earnings, regulatory filings, or additional reporting that changes the fundamental read-through.",
+        "Review the read-through against ABT's current labels: growth."
+      ]
+    },
+    {
+      "analysis_run_id": "f8dd5653-0c3d-4017-b013-1369a3f0fbea",
+      "position_id": "2d4cf841-b6c2-4c21-a88d-87c7c996c3f4",
+      "event_hash": "366d987c88be5395c7c11f3cd71b835579450aaafcf77a8efb275429b534fdd2",
+      "external_event_id": "CBMi5AFBVV95cUxPakVZaWdUVW1QRDc4cE8yZmNUajNvTC1EVHN1NE9VVEpzWkREdGhlZDVwZEdZNE5WRC1hbmRmaFEwNFFfWlc3d1NhMlVPanJEX3ZDMGRaZjVEUlhoSVVEcFI2REgzYmJ3bWt6QXRNN3pORm1NNlgtMkkwaXRtQmNUZDNveXZCamRvcDN4Nm9hYzBoX1JTTnNTR1prdURWTl9BQ2M4OEpzeVh6eDhBVzFvNmVLaWs4NFRGM0NtR01IWnFKWXZjZ08tNWVMOVktZ2UwQXVia2stYUktQ0dTT2YwbnVvUXg",
+      "title": "Top Wall Street Forecasters Revamp Abbott Expectations Ahead Of Q1 Earnings",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi5AFBVV95cUxPakVZaWdUVW1QRDc4cE8yZmNUajNvTC1EVHN1NE9VVEpzWkREdGhlZDVwZEdZNE5WRC1hbmRmaFEwNFFfWlc3d1NhMlVPanJEX3ZDMGRaZjVEUlhoSVVEcFI2REgzYmJ3bWt6QXRNN3pORm1NNlgtMkkwaXRtQmNUZDNveXZCamRvcDN4Nm9hYzBoX1JTTnNTR1prdURWTl9BQ2M4OEpzeVh6eDhBVzFvNmVLaWs4NFRGM0NtR01IWnFKWXZjZ08tNWVMOVktZ2UwQXVia2stYUktQ0dTT2YwbnVvUXg?oc=5\" target=\"_blank\">Top Wall Street Forecasters Revamp Abbott Expectations Ahead Of Q1 Earnings</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Benzinga</font>",
+      "source": "Benzinga",
+      "source_url": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxPakVZaWdUVW1QRDc4cE8yZmNUajNvTC1EVHN1NE9VVEpzWkREdGhlZDVwZEdZNE5WRC1hbmRmaFEwNFFfWlc3d1NhMlVPanJEX3ZDMGRaZjVEUlhoSVVEcFI2REgzYmJ3bWt6QXRNN3pORm1NNlgtMkkwaXRtQmNUZDNveXZCamRvcDN4Nm9hYzBoX1JTTnNTR1prdURWTl9BQ2M4OEpzeVh6eDhBVzFvNmVLaWs4NFRGM0NtR01IWnFKWXZjZ08tNWVMOVktZ2UwQXVia2stYUktQ0dTT2YwbnVvUXg?oc=5",
+      "published_at": "2026-04-14T10:07:07+00:00",
+      "event_type": "other",
+      "significance": "major",
+      "classification": {
+        "significance": "major",
+        "event_type": "other",
+        "why_it_matters": "Keyword detected major event",
+        "confidence": 0.95,
+        "rule": "keyword"
+      },
+      "classification_evidence": {
+        "relevance": {
+          "relevant": true,
+          "affected_tickers": [
+            "ABT"
+          ],
+          "event_type": "company_specific",
+          "why_it_matters": "Wall Street forecasters updating Abbott expectations ahead of Q1 earnings provides material guidance information for the ABT position."
+        },
+        "significance": {
+          "significance": "major",
+          "event_type": "other",
+          "why_it_matters": "Keyword detected major event",
+          "confidence": 0.95,
+          "rule": "keyword"
+        }
+      },
+      "analysis_source": "minimax_fallback",
+      "long_analysis": "Top Wall Street forecasters revising Abbott expectations ahead of Q1 earnings suggests notable shifts in analyst sentiment regarding the company's near-term performance outlook. Such coordinated revision activity by leading forecasters typically indicates either updated guidance from management, changing macro conditions affecting healthcare demand, or emerging data on key product lines like medical devices and diagnostics. For a diversified healthcare company like Abbott, this could reflect dynamics across multiple business segments including nutrition, diagnostics, pharmaceuticals, or cardiovascular devices. The timing so close to earnings suggests material information may be influencing these forecast adjustments. This is direct company coverage for ABT.",
+      "confidence": 0.63,
+      "impact_horizon": "near_term",
+      "risk_direction": "neutral",
+      "scenario_summary": "Analyst forecast revisions by top forecasters signal changing market expectations for Abbott's Q1 performance, creating near-term valuation sensitivity pending earnings confirmation. This is direct company coverage for ABT.",
+      "key_implications": [
+        "Q1 earnings beat/miss probability has shifted based on revised expectations",
+        "Multiple business segments may be showing differentiated performance trends",
+        "Forward guidance adjustments may be signaled by forecast revision timing"
+      ],
+      "recommended_followups": [
+        "Monitor for specific forecast revision direction (upward vs downward) once article details are accessible",
+        "Track Abbott's specific business segment performance in medical devices, diagnostics, and nutrition",
+        "Compare Abbott's revision trend against peer healthcare companies for sector-wide versus company-specific signals"
+      ]
+    }
+  ],
+  "position_report": {
+    "summary": "Abbott Laboratories warrants monitoring following a notable 3.04% price decline on April 10 and coordinated analyst forecast revisions ahead of Q1 earnings. The combination of recent price weakness and shifting Wall Street expectations suggests potential near-term volatility, though the pullback may present an entry opportunity for growth-oriented investors tracking the stock.",
+    "long_report": "Abbott Laboratories has experienced a meaningful pullback of 3.04% on April 10, creating a focal point for investors assessing near-term entry opportunities in this healthcare growth name. The more significant development is the coordinated revision of Wall Street forecasts by top forecasters ahead of Q1 earnings, which typically signals updated guidance expectations, evolving demand trends, or emerging data from key product categories. While company-specific catalysts remain the primary driver given limited overnight macro read-through, healthcare demand dynamics could shift with broader economic conditions affecting consumer and institutional spending. The stock's recent weakness contrasts with its growth positioning, suggesting investors should monitor whether the valuation has compressed to a more attractive entry point or whether the price action reflects fundamental concerns not yet disclosed. Near-term focus should center on Q1 earnings for confirmation of analyst thesis adjustments.",
+    "methodology": "This report synthesizes event-level developments flagged across monitoring channels, with primary weight given to the major analyst forecast revision ahead of earnings as a coordinated market signal. Price movement analysis contextualizes recent pullback significance. No specific price targets or buy/sell recommendations are issued; the assessment treats the position as currently held at zero shares, framing this as a watchlist entry assessment.",
+    "top_risks": [
+      "Q1 earnings miss could validate cautious analyst revisions and accelerate near-term selling pressure",
+      "Sector-specific headwinds may emerge from evolving healthcare policy or reimbursement rate changes affecting Abbott's key product lines",
+      "Broader credit market stress could limit healthcare capital expenditure and diagnostic device demand"
+    ],
+    "watch_items": [
+      "Q1 earnings release date and actual versus revised analyst expectations for revenue, margins, and guidance",
+      "Any commentary on key product categories including diagnostics, medical devices, and nutrition that may have prompted forecast revisions"
+    ],
+    "thesis_verifier": [
+      {
+        "macro_event": "Sector-specific themes dominating overnight macro developments with limited credit market or commodity spillover to healthcare",
+        "thesis_impact": "neutral",
+        "reasoning": "Healthcare sector dynamics remain primarily company-driven rather than macro-driven in current environment, neither confirming nor challenging the growth thesis for Abbott"
+      }
+    ]
+  },
+  "position_payload": {
+    "id": "2d4cf841-b6c2-4c21-a88d-87c7c996c3f4",
+    "user_id": "00000000-0000-0000-0000-000000000001",
+    "ticker": "ABT",
+    "shares": 0.0,
+    "purchase_price": 0.0,
+    "archetype": "growth",
+    "created_at": "2026-04-12T23:57:58.424725+00:00",
+    "updated_at": "2026-04-12T23:57:58.424725+00:00",
+    "current_price": 100.69,
+    "analysis_started_at": null,
+    "analysis_mode": "sp500_backfill",
+    "previous_grade": "C",
+    "previous_total_score": 59.8,
+    "summary": "Abbott Laboratories warrants monitoring following a notable 3.04% price decline on April 10 and coordinated analyst forecast revisions ahead of Q1 earnings. The combination of recent price weakness and shifting Wall Street expectations suggests potential near-term volatility, though the pullback may present an entry opportunity for growth-oriented investors tracking the stock.",
+    "long_report": "Abbott Laboratories has experienced a meaningful pullback of 3.04% on April 10, creating a focal point for investors assessing near-term entry opportunities in this healthcare growth name. The more significant development is the coordinated revision of Wall Street forecasts by top forecasters ahead of Q1 earnings, which typically signals updated guidance expectations, evolving demand trends, or emerging data from key product categories. While company-specific catalysts remain the primary driver given limited overnight macro read-through, healthcare demand dynamics could shift with broader economic conditions affecting consumer and institutional spending. The stock's recent weakness contrasts with its growth positioning, suggesting investors should monitor whether the valuation has compressed to a more attractive entry point or whether the price action reflects fundamental concerns not yet disclosed. Near-term focus should center on Q1 earnings for confirmation of analyst thesis adjustments.",
+    "top_risks": [
+      "Q1 earnings miss could validate cautious analyst revisions and accelerate near-term selling pressure",
+      "Sector-specific headwinds may emerge from evolving healthcare policy or reimbursement rate changes affecting Abbott's key product lines",
+      "Broader credit market stress could limit healthcare capital expenditure and diagnostic device demand"
+    ],
+    "watch_items": [
+      "Q1 earnings release date and actual versus revised analyst expectations for revenue, margins, and guidance",
+      "Any commentary on key product categories including diagnostics, medical devices, and nutrition that may have prompted forecast revisions"
+    ],
+    "top_news": [
+      "Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback?",
+      "Abbott Laboratories Stock (ABT) Moved Down by 3.04% on Apr 10: A Full Analysis",
+      "Top Wall Street Forecasters Revamp Abbott Expectations Ahead Of Q1 Earnings"
+    ],
+    "inferred_labels": [
+      "growth"
+    ],
+    "methodology": "This report synthesizes event-level developments flagged across monitoring channels, with primary weight given to the major analyst forecast revision ahead of earnings as a coordinated market signal. Price movement analysis contextualizes recent pullback significance. No specific price targets or buy/sell recommendations are issued; the assessment treats the position as currently held at zero shares, framing this as a watchlist entry assessment.",
+    "mirofish_used": false,
+    "thesis_verifier": [
+      {
+        "macro_event": "Sector-specific themes dominating overnight macro developments with limited credit market or commodity spillover to healthcare",
+        "thesis_impact": "neutral",
+        "reasoning": "Healthcare sector dynamics remain primarily company-driven rather than macro-driven in current environment, neither confirming nor challenging the growth thesis for Abbott"
+      }
+    ],
+    "event_analyses": [
+      {
+        "analysis_run_id": "f8dd5653-0c3d-4017-b013-1369a3f0fbea",
+        "position_id": "2d4cf841-b6c2-4c21-a88d-87c7c996c3f4",
+        "event_hash": "00199102b53f2778cc1b752999d56e52bda617eea6e047ddec6ae96bf6d65cac",
+        "external_event_id": "CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYklnRzdYQ19CaFJOM0dlUFpaOEMwUkhBN3k5UzQzTFZDdnl1blJrNHQzVHNQc0Y3WTRldkZndGk",
+        "title": "Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback?",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYklnRzdYQ19CaFJOM0dlUFpaOEMwUkhBN3k5UzQzTFZDdnl1blJrNHQzVHNQc0Y3WTRldkZndGk?oc=5\" target=\"_blank\">Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Finance</font>",
+        "source": "Yahoo Finance",
+        "source_url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYklnRzdYQ19CaFJOM0dlUFpaOEMwUkhBN3k5UzQzTFZDdnl1blJrNHQzVHNQc0Y3WTRldkZndGk?oc=5",
+        "published_at": "2026-04-11T00:24:00+00:00",
+        "event_type": "other",
+        "significance": "minor",
+        "classification": {
+          "confidence": 0.92,
+          "event_type": "other",
+          "significance": "minor",
+          "why_it_matters": "This is analyst commentary asking if ABT is attractive after a price pullback, not a material corporate announcement or catalyst."
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "ABT"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "Analysis of ABT after pullback directly addresses value assessment for growth archetype position."
+          },
+          "significance": {
+            "confidence": 0.92,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "This is analyst commentary asking if ABT is attractive after a price pullback, not a material corporate announcement or catalyst."
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback? <a href=\"https://news.google.com/rss/articles/CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYkln This looks like a monitorable development rather than a confirmed thesis-changing catalyst without stronger follow-through. This is direct company coverage for ABT.",
+        "confidence": 0.53,
+        "impact_horizon": "near_term",
+        "risk_direction": "neutral",
+        "scenario_summary": "The event changes context more than it changes fundamentals at this stage. This is direct company coverage for ABT.",
+        "key_implications": [
+          "Track whether follow-on reporting changes the significance of 'Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback?'."
+        ],
+        "recommended_followups": [
+          "Watch for management commentary, earnings, regulatory filings, or additional reporting that changes the fundamental read-through.",
+          "Review the read-through against ABT's current labels: growth."
+        ]
+      },
+      {
+        "analysis_run_id": "f8dd5653-0c3d-4017-b013-1369a3f0fbea",
+        "position_id": "2d4cf841-b6c2-4c21-a88d-87c7c996c3f4",
+        "event_hash": "47e14cd37dda390ab67eb378a2091da34d4800879c436e35c680bd59c876edb7",
+        "external_event_id": "CBMiigFBVV95cUxPWEhMMG9LSXZZSWNJcHItbmdDUmY1UWlZdTNvQXZIWllpXzJJZnhpU2VPbzJsRkhOWXBRbGZFVlBjcjZRdlZsNERFYk1ySmtfb2R2Z0FUcUVRWXpmakw4MGdzeE5rUF9neFJ6MkF5S1plazRBMVRVTUxodl9VZmpEaExEaXp2REQ0M1E",
+        "title": "Abbott Laboratories Stock (ABT) Moved Down by 3.04% on Apr 10: A Full Analysis",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiigFBVV95cUxPWEhMMG9LSXZZSWNJcHItbmdDUmY1UWlZdTNvQXZIWllpXzJJZnhpU2VPbzJsRkhOWXBRbGZFVlBjcjZRdlZsNERFYk1ySmtfb2R2Z0FUcUVRWXpmakw4MGdzeE5rUF9neFJ6MkF5S1plazRBMVRVTUxodl9VZmpEaExEaXp2REQ0M1E?oc=5\" target=\"_blank\">Abbott Laboratories Stock (ABT) Moved Down by 3.04% on Apr 10: A Full Analysis</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">TradingKey</font>",
+        "source": "TradingKey",
+        "source_url": "https://news.google.com/rss/articles/CBMiigFBVV95cUxPWEhMMG9LSXZZSWNJcHItbmdDUmY1UWlZdTNvQXZIWllpXzJJZnhpU2VPbzJsRkhOWXBRbGZFVlBjcjZRdlZsNERFYk1ySmtfb2R2Z0FUcUVRWXpmakw4MGdzeE5rUF9neFJ6MkF5S1plazRBMVRVTUxodl9VZmpEaExEaXp2REQ0M1E?oc=5",
+        "published_at": "2026-04-10T18:15:19+00:00",
+        "event_type": "other",
+        "significance": "minor",
+        "classification": {
+          "confidence": 0.93,
+          "event_type": "other",
+          "significance": "minor",
+          "why_it_matters": "Reporting on stock price movement without revealing a new material corporate event or fundamental change."
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "ABT"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "Detailed analysis of ABT's 3.04% decline helps assess whether move is fundamental or market noise."
+          },
+          "significance": {
+            "confidence": 0.93,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "Reporting on stock price movement without revealing a new material corporate event or fundamental change."
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "Abbott Laboratories Stock (ABT) Moved Down by 3.04% on Apr 10: A Full Analysis <a href=\"https://news.google.com/rss/articles/CBMiigFBVV95cUxPWEhMMG9LSXZZSWNJcHItbmdDUmY1UWlZdTNvQXZIWllpXzJJZnhpU2VPbzJsRkhOWXBRbGZFVlBjcjZRdlZsNERFYk1ySmtfb2R2Z0FUcUVRWXpmakw4MGdzeE5rUF9neFJ6MkF5S1p This looks like a monitorable development rather than a confirmed thesis-changing catalyst without stronger follow-through. This is direct company coverage for ABT.",
+        "confidence": 0.53,
+        "impact_horizon": "near_term",
+        "risk_direction": "neutral",
+        "scenario_summary": "The event changes context more than it changes fundamentals at this stage. This is direct company coverage for ABT.",
+        "key_implications": [
+          "Track whether follow-on reporting changes the significance of 'Abbott Laboratories Stock (ABT) Moved Down by 3.04% on Apr 10: A Full Analysis'."
+        ],
+        "recommended_followups": [
+          "Watch for management commentary, earnings, regulatory filings, or additional reporting that changes the fundamental read-through.",
+          "Review the read-through against ABT's current labels: growth."
+        ]
+      },
+      {
+        "analysis_run_id": "f8dd5653-0c3d-4017-b013-1369a3f0fbea",
+        "position_id": "2d4cf841-b6c2-4c21-a88d-87c7c996c3f4",
+        "event_hash": "366d987c88be5395c7c11f3cd71b835579450aaafcf77a8efb275429b534fdd2",
+        "external_event_id": "CBMi5AFBVV95cUxPakVZaWdUVW1QRDc4cE8yZmNUajNvTC1EVHN1NE9VVEpzWkREdGhlZDVwZEdZNE5WRC1hbmRmaFEwNFFfWlc3d1NhMlVPanJEX3ZDMGRaZjVEUlhoSVVEcFI2REgzYmJ3bWt6QXRNN3pORm1NNlgtMkkwaXRtQmNUZDNveXZCamRvcDN4Nm9hYzBoX1JTTnNTR1prdURWTl9BQ2M4OEpzeVh6eDhBVzFvNmVLaWs4NFRGM0NtR01IWnFKWXZjZ08tNWVMOVktZ2UwQXVia2stYUktQ0dTT2YwbnVvUXg",
+        "title": "Top Wall Street Forecasters Revamp Abbott Expectations Ahead Of Q1 Earnings",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMi5AFBVV95cUxPakVZaWdUVW1QRDc4cE8yZmNUajNvTC1EVHN1NE9VVEpzWkREdGhlZDVwZEdZNE5WRC1hbmRmaFEwNFFfWlc3d1NhMlVPanJEX3ZDMGRaZjVEUlhoSVVEcFI2REgzYmJ3bWt6QXRNN3pORm1NNlgtMkkwaXRtQmNUZDNveXZCamRvcDN4Nm9hYzBoX1JTTnNTR1prdURWTl9BQ2M4OEpzeVh6eDhBVzFvNmVLaWs4NFRGM0NtR01IWnFKWXZjZ08tNWVMOVktZ2UwQXVia2stYUktQ0dTT2YwbnVvUXg?oc=5\" target=\"_blank\">Top Wall Street Forecasters Revamp Abbott Expectations Ahead Of Q1 Earnings</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Benzinga</font>",
+        "source": "Benzinga",
+        "source_url": "https://news.google.com/rss/articles/CBMi5AFBVV95cUxPakVZaWdUVW1QRDc4cE8yZmNUajNvTC1EVHN1NE9VVEpzWkREdGhlZDVwZEdZNE5WRC1hbmRmaFEwNFFfWlc3d1NhMlVPanJEX3ZDMGRaZjVEUlhoSVVEcFI2REgzYmJ3bWt6QXRNN3pORm1NNlgtMkkwaXRtQmNUZDNveXZCamRvcDN4Nm9hYzBoX1JTTnNTR1prdURWTl9BQ2M4OEpzeVh6eDhBVzFvNmVLaWs4NFRGM0NtR01IWnFKWXZjZ08tNWVMOVktZ2UwQXVia2stYUktQ0dTT2YwbnVvUXg?oc=5",
+        "published_at": "2026-04-14T10:07:07+00:00",
+        "event_type": "other",
+        "significance": "major",
+        "classification": {
+          "significance": "major",
+          "event_type": "other",
+          "why_it_matters": "Keyword detected major event",
+          "confidence": 0.95,
+          "rule": "keyword"
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "ABT"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "Wall Street forecasters updating Abbott expectations ahead of Q1 earnings provides material guidance information for the ABT position."
+          },
+          "significance": {
+            "significance": "major",
+            "event_type": "other",
+            "why_it_matters": "Keyword detected major event",
+            "confidence": 0.95,
+            "rule": "keyword"
+          }
+        },
+        "analysis_source": "minimax_fallback",
+        "long_analysis": "Top Wall Street forecasters revising Abbott expectations ahead of Q1 earnings suggests notable shifts in analyst sentiment regarding the company's near-term performance outlook. Such coordinated revision activity by leading forecasters typically indicates either updated guidance from management, changing macro conditions affecting healthcare demand, or emerging data on key product lines like medical devices and diagnostics. For a diversified healthcare company like Abbott, this could reflect dynamics across multiple business segments including nutrition, diagnostics, pharmaceuticals, or cardiovascular devices. The timing so close to earnings suggests material information may be influencing these forecast adjustments. This is direct company coverage for ABT.",
+        "confidence": 0.63,
+        "impact_horizon": "near_term",
+        "risk_direction": "neutral",
+        "scenario_summary": "Analyst forecast revisions by top forecasters signal changing market expectations for Abbott's Q1 performance, creating near-term valuation sensitivity pending earnings confirmation. This is direct company coverage for ABT.",
+        "key_implications": [
+          "Q1 earnings beat/miss probability has shifted based on revised expectations",
+          "Multiple business segments may be showing differentiated performance trends",
+          "Forward guidance adjustments may be signaled by forecast revision timing"
+        ],
+        "recommended_followups": [
+          "Monitor for specific forecast revision direction (upward vs downward) once article details are accessible",
+          "Track Abbott's specific business segment performance in medical devices, diagnostics, and nutrition",
+          "Compare Abbott's revision trend against peer healthcare companies for sector-wide versus company-specific signals"
+        ]
+      }
+    ],
+    "ticker_metadata": {
+      "id": "278a73d7-7378-4c67-83f4-3b0848f58942",
+      "ticker": "ABT",
+      "company_name": "Abbott Laboratories",
+      "asset_class": null,
+      "sector": "Health Care",
+      "industry": null,
+      "exchange": "NEW YORK STOCK EXCHANGE, INC.",
+      "market_cap": 174688234144.21143,
+      "market_cap_bucket": "high",
+      "float_shares": null,
+      "avg_daily_dollar_volume": 953533293.1,
+      "spread_proxy": 0.001,
+      "beta": 0.78056407,
+      "volatility_proxy": 0.1951410175,
+      "profitability_profile": "mixed",
+      "leverage_profile": "moderate",
+      "macro_sensitivity": null,
+      "structural_fragility": null,
+      "liquidity_risk": null,
+      "updated_at": "2026-04-13T20:15:15.577334+00:00",
+      "created_at": "2026-04-12T21:58:05.756473+00:00",
+      "pe_ratio": 26.7229,
+      "week_52_high": 139.06,
+      "week_52_low": 99.34,
+      "price": 100.69,
+      "price_as_of": "2026-04-13T20:15:15.453361+00:00",
+      "avg_volume": 9.46999,
+      "previous_close": 100.3,
+      "open_price": 100.125,
+      "day_high": 100.895,
+      "day_low": 99.05,
+      "last_price_source": "finnhub",
+      "is_supported": true
+    },
+    "macro_impact": {
+      "ticker": "ABT",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    }
+  }
+}

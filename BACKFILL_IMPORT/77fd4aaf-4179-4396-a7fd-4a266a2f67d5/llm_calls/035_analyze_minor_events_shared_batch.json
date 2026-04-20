@@ -1,0 +1,24 @@
+{
+  "sequence": 35,
+  "logged_at": "2026-04-14T10:36:35.245739+00:00",
+  "model": "MiniMax-M2.7",
+  "function_name": "chatcompletion_text",
+  "caller": {
+    "file": "/app/app/pipeline/agentic_scan.py",
+    "function": "analyze_minor_events_shared_batch",
+    "line": 229
+  },
+  "messages": [
+    {
+      "role": "user",
+      "content": "You are a portfolio risk analyst.\n\nGiven multiple news items, produce a reusable base analysis for each event without assuming a specific holder.\n\nNews items to analyze:\n[0] Title: MMM Stock Price, Quote & Chart | 3M CO (NYSE:MMM)\n    Summary: <a href=\"https://news.google.com/rss/articles/CBMiXkFVX3lxTE5IMXhxNnFSdVpIbFhFSFRra3M2ZHJIT1N4ZEYzeFlGR3dQeGtUSURRVVFNbzR1SGNZTFpXaGdDM3pMTExZeW9Ldm5EZXZoN2hoV3hldE1IaU9FS251dEE?oc=5\" target=\"_blank\">MMM Stock Price, Quote & Chart | 3M CO (NYSE:MMM)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">ChartMill</font>\n\nFor each news item above, return a JSON object with:\n- \"analysis_text\": \"2-4 sentence analysis\"\n- \"impact_horizon\": \"immediate|near_term|long_term\"\n- \"risk_direction\": \"improving|neutral|worsening\"\n- \"confidence\": 0.0-1.0\n- \"scenario_summary\": \"one sentence\"\n- \"key_implications\": [\"...\", \"...\"]\n- \"followup_notes\": [\"...\", \"...\"]\n\nReturn a JSON array with one object per news item in order."
+    }
+  ],
+  "kwargs": {
+    "temperature": 0.2,
+    "max_tokens": 2400
+  },
+  "response": "```json\n[\n  {\n    \"analysis_text\": \"The news item is a direct link to a stock price, quote, and chart page for 3M Co. (NYSE:MMM) on ChartMill, offering no new corporate announcements or fundamental developments. Consequently, the event is informational in nature and is unlikely to generate an immediate impact beyond normal price discovery. Investors should treat this as a neutral data point rather than a risk trigger.\",\n    \"impact_horizon\": \"immediate\",\n    \"risk_direction\": \"neutral\",\n    \"confidence\": 0.3,\n    \"scenario_summary\": \"The MMM price page provides current market data with no new fundamental drivers, resulting in a neutral risk outlook.\",\n    \"key_implications\": [\n      \"No immediate change to 3M's fundamentals or guidance.\",\n      \"Price movements likely driven by broader market sentiment rather than company-specific news.\",\n      \"Risk exposure for long\u2011term holders remains unchanged.\"\n    ],\n    \"followup_notes\": [\n      \"Monitor upcoming earnings releases and any guidance updates for 3M.\",\n      \"Track macro\u2011economic factors and sector\u2011wide developments affecting the industrial and materials industry.\",\n      \"Watch for any news regarding 3M's ongoing litigation, environmental issues, or regulatory actions that could shift the risk profile.\"\n    ]\n  }\n]\n```",
+  "error": null,
+  "duration_ms": 24629.38
+}

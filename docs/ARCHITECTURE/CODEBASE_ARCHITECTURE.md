@@ -454,7 +454,7 @@ Digest sections:
 - lead card with generated timestamp
 - What Changed
 - What Matters Today
-- What To Do
+- Monitoring Notes
 - Positions
 - expandable Full Narrative markdown section
 

@@ -1,0 +1,309 @@
+{
+  "structural_scores": {
+    "safety_score": 60,
+    "confidence": 0.75,
+    "structural_base_score": 60,
+    "macro_adjustment": 0.0,
+    "event_adjustment": 0.0,
+    "total_score": 60,
+    "grade": "C",
+    "factor_breakdown": {
+      "market_cap_bucket": "high",
+      "market_cap_contribution": 25.5,
+      "asset_class_contribution": 10.0,
+      "liquidity_score": 50,
+      "volatility_score": 45,
+      "leverage_score": 50,
+      "profitability_score": 50,
+      "macro_adjustment": 0.0,
+      "event_adjustment": 0.0,
+      "event_count": 3
+    },
+    "market_cap_bucket": "high",
+    "reasoning": "Structural: 60, Macro: 0.0, Event: 0.0",
+    "grade_reason": "Safety score 60 based on structural factors and adjustments",
+    "dimension_rationale": {
+      "structural_base_score": "Deterministic scoring from market cap, liquidity, volatility, leverage, profitability",
+      "macro_adjustment": "Regime neutral with None sensitivity",
+      "event_adjustment": "3 recent events contributing 0.0"
+    },
+    "mirofish_used": false
+  },
+  "ai_scores": {
+    "id": "786062a4-1859-4be6-b0b9-189777d41c32",
+    "user_id": "00000000-0000-0000-0000-000000000001",
+    "ticker": "MMM",
+    "shares": 0.0,
+    "purchase_price": 0.0,
+    "archetype": "growth",
+    "created_at": "2026-04-12T23:57:58.424725+00:00",
+    "updated_at": "2026-04-12T23:57:58.424725+00:00",
+    "current_price": 152.79,
+    "analysis_started_at": null,
+    "analysis_mode": "sp500_backfill",
+    "previous_grade": "C",
+    "previous_total_score": 53.8,
+    "summary": "3M (MMM) presents mixed signals with no active position held (0.0 shares), as minor insider buying by the Group President and a significant institutional stake increase by SG Americas Securities LLC indicate confidence in the company's strategic direction. However, the modest scale of open-market purchases and the single-institution nature of the recent buying limit immediate price impact. The growth label appears somewhat inconsistent with 3M's traditional defensive-industrial profile, suggesting potential thesis ambiguity that warrants clarification before establishing exposure.",
+    "long_report": "3M Company continues to attract selective institutional interest, with SG Americas Securities LLC boosting its position to represent a meaningful vote of confidence from a sophisticated market participant. This suggests potential undervaluation or belief in the company's ongoing turnaround initiatives. The Group President's open-market stock purchases, while modest in transaction size, signal management's alignment with shareholder interests and confidence in cost-cutting execution. However, the lack of clear macro read-through means company-specific catalysts\u2014such as operational restructuring outcomes, legal liabilities (particularly PFAS-related), and organic growth recovery\u2014will dominate the investment narrative. The growth classification for an industrial conglomerate like 3M may reflect optimistic scenario planning rather than current earnings trajectory. With zero shares held, the position appears to be in a pre-entry evaluation phase, with investors monitoring whether institutional accumulation translates into broader market recognition of value.",
+    "top_risks": [
+      "Ongoing PFAS and industrial chemical litigation liabilities could generate significant unexpected charges and cash outflows",
+      "Slow organic growth recovery in legacy industrial and consumer segments may disappoint growth-oriented investors",
+      "Turnaround execution risk if cost-cutting initiatives fail to offset pricing pressure and volume weakness"
+    ],
+    "watch_items": [
+      "Monitor for additional institutional accumulation or reduction to gauge sophisticated investor conviction shift",
+      "Track quarterly organic growth acceleration/deceleration as the primary metric for growth thesis validation",
+      "Watch for any PFAS litigation settlement framework or court rulings that could materially affect the liability outlook"
+    ],
+    "top_news": [
+      "3M (MMM) Group President makes series of small open-market stock buys",
+      "MMM Stock Price, Quote & Chart | 3M CO (NYSE:MMM)",
+      "SG Americas Securities LLC Boosts Stock Holdings in 3M Company $MMM"
+    ],
+    "inferred_labels": [
+      "growth"
+    ],
+    "methodology": "Analysis draws from three event sources: insider transaction filings indicating confidence signals, institutional 13F-equivalent data showing positioning by sophisticated investors, and general market data. Risk assessment applies a framework weighing the scale and source of each signal\u2014major institutional buying carries more weight than minor insider transactions\u2014while distinguishing between company-specific developments and broader macro dependencies. The growth label is evaluated against 3M's actual business mix as an industrial conglomerate with significant consumer and healthcare exposure.",
+    "mirofish_used": false,
+    "thesis_verifier": [],
+    "event_analyses": [
+      {
+        "analysis_run_id": "f8dd5653-0c3d-4017-b013-1369a3f0fbea",
+        "position_id": "786062a4-1859-4be6-b0b9-189777d41c32",
+        "event_hash": "056c3b580566f967e413e8321bdbbae788b846a33f6d5dfa1154254c69bacec8",
+        "external_event_id": "CBMinwFBVV95cUxPRlRhRlJWYThDMGlfbkFoZThwTTc3MlptS0huOUwxNDJ5aWFZUDlKRFQ5LUZWV2U3cmxKaC1JTzk3dkJST09jY2VTTWpsTlk4YmF5Mlg5dDRLSGN3anAtWGE3dXNxVFJsd0Z5RDJjWEJKMXg3ZnF4RFZncjQxZ3NCUDkyUGttYkhVcl9BeXFtV24tRG5yYVJUaWJ3M3o4X1U",
+        "title": "3M (MMM) Group President makes series of small open-market stock buys",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMinwFBVV95cUxPRlRhRlJWYThDMGlfbkFoZThwTTc3MlptS0huOUwxNDJ5aWFZUDlKRFQ5LUZWV2U3cmxKaC1JTzk3dkJST09jY2VTTWpsTlk4YmF5Mlg5dDRLSGN3anAtWGE3dXNxVFJsd0Z5RDJjWEJKMXg3ZnF4RFZncjQxZ3NCUDkyUGttYkhVcl9BeXFtV24tRG5yYVJUaWJ3M3o4X1U?oc=5\" target=\"_blank\">3M (MMM) Group President makes series of small open-market stock buys</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Stock Titan</font>",
+        "source": "Stock Titan",
+        "source_url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxPRlRhRlJWYThDMGlfbkFoZThwTTc3MlptS0huOUwxNDJ5aWFZUDlKRFQ5LUZWV2U3cmxKaC1JTzk3dkJST09jY2VTTWpsTlk4YmF5Mlg5dDRLSGN3anAtWGE3dXNxVFJsd0Z5RDJjWEJKMXg3ZnF4RFZncjQxZ3NCUDkyUGttYkhVcl9BeXFtV24tRG5yYVJUaWJ3M3o4X1U?oc=5",
+        "published_at": "2026-04-09T20:18:29+00:00",
+        "event_type": "management",
+        "significance": "minor",
+        "classification": {
+          "confidence": 0.82,
+          "event_type": "management",
+          "significance": "minor",
+          "why_it_matters": "Group President's small open-market stock buys are routine insider activity below the threshold for material significance."
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "MMM"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "Insider buying by 3M's Group President signals management confidence in the company's growth prospects, relevant for the growth archetype."
+          },
+          "significance": {
+            "confidence": 0.82,
+            "event_type": "management",
+            "significance": "minor",
+            "why_it_matters": "Group President's small open-market stock buys are routine insider activity below the threshold for material significance."
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "The open\u2011market purchase by 3M's Group President signals internal confidence in the company's strategic direction, but the transaction size is modest relative to typical trading volumes, limiting an immediate price impact. The timing aligns with recent cost\u2011cutting initiatives, which may provide a slight lift to investor sentiment in the near term. Overall, the market reaction is likely to be modest and short\u2011lived, with no strong catalyst emerging from this single trade. This is direct company coverage for MMM.",
+        "confidence": 0.53,
+        "impact_horizon": "near_term",
+        "risk_direction": "neutral",
+        "scenario_summary": "Insider purchase suggests optimism but limited market impact due to small transaction size. This is direct company coverage for MMM.",
+        "key_implications": [
+          "Executive confidence signals potential upside if future earnings meet expectations",
+          "Small purchase size limits immediate price influence and may not move the needle on its own",
+          "Investor sentiment may see a modest positive signal but lacks a strong catalyst"
+        ],
+        "recommended_followups": [
+          "Monitor subsequent insider transactions for larger purchases that could indicate stronger conviction",
+          "Track 3M's upcoming earnings reports and progress on cost\u2011cutting initiatives to gauge sustained impact",
+          "Watch broader market conditions that could either offset or amplify the modest positive signal"
+        ]
+      },
+      {
+        "analysis_run_id": "f8dd5653-0c3d-4017-b013-1369a3f0fbea",
+        "position_id": "786062a4-1859-4be6-b0b9-189777d41c32",
+        "event_hash": "735d4e62239414b211b08dc4181d7095853bf5528ea3903e89c10f7ce2a71b16",
+        "external_event_id": "CBMiXkFVX3lxTE5IMXhxNnFSdVpIbFhFSFRra3M2ZHJIT1N4ZEYzeFlGR3dQeGtUSURRVVFNbzR1SGNZTFpXaGdDM3pMTExZeW9Ldm5EZXZoN2hoV3hldE1IaU9FS251dEE",
+        "title": "MMM Stock Price, Quote & Chart | 3M CO (NYSE:MMM)",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiXkFVX3lxTE5IMXhxNnFSdVpIbFhFSFRra3M2ZHJIT1N4ZEYzeFlGR3dQeGtUSURRVVFNbzR1SGNZTFpXaGdDM3pMTExZeW9Ldm5EZXZoN2hoV3hldE1IaU9FS251dEE?oc=5\" target=\"_blank\">MMM Stock Price, Quote & Chart | 3M CO (NYSE:MMM)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">ChartMill</font>",
+        "source": "ChartMill",
+        "source_url": "https://news.google.com/rss/articles/CBMiXkFVX3lxTE5IMXhxNnFSdVpIbFhFSFRra3M2ZHJIT1N4ZEYzeFlGR3dQeGtUSURRVVFNbzR1SGNZTFpXaGdDM3pMTExZeW9Ldm5EZXZoN2hoV3hldE1IaU9FS251dEE?oc=5",
+        "published_at": "2026-04-10T07:00:00+00:00",
+        "event_type": "other",
+        "significance": "minor",
+        "classification": {
+          "confidence": 0.3,
+          "event_type": "other",
+          "significance": "minor",
+          "why_it_matters": "Classification unavailable."
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "MMM"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "This is just a stock quote/chart page with no actual news, analysis, or actionable information for portfolio decisions."
+          },
+          "significance": {
+            "confidence": 0.3,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "Classification unavailable."
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "The news item is a direct link to a stock price, quote, and chart page for 3M Co. (NYSE:MMM) on ChartMill, offering no new corporate announcements or fundamental developments. Consequently, the event is informational in nature and is unlikely to generate an immediate impact beyond normal price discovery. Investors should treat this as a neutral data point rather than a risk trigger. This is direct company coverage for MMM.",
+        "confidence": 0.38,
+        "impact_horizon": "immediate",
+        "risk_direction": "neutral",
+        "scenario_summary": "The MMM price page provides current market data with no new fundamental drivers, resulting in a neutral risk outlook. This is direct company coverage for MMM.",
+        "key_implications": [
+          "No immediate change to 3M's fundamentals or guidance.",
+          "Price movements likely driven by broader market sentiment rather than company-specific news.",
+          "Risk exposure for long\u2011term holders remains unchanged."
+        ],
+        "recommended_followups": [
+          "Monitor upcoming earnings releases and any guidance updates for 3M.",
+          "Track macro\u2011economic factors and sector\u2011wide developments affecting the industrial and materials industry.",
+          "Watch for any news regarding 3M's ongoing litigation, environmental issues, or regulatory actions that could shift the risk profile."
+        ]
+      },
+      {
+        "analysis_run_id": "f8dd5653-0c3d-4017-b013-1369a3f0fbea",
+        "position_id": "786062a4-1859-4be6-b0b9-189777d41c32",
+        "event_hash": "c0cc7865a779930bae22864c75efe4db5d344a9242acce3b8bb4c59d8d905f88",
+        "external_event_id": "CBMixgFBVV95cUxPMUVuUkluRTdUS2hQX3hkdmVuY2FKZmRKSjFMci1hTjIzMjFoSDlNd2VaSzlHRkNnR1RHUHk5UzZJRzBESE9SNzBOODhlMkNKWUQ1S3lvMmFmRUQ2MmN0cXR5T1RHZ3dBSW1jNnZVM2tZNk9NR3VRV2l3NWhpLS1FbGR2ZkFSQ1ZqcjQzOFg5VTlvTUlndXRFSFVka0NMU2ttT25jSUNPeGFSWjdCQmJrOG9fSWloVXItRlJ5aDU0X3FGbVNNLVE",
+        "title": "SG Americas Securities LLC Boosts Stock Holdings in 3M Company $MMM",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMixgFBVV95cUxPMUVuUkluRTdUS2hQX3hkdmVuY2FKZmRKSjFMci1hTjIzMjFoSDlNd2VaSzlHRkNnR1RHUHk5UzZJRzBESE9SNzBOODhlMkNKWUQ1S3lvMmFmRUQ2MmN0cXR5T1RHZ3dBSW1jNnZVM2tZNk9NR3VRV2l3NWhpLS1FbGR2ZkFSQ1ZqcjQzOFg5VTlvTUlndXRFSFVka0NMU2ttT25jSUNPeGFSWjdCQmJrOG9fSWloVXItRlJ5aDU0X3FGbVNNLVE?oc=5\" target=\"_blank\">SG Americas Securities LLC Boosts Stock Holdings in 3M Company $MMM</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">MarketBeat</font>",
+        "source": "MarketBeat",
+        "source_url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxPMUVuUkluRTdUS2hQX3hkdmVuY2FKZmRKSjFMci1hTjIzMjFoSDlNd2VaSzlHRkNnR1RHUHk5UzZJRzBESE9SNzBOODhlMkNKWUQ1S3lvMmFmRUQ2MmN0cXR5T1RHZ3dBSW1jNnZVM2tZNk9NR3VRV2l3NWhpLS1FbGR2ZkFSQ1ZqcjQzOFg5VTlvTUlndXRFSFVka0NMU2ttT25jSUNPeGFSWjdCQmJrOG9fSWloVXItRlJ5aDU0X3FGbVNNLVE?oc=5",
+        "published_at": "2026-03-25T07:00:00+00:00",
+        "event_type": "other",
+        "significance": "major",
+        "classification": {
+          "rule": "keyword",
+          "confidence": 0.95,
+          "event_type": "other",
+          "significance": "major",
+          "why_it_matters": "Keyword detected major event"
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "MMM"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "Institutional investor building stake in 3M signals confidence in the held position MMM."
+          },
+          "significance": {
+            "rule": "keyword",
+            "confidence": 0.95,
+            "event_type": "other",
+            "significance": "major",
+            "why_it_matters": "Keyword detected major event"
+          }
+        },
+        "analysis_source": "minimax_fallback",
+        "long_analysis": "SG Americas Securities LLC increasing its stake in 3M represents bullish positioning by a sophisticated institutional investor, suggesting potential undervaluation or confidence in the company's turnaround prospects. However, a single holder's decision to add shares reflects their specific risk tolerance and market view rather than fundamental business improvement. This type of institutional buying can provide near-term price support and signal market confidence, but shouldn't be interpreted as a definitive value indicator without corroborating evidence. The increased stake may also reflect portfolio rebalancing or sector rotation strategies unrelated to 3M's intrinsic outlook. This is direct company coverage for MMM.",
+        "confidence": 0.53,
+        "impact_horizon": "near_term",
+        "risk_direction": "neutral",
+        "scenario_summary": "Institutional buying signals short-term bullish positioning but lacks fundamental context to assess genuine value opportunity. This is direct company coverage for MMM.",
+        "key_implications": [
+          "Institutional confidence from SG Americas could signal near-term price support for MMM shares",
+          "One holder's action should be weighed against broader institutional sentiment and sentiment trends"
+        ],
+        "recommended_followups": [
+          "Monitor for other institutional filings showing similar positioning changes in 3M",
+          "Assess whether SG Americas' conviction is based on valuation metrics, earnings outlook, or catalyst expectations",
+          "Review the read-through against MMM's current labels: growth."
+        ]
+      }
+    ],
+    "ticker_metadata": {
+      "id": "1ba1eae4-7d68-4b64-8628-8e3b4a8c698f",
+      "ticker": "MMM",
+      "company_name": "3M Co",
+      "asset_class": null,
+      "sector": "Industrial Conglomerates",
+      "industry": null,
+      "exchange": "NEW YORK STOCK EXCHANGE, INC.",
+      "market_cap": 80474498786.54517,
+      "market_cap_bucket": "high",
+      "float_shares": null,
+      "avg_daily_dollar_volume": 404502357.59999996,
+      "spread_proxy": 0.001,
+      "beta": 1.0989659,
+      "volatility_proxy": 0.274741475,
+      "profitability_profile": "mixed",
+      "leverage_profile": "moderate",
+      "macro_sensitivity": null,
+      "structural_fragility": null,
+      "liquidity_risk": null,
+      "updated_at": "2026-04-14T10:53:24.064474+00:00",
+      "created_at": "2026-04-12T21:58:02.32943+00:00",
+      "pe_ratio": 24.3854,
+      "week_52_high": 177.41,
+      "week_52_low": 124.65,
+      "price": 152.79,
+      "price_as_of": "2026-04-14T10:53:24.062265+00:00",
+      "avg_volume": 2.64744,
+      "previous_close": 150.32,
+      "open_price": 149.93,
+      "day_high": 152.79,
+      "day_low": 148.7101,
+      "last_price_source": "finnhub",
+      "is_supported": true
+    },
+    "macro_impact": {
+      "ticker": "MMM",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    },
+    "news_sentiment": 65,
+    "macro_exposure": 55,
+    "position_sizing": null,
+    "thesis_risk": 55,
+    "volatility_trend": 50,
+    "total_score": 56.2,
+    "grade": "C",
+    "reasoning": "",
+    "grade_reason": "",
+    "evidence_summary": "3M (MMM) presents mixed signals with no active position held (0.0 shares), as minor insider buying by the Group President and a significant institutional stake increase by SG Americas Securities LLC indicate confidence in the company's strategic direction. However, the modest scale of open-market purchases and the single-institution nature of the recent buying limit immediate price impact. The growth label appears somewhat inconsistent with 3M's traditional defensive-industrial profile, suggesting potential thesis ambiguity that warrants clarification before establishing exposure.",
+    "dimension_rationale": {}
+  },
+  "risk_payload": {
+    "position_id": "786062a4-1859-4be6-b0b9-189777d41c32",
+    "analysis_run_id": "f8dd5653-0c3d-4017-b013-1369a3f0fbea",
+    "news_sentiment": 65,
+    "macro_exposure": 55,
+    "position_sizing": null,
+    "volatility_trend": 50,
+    "total_score": 56.2,
+    "safety_score": 60,
+    "confidence": 0.75,
+    "structural_base_score": 60,
+    "macro_adjustment": 0.0,
+    "event_adjustment": 0.0,
+    "factor_breakdown": {
+      "market_cap_bucket": "high",
+      "market_cap_contribution": 25.5,
+      "asset_class_contribution": 10.0,
+      "liquidity_score": 50,
+      "volatility_score": 45,
+      "leverage_score": 50,
+      "profitability_score": 50,
+      "macro_adjustment": 0.0,
+      "event_adjustment": 0.0,
+      "event_count": 3
+    },
+    "grade": "C",
+    "reasoning": "",
+    "grade_reason": "",
+    "evidence_summary": "3M (MMM) presents mixed signals with no active position held (0.0 shares), as minor insider buying by the Group President and a significant institutional stake increase by SG Americas Securities LLC indicate confidence in the company's strategic direction. However, the modest scale of open-market purchases and the single-institution nature of the recent buying limit immediate price impact. The growth label appears somewhat inconsistent with 3M's traditional defensive-industrial profile, suggesting potential thesis ambiguity that warrants clarification before establishing exposure.",
+    "dimension_rationale": {},
+    "mirofish_used": false
+  }
+}

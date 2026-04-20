@@ -6,6 +6,9 @@ options:
   xcodeVersion: "15.0"
   generateEmptyDirectories: true
 
+fileGroups:
+  - Clavis/Config
+
 settings:
   base:
     SWIFT_VERSION: "5.9"
@@ -28,6 +31,9 @@ targets:
       base:
         INFOPLIST_FILE: Clavis/Resources/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.clavisdev.portfolioassistant
+    configFiles:
+      Debug: Clavis/Config/Secrets.xcconfig
+      Release: Clavis/Config/Secrets.xcconfig
     resources:
       - path: Clavis/Resources/Fonts
     dependencies:

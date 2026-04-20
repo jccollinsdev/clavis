@@ -4,6 +4,7 @@ import SwiftUI
 @MainActor
 class HoldingsViewModel: ObservableObject {
     @Published var holdings: [Position] = []
+    @Published var watchlistItems: [WatchlistItem] = []
     @Published var isLoading = false
     @Published var isRefreshing = false
     @Published var errorMessage: String?
@@ -31,7 +32,11 @@ class HoldingsViewModel: ObservableObject {
         showError = false
 
         do {
-            holdings = try await api.fetchHoldings()
+            async let fetchedHoldings = api.fetchHoldings()
+            async let fetchedWatchlists = api.fetchWatchlists()
+            holdings = try await fetchedHoldings
+            let watchlists = try await fetchedWatchlists
+            watchlistItems = watchlists.first?.items ?? []
             lastRefreshedAt = Date()
         } catch is CancellationError {
             errorMessage = nil
@@ -66,14 +71,16 @@ class HoldingsViewModel: ObservableObject {
             )
             createdPositionId = createdPosition.id
             insertOrUpdateHolding(createdPosition)
-            progressMessage = "Analysis running in background..."
-            progressValue = 0.2
-
-            analysisTask?.cancel()
-            analysisTask = Task { [weak self] in
-                guard let self else { return }
-                await self.runAnalysisFlow()
-            }
+            progressMessage = "Loading cached ticker snapshot..."
+            progressValue = 0.75
+            await loadHoldings(showLoading: false)
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            progressMessage = "Position ready"
+            progressValue = 1.0
+            try? await Task.sleep(nanoseconds: 400_000_000)
+            showProgressSheet = false
+            pendingTicker = nil
+            createdPositionId = nil
         } catch {
             showProgressSheet = false
             progressValue = 0.0
@@ -126,6 +133,20 @@ class HoldingsViewModel: ObservableObject {
             errorMessage = "Failed to delete: \(error.localizedDescription)"
             showError = true
         }
+    }
+
+    func searchTickers(query: String) async throws -> [TickerSearchResult] {
+        try await api.searchTickers(query: query)
+    }
+
+    func addTickerToWatchlist(_ ticker: String) async throws {
+        let watchlist = try await api.addToWatchlist(ticker: ticker)
+        watchlistItems = watchlist.items
+    }
+
+    func removeTickerFromWatchlist(_ ticker: String) async throws {
+        let watchlist = try await api.removeFromWatchlist(ticker: ticker)
+        watchlistItems = watchlist.items
     }
 
     func pollAnalysisRun(runId: String) async {

@@ -7,17 +7,17 @@ from .analysis_utils import extract_json_object
 SYSTEM_PROMPT = """You write the Clavis morning portfolio digest for a self-directed investor.
 
 This is not a research note and not a market essay.
-It should feel like a sharp morning briefing that replaces the user's manual check-in.
+It should feel like a sharp morning briefing that summarizes current portfolio conditions.
 
 Core rules:
-- Focus on what changed, what matters, and what to do today.
+- Focus on what changed, what matters, and what is being observed today.
 - Only discuss the user's actual holdings.
 - Lead with the single most important portfolio takeaway.
 - Be concrete and decisive. Avoid analyst fluff, vague finance jargon, and generic macro commentary.
 - If only one position truly matters today, say that plainly.
 - For positions with no meaningful update, say "no material change" or "nothing urgent".
-- Make the advice proportional. Do not overdramatize stable names.
-- Start with macro, then the sectors the user actually owns, then position impact, then action.
+- Keep the language proportional. Do not overdramatize stable names.
+- Start with macro, then the sectors the user actually owns, then position impact, then monitoring notes.
 
 Return strict JSON with this shape:
 {
@@ -41,9 +41,12 @@ Return strict JSON with this shape:
     "what_matters_today": [
       {"catalyst": "...", "impacted_positions": ["..."], "urgency": "high|medium|low"}
     ],
+    "watchlist_alerts": [
+      "WATCHLIST ticker — major news or risk change"
+    ],
     "major_events": ["..."],
     "watch_list": ["..."],
-    "portfolio_advice": ["..."]
+    "monitoring_notes": ["..."]
   }
 }
 
@@ -57,15 +60,17 @@ Digest structure for content field:
 - Then a section titled: **Position Impacts** (how macro affects your holdings)
 - Then a section titled: **Portfolio Impact**
 - Then a section titled: **What Matters Today** (forward-looking catalysts)
+- Then a section titled: **Watchlist Alerts** (only if a watchlist name has real news or risk changes)
 - Then a section titled: **Per Position**
-- Then a section titled: **Bottom Line**
+- Then a section titled: **Monitoring Notes**
 - Keep the whole digest compact enough to scan in under a minute.
 - Under **Per Position**, cover each holding in descending order of urgency.
 - Each position entry should be 1-3 short sentences.
 - **Overnight Macro** should be brief if no significant macro happened; don't pad
 - **What Matters Today** should be specific: earnings, data releases, Fed speakers, etc.
-- **What To Do** should be a short checklist with ticker-specific guidance, not generic portfolio filler.
-- If a holding is fine, say "monitor only" in plain English and name the ticker.
+- **Watchlist Alerts** should only include watchlist names with real new information, and each line should be plain English.
+- **Monitoring Notes** should be a short checklist with ticker-specific observations, not generic portfolio filler.
+- If a holding is fine, say "no material change" in plain English and name the ticker.
 
 Voice:
 - Plain English
@@ -115,9 +120,9 @@ def _digest_date_context(now: datetime | None = None) -> dict[str, str | bool]:
     date_text = current.strftime("%B %-d, %Y")
     is_weekend = current.weekday() >= 5
     trading_note = (
-        "Weekend digest: markets are closed, so frame action for the next trading session."
+        "Weekend digest: markets are closed, so frame observations for the next trading session."
         if is_weekend
-        else "Trading day digest: keep guidance focused on today."
+        else "Trading day digest: keep observations focused on today."
     )
     return {
         "day": day,
@@ -230,23 +235,21 @@ def _build_portfolio_advice(
             or (previous_grade and previous_grade != grade)
         ):
             if ticker == "HIMS":
-                advice.append(f"{ticker}: review exposure after the latest risk read.")
+                advice.append(
+                    f"{ticker}: risk read remains elevated relative to the rest of the book."
+                )
             elif ticker == "GDX":
-                advice.append(f"{ticker}: keep exposure sized for macro swings.")
+                advice.append(f"{ticker}: macro sensitivity remains elevated.")
             elif ticker == "AAPL":
                 advice.append(
-                    f"{ticker}: stay invested, but watch for any follow-through in tech."
+                    f"{ticker}: tech follow-through remains a relevant backdrop."
                 )
             elif ticker == "SMCI":
-                advice.append(
-                    f"{ticker}: watch sizing closely; volatility still matters."
-                )
+                advice.append(f"{ticker}: volatility remains a major part of the read.")
             elif ticker == "HOOD":
-                advice.append(
-                    f"{ticker}: watch rates and risk appetite; reassess if sentiment flips."
-                )
+                advice.append(f"{ticker}: rates and risk appetite remain key context.")
             else:
-                advice.append(f"{ticker}: review exposure and risk now.")
+                advice.append(f"{ticker}: risk remains elevated or changed materially.")
 
     return advice[:5]
 
@@ -266,8 +269,7 @@ def _sanitize_portfolio_advice(items: list[str] | None) -> list[str]:
         if any(
             phrase in body_lower
             for phrase in [
-                "monitor only",
-                "no immediate action",
+                "no immediate change",
                 "no action",
                 "focus on",
                 "treat the rest",
@@ -279,9 +281,14 @@ def _sanitize_portfolio_advice(items: list[str] | None) -> list[str]:
 
 
 def _short_watch_item(position: dict) -> str:
+    watch_items = position.get("watch_items") or []
+    if watch_items:
+        item = str(watch_items[0]).strip().replace("_", " ")
+        if item:
+            return item[:140].rstrip(".")
     top_risks = position.get("top_risks") or []
     if not top_risks:
-        return "No urgent watch item."
+        return "No urgent change."
     item = str(top_risks[0]).strip()
     if len(item) > 140:
         item = item[:137].rstrip() + "..."
@@ -299,7 +306,9 @@ def _sector_overview_text(sector_context: dict | None) -> str:
     lines = ["Sector Overview:"]
     for sector in sector_overview[:8]:
         name = sector.get("sector", "unknown")
-        brief = sector.get("brief") or "No sector brief available."
+        brief = str(sector.get("brief") or "No sector brief available.").replace(
+            "_", " "
+        )
         lines.append(f"- {name}: {brief}")
     return "\n".join(lines)
 
@@ -315,7 +324,9 @@ def _macro_overview_text(macro_context: dict | None) -> str:
     lines.append(
         f"- Brief: {overnight_macro.get('brief', 'No significant overnight macro.')}"
     )
-    lines.append(f"- Themes: {', '.join(themes) if themes else 'none'}")
+    lines.append(
+        f"- Themes: {', '.join(theme.replace('_', ' ') for theme in themes) if themes else 'none'}"
+    )
     lines.append(f"- Headlines: {', '.join(headlines[:3]) if headlines else 'none'}")
     return "\n".join(lines)
 
@@ -355,6 +366,38 @@ def _what_matters_text(macro_context: dict | None) -> str:
     return "\n".join(lines)
 
 
+def _watchlist_alerts_text(watchlist_alerts: list[str] | None) -> str:
+    if not watchlist_alerts:
+        return ""
+
+    lines = ["Watchlist Alerts:"]
+    for item in watchlist_alerts[:6]:
+        text = str(item or "").strip().replace("_", " ")
+        if text:
+            lines.append(f"- {text}")
+    return "\n".join(lines) if len(lines) > 1 else ""
+
+
+def _sanitize_watch_list(items: list[str] | None) -> list[str]:
+    cleaned = []
+    for item in items or []:
+        text = str(item or "").strip().replace("_", " ")
+        if not text:
+            continue
+        cleaned.append(" ".join(text.split()))
+    return cleaned
+
+
+def _sanitize_watchlist_alerts(items: list[str] | None) -> list[str]:
+    cleaned = []
+    for item in items or []:
+        text = str(item or "").strip().replace("_", " ")
+        if not text:
+            continue
+        cleaned.append(" ".join(text.split()))
+    return cleaned
+
+
 def _position_urgency(position: dict) -> tuple[int, float]:
     grade = position.get("grade") or "C"
     priority = {"F": 5, "D": 4, "C": 3, "B": 2, "A": 1}.get(grade, 3)
@@ -367,7 +410,11 @@ def _position_urgency(position: dict) -> tuple[int, float]:
     return (priority + changed, -score)
 
 
-def _fallback_portfolio_digest(position_data: list[dict], overall_grade: str) -> dict:
+def _fallback_portfolio_digest(
+    position_data: list[dict],
+    overall_grade: str,
+    watchlist_alerts: list[str] | None = None,
+) -> dict:
     ranked_positions = sorted(position_data, key=_position_urgency, reverse=True)
     lead = ranked_positions[0] if ranked_positions else None
     date_context = _digest_date_context()
@@ -400,11 +447,26 @@ def _fallback_portfolio_digest(position_data: list[dict], overall_grade: str) ->
             f"**{ticker}** — {change_text}. {summary} Primary thing to watch: {risk_hint}"
         )
 
-    what_to_do_block = ""
+    monitoring_notes_block = ""
     if fallback_advice:
-        what_to_do_block = "**What To Do**\n" + "\n".join(
+        monitoring_notes_block = "**Monitoring Notes**\n" + "\n".join(
             f"- {item}" for item in fallback_advice
         )
+
+    watchlist_alerts_block = ""
+    fallback_watchlist_alerts = _sanitize_watchlist_alerts(watchlist_alerts)
+    if fallback_watchlist_alerts:
+        watchlist_alerts_block = "**Watchlist Alerts**\n" + "\n".join(
+            f"- {item}" for item in fallback_watchlist_alerts[:4]
+        )
+    elif ranked_positions:
+        alert_lines = []
+        for position in ranked_positions[:4]:
+            watch_item = _short_watch_item(position)
+            if watch_item:
+                alert_lines.append(f"- {position['ticker']} — {watch_item}")
+        if alert_lines:
+            watchlist_alerts_block = "**Watchlist Alerts**\n" + "\n".join(alert_lines)
 
     content_parts = [
         "**Morning Portfolio Digest**",
@@ -413,17 +475,19 @@ def _fallback_portfolio_digest(position_data: list[dict], overall_grade: str) ->
         "**Overnight Macro**\n- No overnight macro developments.",
         "**Sector Overview**\n- No sector-specific headlines available.",
         "**Position Impacts**\n- No macro position impacts available.",
-        "**Portfolio Impact**\n- Focus on the highest-urgency holding first.",
+        "**Portfolio Impact**\n- The highest-urgency holding is the main current change driver.",
     ]
-    if what_to_do_block:
-        content_parts.append(what_to_do_block)
+    if watchlist_alerts_block:
+        content_parts.append(watchlist_alerts_block)
+    if monitoring_notes_block:
+        content_parts.append(monitoring_notes_block)
     content_parts.extend(
         [
             "**Per Position**\n"
             + "\n\n".join(f"- {line}" for line in per_position_lines),
-            f"**Bottom Line**\nKeep your focus on {lead['ticker']} today."
+            f"**Bottom Line**\n{lead['ticker']} remains the highest-urgency holding today."
             if lead
-            else "**Bottom Line**\nKeep your focus on the riskiest holding today.",
+            else "**Bottom Line**\nThe riskiest holding is the main current change driver.",
         ]
     )
     content = "\n\n".join(content_parts)
@@ -441,6 +505,7 @@ def _fallback_portfolio_digest(position_data: list[dict], overall_grade: str) ->
             "position_impacts": fallback_impacts,
             "portfolio_impact": ["Focus on the highest-urgency holding first."],
             "what_matters_today": [],
+            "watchlist_alerts": fallback_watchlist_alerts,
             "major_events": [
                 f"{position['ticker']}: {_grade_change_text(position)}"
                 for position in ranked_positions[:3]
@@ -449,6 +514,7 @@ def _fallback_portfolio_digest(position_data: list[dict], overall_grade: str) ->
                 f"{position['ticker']}: {_short_watch_item(position)}"
                 for position in ranked_positions[:3]
             ],
+            "monitoring_notes": fallback_advice,
             "portfolio_advice": fallback_advice,
         },
     }
@@ -460,6 +526,8 @@ async def compile_portfolio_digest(
     portfolio_risk: dict | None = None,
     macro_context: dict | None = None,
     sector_context: dict | None = None,
+    watchlist_alerts: list[str] | None = None,
+    summary_length: str = "standard",
 ) -> dict:
     ranked_positions = sorted(position_data, key=_position_urgency, reverse=True)
     date_context = _digest_date_context()
@@ -488,6 +556,7 @@ Portfolio Risk Analysis:
     sector_info = _sector_overview_text(sector_context)
     position_impacts_info = _position_impacts_text(macro_context)
     what_matters_info = _what_matters_text(macro_context)
+    watchlist_alerts_info = _watchlist_alerts_text(watchlist_alerts)
 
     position_summary = "\n".join(
         [
@@ -502,8 +571,9 @@ Portfolio Risk Analysis:
                     f"  Previous grade: {position.get('previous_grade') or 'no change'}",
                     f"  Shares: {position.get('shares', 0)}",
                     f"  Summary: {position.get('summary') or 'No summary available.'}",
+                    f"  Watch items: {', '.join(str(item).replace('_', ' ') for item in position.get('watch_items', [])[:3]) or 'none'}",
                     f"  Top risks: {', '.join(position.get('top_risks', [])[:3]) or 'none'}",
-                    f"  Thesis verifier: {position.get('thesis_verifier', [])}",
+                    f"  Risk verifier: {position.get('thesis_verifier', [])}",
                 ]
             )
             for position in ranked_positions
@@ -527,29 +597,37 @@ Average portfolio safety score: {avg_safety:.1f}/100{portfolio_risk_info}{macro_
 {position_impacts_info}
 {portfolio_impact_text}
 {what_matters_info}
+{watchlist_alerts_info}
 
 Important instruction:
 - Lead with portfolio safety and what changed.
 - Decide which one or two holdings truly matter today.
 - If a holding is unchanged or low urgency, keep it brief.
-- Make the digest feel like a morning briefing for an investor who wants to know where to focus.
+- Make the digest feel like a morning briefing that states current conditions.
 - Prefer concrete language over polished market commentary.
 - If nothing changed in a name, say so in the simplest possible way.
 - Flag any concentration or cluster risks.
-- Use the overnight macro section to set context before diving into positions
-- Use the sector overview to show which groups are driving the tape for this portfolio
-- Use "what_matters_today" for forward-looking items (earnings, data releases, Fed speakers)
-- Emit the markdown content in this exact order: overall grade, overnight macro, sector overview, position impacts, portfolio impact, what matters today, per position, bottom line.
+- Use the overnight macro section to set context before diving into positions.
+- Use the sector overview to show which groups are driving the tape for this portfolio.
+- Use "what_matters_today" for forward-looking items (earnings, data releases, Fed speakers).
+- Use "watchlist_alerts" only for watchlist names that have real news or risk changes.
+- Base watchlist items on the article evidence already captured on each company, not generic market language.
+- Build "watch_list" from each holding's own watch items or news-driven changes first, then fall back to risk notes only if needed.
+- Keep watch list items concise and avoid repeating the same ticker or company name more than once.
+- Emit the markdown content in this exact order: overall grade, overnight macro, sector overview, position impacts, portfolio impact, what matters today, watchlist alerts, per position, monitoring notes.
 - Make "sector_overview" only cover the sectors the user actually owns.
 - Make "position_impacts" concise, ticker-specific, and risk-oriented.
-- Make "portfolio_advice" a short checklist with only the holdings that need action today.
-- Do not include holdings that do not need action.
-- If it is a weekend, frame the advice for the next trading session.
+- Make "monitoring_notes" a short checklist of factual notes for the holdings that matter most today.
+- Do not include holdings that do not have a meaningful change.
+- If it is a weekend, frame the observations for the next trading session.
 - Mention the day and date in the opening line.
 
 Positions:
 {position_summary}
 """
+
+    token_map = {"brief": 800, "standard": 1400, "detailed": 2200}
+    max_tokens = token_map.get(summary_length, 1400)
 
     try:
         result = chatcompletion_text(
@@ -558,12 +636,14 @@ Positions:
                 {"role": "user", "content": prompt},
             ],
             temperature=0.15,
-            max_tokens=1400,
+            max_tokens=max_tokens,
         )
         parsed = extract_json_object(result, {})
     except Exception:
         parsed = {}
-    fallback = _fallback_portfolio_digest(ranked_positions, overall_grade)
+    fallback = _fallback_portfolio_digest(
+        ranked_positions, overall_grade, watchlist_alerts=watchlist_alerts
+    )
     sections = parsed.get("sections") or {}
     normalized_sector_overview = _sanitize_sector_overview(
         sections.get("sector_overview")
@@ -575,12 +655,20 @@ Positions:
         ranked_positions,
         macro_context=macro_context,
     )
-    portfolio_advice = (
-        sections.get("portfolio_advice") or fallback["sections"]["portfolio_advice"]
+    normalized_watch_list = _sanitize_watch_list(
+        sections.get("watch_list") or fallback["sections"]["watch_list"]
     )
-    if not isinstance(portfolio_advice, list):
-        portfolio_advice = fallback["sections"]["portfolio_advice"]
-    portfolio_advice = _sanitize_portfolio_advice(portfolio_advice)
+    normalized_watchlist_alerts = _sanitize_watchlist_alerts(
+        sections.get("watchlist_alerts") or watchlist_alerts or []
+    )
+    monitoring_notes = (
+        sections.get("monitoring_notes")
+        or sections.get("portfolio_advice")
+        or fallback["sections"]["portfolio_advice"]
+    )
+    if not isinstance(monitoring_notes, list):
+        monitoring_notes = fallback["sections"]["portfolio_advice"]
+    monitoring_notes = _sanitize_portfolio_advice(monitoring_notes)
     return {
         "content": parsed.get("content")
         or parsed.get("overall_summary")
@@ -604,8 +692,12 @@ Positions:
             or [],
             "major_events": sections.get("major_events")
             or fallback["sections"]["major_events"],
-            "watch_list": sections.get("watch_list")
-            or fallback["sections"]["watch_list"],
-            "portfolio_advice": portfolio_advice,
+            "what_matters_today": sections.get("what_matters_today")
+            or fallback["sections"].get("what_matters_today")
+            or [],
+            "watchlist_alerts": normalized_watchlist_alerts,
+            "watch_list": normalized_watch_list,
+            "monitoring_notes": monitoring_notes,
+            "portfolio_advice": monitoring_notes,
         },
     }

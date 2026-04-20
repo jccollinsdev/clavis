@@ -5,19 +5,9 @@ struct PriceChartView: View {
     let ticker: String
     let prices: [PricePoint]
     var days: Int = 30
-    @State private var selectedDate: Date?
 
     private var chartPrices: [PricePoint] {
-        let sortedPrices = prices.sorted { $0.recordedAt < $1.recordedAt }
-        var latestByDay: [Date: PricePoint] = [:]
-        let calendar = Calendar.current
-
-        for point in sortedPrices {
-            let day = calendar.startOfDay(for: point.recordedAt)
-            latestByDay[day] = point
-        }
-
-        return latestByDay.keys.sorted().compactMap { latestByDay[$0] }
+        Array(prices.sorted { $0.recordedAt < $1.recordedAt }.suffix(days))
     }
 
     private var yRange: ClosedRange<Double>? {
@@ -28,15 +18,6 @@ struct PriceChartView: View {
         let lowerBound = Swift.max(0, low - padding)
         let upperBound = Swift.max(high, low + padding)
         return lowerBound...upperBound
-    }
-
-    private var selectedPoint: PricePoint? {
-        guard !chartPrices.isEmpty else { return nil }
-        guard let selectedDate else { return chartPrices.last }
-
-        return chartPrices.min(by: {
-            abs($0.recordedAt.timeIntervalSince(selectedDate)) < abs($1.recordedAt.timeIntervalSince(selectedDate))
-        })
     }
 
     var body: some View {
@@ -76,26 +57,11 @@ struct PriceChartView: View {
                     .interpolationMethod(.linear)
                     .lineStyle(StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
                     .foregroundStyle(priceDirectionColor.gradient)
-
-                    if point.id == selectedPoint?.id {
-                        PointMark(
-                            x: .value("Date", point.recordedAt),
-                            y: .value("Price", point.price)
-                        )
-                        .symbolSize(70)
-                        .foregroundStyle(priceDirectionColor)
-                    }
                 }
                 .chartYScale(domain: yRange ?? 0...100)
                 .chartXAxis(.hidden)
                 .chartYAxis(.hidden)
-                .chartXSelection(value: $selectedDate)
                 .frame(height: 220)
-                .contentShape(Rectangle())
-
-                Text("Drag or tap the chart to inspect a day.")
-                    .font(.caption)
-                    .foregroundColor(.textSecondary)
 
                 HStack {
                     VStack(alignment: .leading) {
@@ -119,10 +85,10 @@ struct PriceChartView: View {
                     }
                     Spacer()
                     VStack {
-                        Text(selectedPoint?.id == chartPrices.last?.id ? "Current" : "Selected")
+                        Text("Current")
                             .font(.caption)
                             .foregroundColor(.textSecondary)
-                        Text("$\(Int(selectedPoint?.price ?? chartPrices.last?.price ?? 0))")
+                        Text("$\(Int(chartPrices.last?.price ?? 0))")
                             .font(.caption)
                             .fontWeight(.semibold)
                             .foregroundColor(.textPrimary)

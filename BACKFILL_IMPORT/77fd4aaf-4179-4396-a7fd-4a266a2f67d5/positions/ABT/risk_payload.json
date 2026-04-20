@@ -1,0 +1,309 @@
+{
+  "structural_scores": {
+    "safety_score": 60,
+    "confidence": 0.8,
+    "structural_base_score": 60,
+    "macro_adjustment": 0.0,
+    "event_adjustment": 0.0,
+    "total_score": 60,
+    "grade": "C",
+    "factor_breakdown": {
+      "market_cap_bucket": "high",
+      "market_cap_contribution": 25.5,
+      "asset_class_contribution": 10.0,
+      "liquidity_score": 50,
+      "volatility_score": 48,
+      "leverage_score": 50,
+      "profitability_score": 50,
+      "macro_adjustment": 0.0,
+      "event_adjustment": 0.0,
+      "event_count": 3
+    },
+    "market_cap_bucket": "high",
+    "reasoning": "Structural: 60, Macro: 0.0, Event: 0.0",
+    "grade_reason": "Safety score 60 based on structural factors and adjustments",
+    "dimension_rationale": {
+      "structural_base_score": "Deterministic scoring from market cap, liquidity, volatility, leverage, profitability",
+      "macro_adjustment": "Regime neutral with None sensitivity",
+      "event_adjustment": "3 recent events contributing 0.0"
+    },
+    "mirofish_used": false
+  },
+  "ai_scores": {
+    "id": "2d4cf841-b6c2-4c21-a88d-87c7c996c3f4",
+    "user_id": "00000000-0000-0000-0000-000000000001",
+    "ticker": "ABT",
+    "shares": 0.0,
+    "purchase_price": 0.0,
+    "archetype": "growth",
+    "created_at": "2026-04-12T23:57:58.424725+00:00",
+    "updated_at": "2026-04-12T23:57:58.424725+00:00",
+    "current_price": 100.69,
+    "analysis_started_at": null,
+    "analysis_mode": "sp500_backfill",
+    "previous_grade": "D",
+    "previous_total_score": 43.8,
+    "summary": "Abbott Laboratories (ABT) shows stable technical conditions with the stock trading within recent ranges following a modest pullback, presenting a potential entry point for growth-oriented investors. The healthcare conglomerate benefits from a diversified business mix spanning diagnostics, medical devices, and established pharmaceuticals, though near-term catalysts appear limited without upcoming earnings triggers or sector-specific developments. The growth thesis hinges on whether recent weakness represents a temporary sentiment shift or a more fundamental reassessment of the company's growth trajectory.",
+    "long_report": "Abbott Laboratories is currently experiencing a period of consolidation after a recent share price pullback, with the stock trading in line with historical averages for both volume and volatility, suggesting institutional holders are neither aggressively accumulating nor reducing positions. The growth-oriented thesis for ABT centers on its diversified healthcare portfolio, which includes higher-growth segments like rapid diagnostics and medical devices alongside more stable revenue streams from established pharmaceutical products. Recent analyst commentary flagged the pullback as potentially creating value, though this view lacks confirmed thesis-changing conviction without stronger follow-through in fundamentals or institutional demand. The healthcare sector backdrop remains constructive but uneventful, with no specific policy or reimbursement tailwinds currently driving sector rotation into or out of medical conglomerates like ABT. Near-term visibility is likely dependent on upcoming quarterly earnings for confirmation of growth acceleration in key product lines, particularly in the diagnostics segment where comparisons may become more challenging. The zero-position context suggests this analysis supports a watch-and-wait approach pending clearer evidence of either resumed upward momentum or deeper value accumulation.",
+    "top_risks": [
+      "Diagnostics segment faces increasingly difficult year-over-year comparisons as post-pandemic demand normalization continues to pressure revenue growth rates",
+      "Medical device competition intensifying from larger peers and emerging med-tech entrants could limit pricing power in key product categories",
+      "Regulatory headwinds or reimbursement pressure in key markets could unexpectedly compress margins in established pharmaceutical or device businesses"
+    ],
+    "watch_items": [
+      "Q4 or next quarterly earnings release for confirmation of organic growth acceleration in higher-margin business segments",
+      "Management commentary on diagnostic segment demand trajectory and inventory dynamics",
+      "Healthcare policy developments that could impact Abbott's diverse product portfolio, particularly any changes to Medicare/Medicaid reimbursement",
+      "Technical breakout or breakdown from the current trading range as a signal for institutional positioning shifts"
+    ],
+    "top_news": [
+      "ABT Stock Price, Quote & Chart | ABBOTT LABORATORIES (NYSE:ABT)",
+      "Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback?",
+      "Is Abbott Laboratories (ABT) Offering Value After Recent Share Price Weakness?"
+    ],
+    "inferred_labels": [
+      "growth"
+    ],
+    "methodology": "This report synthesizes recent price action analysis, media commentary regarding the recent pullback, and sector-level context to assess the risk-reward setup for an ABT growth position. The growth thesis is evaluated against current technical conditions, with emphasis on whether recent weakness represents sentiment noise or early warning of fundamental concerns. Company-specific developments are weighted more heavily than macro given the limited overnight catalysts, consistent with the primary driver framework for large-cap healthcare holdings.",
+    "mirofish_used": false,
+    "thesis_verifier": [
+      {
+        "macro_event": "Overnight macro developments were limited with no significant policy shifts or economic surprises, and markets appeared calm across asset classes",
+        "thesis_impact": "neutral",
+        "reasoning": "Absence of macro catalysts means growth positioning in ABT will be driven by company-specific execution rather than macro tailwinds or headwinds"
+      }
+    ],
+    "event_analyses": [
+      {
+        "analysis_run_id": "77fd4aaf-4179-4396-a7fd-4a266a2f67d5",
+        "position_id": "2d4cf841-b6c2-4c21-a88d-87c7c996c3f4",
+        "event_hash": "ed395fdf22cf66410048fe60fa79897a9451b1945b5c6ca5e45fcd5d3f459abf",
+        "external_event_id": "CBMiXkFVX3lxTE91ZHpGQVZnVmtOVFpoemtmVThSd1B2RDhrbHE0N2tDQlo5ejBhUjZzLUozaGo0MUtjNVVjRk9ZVDd1SGVVLU5Fb3BVUEJXdVM5a19heTdDblNhN2h5Z1E",
+        "title": "ABT Stock Price, Quote & Chart | ABBOTT LABORATORIES (NYSE:ABT)",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiXkFVX3lxTE91ZHpGQVZnVmtOVFpoemtmVThSd1B2RDhrbHE0N2tDQlo5ejBhUjZzLUozaGo0MUtjNVVjRk9ZVDd1SGVVLU5Fb3BVUEJXdVM5a19heTdDblNhN2h5Z1E?oc=5\" target=\"_blank\">ABT Stock Price, Quote & Chart | ABBOTT LABORATORIES (NYSE:ABT)</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">ChartMill</font>",
+        "source": "ChartMill",
+        "source_url": "https://news.google.com/rss/articles/CBMiXkFVX3lxTE91ZHpGQVZnVmtOVFpoemtmVThSd1B2RDhrbHE0N2tDQlo5ejBhUjZzLUozaGo0MUtjNVVjRk9ZVDd1SGVVLU5Fb3BVUEJXdVM5a19heTdDblNhN2h5Z1E?oc=5",
+        "published_at": "2026-04-10T07:00:00+00:00",
+        "event_type": "other",
+        "significance": "minor",
+        "classification": {
+          "significance": "minor",
+          "event_type": "other",
+          "why_it_matters": "This is a stock price quote and chart page with no news content or corporate announcement.",
+          "confidence": 0.98
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "ABT"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "ABT stock price tracking provides current valuation data relevant to growth archetype positioning."
+          },
+          "significance": {
+            "significance": "minor",
+            "event_type": "other",
+            "why_it_matters": "This is a stock price quote and chart page with no news content or corporate announcement.",
+            "confidence": 0.98
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "The latest quote for Abbott Laboratories (ABT) reflects a price level consistent with recent trading ranges, with no major news driving acute moves. Volume and volatility metrics are in line with the stock's historical average, suggesting a stable market environment. The near\u2011term outlook is likely shaped by upcoming earnings releases and broader healthcare sector dynamics. This is direct company coverage for ABT.",
+        "confidence": 0.6799999999999999,
+        "impact_horizon": "near_term",
+        "risk_direction": "neutral",
+        "scenario_summary": "ABT shares are expected to trade within a narrow band as investors await catalysts. This is direct company coverage for ABT.",
+        "key_implications": [
+          "Current valuation is in line with historical averages, limiting immediate upside or downside.",
+          "Sector\u2011specific events (e.g., FDA decisions, earnings) could shift the risk profile.",
+          "Macro factors such as interest rates and healthcare policy will influence investor sentiment."
+        ],
+        "recommended_followups": [
+          "Monitor next earnings announcement for revenue guidance and product\u2011pipeline updates.",
+          "Track any FDA approvals or regulatory changes affecting Abbott\u2019s diagnostics or device segments.",
+          "Watch broader market sentiment and macroeconomic indicators for indirect impact."
+        ]
+      },
+      {
+        "analysis_run_id": "77fd4aaf-4179-4396-a7fd-4a266a2f67d5",
+        "position_id": "2d4cf841-b6c2-4c21-a88d-87c7c996c3f4",
+        "event_hash": "00199102b53f2778cc1b752999d56e52bda617eea6e047ddec6ae96bf6d65cac",
+        "external_event_id": "CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYklnRzdYQ19CaFJOM0dlUFpaOEMwUkhBN3k5UzQzTFZDdnl1blJrNHQzVHNQc0Y3WTRldkZndGk",
+        "title": "Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback?",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYklnRzdYQ19CaFJOM0dlUFpaOEMwUkhBN3k5UzQzTFZDdnl1blJrNHQzVHNQc0Y3WTRldkZndGk?oc=5\" target=\"_blank\">Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Finance</font>",
+        "source": "Yahoo Finance",
+        "source_url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYklnRzdYQ19CaFJOM0dlUFpaOEMwUkhBN3k5UzQzTFZDdnl1blJrNHQzVHNQc0Y3WTRldkZndGk?oc=5",
+        "published_at": "2026-04-11T00:24:00+00:00",
+        "event_type": "other",
+        "significance": "minor",
+        "classification": {
+          "confidence": 0.92,
+          "event_type": "other",
+          "significance": "minor",
+          "why_it_matters": "This is analyst commentary asking if ABT is attractive after a price pullback, not a material corporate announcement or catalyst."
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "ABT"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "Analysis of ABT after pullback directly addresses value assessment for growth archetype position."
+          },
+          "significance": {
+            "confidence": 0.92,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "This is analyst commentary asking if ABT is attractive after a price pullback, not a material corporate announcement or catalyst."
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback? <a href=\"https://news.google.com/rss/articles/CBMiqAFBVV95cUxPbWNvY0owcEdsNkxXTVFDVUNvdjhGYnh2cnlFajRqZ2VWWmlIX3FBTDVCb1FQRS1PYjVMVEFFVE9SSEpHczFiVVU0VzlnUUFzTWtEalk0V1dOT2pOTURtQzZwZmhXZmxMMU5OMGpKZUFfYkln This looks like a monitorable development rather than a confirmed thesis-changing catalyst without stronger follow-through. This is direct company coverage for ABT.",
+        "confidence": 0.53,
+        "impact_horizon": "near_term",
+        "risk_direction": "neutral",
+        "scenario_summary": "The event changes context more than it changes fundamentals at this stage. This is direct company coverage for ABT.",
+        "key_implications": [
+          "Track whether follow-on reporting changes the significance of 'Is Abbott Laboratories (ABT) Appealing After Recent Share Price Pullback?'."
+        ],
+        "recommended_followups": [
+          "Watch for management commentary, earnings, regulatory filings, or additional reporting that changes the fundamental read-through.",
+          "Review the read-through against ABT's current labels: growth."
+        ]
+      },
+      {
+        "analysis_run_id": "77fd4aaf-4179-4396-a7fd-4a266a2f67d5",
+        "position_id": "2d4cf841-b6c2-4c21-a88d-87c7c996c3f4",
+        "event_hash": "5ece00b917bf5cab3f121b595a7eaffa2cf424615e75e0028b805136f59df054",
+        "external_event_id": "CBMi0wFBVV95cUxPUzV5eUZ4WTg4aHpLTl9CMEJOQl9CMy0ybHdLOEcwcE5KOE5tQ25PRHptdlNINlBFYUZNM09sNHYyNkRMX3k3Z3ZlajhjZjRlVlR6akUwUXo0czdrNlJnb2tEdV9FZ3lHcXRNWEpyMXBXTzIteWNZRUJuYnRORTNHTTcxQWRfTGotM2dWWjE4TU51cy1SQ1BzSFEyZlh3SG9BYjFqem1RREd6RDUtLXlMbzBYdi1sWnFDSVpwSEVKUmpHWElYNE95NlZLaUdwSzhpWURj0gHYAUFVX3lxTE5BUmZGV3VhVmYtSzVENVpvalRobl91THV2M1N1VllScU1TNjZPOGM1M2h2eEpRWkpTTEZJajZhSGdNRFhkZVhzaTZVeTJmb2FVUnF0M0dLa3BYTm9xT3lMYVFTMkNPdlVOR0VKdkpIYzF2aEpOc2dlQnF4dkczUjkwb0oyV0RBN09rT2tVRUhnQU5TLU5JUnRlaEM1c1ozQzBCWFZjTWE3UFZTTENBTWFTRVZxTkNSQVd6OFptcUdTaEh2aE5pb1I0TlVNaGk5LTIxYVlDU0FDNQ",
+        "title": "Is Abbott Laboratories (ABT) Offering Value After Recent Share Price Weakness?",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMi0wFBVV95cUxPUzV5eUZ4WTg4aHpLTl9CMEJOQl9CMy0ybHdLOEcwcE5KOE5tQ25PRHptdlNINlBFYUZNM09sNHYyNkRMX3k3Z3ZlajhjZjRlVlR6akUwUXo0czdrNlJnb2tEdV9FZ3lHcXRNWEpyMXBXTzIteWNZRUJuYnRORTNHTTcxQWRfTGotM2dWWjE4TU51cy1SQ1BzSFEyZlh3SG9BYjFqem1RREd6RDUtLXlMbzBYdi1sWnFDSVpwSEVKUmpHWElYNE95NlZLaUdwSzhpWURj0gHYAUFVX3lxTE5BUmZGV3VhVmYtSzVENVpvalRobl91THV2M1N1VllScU1TNjZPOGM1M2h2eEpRWkpTTEZJajZhSGdNRFhkZVhzaTZVeTJmb2FVUnF0M0dLa3BYTm9xT3lMYVFTMkNPdlVOR0VKdkpIYzF2aEpOc2dlQnF4dkczUjkwb0oyV0RBN09rT2tVRUhnQU5TLU5JUnRlaEM1c1ozQzBCWFZjTWE3UFZTTENBTWFTRVZxTkNSQVd6OFptcUdTaEh2aE5pb1I0TlVNaGk5LTIxYVlDU0FDNQ?oc=5\" target=\"_blank\">Is Abbott Laboratories (ABT) Offering Value After Recent Share Price Weakness?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">simplywall.st</font>",
+        "source": "simplywall.st",
+        "source_url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxPUzV5eUZ4WTg4aHpLTl9CMEJOQl9CMy0ybHdLOEcwcE5KOE5tQ25PRHptdlNINlBFYUZNM09sNHYyNkRMX3k3Z3ZlajhjZjRlVlR6akUwUXo0czdrNlJnb2tEdV9FZ3lHcXRNWEpyMXBXTzIteWNZRUJuYnRORTNHTTcxQWRfTGotM2dWWjE4TU51cy1SQ1BzSFEyZlh3SG9BYjFqem1RREd6RDUtLXlMbzBYdi1sWnFDSVpwSEVKUmpHWElYNE95NlZLaUdwSzhpWURj0gHYAUFVX3lxTE5BUmZGV3VhVmYtSzVENVpvalRobl91THV2M1N1VllScU1TNjZPOGM1M2h2eEpRWkpTTEZJajZhSGdNRFhkZVhzaTZVeTJmb2FVUnF0M0dLa3BYTm9xT3lMYVFTMkNPdlVOR0VKdkpIYzF2aEpOc2dlQnF4dkczUjkwb0oyV0RBN09rT2tVRUhnQU5TLU5JUnRlaEM1c1ozQzBCWFZjTWE3UFZTTENBTWFTRVZxTkNSQVd6OFptcUdTaEh2aE5pb1I0TlVNaGk5LTIxYVlDU0FDNQ?oc=5",
+        "published_at": "2026-03-29T07:00:00+00:00",
+        "event_type": "other",
+        "significance": "minor",
+        "classification": {
+          "confidence": 0.9,
+          "event_type": "other",
+          "significance": "minor",
+          "why_it_matters": "Simply Wall St value analysis asking if Abbott Laboratories is undervalued after price weakness, not a rating change."
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "ABT"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "Value analysis after ABT weakness provides investment thesis evaluation for growth holding."
+          },
+          "significance": {
+            "confidence": 0.9,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "Simply Wall St value analysis asking if Abbott Laboratories is undervalued after price weakness, not a rating change."
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "Is Abbott Laboratories (ABT) Offering Value After Recent Share Price Weakness? <a href=\"https://news.google.com/rss/articles/CBMi0wFBVV95cUxPUzV5eUZ4WTg4aHpLTl9CMEJOQl9CMy0ybHdLOEcwcE5KOE5tQ25PRHptdlNINlBFYUZNM09sNHYyNkRMX3k3Z3ZlajhjZjRlVlR6akUwUXo0czdrNlJnb2tEdV9FZ3lHcXRNWEpyMXB This looks like a monitorable development rather than a confirmed thesis-changing catalyst without stronger follow-through. This is direct company coverage for ABT.",
+        "confidence": 0.53,
+        "impact_horizon": "near_term",
+        "risk_direction": "neutral",
+        "scenario_summary": "The event changes context more than it changes fundamentals at this stage. This is direct company coverage for ABT.",
+        "key_implications": [
+          "Track whether follow-on reporting changes the significance of 'Is Abbott Laboratories (ABT) Offering Value After Recent Share Price Weakness?'."
+        ],
+        "recommended_followups": [
+          "Watch for management commentary, earnings, regulatory filings, or additional reporting that changes the fundamental read-through.",
+          "Review the read-through against ABT's current labels: growth."
+        ]
+      }
+    ],
+    "ticker_metadata": {
+      "id": "278a73d7-7378-4c67-83f4-3b0848f58942",
+      "ticker": "ABT",
+      "company_name": "Abbott Laboratories",
+      "asset_class": null,
+      "sector": "Health Care",
+      "industry": null,
+      "exchange": "NEW YORK STOCK EXCHANGE, INC.",
+      "market_cap": 174688234144.21143,
+      "market_cap_bucket": "high",
+      "float_shares": null,
+      "avg_daily_dollar_volume": 953533293.1,
+      "spread_proxy": 0.001,
+      "beta": 0.78056407,
+      "volatility_proxy": 0.1951410175,
+      "profitability_profile": "mixed",
+      "leverage_profile": "moderate",
+      "macro_sensitivity": null,
+      "structural_fragility": null,
+      "liquidity_risk": null,
+      "updated_at": "2026-04-13T20:15:15.577334+00:00",
+      "created_at": "2026-04-12T21:58:05.756473+00:00",
+      "pe_ratio": 26.7229,
+      "week_52_high": 139.06,
+      "week_52_low": 99.34,
+      "price": 100.69,
+      "price_as_of": "2026-04-13T20:15:15.453361+00:00",
+      "avg_volume": 9.46999,
+      "previous_close": 100.3,
+      "open_price": 100.125,
+      "day_high": 100.895,
+      "day_low": 99.05,
+      "last_price_source": "finnhub",
+      "is_supported": true
+    },
+    "macro_impact": {
+      "ticker": "ABT",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    },
+    "news_sentiment": 52,
+    "macro_exposure": 65,
+    "position_sizing": null,
+    "thesis_risk": 70,
+    "volatility_trend": 52,
+    "total_score": 59.8,
+    "grade": "C",
+    "reasoning": "",
+    "grade_reason": "",
+    "evidence_summary": "Abbott Laboratories (ABT) shows stable technical conditions with the stock trading within recent ranges following a modest pullback, presenting a potential entry point for growth-oriented investors. The healthcare conglomerate benefits from a diversified business mix spanning diagnostics, medical devices, and established pharmaceuticals, though near-term catalysts appear limited without upcoming earnings triggers or sector-specific developments. The growth thesis hinges on whether recent weakness represents a temporary sentiment shift or a more fundamental reassessment of the company's growth trajectory.",
+    "dimension_rationale": {}
+  },
+  "risk_payload": {
+    "position_id": "2d4cf841-b6c2-4c21-a88d-87c7c996c3f4",
+    "analysis_run_id": "77fd4aaf-4179-4396-a7fd-4a266a2f67d5",
+    "news_sentiment": 52,
+    "macro_exposure": 65,
+    "position_sizing": null,
+    "volatility_trend": 52,
+    "total_score": 59.8,
+    "safety_score": 60,
+    "confidence": 0.8,
+    "structural_base_score": 60,
+    "macro_adjustment": 0.0,
+    "event_adjustment": 0.0,
+    "factor_breakdown": {
+      "market_cap_bucket": "high",
+      "market_cap_contribution": 25.5,
+      "asset_class_contribution": 10.0,
+      "liquidity_score": 50,
+      "volatility_score": 48,
+      "leverage_score": 50,
+      "profitability_score": 50,
+      "macro_adjustment": 0.0,
+      "event_adjustment": 0.0,
+      "event_count": 3
+    },
+    "grade": "C",
+    "reasoning": "",
+    "grade_reason": "",
+    "evidence_summary": "Abbott Laboratories (ABT) shows stable technical conditions with the stock trading within recent ranges following a modest pullback, presenting a potential entry point for growth-oriented investors. The healthcare conglomerate benefits from a diversified business mix spanning diagnostics, medical devices, and established pharmaceuticals, though near-term catalysts appear limited without upcoming earnings triggers or sector-specific developments. The growth thesis hinges on whether recent weakness represents a temporary sentiment shift or a more fundamental reassessment of the company's growth trajectory.",
+    "dimension_rationale": {},
+    "mirofish_used": false
+  }
+}

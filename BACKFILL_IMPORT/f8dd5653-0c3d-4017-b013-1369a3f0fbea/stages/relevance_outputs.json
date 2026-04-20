@@ -1,0 +1,307 @@
+{
+  "cached_count": 138,
+  "uncached_count": 9,
+  "results": [
+    {
+      "article_index": 0,
+      "relevant": false,
+      "affected_tickers": [],
+      "event_type": "irrelevant",
+      "why_it_matters": "Article is outside the recent evidence window",
+      "article": {
+        "external_id": "CBMirwFBVV95cUxNbTdZLWZfY0ExZzhwNHFkMHJKaERIbzNHNU9CZzIzbUNGSkdFdWNhNllhN3FtbjFGRERyS1VfYWpKai1wZm9BVkpOWGRKQnhPdHdfZ2NxLTdBaElta0NrN1MxWlRVd05IN3piWEpGTWtERlBlYllCQXFISUNCb3ZZRWVQZnlTTFlZYnFUOEJNeEtGbGpGSHVXc0FLTmdTeGJmaU5YLW9qbUdPWXNheW1B",
+        "event_hash": "f69681eee948cbfd886b37230a05336cad5154c49d17a1e7c45ea85d5cc39bb4",
+        "source_type": "company_news",
+        "source": "TIKR.com",
+        "title": "3M Shares Fall After Company Issues Weak Profit Forecast Amid Softening Consumer Demand",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMirwFBVV95cUxNbTdZLWZfY0ExZzhwNHFkMHJKaERIbzNHNU9CZzIzbUNGSkdFdWNhNllhN3FtbjFGRERyS1VfYWpKai1wZm9BVkpOWGRKQnhPdHdfZ2NxLTdBaElta0NrN1MxWlRVd05IN3piWEpGTWtERlBlYllCQXFISUNCb3ZZRWVQZnlTTFlZYnFUOEJNeEtGbGpGSHVXc0FLTmdTeGJmaU5YLW9qbUdPWXNheW1B?oc=5\" target=\"_blank\">3M Shares Fall After Company Issues Weak Profit Forecast Amid Softening Consumer Demand</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">TIKR.com</font>",
+        "body": "<a href=\"https://news.google.com/rss/articles/CBMirwFBVV95cUxNbTdZLWZfY0ExZzhwNHFkMHJKaERIbzNHNU9CZzIzbUNGSkdFdWNhNllhN3FtbjFGRERyS1VfYWpKai1wZm9BVkpOWGRKQnhPdHdfZ2NxLTdBaElta0NrN1MxWlRVd05IN3piWEpGTWtERlBlYllCQXFISUNCb3ZZRWVQZnlTTFlZYnFUOEJNeEtGbGpGSHVXc0FLTmdTeGJmaU5YLW9qbUdPWXNheW1B?oc=5\" target=\"_blank\">3M Shares Fall After Company Issues Weak Profit Forecast Amid Softening Consumer Demand</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">TIKR.com</font>",
+        "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxNbTdZLWZfY0ExZzhwNHFkMHJKaERIbzNHNU9CZzIzbUNGSkdFdWNhNllhN3FtbjFGRERyS1VfYWpKai1wZm9BVkpOWGRKQnhPdHdfZ2NxLTdBaElta0NrN1MxWlRVd05IN3piWEpGTWtERlBlYllCQXFISUNCb3ZZRWVQZnlTTFlZYnFUOEJNeEtGbGpGSHVXc0FLTmdTeGJmaU5YLW9qbUdPWXNheW1B?oc=5",
+        "published_at": "2026-01-20T08:00:00+00:00",
+        "ticker_hints": [
+          "MMM"
+        ],
+        "sector_hint": null,
+        "raw": {
+          "id": "CBMirwFBVV95cUxNbTdZLWZfY0ExZzhwNHFkMHJKaERIbzNHNU9CZzIzbUNGSkdFdWNhNllhN3FtbjFGRERyS1VfYWpKai1wZm9BVkpOWGRKQnhPdHdfZ2NxLTdBaElta0NrN1MxWlRVd05IN3piWEpGTWtERlBlYllCQXFISUNCb3ZZRWVQZnlTTFlZYnFUOEJNeEtGbGpGSHVXc0FLTmdTeGJmaU5YLW9qbUdPWXNheW1B",
+          "title": "3M Shares Fall After Company Issues Weak Profit Forecast Amid Softening Consumer Demand",
+          "source": "TIKR.com",
+          "source_url": "https://www.tikr.com",
+          "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxNbTdZLWZfY0ExZzhwNHFkMHJKaERIbzNHNU9CZzIzbUNGSkdFdWNhNllhN3FtbjFGRERyS1VfYWpKai1wZm9BVkpOWGRKQnhPdHdfZ2NxLTdBaElta0NrN1MxWlRVd05IN3piWEpGTWtERlBlYllCQXFISUNCb3ZZRWVQZnlTTFlZYnFUOEJNeEtGbGpGSHVXc0FLTmdTeGJmaU5YLW9qbUdPWXNheW1B?oc=5",
+          "published_at": "2026-01-20T08:00:00+00:00",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMirwFBVV95cUxNbTdZLWZfY0ExZzhwNHFkMHJKaERIbzNHNU9CZzIzbUNGSkdFdWNhNllhN3FtbjFGRERyS1VfYWpKai1wZm9BVkpOWGRKQnhPdHdfZ2NxLTdBaElta0NrN1MxWlRVd05IN3piWEpGTWtERlBlYllCQXFISUNCb3ZZRWVQZnlTTFlZYnFUOEJNeEtGbGpGSHVXc0FLTmdTeGJmaU5YLW9qbUdPWXNheW1B?oc=5\" target=\"_blank\">3M Shares Fall After Company Issues Weak Profit Forecast Amid Softening Consumer Demand</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">TIKR.com</font>",
+          "sector": null,
+          "source_type": "company_news",
+          "ticker": "MMM",
+          "company_name": "3M Co",
+          "query": "3M Co stock"
+        }
+      }
+    },
+    {
+      "article_index": 1,
+      "relevant": false,
+      "affected_tickers": [],
+      "event_type": "irrelevant",
+      "why_it_matters": "Article is outside the recent evidence window",
+      "article": {
+        "external_id": "CBMijAFBVV95cUxOaUY3NHJrNHVLTWhqRFVwaEw0TEpnYXRsZzhZMlRtX0lLXzNHam9LMUk0UE9tN3V0eXJYQWl0X2h0R2hOY3ZtallDTmtTdXNjVW5IMkZXOThfZUs2MUdkWlV3U1NFakFLeHJ3d2Fjc1puUHNwYmtENmxoVE1QNVAycy1BNFhpMWdwMVd6dg",
+        "event_hash": "22bc04f1b9791b5d7f470ab61b104aa1f606223933f9a31bb9868c7cf38516e2",
+        "source_type": "company_news",
+        "source": "Yahoo Finance",
+        "title": "How Is 3M Company's Stock Performance Compared to Other Industrial Stocks?",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMijAFBVV95cUxOaUY3NHJrNHVLTWhqRFVwaEw0TEpnYXRsZzhZMlRtX0lLXzNHam9LMUk0UE9tN3V0eXJYQWl0X2h0R2hOY3ZtallDTmtTdXNjVW5IMkZXOThfZUs2MUdkWlV3U1NFakFLeHJ3d2Fjc1puUHNwYmtENmxoVE1QNVAycy1BNFhpMWdwMVd6dg?oc=5\" target=\"_blank\">How Is 3M Company's Stock Performance Compared to Other Industrial Stocks?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Finance</font>",
+        "body": "<a href=\"https://news.google.com/rss/articles/CBMijAFBVV95cUxOaUY3NHJrNHVLTWhqRFVwaEw0TEpnYXRsZzhZMlRtX0lLXzNHam9LMUk0UE9tN3V0eXJYQWl0X2h0R2hOY3ZtallDTmtTdXNjVW5IMkZXOThfZUs2MUdkWlV3U1NFakFLeHJ3d2Fjc1puUHNwYmtENmxoVE1QNVAycy1BNFhpMWdwMVd6dg?oc=5\" target=\"_blank\">How Is 3M Company's Stock Performance Compared to Other Industrial Stocks?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Finance</font>",
+        "url": "https://news.google.com/rss/articles/CBMijAFBVV95cUxOaUY3NHJrNHVLTWhqRFVwaEw0TEpnYXRsZzhZMlRtX0lLXzNHam9LMUk0UE9tN3V0eXJYQWl0X2h0R2hOY3ZtallDTmtTdXNjVW5IMkZXOThfZUs2MUdkWlV3U1NFakFLeHJ3d2Fjc1puUHNwYmtENmxoVE1QNVAycy1BNFhpMWdwMVd6dg?oc=5",
+        "published_at": "2025-12-02T08:00:00+00:00",
+        "ticker_hints": [
+          "MMM"
+        ],
+        "sector_hint": null,
+        "raw": {
+          "id": "CBMijAFBVV95cUxOaUY3NHJrNHVLTWhqRFVwaEw0TEpnYXRsZzhZMlRtX0lLXzNHam9LMUk0UE9tN3V0eXJYQWl0X2h0R2hOY3ZtallDTmtTdXNjVW5IMkZXOThfZUs2MUdkWlV3U1NFakFLeHJ3d2Fjc1puUHNwYmtENmxoVE1QNVAycy1BNFhpMWdwMVd6dg",
+          "title": "How Is 3M Company's Stock Performance Compared to Other Industrial Stocks?",
+          "source": "Yahoo Finance",
+          "source_url": "https://finance.yahoo.com",
+          "url": "https://news.google.com/rss/articles/CBMijAFBVV95cUxOaUY3NHJrNHVLTWhqRFVwaEw0TEpnYXRsZzhZMlRtX0lLXzNHam9LMUk0UE9tN3V0eXJYQWl0X2h0R2hOY3ZtallDTmtTdXNjVW5IMkZXOThfZUs2MUdkWlV3U1NFakFLeHJ3d2Fjc1puUHNwYmtENmxoVE1QNVAycy1BNFhpMWdwMVd6dg?oc=5",
+          "published_at": "2025-12-02T08:00:00+00:00",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMijAFBVV95cUxOaUY3NHJrNHVLTWhqRFVwaEw0TEpnYXRsZzhZMlRtX0lLXzNHam9LMUk0UE9tN3V0eXJYQWl0X2h0R2hOY3ZtallDTmtTdXNjVW5IMkZXOThfZUs2MUdkWlV3U1NFakFLeHJ3d2Fjc1puUHNwYmtENmxoVE1QNVAycy1BNFhpMWdwMVd6dg?oc=5\" target=\"_blank\">How Is 3M Company's Stock Performance Compared to Other Industrial Stocks?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Finance</font>",
+          "sector": null,
+          "source_type": "company_news",
+          "ticker": "MMM",
+          "company_name": "3M Co",
+          "query": "3M Co stock"
+        }
+      }
+    },
+    {
+      "article_index": 2,
+      "relevant": false,
+      "affected_tickers": [],
+      "event_type": "irrelevant",
+      "why_it_matters": "Article is outside the recent evidence window",
+      "article": {
+        "external_id": "CBMivAFBVV95cUxPZTc2XzNsZUxEeGF6M0NwU1V6cURZSUlMSl9wVWNwdWFYV2VmRG5rcVo2YmdkTnVraVJrM1o0bnQtVFdzZmNxUllpQ2tqZUlrdnh2QVQ2d1h2TzFfN29vT05BY09OY2ZIZ2JST2w1TDJMMlUzUk83SUVkYWdHa0ZHUUJqNmQ4UEhySTN3NUthSWdvRGlmS0gtc1d4UElXcUtDdFJuY3NRZW93ZU9nRHduNXVBZWNpOG5PVzRMdA",
+        "event_hash": "bc6048bfe94c114fce6474837ddab761bb3d1449da5146469df33cb97b244f85",
+        "source_type": "company_news",
+        "source": "ChartMill",
+        "title": "3M CO (NYSE:MMM) Stock Falls on Mixed Q4 Results Despite Narrow EPS Beat",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMivAFBVV95cUxPZTc2XzNsZUxEeGF6M0NwU1V6cURZSUlMSl9wVWNwdWFYV2VmRG5rcVo2YmdkTnVraVJrM1o0bnQtVFdzZmNxUllpQ2tqZUlrdnh2QVQ2d1h2TzFfN29vT05BY09OY2ZIZ2JST2w1TDJMMlUzUk83SUVkYWdHa0ZHUUJqNmQ4UEhySTN3NUthSWdvRGlmS0gtc1d4UElXcUtDdFJuY3NRZW93ZU9nRHduNXVBZWNpOG5PVzRMdA?oc=5\" target=\"_blank\">3M CO (NYSE:MMM) Stock Falls on Mixed Q4 Results Despite Narrow EPS Beat</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">ChartMill</font>",
+        "body": "<a href=\"https://news.google.com/rss/articles/CBMivAFBVV95cUxPZTc2XzNsZUxEeGF6M0NwU1V6cURZSUlMSl9wVWNwdWFYV2VmRG5rcVo2YmdkTnVraVJrM1o0bnQtVFdzZmNxUllpQ2tqZUlrdnh2QVQ2d1h2TzFfN29vT05BY09OY2ZIZ2JST2w1TDJMMlUzUk83SUVkYWdHa0ZHUUJqNmQ4UEhySTN3NUthSWdvRGlmS0gtc1d4UElXcUtDdFJuY3NRZW93ZU9nRHduNXVBZWNpOG5PVzRMdA?oc=5\" target=\"_blank\">3M CO (NYSE:MMM) Stock Falls on Mixed Q4 Results Despite Narrow EPS Beat</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">ChartMill</font>",
+        "url": "https://news.google.com/rss/articles/CBMivAFBVV95cUxPZTc2XzNsZUxEeGF6M0NwU1V6cURZSUlMSl9wVWNwdWFYV2VmRG5rcVo2YmdkTnVraVJrM1o0bnQtVFdzZmNxUllpQ2tqZUlrdnh2QVQ2d1h2TzFfN29vT05BY09OY2ZIZ2JST2w1TDJMMlUzUk83SUVkYWdHa0ZHUUJqNmQ4UEhySTN3NUthSWdvRGlmS0gtc1d4UElXcUtDdFJuY3NRZW93ZU9nRHduNXVBZWNpOG5PVzRMdA?oc=5",
+        "published_at": "2026-01-20T08:00:00+00:00",
+        "ticker_hints": [
+          "MMM"
+        ],
+        "sector_hint": null,
+        "raw": {
+          "id": "CBMivAFBVV95cUxPZTc2XzNsZUxEeGF6M0NwU1V6cURZSUlMSl9wVWNwdWFYV2VmRG5rcVo2YmdkTnVraVJrM1o0bnQtVFdzZmNxUllpQ2tqZUlrdnh2QVQ2d1h2TzFfN29vT05BY09OY2ZIZ2JST2w1TDJMMlUzUk83SUVkYWdHa0ZHUUJqNmQ4UEhySTN3NUthSWdvRGlmS0gtc1d4UElXcUtDdFJuY3NRZW93ZU9nRHduNXVBZWNpOG5PVzRMdA",
+          "title": "3M CO (NYSE:MMM) Stock Falls on Mixed Q4 Results Despite Narrow EPS Beat",
+          "source": "ChartMill",
+          "source_url": "https://www.chartmill.com",
+          "url": "https://news.google.com/rss/articles/CBMivAFBVV95cUxPZTc2XzNsZUxEeGF6M0NwU1V6cURZSUlMSl9wVWNwdWFYV2VmRG5rcVo2YmdkTnVraVJrM1o0bnQtVFdzZmNxUllpQ2tqZUlrdnh2QVQ2d1h2TzFfN29vT05BY09OY2ZIZ2JST2w1TDJMMlUzUk83SUVkYWdHa0ZHUUJqNmQ4UEhySTN3NUthSWdvRGlmS0gtc1d4UElXcUtDdFJuY3NRZW93ZU9nRHduNXVBZWNpOG5PVzRMdA?oc=5",
+          "published_at": "2026-01-20T08:00:00+00:00",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMivAFBVV95cUxPZTc2XzNsZUxEeGF6M0NwU1V6cURZSUlMSl9wVWNwdWFYV2VmRG5rcVo2YmdkTnVraVJrM1o0bnQtVFdzZmNxUllpQ2tqZUlrdnh2QVQ2d1h2TzFfN29vT05BY09OY2ZIZ2JST2w1TDJMMlUzUk83SUVkYWdHa0ZHUUJqNmQ4UEhySTN3NUthSWdvRGlmS0gtc1d4UElXcUtDdFJuY3NRZW93ZU9nRHduNXVBZWNpOG5PVzRMdA?oc=5\" target=\"_blank\">3M CO (NYSE:MMM) Stock Falls on Mixed Q4 Results Despite Narrow EPS Beat</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">ChartMill</font>",
+          "sector": null,
+          "source_type": "company_news",
+          "ticker": "MMM",
+          "company_name": "3M Co",
+          "query": "3M Co stock"
+        }
+      }
+    },
+    {
+      "article_index": 3,
+      "relevant": false,
+      "affected_tickers": [],
+      "event_type": "irrelevant",
+      "why_it_matters": "Article concerns JPMorgan Chase performance unrelated to any held positions (ABBV, ABT, AOS, MMM).",
+      "article": {
+        "external_id": "108290551",
+        "event_hash": "3e64aa2cf49775ca37b20019a2029d5e07d74b169eaa757db112874dd610268b",
+        "source_type": "cnbc_sector_rss",
+        "source": "US Top News and Analysis",
+        "title": "JPMorgan Chase tops estimates on fixed income, investment banking as Wall Street hums",
+        "summary": "JPMorgan will give investors a view into how consumers and corporations fared at the start of this year as a trio of concerns weighed on markets.",
+        "body": "JPMorgan will give investors a view into how consumers and corporations fared at the start of this year as a trio of concerns weighed on markets.",
+        "url": "https://www.cnbc.com/2026/04/14/jpmorgan-chase-jpm-earnings-1q-2026.html",
+        "published_at": "2026-04-14T10:50:15+00:00",
+        "ticker_hints": [],
+        "sector_hint": "building",
+        "raw": {
+          "id": "108290551",
+          "title": "JPMorgan Chase tops estimates on fixed income, investment banking as Wall Street hums",
+          "source": "US Top News and Analysis",
+          "source_url": "",
+          "url": "https://www.cnbc.com/2026/04/14/jpmorgan-chase-jpm-earnings-1q-2026.html",
+          "published_at": "2026-04-14T10:50:15+00:00",
+          "summary": "JPMorgan will give investors a view into how consumers and corporations fared at the start of this year as a trio of concerns weighed on markets.",
+          "sector": "building",
+          "source_type": "cnbc_sector_rss"
+        }
+      }
+    },
+    {
+      "article_index": 4,
+      "relevant": false,
+      "affected_tickers": [],
+      "event_type": "irrelevant",
+      "why_it_matters": "Article concerns Democratic Party fundraising with no connection to held healthcare, medical device, water systems, or industrial positions.",
+      "article": {
+        "external_id": "108290619",
+        "event_hash": "54efc63347f800adc8453c5446edf8a256f08cd7601d316c996e606441c591ac",
+        "source_type": "cnbc_sector_rss",
+        "source": "US Top News and Analysis",
+        "title": "Democrats raised $500 million in Q1 from party's main fundraising platform",
+        "summary": "ActBlue, which raises small-dollar donations for Democrats and their causes, reported record first-quarter fundraising for a midterm election year.",
+        "body": "ActBlue, which raises small-dollar donations for Democrats and their causes, reported record first-quarter fundraising for a midterm election year.",
+        "url": "https://www.cnbc.com/2026/04/14/election-2026-democrats-fundraising-act-blue.html",
+        "published_at": "2026-04-14T10:00:01+00:00",
+        "ticker_hints": [],
+        "sector_hint": "building",
+        "raw": {
+          "id": "108290619",
+          "title": "Democrats raised $500 million in Q1 from party's main fundraising platform",
+          "source": "US Top News and Analysis",
+          "source_url": "",
+          "url": "https://www.cnbc.com/2026/04/14/election-2026-democrats-fundraising-act-blue.html",
+          "published_at": "2026-04-14T10:00:01+00:00",
+          "summary": "ActBlue, which raises small-dollar donations for Democrats and their causes, reported record first-quarter fundraising for a midterm election year.",
+          "sector": "building",
+          "source_type": "cnbc_sector_rss"
+        }
+      }
+    },
+    {
+      "article_index": 5,
+      "relevant": false,
+      "affected_tickers": [],
+      "event_type": "irrelevant",
+      "why_it_matters": "Article is outside the recent evidence window",
+      "article": {
+        "external_id": "CBMi7gFBVV95cUxQbDZaVmF1R0lKVnAtU3F1UkJYWE5YQTg1cTM3Yjd2WG1NeGZ5SHZBT3o2dGlqR21SR1NXeUViUkptd2s2WWl1YVVPU3JaU1Z4N0prRDVQbGxCS3YzR09sanhNQjNQNExSZ3puRVc0WWs2MW5MX3hGTlVzT1FkdS1YakJnWXpBdS1Xcl85YU42WEZ0NkRHdkNqTUg5eGRKZGxJb0Z3Z0JkdjlQWHNfSERwdm9BdUhxbEdTT200YzN2d1BYdnFWUWxfUERPSzN4b3c0YmVfb1d0anV1cXN5MWRTa0k4S0kxTW9DdGhUZkZ30gHzAUFVX3lxTE51TlljSnF2MjdTaElFVURfQlVsd05ZUVpXUkxDLXpNSjl3U1JFUzZ2RG80YzV5MWdZYVJHM3Y0WjVvN2hGT3hlaUNpbjRMSDM3NWVacFlfUlNRVG15b040RlFjdnhpaTFrTC13N3lWcm9icmQ2RE9SNXczaDNVa3pHMEpUdzhsaWY1VTVSdDNlMk5TRDJ4cXZ5MlVHQkZYRTFBSm5GT0FqVVZPTlFWMjVmbXRreEwzalhURnZDU2pqcE9EdUJNeHdzbnhTVnFFby1KbEdySmxzVmRnYWlsQzRMUW1RSmUyTktzb0pYY1phSElWVQ",
+        "event_hash": "d1a4be97ac4218939da750bc7755a8d35dcf7bf5b182fb422d370a43fa0e3ce2",
+        "source_type": "cnbc_sector_rss",
+        "source": "simplywall.st",
+        "title": "Earnings Working Against Pritika Auto Industries Limited's (NSE:PRITIKAUTO) Share Price - simplywall.st",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMi7gFBVV95cUxQbDZaVmF1R0lKVnAtU3F1UkJYWE5YQTg1cTM3Yjd2WG1NeGZ5SHZBT3o2dGlqR21SR1NXeUViUkptd2s2WWl1YVVPU3JaU1Z4N0prRDVQbGxCS3YzR09sanhNQjNQNExSZ3puRVc0WWs2MW5MX3hGTlVzT1FkdS1YakJnWXpBdS1Xcl85YU42WEZ0NkRHdkNqTUg5eGRKZGxJb0Z3Z0JkdjlQWHNfSERwdm9BdUhxbEdTT200YzN2d1BYdnFWUWxfUERPSzN4b3c0YmVfb1d0anV1cXN5MWRTa0k4S0kxTW9DdGhUZkZ30gHzAUFVX3lxTE51TlljSnF2MjdTaElFVURfQlVsd05ZUVpXUkxDLXpNSjl3U1JFUzZ2RG80YzV5MWdZYVJHM3Y0WjVvN2hGT3hlaUNpbjRMSDM3NWVacFlfUlNRVG15b040RlFjdnhpaTFrTC13N3lWcm9icmQ2RE9SNXczaDNVa3pHMEpUdzhsaWY1VTVSdDNlMk5TRDJ4cXZ5MlVHQkZYRTFBSm5GT0FqVVZPTlFWMjVmbXRreEwzalhURnZDU2pqcE9EdUJNeHdzbnhTVnFFby1KbEdySmxzVmRnYWlsQzRMUW1RSmUyTktzb0pYY1phSElWVQ?oc=5\" target=\"_blank\">Earnings Working Against Pritika Auto Industries Limited's (NSE:PRITIKAUTO) Share Price</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">simplywall.st</font>",
+        "body": "<a href=\"https://news.google.com/rss/articles/CBMi7gFBVV95cUxQbDZaVmF1R0lKVnAtU3F1UkJYWE5YQTg1cTM3Yjd2WG1NeGZ5SHZBT3o2dGlqR21SR1NXeUViUkptd2s2WWl1YVVPU3JaU1Z4N0prRDVQbGxCS3YzR09sanhNQjNQNExSZ3puRVc0WWs2MW5MX3hGTlVzT1FkdS1YakJnWXpBdS1Xcl85YU42WEZ0NkRHdkNqTUg5eGRKZGxJb0Z3Z0JkdjlQWHNfSERwdm9BdUhxbEdTT200YzN2d1BYdnFWUWxfUERPSzN4b3c0YmVfb1d0anV1cXN5MWRTa0k4S0kxTW9DdGhUZkZ30gHzAUFVX3lxTE51TlljSnF2MjdTaElFVURfQlVsd05ZUVpXUkxDLXpNSjl3U1JFUzZ2RG80YzV5MWdZYVJHM3Y0WjVvN2hGT3hlaUNpbjRMSDM3NWVacFlfUlNRVG15b040RlFjdnhpaTFrTC13N3lWcm9icmQ2RE9SNXczaDNVa3pHMEpUdzhsaWY1VTVSdDNlMk5TRDJ4cXZ5MlVHQkZYRTFBSm5GT0FqVVZPTlFWMjVmbXRreEwzalhURnZDU2pqcE9EdUJNeHdzbnhTVnFFby1KbEdySmxzVmRnYWlsQzRMUW1RSmUyTktzb0pYY1phSElWVQ?oc=5\" target=\"_blank\">Earnings Working Against Pritika Auto Industries Limited's (NSE:PRITIKAUTO) Share Price</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">simplywall.st</font>",
+        "url": "https://news.google.com/rss/articles/CBMi7gFBVV95cUxQbDZaVmF1R0lKVnAtU3F1UkJYWE5YQTg1cTM3Yjd2WG1NeGZ5SHZBT3o2dGlqR21SR1NXeUViUkptd2s2WWl1YVVPU3JaU1Z4N0prRDVQbGxCS3YzR09sanhNQjNQNExSZ3puRVc0WWs2MW5MX3hGTlVzT1FkdS1YakJnWXpBdS1Xcl85YU42WEZ0NkRHdkNqTUg5eGRKZGxJb0Z3Z0JkdjlQWHNfSERwdm9BdUhxbEdTT200YzN2d1BYdnFWUWxfUERPSzN4b3c0YmVfb1d0anV1cXN5MWRTa0k4S0kxTW9DdGhUZkZ30gHzAUFVX3lxTE51TlljSnF2MjdTaElFVURfQlVsd05ZUVpXUkxDLXpNSjl3U1JFUzZ2RG80YzV5MWdZYVJHM3Y0WjVvN2hGT3hlaUNpbjRMSDM3NWVacFlfUlNRVG15b040RlFjdnhpaTFrTC13N3lWcm9icmQ2RE9SNXczaDNVa3pHMEpUdzhsaWY1VTVSdDNlMk5TRDJ4cXZ5MlVHQkZYRTFBSm5GT0FqVVZPTlFWMjVmbXRreEwzalhURnZDU2pqcE9EdUJNeHdzbnhTVnFFby1KbEdySmxzVmRnYWlsQzRMUW1RSmUyTktzb0pYY1phSElWVQ?oc=5",
+        "published_at": "2026-02-10T08:00:00+00:00",
+        "ticker_hints": [],
+        "sector_hint": "industrialsautos",
+        "raw": {
+          "id": "CBMi7gFBVV95cUxQbDZaVmF1R0lKVnAtU3F1UkJYWE5YQTg1cTM3Yjd2WG1NeGZ5SHZBT3o2dGlqR21SR1NXeUViUkptd2s2WWl1YVVPU3JaU1Z4N0prRDVQbGxCS3YzR09sanhNQjNQNExSZ3puRVc0WWs2MW5MX3hGTlVzT1FkdS1YakJnWXpBdS1Xcl85YU42WEZ0NkRHdkNqTUg5eGRKZGxJb0Z3Z0JkdjlQWHNfSERwdm9BdUhxbEdTT200YzN2d1BYdnFWUWxfUERPSzN4b3c0YmVfb1d0anV1cXN5MWRTa0k4S0kxTW9DdGhUZkZ30gHzAUFVX3lxTE51TlljSnF2MjdTaElFVURfQlVsd05ZUVpXUkxDLXpNSjl3U1JFUzZ2RG80YzV5MWdZYVJHM3Y0WjVvN2hGT3hlaUNpbjRMSDM3NWVacFlfUlNRVG15b040RlFjdnhpaTFrTC13N3lWcm9icmQ2RE9SNXczaDNVa3pHMEpUdzhsaWY1VTVSdDNlMk5TRDJ4cXZ5MlVHQkZYRTFBSm5GT0FqVVZPTlFWMjVmbXRreEwzalhURnZDU2pqcE9EdUJNeHdzbnhTVnFFby1KbEdySmxzVmRnYWlsQzRMUW1RSmUyTktzb0pYY1phSElWVQ",
+          "title": "Earnings Working Against Pritika Auto Industries Limited's (NSE:PRITIKAUTO) Share Price - simplywall.st",
+          "source": "simplywall.st",
+          "source_url": "https://simplywall.st",
+          "url": "https://news.google.com/rss/articles/CBMi7gFBVV95cUxQbDZaVmF1R0lKVnAtU3F1UkJYWE5YQTg1cTM3Yjd2WG1NeGZ5SHZBT3o2dGlqR21SR1NXeUViUkptd2s2WWl1YVVPU3JaU1Z4N0prRDVQbGxCS3YzR09sanhNQjNQNExSZ3puRVc0WWs2MW5MX3hGTlVzT1FkdS1YakJnWXpBdS1Xcl85YU42WEZ0NkRHdkNqTUg5eGRKZGxJb0Z3Z0JkdjlQWHNfSERwdm9BdUhxbEdTT200YzN2d1BYdnFWUWxfUERPSzN4b3c0YmVfb1d0anV1cXN5MWRTa0k4S0kxTW9DdGhUZkZ30gHzAUFVX3lxTE51TlljSnF2MjdTaElFVURfQlVsd05ZUVpXUkxDLXpNSjl3U1JFUzZ2RG80YzV5MWdZYVJHM3Y0WjVvN2hGT3hlaUNpbjRMSDM3NWVacFlfUlNRVG15b040RlFjdnhpaTFrTC13N3lWcm9icmQ2RE9SNXczaDNVa3pHMEpUdzhsaWY1VTVSdDNlMk5TRDJ4cXZ5MlVHQkZYRTFBSm5GT0FqVVZPTlFWMjVmbXRreEwzalhURnZDU2pqcE9EdUJNeHdzbnhTVnFFby1KbEdySmxzVmRnYWlsQzRMUW1RSmUyTktzb0pYY1phSElWVQ?oc=5",
+          "published_at": "2026-02-10T08:00:00+00:00",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMi7gFBVV95cUxQbDZaVmF1R0lKVnAtU3F1UkJYWE5YQTg1cTM3Yjd2WG1NeGZ5SHZBT3o2dGlqR21SR1NXeUViUkptd2s2WWl1YVVPU3JaU1Z4N0prRDVQbGxCS3YzR09sanhNQjNQNExSZ3puRVc0WWs2MW5MX3hGTlVzT1FkdS1YakJnWXpBdS1Xcl85YU42WEZ0NkRHdkNqTUg5eGRKZGxJb0Z3Z0JkdjlQWHNfSERwdm9BdUhxbEdTT200YzN2d1BYdnFWUWxfUERPSzN4b3c0YmVfb1d0anV1cXN5MWRTa0k4S0kxTW9DdGhUZkZ30gHzAUFVX3lxTE51TlljSnF2MjdTaElFVURfQlVsd05ZUVpXUkxDLXpNSjl3U1JFUzZ2RG80YzV5MWdZYVJHM3Y0WjVvN2hGT3hlaUNpbjRMSDM3NWVacFlfUlNRVG15b040RlFjdnhpaTFrTC13N3lWcm9icmQ2RE9SNXczaDNVa3pHMEpUdzhsaWY1VTVSdDNlMk5TRDJ4cXZ5MlVHQkZYRTFBSm5GT0FqVVZPTlFWMjVmbXRreEwzalhURnZDU2pqcE9EdUJNeHdzbnhTVnFFby1KbEdySmxzVmRnYWlsQzRMUW1RSmUyTktzb0pYY1phSElWVQ?oc=5\" target=\"_blank\">Earnings Working Against Pritika Auto Industries Limited's (NSE:PRITIKAUTO) Share Price</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">simplywall.st</font>",
+          "sector": "industrialsautos",
+          "source_type": "google_sector_rss",
+          "query": "industrials autos stock market news"
+        }
+      }
+    },
+    {
+      "article_index": 6,
+      "relevant": false,
+      "affected_tickers": [],
+      "event_type": "irrelevant",
+      "why_it_matters": "Article is outside the recent evidence window",
+      "article": {
+        "external_id": "CBMi0wFBVV95cUxNV2F5QTlJaTJUS3BJTmZBNlBEbHBfTUZ4b25tTUdMelNLb3RhZ3dRLThvdGNScEZGeG1qWkpVTnNUOFJtcEVfZ0lHWmp2aDJWbi1tMmdWd091WjAzTkJPTk1YcnNra2pSVTlSSEFWbUxldDFJVEFuNFZwQjgtOHBfcndDbnBxdFllTjBvN1ktenozUHctalUwazZjSlFXWHBseGkwaUViRW9UZk5hUGRhZ2tjLVQxbnJLZG12dnc1TjhENUcxX09pQ2N2Q0dhMmR1QWgw",
+        "event_hash": "5e11307fbdcb50776df7e76bbdcdac9e840edf71a2a4eefed43e4ae526755c87",
+        "source_type": "cnbc_sector_rss",
+        "source": "Markets Mojo",
+        "title": "Jamna Auto Industries Ltd Hits Intraday Low Amid Price Pressure on 9 March 2026 - Markets Mojo",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMi0wFBVV95cUxNV2F5QTlJaTJUS3BJTmZBNlBEbHBfTUZ4b25tTUdMelNLb3RhZ3dRLThvdGNScEZGeG1qWkpVTnNUOFJtcEVfZ0lHWmp2aDJWbi1tMmdWd091WjAzTkJPTk1YcnNra2pSVTlSSEFWbUxldDFJVEFuNFZwQjgtOHBfcndDbnBxdFllTjBvN1ktenozUHctalUwazZjSlFXWHBseGkwaUViRW9UZk5hUGRhZ2tjLVQxbnJLZG12dnc1TjhENUcxX09pQ2N2Q0dhMmR1QWgw?oc=5\" target=\"_blank\">Jamna Auto Industries Ltd Hits Intraday Low Amid Price Pressure on 9 March 2026</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Markets Mojo</font>",
+        "body": "<a href=\"https://news.google.com/rss/articles/CBMi0wFBVV95cUxNV2F5QTlJaTJUS3BJTmZBNlBEbHBfTUZ4b25tTUdMelNLb3RhZ3dRLThvdGNScEZGeG1qWkpVTnNUOFJtcEVfZ0lHWmp2aDJWbi1tMmdWd091WjAzTkJPTk1YcnNra2pSVTlSSEFWbUxldDFJVEFuNFZwQjgtOHBfcndDbnBxdFllTjBvN1ktenozUHctalUwazZjSlFXWHBseGkwaUViRW9UZk5hUGRhZ2tjLVQxbnJLZG12dnc1TjhENUcxX09pQ2N2Q0dhMmR1QWgw?oc=5\" target=\"_blank\">Jamna Auto Industries Ltd Hits Intraday Low Amid Price Pressure on 9 March 2026</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Markets Mojo</font>",
+        "url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxNV2F5QTlJaTJUS3BJTmZBNlBEbHBfTUZ4b25tTUdMelNLb3RhZ3dRLThvdGNScEZGeG1qWkpVTnNUOFJtcEVfZ0lHWmp2aDJWbi1tMmdWd091WjAzTkJPTk1YcnNra2pSVTlSSEFWbUxldDFJVEFuNFZwQjgtOHBfcndDbnBxdFllTjBvN1ktenozUHctalUwazZjSlFXWHBseGkwaUViRW9UZk5hUGRhZ2tjLVQxbnJLZG12dnc1TjhENUcxX09pQ2N2Q0dhMmR1QWgw?oc=5",
+        "published_at": "2026-03-09T07:00:00+00:00",
+        "ticker_hints": [],
+        "sector_hint": "industrialsautos",
+        "raw": {
+          "id": "CBMi0wFBVV95cUxNV2F5QTlJaTJUS3BJTmZBNlBEbHBfTUZ4b25tTUdMelNLb3RhZ3dRLThvdGNScEZGeG1qWkpVTnNUOFJtcEVfZ0lHWmp2aDJWbi1tMmdWd091WjAzTkJPTk1YcnNra2pSVTlSSEFWbUxldDFJVEFuNFZwQjgtOHBfcndDbnBxdFllTjBvN1ktenozUHctalUwazZjSlFXWHBseGkwaUViRW9UZk5hUGRhZ2tjLVQxbnJLZG12dnc1TjhENUcxX09pQ2N2Q0dhMmR1QWgw",
+          "title": "Jamna Auto Industries Ltd Hits Intraday Low Amid Price Pressure on 9 March 2026 - Markets Mojo",
+          "source": "Markets Mojo",
+          "source_url": "https://www.marketsmojo.com",
+          "url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxNV2F5QTlJaTJUS3BJTmZBNlBEbHBfTUZ4b25tTUdMelNLb3RhZ3dRLThvdGNScEZGeG1qWkpVTnNUOFJtcEVfZ0lHWmp2aDJWbi1tMmdWd091WjAzTkJPTk1YcnNra2pSVTlSSEFWbUxldDFJVEFuNFZwQjgtOHBfcndDbnBxdFllTjBvN1ktenozUHctalUwazZjSlFXWHBseGkwaUViRW9UZk5hUGRhZ2tjLVQxbnJLZG12dnc1TjhENUcxX09pQ2N2Q0dhMmR1QWgw?oc=5",
+          "published_at": "2026-03-09T07:00:00+00:00",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMi0wFBVV95cUxNV2F5QTlJaTJUS3BJTmZBNlBEbHBfTUZ4b25tTUdMelNLb3RhZ3dRLThvdGNScEZGeG1qWkpVTnNUOFJtcEVfZ0lHWmp2aDJWbi1tMmdWd091WjAzTkJPTk1YcnNra2pSVTlSSEFWbUxldDFJVEFuNFZwQjgtOHBfcndDbnBxdFllTjBvN1ktenozUHctalUwazZjSlFXWHBseGkwaUViRW9UZk5hUGRhZ2tjLVQxbnJLZG12dnc1TjhENUcxX09pQ2N2Q0dhMmR1QWgw?oc=5\" target=\"_blank\">Jamna Auto Industries Ltd Hits Intraday Low Amid Price Pressure on 9 March 2026</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Markets Mojo</font>",
+          "sector": "industrialsautos",
+          "source_type": "google_sector_rss",
+          "query": "industrials autos stock market news"
+        }
+      }
+    },
+    {
+      "article_index": 7,
+      "relevant": true,
+      "affected_tickers": [
+        "ABBV",
+        "ABT"
+      ],
+      "event_type": "sector",
+      "why_it_matters": "Healthcare sector momentum is a positive catalyst for ABBV and ABT, both growth-archetype healthcare holdings.",
+      "article": {
+        "external_id": "CBMiqgFBVV95cUxQX3BjS081d2R6NkJUek1SekpTVFhjclBFOGhrVXRtR0c4UUF1ZmdraGw1YWpzY3dwUkRNd1pNSGhLY3VMdVpwM0NqaXg3bmFsbl91MzB4SUtNLWhkalJXSHZZU0FVNVU3a3RtQVJodlcwdUZUSWdCQzV6Ym4wZGJnNHZFMkVlVHJETWRCMm0zR1VqNl93Z3R0UTdtRlZOUlVUaDJjT0k2cnZjZ9IBrwFBVV95cUxNODZBV2NROXFNaUtEN011NE90RTRqMkdxVXhFMGVCRWlDODdlbmwxdS1XR0tRS2owNTBydmlvejdMSjUya0FXUmY4d0dfdENrdVhqNDJrZW1QRkhUT3JPaVRZamNWZi1UczFUcmpULU1WNmlRRndPdXcwWEhqaU10LTJiaEFPdDk5blg0SzhER3gyV2F0eFZMQVVXUzBUdVZHN1pQRUpHd2F3eHJIQU40",
+        "event_hash": "2e1b2c5df6a341287d4e6231ba5545ee56e8096b29341df109589d191b92926b",
+        "source_type": "cnbc_sector_rss",
+        "source": "investingLive",
+        "title": "Healthcare sector surges while tech faces pressure - investingLive",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiqgFBVV95cUxQX3BjS081d2R6NkJUek1SekpTVFhjclBFOGhrVXRtR0c4UUF1ZmdraGw1YWpzY3dwUkRNd1pNSGhLY3VMdVpwM0NqaXg3bmFsbl91MzB4SUtNLWhkalJXSHZZU0FVNVU3a3RtQVJodlcwdUZUSWdCQzV6Ym4wZGJnNHZFMkVlVHJETWRCMm0zR1VqNl93Z3R0UTdtRlZOUlVUaDJjT0k2cnZjZ9IBrwFBVV95cUxNODZBV2NROXFNaUtEN011NE90RTRqMkdxVXhFMGVCRWlDODdlbmwxdS1XR0tRS2owNTBydmlvejdMSjUya0FXUmY4d0dfdENrdVhqNDJrZW1QRkhUT3JPaVRZamNWZi1UczFUcmpULU1WNmlRRndPdXcwWEhqaU10LTJiaEFPdDk5blg0SzhER3gyV2F0eFZMQVVXUzBUdVZHN1pQRUpHd2F3eHJIQU40?oc=5\" target=\"_blank\">Healthcare sector surges while tech faces pressure</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">investingLive</font>",
+        "body": "<a href=\"https://news.google.com/rss/articles/CBMiqgFBVV95cUxQX3BjS081d2R6NkJUek1SekpTVFhjclBFOGhrVXRtR0c4UUF1ZmdraGw1YWpzY3dwUkRNd1pNSGhLY3VMdVpwM0NqaXg3bmFsbl91MzB4SUtNLWhkalJXSHZZU0FVNVU3a3RtQVJodlcwdUZUSWdCQzV6Ym4wZGJnNHZFMkVlVHJETWRCMm0zR1VqNl93Z3R0UTdtRlZOUlVUaDJjT0k2cnZjZ9IBrwFBVV95cUxNODZBV2NROXFNaUtEN011NE90RTRqMkdxVXhFMGVCRWlDODdlbmwxdS1XR0tRS2owNTBydmlvejdMSjUya0FXUmY4d0dfdENrdVhqNDJrZW1QRkhUT3JPaVRZamNWZi1UczFUcmpULU1WNmlRRndPdXcwWEhqaU10LTJiaEFPdDk5blg0SzhER3gyV2F0eFZMQVVXUzBUdVZHN1pQRUpHd2F3eHJIQU40?oc=5\" target=\"_blank\">Healthcare sector surges while tech faces pressure</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">investingLive</font>",
+        "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxQX3BjS081d2R6NkJUek1SekpTVFhjclBFOGhrVXRtR0c4UUF1ZmdraGw1YWpzY3dwUkRNd1pNSGhLY3VMdVpwM0NqaXg3bmFsbl91MzB4SUtNLWhkalJXSHZZU0FVNVU3a3RtQVJodlcwdUZUSWdCQzV6Ym4wZGJnNHZFMkVlVHJETWRCMm0zR1VqNl93Z3R0UTdtRlZOUlVUaDJjT0k2cnZjZ9IBrwFBVV95cUxNODZBV2NROXFNaUtEN011NE90RTRqMkdxVXhFMGVCRWlDODdlbmwxdS1XR0tRS2owNTBydmlvejdMSjUya0FXUmY4d0dfdENrdVhqNDJrZW1QRkhUT3JPaVRZamNWZi1UczFUcmpULU1WNmlRRndPdXcwWEhqaU10LTJiaEFPdDk5blg0SzhER3gyV2F0eFZMQVVXUzBUdVZHN1pQRUpHd2F3eHJIQU40?oc=5",
+        "published_at": "2026-04-07T14:46:09+00:00",
+        "ticker_hints": [],
+        "sector_hint": "healthcare",
+        "raw": {
+          "id": "CBMiqgFBVV95cUxQX3BjS081d2R6NkJUek1SekpTVFhjclBFOGhrVXRtR0c4UUF1ZmdraGw1YWpzY3dwUkRNd1pNSGhLY3VMdVpwM0NqaXg3bmFsbl91MzB4SUtNLWhkalJXSHZZU0FVNVU3a3RtQVJodlcwdUZUSWdCQzV6Ym4wZGJnNHZFMkVlVHJETWRCMm0zR1VqNl93Z3R0UTdtRlZOUlVUaDJjT0k2cnZjZ9IBrwFBVV95cUxNODZBV2NROXFNaUtEN011NE90RTRqMkdxVXhFMGVCRWlDODdlbmwxdS1XR0tRS2owNTBydmlvejdMSjUya0FXUmY4d0dfdENrdVhqNDJrZW1QRkhUT3JPaVRZamNWZi1UczFUcmpULU1WNmlRRndPdXcwWEhqaU10LTJiaEFPdDk5blg0SzhER3gyV2F0eFZMQVVXUzBUdVZHN1pQRUpHd2F3eHJIQU40",
+          "title": "Healthcare sector surges while tech faces pressure - investingLive",
+          "source": "investingLive",
+          "source_url": "https://investinglive.com",
+          "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxQX3BjS081d2R6NkJUek1SekpTVFhjclBFOGhrVXRtR0c4UUF1ZmdraGw1YWpzY3dwUkRNd1pNSGhLY3VMdVpwM0NqaXg3bmFsbl91MzB4SUtNLWhkalJXSHZZU0FVNVU3a3RtQVJodlcwdUZUSWdCQzV6Ym4wZGJnNHZFMkVlVHJETWRCMm0zR1VqNl93Z3R0UTdtRlZOUlVUaDJjT0k2cnZjZ9IBrwFBVV95cUxNODZBV2NROXFNaUtEN011NE90RTRqMkdxVXhFMGVCRWlDODdlbmwxdS1XR0tRS2owNTBydmlvejdMSjUya0FXUmY4d0dfdENrdVhqNDJrZW1QRkhUT3JPaVRZamNWZi1UczFUcmpULU1WNmlRRndPdXcwWEhqaU10LTJiaEFPdDk5blg0SzhER3gyV2F0eFZMQVVXUzBUdVZHN1pQRUpHd2F3eHJIQU40?oc=5",
+          "published_at": "2026-04-07T14:46:09+00:00",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMiqgFBVV95cUxQX3BjS081d2R6NkJUek1SekpTVFhjclBFOGhrVXRtR0c4UUF1ZmdraGw1YWpzY3dwUkRNd1pNSGhLY3VMdVpwM0NqaXg3bmFsbl91MzB4SUtNLWhkalJXSHZZU0FVNVU3a3RtQVJodlcwdUZUSWdCQzV6Ym4wZGJnNHZFMkVlVHJETWRCMm0zR1VqNl93Z3R0UTdtRlZOUlVUaDJjT0k2cnZjZ9IBrwFBVV95cUxNODZBV2NROXFNaUtEN011NE90RTRqMkdxVXhFMGVCRWlDODdlbmwxdS1XR0tRS2owNTBydmlvejdMSjUya0FXUmY4d0dfdENrdVhqNDJrZW1QRkhUT3JPaVRZamNWZi1UczFUcmpULU1WNmlRRndPdXcwWEhqaU10LTJiaEFPdDk5blg0SzhER3gyV2F0eFZMQVVXUzBUdVZHN1pQRUpHd2F3eHJIQU40?oc=5\" target=\"_blank\">Healthcare sector surges while tech faces pressure</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">investingLive</font>",
+          "sector": "healthcare",
+          "source_type": "google_sector_rss",
+          "query": "healthcare stock market news"
+        }
+      }
+    },
+    {
+      "article_index": 8,
+      "relevant": false,
+      "affected_tickers": [],
+      "event_type": "irrelevant",
+      "why_it_matters": "Article is outside the recent evidence window",
+      "article": {
+        "external_id": "CBMiywFBVV95cUxOWjNlRXJBanptQ3BxdXVUczBfbVZDckxKbVpSX2YtMzdvSnBOU0hxdWpLaXFuSlVaMUZmMk40dUhTa0xmVC11b25nNEV3UlNUM0lkREEzdU1hVjR4SHdHOV80ME92N0V4U1VmaFBzR1VvSWQzM0FvZVlDRXlPRDlQNkYwaW9rQ3h0QkRseUE4RkljWkVELUsxRC1Ic1dlVEQ5RWZETnVOYlZ2Ni05LWdTR1Bpdk1iQTkyOHVjUHJ4YUhybnZrdjJKOVg1TQ",
+        "event_hash": "38e3ee83b887c014538eb7cfcb5b6631a6681bdbbf15272b21754cea2a9c5998",
+        "source_type": "cnbc_sector_rss",
+        "source": "Investing.com",
+        "title": "Wells sees tougher backdrop for healthcare stocks, cuts Humana, UnitedHealth - Investing.com",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiywFBVV95cUxOWjNlRXJBanptQ3BxdXVUczBfbVZDckxKbVpSX2YtMzdvSnBOU0hxdWpLaXFuSlVaMUZmMk40dUhTa0xmVC11b25nNEV3UlNUM0lkREEzdU1hVjR4SHdHOV80ME92N0V4U1VmaFBzR1VvSWQzM0FvZVlDRXlPRDlQNkYwaW9rQ3h0QkRseUE4RkljWkVELUsxRC1Ic1dlVEQ5RWZETnVOYlZ2Ni05LWdTR1Bpdk1iQTkyOHVjUHJ4YUhybnZrdjJKOVg1TQ?oc=5\" target=\"_blank\">Wells sees tougher backdrop for healthcare stocks, cuts Humana, UnitedHealth</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Investing.com</font>",
+        "body": "<a href=\"https://news.google.com/rss/articles/CBMiywFBVV95cUxOWjNlRXJBanptQ3BxdXVUczBfbVZDckxKbVpSX2YtMzdvSnBOU0hxdWpLaXFuSlVaMUZmMk40dUhTa0xmVC11b25nNEV3UlNUM0lkREEzdU1hVjR4SHdHOV80ME92N0V4U1VmaFBzR1VvSWQzM0FvZVlDRXlPRDlQNkYwaW9rQ3h0QkRseUE4RkljWkVELUsxRC1Ic1dlVEQ5RWZETnVOYlZ2Ni05LWdTR1Bpdk1iQTkyOHVjUHJ4YUhybnZrdjJKOVg1TQ?oc=5\" target=\"_blank\">Wells sees tougher backdrop for healthcare stocks, cuts Humana, UnitedHealth</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Investing.com</font>",
+        "url": "https://news.google.com/rss/articles/CBMiywFBVV95cUxOWjNlRXJBanptQ3BxdXVUczBfbVZDckxKbVpSX2YtMzdvSnBOU0hxdWpLaXFuSlVaMUZmMk40dUhTa0xmVC11b25nNEV3UlNUM0lkREEzdU1hVjR4SHdHOV80ME92N0V4U1VmaFBzR1VvSWQzM0FvZVlDRXlPRDlQNkYwaW9rQ3h0QkRseUE4RkljWkVELUsxRC1Ic1dlVEQ5RWZETnVOYlZ2Ni05LWdTR1Bpdk1iQTkyOHVjUHJ4YUhybnZrdjJKOVg1TQ?oc=5",
+        "published_at": "2026-01-07T08:00:00+00:00",
+        "ticker_hints": [],
+        "sector_hint": "healthcare",
+        "raw": {
+          "id": "CBMiywFBVV95cUxOWjNlRXJBanptQ3BxdXVUczBfbVZDckxKbVpSX2YtMzdvSnBOU0hxdWpLaXFuSlVaMUZmMk40dUhTa0xmVC11b25nNEV3UlNUM0lkREEzdU1hVjR4SHdHOV80ME92N0V4U1VmaFBzR1VvSWQzM0FvZVlDRXlPRDlQNkYwaW9rQ3h0QkRseUE4RkljWkVELUsxRC1Ic1dlVEQ5RWZETnVOYlZ2Ni05LWdTR1Bpdk1iQTkyOHVjUHJ4YUhybnZrdjJKOVg1TQ",
+          "title": "Wells sees tougher backdrop for healthcare stocks, cuts Humana, UnitedHealth - Investing.com",
+          "source": "Investing.com",
+          "source_url": "https://www.investing.com",
+          "url": "https://news.google.com/rss/articles/CBMiywFBVV95cUxOWjNlRXJBanptQ3BxdXVUczBfbVZDckxKbVpSX2YtMzdvSnBOU0hxdWpLaXFuSlVaMUZmMk40dUhTa0xmVC11b25nNEV3UlNUM0lkREEzdU1hVjR4SHdHOV80ME92N0V4U1VmaFBzR1VvSWQzM0FvZVlDRXlPRDlQNkYwaW9rQ3h0QkRseUE4RkljWkVELUsxRC1Ic1dlVEQ5RWZETnVOYlZ2Ni05LWdTR1Bpdk1iQTkyOHVjUHJ4YUhybnZrdjJKOVg1TQ?oc=5",
+          "published_at": "2026-01-07T08:00:00+00:00",
+          "summary": "<a href=\"https://news.google.com/rss/articles/CBMiywFBVV95cUxOWjNlRXJBanptQ3BxdXVUczBfbVZDckxKbVpSX2YtMzdvSnBOU0hxdWpLaXFuSlVaMUZmMk40dUhTa0xmVC11b25nNEV3UlNUM0lkREEzdU1hVjR4SHdHOV80ME92N0V4U1VmaFBzR1VvSWQzM0FvZVlDRXlPRDlQNkYwaW9rQ3h0QkRseUE4RkljWkVELUsxRC1Ic1dlVEQ5RWZETnVOYlZ2Ni05LWdTR1Bpdk1iQTkyOHVjUHJ4YUhybnZrdjJKOVg1TQ?oc=5\" target=\"_blank\">Wells sees tougher backdrop for healthcare stocks, cuts Humana, UnitedHealth</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Investing.com</font>",
+          "sector": "healthcare",
+          "source_type": "google_sector_rss",
+          "query": "healthcare stock market news"
+        }
+      }
+    }
+  ]
+}

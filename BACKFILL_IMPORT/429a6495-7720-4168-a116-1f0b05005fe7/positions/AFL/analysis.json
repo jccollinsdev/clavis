@@ -1,0 +1,535 @@
+{
+  "position": {
+    "id": "b0c2a7b5-4b96-4bbe-aae2-ca00fbb0a728",
+    "user_id": "00000000-0000-0000-0000-000000000001",
+    "ticker": "AFL",
+    "shares": 0.0,
+    "purchase_price": 0.0,
+    "archetype": "growth",
+    "created_at": "2026-04-13T00:47:15.797313+00:00",
+    "updated_at": "2026-04-13T00:47:15.797313+00:00",
+    "current_price": 112.14,
+    "analysis_started_at": null
+  },
+  "inferred_labels": [
+    "growth"
+  ],
+  "related_articles": [
+    {
+      "external_id": "CBMipAFBVV95cUxNem9rLWFjYW9OZ3E3ajRPUjhUSVNVNXZnaVB1Z1FDRW9FUVFyQVRLRnU0SExpVXlQU2FleF9CWVYwWktDbUxLTEtsVFFCbE1KcEpBNEpST0VtRDV2SHNkejV0QXF6UEFGMnF1dWI2MW1OaVRtMFFyMU5MbFUxYngwakNpVkRyeDV5RFV1WjhGMlluaTV3N0FEczVFY1BVZzJPMC1jUQ",
+      "event_hash": "43fade086dd29dd9ab89aa208364f6d21a43aeeb7272fe280db2164782ca5780",
+      "source_type": "company_news",
+      "source": "Stock Titan",
+      "title": "Japan Post unit trims AFLAC (NYSE: AFL) stake with 86K-share sale",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMipAFBVV95cUxNem9rLWFjYW9OZ3E3ajRPUjhUSVNVNXZnaVB1Z1FDRW9FUVFyQVRLRnU0SExpVXlQU2FleF9CWVYwWktDbUxLTEtsVFFCbE1KcEpBNEpST0VtRDV2SHNkejV0QXF6UEFGMnF1dWI2MW1OaVRtMFFyMU5MbFUxYngwakNpVkRyeDV5RFV1WjhGMlluaTV3N0FEczVFY1BVZzJPMC1jUQ?oc=5\" target=\"_blank\">Japan Post unit trims AFLAC (NYSE: AFL) stake with 86K-share sale</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Stock Titan</font>",
+      "body": "<a href=\"https://news.google.com/rss/articles/CBMipAFBVV95cUxNem9rLWFjYW9OZ3E3ajRPUjhUSVNVNXZnaVB1Z1FDRW9FUVFyQVRLRnU0SExpVXlQU2FleF9CWVYwWktDbUxLTEtsVFFCbE1KcEpBNEpST0VtRDV2SHNkejV0QXF6UEFGMnF1dWI2MW1OaVRtMFFyMU5MbFUxYngwakNpVkRyeDV5RFV1WjhGMlluaTV3N0FEczVFY1BVZzJPMC1jUQ?oc=5\" target=\"_blank\">Japan Post unit trims AFLAC (NYSE: AFL) stake with 86K-share sale</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Stock Titan</font>",
+      "url": "https://news.google.com/rss/articles/CBMipAFBVV95cUxNem9rLWFjYW9OZ3E3ajRPUjhUSVNVNXZnaVB1Z1FDRW9FUVFyQVRLRnU0SExpVXlQU2FleF9CWVYwWktDbUxLTEtsVFFCbE1KcEpBNEpST0VtRDV2SHNkejV0QXF6UEFGMnF1dWI2MW1OaVRtMFFyMU5MbFUxYngwakNpVkRyeDV5RFV1WjhGMlluaTV3N0FEczVFY1BVZzJPMC1jUQ?oc=5",
+      "published_at": "2026-04-13T13:41:21+00:00",
+      "ticker_hints": [
+        "AFL"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMipAFBVV95cUxNem9rLWFjYW9OZ3E3ajRPUjhUSVNVNXZnaVB1Z1FDRW9FUVFyQVRLRnU0SExpVXlQU2FleF9CWVYwWktDbUxLTEtsVFFCbE1KcEpBNEpST0VtRDV2SHNkejV0QXF6UEFGMnF1dWI2MW1OaVRtMFFyMU5MbFUxYngwakNpVkRyeDV5RFV1WjhGMlluaTV3N0FEczVFY1BVZzJPMC1jUQ",
+        "title": "Japan Post unit trims AFLAC (NYSE: AFL) stake with 86K-share sale",
+        "source": "Stock Titan",
+        "url": "https://news.google.com/rss/articles/CBMipAFBVV95cUxNem9rLWFjYW9OZ3E3ajRPUjhUSVNVNXZnaVB1Z1FDRW9FUVFyQVRLRnU0SExpVXlQU2FleF9CWVYwWktDbUxLTEtsVFFCbE1KcEpBNEpST0VtRDV2SHNkejV0QXF6UEFGMnF1dWI2MW1OaVRtMFFyMU5MbFUxYngwakNpVkRyeDV5RFV1WjhGMlluaTV3N0FEczVFY1BVZzJPMC1jUQ?oc=5",
+        "published_at": "2026-04-13T13:41:21+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMipAFBVV95cUxNem9rLWFjYW9OZ3E3ajRPUjhUSVNVNXZnaVB1Z1FDRW9FUVFyQVRLRnU0SExpVXlQU2FleF9CWVYwWktDbUxLTEtsVFFCbE1KcEpBNEpST0VtRDV2SHNkejV0QXF6UEFGMnF1dWI2MW1OaVRtMFFyMU5MbFUxYngwakNpVkRyeDV5RFV1WjhGMlluaTV3N0FEczVFY1BVZzJPMC1jUQ?oc=5\" target=\"_blank\">Japan Post unit trims AFLAC (NYSE: AFL) stake with 86K-share sale</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Stock Titan</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "AFL",
+        "company_name": "Aflac Inc",
+        "query": "Aflac Inc stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "AFL"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "LLM call failed"
+      }
+    },
+    {
+      "external_id": "CBMiygFBVV95cUxPREFXVDNTU2daUUp6ck5kS1lxUTE1T3ZwTFRLQjg3UjBaaUtCU3dwS3l6bWxkcjhuNU90T213Z1BnbXpjM29xWWxKSFhVSm5NYWdFdzZsVWMwakhSemlBckttbDhGWVN6ZENycTd5OFpzbmM0YnhNNDdmYXJMeU9mVzR0ajhQUnQwSmRuUVI5NlZ2MWNPMmhKTWo1R1JoakoyYW92ejE3ZFplZlU1YzdZZGJ0cC1CdWIxS0xhcHplWFRCNVFfSU9VeXdR",
+      "event_hash": "63236ecbf98a34517f7d878c8ec7b3ee96cb14d5c0adc881b27ae64f9bc62a7a",
+      "source_type": "company_news",
+      "source": "MarketBeat",
+      "title": "Sumitomo Mitsui Trust Group Inc. Trims Stake in Aflac Incorporated $AFL",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiygFBVV95cUxPREFXVDNTU2daUUp6ck5kS1lxUTE1T3ZwTFRLQjg3UjBaaUtCU3dwS3l6bWxkcjhuNU90T213Z1BnbXpjM29xWWxKSFhVSm5NYWdFdzZsVWMwakhSemlBckttbDhGWVN6ZENycTd5OFpzbmM0YnhNNDdmYXJMeU9mVzR0ajhQUnQwSmRuUVI5NlZ2MWNPMmhKTWo1R1JoakoyYW92ejE3ZFplZlU1YzdZZGJ0cC1CdWIxS0xhcHplWFRCNVFfSU9VeXdR?oc=5\" target=\"_blank\">Sumitomo Mitsui Trust Group Inc. Trims Stake in Aflac Incorporated $AFL</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">MarketBeat</font>",
+      "body": "<a href=\"https://news.google.com/rss/articles/CBMiygFBVV95cUxPREFXVDNTU2daUUp6ck5kS1lxUTE1T3ZwTFRLQjg3UjBaaUtCU3dwS3l6bWxkcjhuNU90T213Z1BnbXpjM29xWWxKSFhVSm5NYWdFdzZsVWMwakhSemlBckttbDhGWVN6ZENycTd5OFpzbmM0YnhNNDdmYXJMeU9mVzR0ajhQUnQwSmRuUVI5NlZ2MWNPMmhKTWo1R1JoakoyYW92ejE3ZFplZlU1YzdZZGJ0cC1CdWIxS0xhcHplWFRCNVFfSU9VeXdR?oc=5\" target=\"_blank\">Sumitomo Mitsui Trust Group Inc. Trims Stake in Aflac Incorporated $AFL</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">MarketBeat</font>",
+      "url": "https://news.google.com/rss/articles/CBMiygFBVV95cUxPREFXVDNTU2daUUp6ck5kS1lxUTE1T3ZwTFRLQjg3UjBaaUtCU3dwS3l6bWxkcjhuNU90T213Z1BnbXpjM29xWWxKSFhVSm5NYWdFdzZsVWMwakhSemlBckttbDhGWVN6ZENycTd5OFpzbmM0YnhNNDdmYXJMeU9mVzR0ajhQUnQwSmRuUVI5NlZ2MWNPMmhKTWo1R1JoakoyYW92ejE3ZFplZlU1YzdZZGJ0cC1CdWIxS0xhcHplWFRCNVFfSU9VeXdR?oc=5",
+      "published_at": "2026-04-13T09:52:28+00:00",
+      "ticker_hints": [
+        "AFL"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMiygFBVV95cUxPREFXVDNTU2daUUp6ck5kS1lxUTE1T3ZwTFRLQjg3UjBaaUtCU3dwS3l6bWxkcjhuNU90T213Z1BnbXpjM29xWWxKSFhVSm5NYWdFdzZsVWMwakhSemlBckttbDhGWVN6ZENycTd5OFpzbmM0YnhNNDdmYXJMeU9mVzR0ajhQUnQwSmRuUVI5NlZ2MWNPMmhKTWo1R1JoakoyYW92ejE3ZFplZlU1YzdZZGJ0cC1CdWIxS0xhcHplWFRCNVFfSU9VeXdR",
+        "title": "Sumitomo Mitsui Trust Group Inc. Trims Stake in Aflac Incorporated $AFL",
+        "source": "MarketBeat",
+        "url": "https://news.google.com/rss/articles/CBMiygFBVV95cUxPREFXVDNTU2daUUp6ck5kS1lxUTE1T3ZwTFRLQjg3UjBaaUtCU3dwS3l6bWxkcjhuNU90T213Z1BnbXpjM29xWWxKSFhVSm5NYWdFdzZsVWMwakhSemlBckttbDhGWVN6ZENycTd5OFpzbmM0YnhNNDdmYXJMeU9mVzR0ajhQUnQwSmRuUVI5NlZ2MWNPMmhKTWo1R1JoakoyYW92ejE3ZFplZlU1YzdZZGJ0cC1CdWIxS0xhcHplWFRCNVFfSU9VeXdR?oc=5",
+        "published_at": "2026-04-13T09:52:28+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiygFBVV95cUxPREFXVDNTU2daUUp6ck5kS1lxUTE1T3ZwTFRLQjg3UjBaaUtCU3dwS3l6bWxkcjhuNU90T213Z1BnbXpjM29xWWxKSFhVSm5NYWdFdzZsVWMwakhSemlBckttbDhGWVN6ZENycTd5OFpzbmM0YnhNNDdmYXJMeU9mVzR0ajhQUnQwSmRuUVI5NlZ2MWNPMmhKTWo1R1JoakoyYW92ejE3ZFplZlU1YzdZZGJ0cC1CdWIxS0xhcHplWFRCNVFfSU9VeXdR?oc=5\" target=\"_blank\">Sumitomo Mitsui Trust Group Inc. Trims Stake in Aflac Incorporated $AFL</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">MarketBeat</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "AFL",
+        "company_name": "Aflac Inc",
+        "query": "Aflac Inc stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "AFL"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "LLM call failed"
+      }
+    },
+    {
+      "external_id": "CBMi4gFBVV95cUxNcklhNHBCRFdmV2MxeUlPM24xZXhtZ1FqUThta0ZRbkQ5WGUxQWM4YkplVlRpaW90TlFQVnJHUnAxTFJWa1JiRnM4TUhfRE5mLTVySEJBZG1yVGRDdWd2UEdobm1XLXZOSVpRcTdUa3NweGwtU0ZrVWZGVW9TYzN6VXZJUmduVTNEb3dVWHRNRkhWcHZ6aGFnVV91ZEwwZkIxVEdSNGdWbkhDcENBQVpBMU8xUFlPcTdpQ3ZHR0tMWFVQX1E5TWx5QWVoYjZNSEVReDJsdFpWbVFUUVNreFdYV1J3",
+      "event_hash": "f5b24586a53080b4c89640529aa06d51a6a3c8d687c3b039728f8e126d7e9b60",
+      "source_type": "company_news",
+      "source": "Markets Mojo",
+      "title": "Aflac, Inc. Experiences Revision in Stock Evaluation Amid Mixed Market Indicators",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi4gFBVV95cUxNcklhNHBCRFdmV2MxeUlPM24xZXhtZ1FqUThta0ZRbkQ5WGUxQWM4YkplVlRpaW90TlFQVnJHUnAxTFJWa1JiRnM4TUhfRE5mLTVySEJBZG1yVGRDdWd2UEdobm1XLXZOSVpRcTdUa3NweGwtU0ZrVWZGVW9TYzN6VXZJUmduVTNEb3dVWHRNRkhWcHZ6aGFnVV91ZEwwZkIxVEdSNGdWbkhDcENBQVpBMU8xUFlPcTdpQ3ZHR0tMWFVQX1E5TWx5QWVoYjZNSEVReDJsdFpWbVFUUVNreFdYV1J3?oc=5\" target=\"_blank\">Aflac, Inc. Experiences Revision in Stock Evaluation Amid Mixed Market Indicators</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Markets Mojo</font>",
+      "body": "<a href=\"https://news.google.com/rss/articles/CBMi4gFBVV95cUxNcklhNHBCRFdmV2MxeUlPM24xZXhtZ1FqUThta0ZRbkQ5WGUxQWM4YkplVlRpaW90TlFQVnJHUnAxTFJWa1JiRnM4TUhfRE5mLTVySEJBZG1yVGRDdWd2UEdobm1XLXZOSVpRcTdUa3NweGwtU0ZrVWZGVW9TYzN6VXZJUmduVTNEb3dVWHRNRkhWcHZ6aGFnVV91ZEwwZkIxVEdSNGdWbkhDcENBQVpBMU8xUFlPcTdpQ3ZHR0tMWFVQX1E5TWx5QWVoYjZNSEVReDJsdFpWbVFUUVNreFdYV1J3?oc=5\" target=\"_blank\">Aflac, Inc. Experiences Revision in Stock Evaluation Amid Mixed Market Indicators</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Markets Mojo</font>",
+      "url": "https://news.google.com/rss/articles/CBMi4gFBVV95cUxNcklhNHBCRFdmV2MxeUlPM24xZXhtZ1FqUThta0ZRbkQ5WGUxQWM4YkplVlRpaW90TlFQVnJHUnAxTFJWa1JiRnM4TUhfRE5mLTVySEJBZG1yVGRDdWd2UEdobm1XLXZOSVpRcTdUa3NweGwtU0ZrVWZGVW9TYzN6VXZJUmduVTNEb3dVWHRNRkhWcHZ6aGFnVV91ZEwwZkIxVEdSNGdWbkhDcENBQVpBMU8xUFlPcTdpQ3ZHR0tMWFVQX1E5TWx5QWVoYjZNSEVReDJsdFpWbVFUUVNreFdYV1J3?oc=5",
+      "published_at": "2026-04-11T07:18:17+00:00",
+      "ticker_hints": [
+        "AFL"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMi4gFBVV95cUxNcklhNHBCRFdmV2MxeUlPM24xZXhtZ1FqUThta0ZRbkQ5WGUxQWM4YkplVlRpaW90TlFQVnJHUnAxTFJWa1JiRnM4TUhfRE5mLTVySEJBZG1yVGRDdWd2UEdobm1XLXZOSVpRcTdUa3NweGwtU0ZrVWZGVW9TYzN6VXZJUmduVTNEb3dVWHRNRkhWcHZ6aGFnVV91ZEwwZkIxVEdSNGdWbkhDcENBQVpBMU8xUFlPcTdpQ3ZHR0tMWFVQX1E5TWx5QWVoYjZNSEVReDJsdFpWbVFUUVNreFdYV1J3",
+        "title": "Aflac, Inc. Experiences Revision in Stock Evaluation Amid Mixed Market Indicators",
+        "source": "Markets Mojo",
+        "url": "https://news.google.com/rss/articles/CBMi4gFBVV95cUxNcklhNHBCRFdmV2MxeUlPM24xZXhtZ1FqUThta0ZRbkQ5WGUxQWM4YkplVlRpaW90TlFQVnJHUnAxTFJWa1JiRnM4TUhfRE5mLTVySEJBZG1yVGRDdWd2UEdobm1XLXZOSVpRcTdUa3NweGwtU0ZrVWZGVW9TYzN6VXZJUmduVTNEb3dVWHRNRkhWcHZ6aGFnVV91ZEwwZkIxVEdSNGdWbkhDcENBQVpBMU8xUFlPcTdpQ3ZHR0tMWFVQX1E5TWx5QWVoYjZNSEVReDJsdFpWbVFUUVNreFdYV1J3?oc=5",
+        "published_at": "2026-04-11T07:18:17+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMi4gFBVV95cUxNcklhNHBCRFdmV2MxeUlPM24xZXhtZ1FqUThta0ZRbkQ5WGUxQWM4YkplVlRpaW90TlFQVnJHUnAxTFJWa1JiRnM4TUhfRE5mLTVySEJBZG1yVGRDdWd2UEdobm1XLXZOSVpRcTdUa3NweGwtU0ZrVWZGVW9TYzN6VXZJUmduVTNEb3dVWHRNRkhWcHZ6aGFnVV91ZEwwZkIxVEdSNGdWbkhDcENBQVpBMU8xUFlPcTdpQ3ZHR0tMWFVQX1E5TWx5QWVoYjZNSEVReDJsdFpWbVFUUVNreFdYV1J3?oc=5\" target=\"_blank\">Aflac, Inc. Experiences Revision in Stock Evaluation Amid Mixed Market Indicators</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Markets Mojo</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "AFL",
+        "company_name": "Aflac Inc",
+        "query": "Aflac Inc stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "AFL"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "LLM call failed"
+      }
+    }
+  ],
+  "event_analyses": [
+    {
+      "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+      "position_id": "b0c2a7b5-4b96-4bbe-aae2-ca00fbb0a728",
+      "event_hash": "43fade086dd29dd9ab89aa208364f6d21a43aeeb7272fe280db2164782ca5780",
+      "external_event_id": "CBMipAFBVV95cUxNem9rLWFjYW9OZ3E3ajRPUjhUSVNVNXZnaVB1Z1FDRW9FUVFyQVRLRnU0SExpVXlQU2FleF9CWVYwWktDbUxLTEtsVFFCbE1KcEpBNEpST0VtRDV2SHNkejV0QXF6UEFGMnF1dWI2MW1OaVRtMFFyMU5MbFUxYngwakNpVkRyeDV5RFV1WjhGMlluaTV3N0FEczVFY1BVZzJPMC1jUQ",
+      "title": "Japan Post unit trims AFLAC (NYSE: AFL) stake with 86K-share sale",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMipAFBVV95cUxNem9rLWFjYW9OZ3E3ajRPUjhUSVNVNXZnaVB1Z1FDRW9FUVFyQVRLRnU0SExpVXlQU2FleF9CWVYwWktDbUxLTEtsVFFCbE1KcEpBNEpST0VtRDV2SHNkejV0QXF6UEFGMnF1dWI2MW1OaVRtMFFyMU5MbFUxYngwakNpVkRyeDV5RFV1WjhGMlluaTV3N0FEczVFY1BVZzJPMC1jUQ?oc=5\" target=\"_blank\">Japan Post unit trims AFLAC (NYSE: AFL) stake with 86K-share sale</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Stock Titan</font>",
+      "source": "Stock Titan",
+      "source_url": "https://news.google.com/rss/articles/CBMipAFBVV95cUxNem9rLWFjYW9OZ3E3ajRPUjhUSVNVNXZnaVB1Z1FDRW9FUVFyQVRLRnU0SExpVXlQU2FleF9CWVYwWktDbUxLTEtsVFFCbE1KcEpBNEpST0VtRDV2SHNkejV0QXF6UEFGMnF1dWI2MW1OaVRtMFFyMU5MbFUxYngwakNpVkRyeDV5RFV1WjhGMlluaTV3N0FEczVFY1BVZzJPMC1jUQ?oc=5",
+      "published_at": "2026-04-13T13:41:21+00:00",
+      "event_type": "sector",
+      "significance": "minor",
+      "classification": {
+        "confidence": 0.88,
+        "event_type": "sector",
+        "significance": "minor",
+        "why_it_matters": "Japan Post unit reducing AFLAC stake via secondary sale is routine institutional portfolio adjustment, not a material corporate action."
+      },
+      "classification_evidence": {
+        "relevance": {
+          "relevant": true,
+          "affected_tickers": [
+            "AFL"
+          ],
+          "event_type": "company_specific",
+          "why_it_matters": "LLM call failed"
+        },
+        "significance": {
+          "confidence": 0.88,
+          "event_type": "sector",
+          "significance": "minor",
+          "why_it_matters": "Japan Post unit reducing AFLAC stake via secondary sale is routine institutional portfolio adjustment, not a material corporate action."
+        }
+      },
+      "analysis_source": "minimax",
+      "long_analysis": "Japan Post's decision to trim its Aflac holding by 86,000 shares signals a reduction in a significant institutional backing. The sale introduces modest selling pressure and may erode investor confidence in the near term. However, the transaction size relative to Aflac's average daily volume suggests limited immediate price impact. Market participants should monitor for further divestitures and the underlying reasons behind Japan Post's reallocation. This is direct company coverage for AFL.",
+      "confidence": 0.76,
+      "impact_horizon": "immediate",
+      "risk_direction": "worsening",
+      "scenario_summary": "A Japan Post unit sold 86,000 Aflac shares, reducing institutional support and creating modest downside risk. This is direct company coverage for AFL.",
+      "key_implications": [
+        "Potential short\u2011term downward pressure on AFL price due to increased supply.",
+        "Shift in shareholder composition may signal broader portfolio reallocation.",
+        "Relatively small size limits severe impact but warrants monitoring."
+      ],
+      "recommended_followups": [
+        "Track daily volume and price changes following the sale.",
+        "Observe future filings for additional changes in Japan Post's holdings.",
+        "Assess underlying reasons for the divestiture (e.g., risk management, capital needs)."
+      ]
+    },
+    {
+      "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+      "position_id": "b0c2a7b5-4b96-4bbe-aae2-ca00fbb0a728",
+      "event_hash": "f5b24586a53080b4c89640529aa06d51a6a3c8d687c3b039728f8e126d7e9b60",
+      "external_event_id": "CBMi4gFBVV95cUxNcklhNHBCRFdmV2MxeUlPM24xZXhtZ1FqUThta0ZRbkQ5WGUxQWM4YkplVlRpaW90TlFQVnJHUnAxTFJWa1JiRnM4TUhfRE5mLTVySEJBZG1yVGRDdWd2UEdobm1XLXZOSVpRcTdUa3NweGwtU0ZrVWZGVW9TYzN6VXZJUmduVTNEb3dVWHRNRkhWcHZ6aGFnVV91ZEwwZkIxVEdSNGdWbkhDcENBQVpBMU8xUFlPcTdpQ3ZHR0tMWFVQX1E5TWx5QWVoYjZNSEVReDJsdFpWbVFUUVNreFdYV1J3",
+      "title": "Aflac, Inc. Experiences Revision in Stock Evaluation Amid Mixed Market Indicators",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMi4gFBVV95cUxNcklhNHBCRFdmV2MxeUlPM24xZXhtZ1FqUThta0ZRbkQ5WGUxQWM4YkplVlRpaW90TlFQVnJHUnAxTFJWa1JiRnM4TUhfRE5mLTVySEJBZG1yVGRDdWd2UEdobm1XLXZOSVpRcTdUa3NweGwtU0ZrVWZGVW9TYzN6VXZJUmduVTNEb3dVWHRNRkhWcHZ6aGFnVV91ZEwwZkIxVEdSNGdWbkhDcENBQVpBMU8xUFlPcTdpQ3ZHR0tMWFVQX1E5TWx5QWVoYjZNSEVReDJsdFpWbVFUUVNreFdYV1J3?oc=5\" target=\"_blank\">Aflac, Inc. Experiences Revision in Stock Evaluation Amid Mixed Market Indicators</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Markets Mojo</font>",
+      "source": "Markets Mojo",
+      "source_url": "https://news.google.com/rss/articles/CBMi4gFBVV95cUxNcklhNHBCRFdmV2MxeUlPM24xZXhtZ1FqUThta0ZRbkQ5WGUxQWM4YkplVlRpaW90TlFQVnJHUnAxTFJWa1JiRnM4TUhfRE5mLTVySEJBZG1yVGRDdWd2UEdobm1XLXZOSVpRcTdUa3NweGwtU0ZrVWZGVW9TYzN6VXZJUmduVTNEb3dVWHRNRkhWcHZ6aGFnVV91ZEwwZkIxVEdSNGdWbkhDcENBQVpBMU8xUFlPcTdpQ3ZHR0tMWFVQX1E5TWx5QWVoYjZNSEVReDJsdFpWbVFUUVNreFdYV1J3?oc=5",
+      "published_at": "2026-04-11T07:18:17+00:00",
+      "event_type": "other",
+      "significance": "minor",
+      "classification": {
+        "confidence": 0.85,
+        "event_type": "other",
+        "significance": "minor",
+        "why_it_matters": "Stock evaluation revision based on mixed market indicators is analyst-level analysis rather than a material corporate action."
+      },
+      "classification_evidence": {
+        "relevance": {
+          "relevant": true,
+          "affected_tickers": [
+            "AFL"
+          ],
+          "event_type": "company_specific",
+          "why_it_matters": "LLM call failed"
+        },
+        "significance": {
+          "confidence": 0.85,
+          "event_type": "other",
+          "significance": "minor",
+          "why_it_matters": "Stock evaluation revision based on mixed market indicators is analyst-level analysis rather than a material corporate action."
+        }
+      },
+      "analysis_source": "minimax",
+      "long_analysis": "Recent mixed market indicators have prompted analysts to revise Aflac's stock evaluation, highlighting uncertainty around growth drivers and macro headwinds. The revision suggests a more cautious outlook, potentially leading to increased volatility as investors reassess valuations. While the fundamental business remains solid, the market's ambiguous signals could weigh on the stock in the near term. Stakeholders should keep an eye on upcoming earnings and macroeconomic data for further cues. This is direct company coverage for AFL.",
+      "confidence": 0.63,
+      "impact_horizon": "near_term",
+      "risk_direction": "neutral",
+      "scenario_summary": "Mixed market conditions have caused analysts to adjust Aflac's valuation, reflecting uncertain near\u2011term prospects. This is direct company coverage for AFL.",
+      "key_implications": [
+        "Increased sensitivity to macro data may lead to price swings.",
+        "Potential for downward revision of price targets if uncertainty persists.",
+        "Fundamental strengths remain but could be overshadowed by market sentiment."
+      ],
+      "recommended_followups": [
+        "Monitor upcoming earnings reports for guidance adjustments.",
+        "Track changes in analyst price targets and recommendations.",
+        "Watch macro indicators such as interest rates and consumer spending that affect insurance demand."
+      ]
+    },
+    {
+      "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+      "position_id": "b0c2a7b5-4b96-4bbe-aae2-ca00fbb0a728",
+      "event_hash": "63236ecbf98a34517f7d878c8ec7b3ee96cb14d5c0adc881b27ae64f9bc62a7a",
+      "external_event_id": "CBMiygFBVV95cUxPREFXVDNTU2daUUp6ck5kS1lxUTE1T3ZwTFRLQjg3UjBaaUtCU3dwS3l6bWxkcjhuNU90T213Z1BnbXpjM29xWWxKSFhVSm5NYWdFdzZsVWMwakhSemlBckttbDhGWVN6ZENycTd5OFpzbmM0YnhNNDdmYXJMeU9mVzR0ajhQUnQwSmRuUVI5NlZ2MWNPMmhKTWo1R1JoakoyYW92ejE3ZFplZlU1YzdZZGJ0cC1CdWIxS0xhcHplWFRCNVFfSU9VeXdR",
+      "title": "Sumitomo Mitsui Trust Group Inc. Trims Stake in Aflac Incorporated $AFL",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiygFBVV95cUxPREFXVDNTU2daUUp6ck5kS1lxUTE1T3ZwTFRLQjg3UjBaaUtCU3dwS3l6bWxkcjhuNU90T213Z1BnbXpjM29xWWxKSFhVSm5NYWdFdzZsVWMwakhSemlBckttbDhGWVN6ZENycTd5OFpzbmM0YnhNNDdmYXJMeU9mVzR0ajhQUnQwSmRuUVI5NlZ2MWNPMmhKTWo1R1JoakoyYW92ejE3ZFplZlU1YzdZZGJ0cC1CdWIxS0xhcHplWFRCNVFfSU9VeXdR?oc=5\" target=\"_blank\">Sumitomo Mitsui Trust Group Inc. Trims Stake in Aflac Incorporated $AFL</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">MarketBeat</font>",
+      "source": "MarketBeat",
+      "source_url": "https://news.google.com/rss/articles/CBMiygFBVV95cUxPREFXVDNTU2daUUp6ck5kS1lxUTE1T3ZwTFRLQjg3UjBaaUtCU3dwS3l6bWxkcjhuNU90T213Z1BnbXpjM29xWWxKSFhVSm5NYWdFdzZsVWMwakhSemlBckttbDhGWVN6ZENycTd5OFpzbmM0YnhNNDdmYXJMeU9mVzR0ajhQUnQwSmRuUVI5NlZ2MWNPMmhKTWo1R1JoakoyYW92ejE3ZFplZlU1YzdZZGJ0cC1CdWIxS0xhcHplWFRCNVFfSU9VeXdR?oc=5",
+      "published_at": "2026-04-13T09:52:28+00:00",
+      "event_type": "other",
+      "significance": "major",
+      "classification": {
+        "rule": "keyword",
+        "confidence": 0.95,
+        "event_type": "other",
+        "significance": "major",
+        "why_it_matters": "Keyword detected major event"
+      },
+      "classification_evidence": {
+        "relevance": {
+          "relevant": true,
+          "affected_tickers": [
+            "AFL"
+          ],
+          "event_type": "company_specific",
+          "why_it_matters": "LLM call failed"
+        },
+        "significance": {
+          "rule": "keyword",
+          "confidence": 0.95,
+          "event_type": "other",
+          "significance": "major",
+          "why_it_matters": "Keyword detected major event"
+        }
+      },
+      "analysis_source": "minimax_fallback",
+      "long_analysis": "Sumitomo Mitsui Trust Group Inc., a major Japanese institutional investor, has trimmed its stake in Aflac Incorporated, a large U.S. supplemental insurer. This represents a notable reallocation by one of Japan's largest trust banking groups, which manages substantial assets under custody. While institutional stake reductions can signal various strategic motives (rebalancing, risk management, liquidity optimization), they don't inherently indicate fundamental concerns about the target company's business. Aflac's core cancer and supplemental insurance operations remain steady, supported by the company's distinctive W reed model and strong brand recognition in Japan. The transaction's impact on Aflac's stock should be limited given its massive market capitalization and diverse shareholder base, though any large block sale could create modest near-term trading pressure. This kind of institutional rebalancing is common and typically reflects portfolio-level decisions rather than a view on target company valuation. This is direct company coverage for AFL.",
+      "confidence": 0.73,
+      "impact_horizon": "near_term",
+      "risk_direction": "neutral",
+      "scenario_summary": "A Japanese megabank-trust group reduces its Aflac position for portfolio rebalancing, with minimal lasting impact on the insurance company's fundamentals or valuation. This is direct company coverage for AFL.",
+      "key_implications": [
+        "Aflac's largest shareholders remain diversified, limiting single-transaction market impact",
+        "The sale reflects institutional portfolio management rather than concerns about Aflac's earnings power",
+        "Japanese investors broadly may be reducing U.S. equity exposure, worth monitoring for broader trends"
+      ],
+      "recommended_followups": [
+        "Monitor for follow-up filings showing whether the trim was a single transaction or systematic reduction",
+        "Check if other Japanese institutional investors are making similar moves in U.S. insurance/financials",
+        "Aflac's next earnings call could address shareholder base changes if asked by analysts"
+      ]
+    }
+  ],
+  "position_report": {
+    "summary": "Aflac faces renewed institutional pressure as two major Japanese institutional investors\u2014Sumitomo Mitsui Trust Group and a Japan Post unit\u2014have reduced their stakes, signaling potential strategic reallocation or concern about near-term catalysts. Analyst revisions citing mixed market indicators and uncertainty around growth drivers add to the cautious backdrop, though the transaction sizes relative to daily volume suggest limited immediate price impact. The convergence of institutional selling by prominent Japanese shareholders warrants attention as it may signal broader repositioning away from AFL.",
+    "long_report": "The significant stake reductions by Sumitomo Mitsui Trust Group and a Japan Post unit represent coordinated institutional repositioning that raises questions about the perceived risk-reward at current valuations. While each transaction alone represents modest selling pressure given Aflac's trading volume, the simultaneous nature of these divestitures from Japan's largest trust banking groups suggests a deliberate recalibration of exposure to U.S. supplemental insurers. The analyst revision reflecting mixed market indicators and uncertainty around growth drivers aligns with this institutional caution, as both events point to a more uncertain outlook for AFL. The supplemental insurance model faces ongoing questions about growth sustainability in a higher-rate environment that may compress demand for cash-value products. Market participants should monitor whether these divestitures signal broader Japanese institutional rotation away from U.S. insurance names or represent isolated rebalancing decisions.",
+    "methodology": "This report analyzes the risk profile based on three discrete corporate events: two major institutional stake sales by prominent Japanese investors (Sumitomo Mitsui Trust Group and Japan Post unit) and a downward analyst revision citing mixed market conditions. The analysis evaluates the cumulative signal from institutional positioning changes, relative transaction size against daily volume to assess immediate price impact, and fundamental uncertainty around growth drivers. Risk factors are weighted by event significance and correlated impact on the investment thesis.",
+    "top_risks": [
+      "Sustained institutional selling pressure as major Japanese investors rotate out of AFL, potentially establishing a new lower equilibrium for shareholder composition",
+      "Extended valuation compression driven by analyst revisions and uncertain growth catalysts, creating prolonged underperformance relative to peers",
+      "Compound reputational signal from coordinated stake sales by prominent Japanese institutions may deter new institutional buyers from establishing positions"
+    ],
+    "watch_items": [
+      "Monitor for additional Japanese institutional divestitures or 13F filings showing further reduction in AFL holdings by trust banks and regional institutions",
+      "Track analyst coverage changes and any upward revisions that could counterbalance the current cautious positioning",
+      "Watch for company-specific catalysts such as earnings guidance or capital allocation announcements that could restore institutional confidence"
+    ],
+    "thesis_verifier": []
+  },
+  "position_payload": {
+    "id": "b0c2a7b5-4b96-4bbe-aae2-ca00fbb0a728",
+    "user_id": "00000000-0000-0000-0000-000000000001",
+    "ticker": "AFL",
+    "shares": 0.0,
+    "purchase_price": 0.0,
+    "archetype": "growth",
+    "created_at": "2026-04-13T00:47:15.797313+00:00",
+    "updated_at": "2026-04-13T00:47:15.797313+00:00",
+    "current_price": 112.14,
+    "analysis_started_at": null,
+    "analysis_mode": "sp500_backfill",
+    "previous_grade": "D",
+    "previous_total_score": 45.0,
+    "summary": "Aflac faces renewed institutional pressure as two major Japanese institutional investors\u2014Sumitomo Mitsui Trust Group and a Japan Post unit\u2014have reduced their stakes, signaling potential strategic reallocation or concern about near-term catalysts. Analyst revisions citing mixed market indicators and uncertainty around growth drivers add to the cautious backdrop, though the transaction sizes relative to daily volume suggest limited immediate price impact. The convergence of institutional selling by prominent Japanese shareholders warrants attention as it may signal broader repositioning away from AFL.",
+    "long_report": "The significant stake reductions by Sumitomo Mitsui Trust Group and a Japan Post unit represent coordinated institutional repositioning that raises questions about the perceived risk-reward at current valuations. While each transaction alone represents modest selling pressure given Aflac's trading volume, the simultaneous nature of these divestitures from Japan's largest trust banking groups suggests a deliberate recalibration of exposure to U.S. supplemental insurers. The analyst revision reflecting mixed market indicators and uncertainty around growth drivers aligns with this institutional caution, as both events point to a more uncertain outlook for AFL. The supplemental insurance model faces ongoing questions about growth sustainability in a higher-rate environment that may compress demand for cash-value products. Market participants should monitor whether these divestitures signal broader Japanese institutional rotation away from U.S. insurance names or represent isolated rebalancing decisions.",
+    "top_risks": [
+      "Sustained institutional selling pressure as major Japanese investors rotate out of AFL, potentially establishing a new lower equilibrium for shareholder composition",
+      "Extended valuation compression driven by analyst revisions and uncertain growth catalysts, creating prolonged underperformance relative to peers",
+      "Compound reputational signal from coordinated stake sales by prominent Japanese institutions may deter new institutional buyers from establishing positions"
+    ],
+    "watch_items": [
+      "Monitor for additional Japanese institutional divestitures or 13F filings showing further reduction in AFL holdings by trust banks and regional institutions",
+      "Track analyst coverage changes and any upward revisions that could counterbalance the current cautious positioning",
+      "Watch for company-specific catalysts such as earnings guidance or capital allocation announcements that could restore institutional confidence"
+    ],
+    "top_news": [
+      "Japan Post unit trims AFLAC (NYSE: AFL) stake with 86K-share sale",
+      "Sumitomo Mitsui Trust Group Inc. Trims Stake in Aflac Incorporated $AFL",
+      "Aflac, Inc. Experiences Revision in Stock Evaluation Amid Mixed Market Indicators"
+    ],
+    "inferred_labels": [
+      "growth"
+    ],
+    "methodology": "This report analyzes the risk profile based on three discrete corporate events: two major institutional stake sales by prominent Japanese investors (Sumitomo Mitsui Trust Group and Japan Post unit) and a downward analyst revision citing mixed market conditions. The analysis evaluates the cumulative signal from institutional positioning changes, relative transaction size against daily volume to assess immediate price impact, and fundamental uncertainty around growth drivers. Risk factors are weighted by event significance and correlated impact on the investment thesis.",
+    "mirofish_used": false,
+    "thesis_verifier": [],
+    "event_analyses": [
+      {
+        "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+        "position_id": "b0c2a7b5-4b96-4bbe-aae2-ca00fbb0a728",
+        "event_hash": "43fade086dd29dd9ab89aa208364f6d21a43aeeb7272fe280db2164782ca5780",
+        "external_event_id": "CBMipAFBVV95cUxNem9rLWFjYW9OZ3E3ajRPUjhUSVNVNXZnaVB1Z1FDRW9FUVFyQVRLRnU0SExpVXlQU2FleF9CWVYwWktDbUxLTEtsVFFCbE1KcEpBNEpST0VtRDV2SHNkejV0QXF6UEFGMnF1dWI2MW1OaVRtMFFyMU5MbFUxYngwakNpVkRyeDV5RFV1WjhGMlluaTV3N0FEczVFY1BVZzJPMC1jUQ",
+        "title": "Japan Post unit trims AFLAC (NYSE: AFL) stake with 86K-share sale",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMipAFBVV95cUxNem9rLWFjYW9OZ3E3ajRPUjhUSVNVNXZnaVB1Z1FDRW9FUVFyQVRLRnU0SExpVXlQU2FleF9CWVYwWktDbUxLTEtsVFFCbE1KcEpBNEpST0VtRDV2SHNkejV0QXF6UEFGMnF1dWI2MW1OaVRtMFFyMU5MbFUxYngwakNpVkRyeDV5RFV1WjhGMlluaTV3N0FEczVFY1BVZzJPMC1jUQ?oc=5\" target=\"_blank\">Japan Post unit trims AFLAC (NYSE: AFL) stake with 86K-share sale</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Stock Titan</font>",
+        "source": "Stock Titan",
+        "source_url": "https://news.google.com/rss/articles/CBMipAFBVV95cUxNem9rLWFjYW9OZ3E3ajRPUjhUSVNVNXZnaVB1Z1FDRW9FUVFyQVRLRnU0SExpVXlQU2FleF9CWVYwWktDbUxLTEtsVFFCbE1KcEpBNEpST0VtRDV2SHNkejV0QXF6UEFGMnF1dWI2MW1OaVRtMFFyMU5MbFUxYngwakNpVkRyeDV5RFV1WjhGMlluaTV3N0FEczVFY1BVZzJPMC1jUQ?oc=5",
+        "published_at": "2026-04-13T13:41:21+00:00",
+        "event_type": "sector",
+        "significance": "minor",
+        "classification": {
+          "confidence": 0.88,
+          "event_type": "sector",
+          "significance": "minor",
+          "why_it_matters": "Japan Post unit reducing AFLAC stake via secondary sale is routine institutional portfolio adjustment, not a material corporate action."
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "AFL"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "LLM call failed"
+          },
+          "significance": {
+            "confidence": 0.88,
+            "event_type": "sector",
+            "significance": "minor",
+            "why_it_matters": "Japan Post unit reducing AFLAC stake via secondary sale is routine institutional portfolio adjustment, not a material corporate action."
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "Japan Post's decision to trim its Aflac holding by 86,000 shares signals a reduction in a significant institutional backing. The sale introduces modest selling pressure and may erode investor confidence in the near term. However, the transaction size relative to Aflac's average daily volume suggests limited immediate price impact. Market participants should monitor for further divestitures and the underlying reasons behind Japan Post's reallocation. This is direct company coverage for AFL.",
+        "confidence": 0.76,
+        "impact_horizon": "immediate",
+        "risk_direction": "worsening",
+        "scenario_summary": "A Japan Post unit sold 86,000 Aflac shares, reducing institutional support and creating modest downside risk. This is direct company coverage for AFL.",
+        "key_implications": [
+          "Potential short\u2011term downward pressure on AFL price due to increased supply.",
+          "Shift in shareholder composition may signal broader portfolio reallocation.",
+          "Relatively small size limits severe impact but warrants monitoring."
+        ],
+        "recommended_followups": [
+          "Track daily volume and price changes following the sale.",
+          "Observe future filings for additional changes in Japan Post's holdings.",
+          "Assess underlying reasons for the divestiture (e.g., risk management, capital needs)."
+        ]
+      },
+      {
+        "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+        "position_id": "b0c2a7b5-4b96-4bbe-aae2-ca00fbb0a728",
+        "event_hash": "f5b24586a53080b4c89640529aa06d51a6a3c8d687c3b039728f8e126d7e9b60",
+        "external_event_id": "CBMi4gFBVV95cUxNcklhNHBCRFdmV2MxeUlPM24xZXhtZ1FqUThta0ZRbkQ5WGUxQWM4YkplVlRpaW90TlFQVnJHUnAxTFJWa1JiRnM4TUhfRE5mLTVySEJBZG1yVGRDdWd2UEdobm1XLXZOSVpRcTdUa3NweGwtU0ZrVWZGVW9TYzN6VXZJUmduVTNEb3dVWHRNRkhWcHZ6aGFnVV91ZEwwZkIxVEdSNGdWbkhDcENBQVpBMU8xUFlPcTdpQ3ZHR0tMWFVQX1E5TWx5QWVoYjZNSEVReDJsdFpWbVFUUVNreFdYV1J3",
+        "title": "Aflac, Inc. Experiences Revision in Stock Evaluation Amid Mixed Market Indicators",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMi4gFBVV95cUxNcklhNHBCRFdmV2MxeUlPM24xZXhtZ1FqUThta0ZRbkQ5WGUxQWM4YkplVlRpaW90TlFQVnJHUnAxTFJWa1JiRnM4TUhfRE5mLTVySEJBZG1yVGRDdWd2UEdobm1XLXZOSVpRcTdUa3NweGwtU0ZrVWZGVW9TYzN6VXZJUmduVTNEb3dVWHRNRkhWcHZ6aGFnVV91ZEwwZkIxVEdSNGdWbkhDcENBQVpBMU8xUFlPcTdpQ3ZHR0tMWFVQX1E5TWx5QWVoYjZNSEVReDJsdFpWbVFUUVNreFdYV1J3?oc=5\" target=\"_blank\">Aflac, Inc. Experiences Revision in Stock Evaluation Amid Mixed Market Indicators</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Markets Mojo</font>",
+        "source": "Markets Mojo",
+        "source_url": "https://news.google.com/rss/articles/CBMi4gFBVV95cUxNcklhNHBCRFdmV2MxeUlPM24xZXhtZ1FqUThta0ZRbkQ5WGUxQWM4YkplVlRpaW90TlFQVnJHUnAxTFJWa1JiRnM4TUhfRE5mLTVySEJBZG1yVGRDdWd2UEdobm1XLXZOSVpRcTdUa3NweGwtU0ZrVWZGVW9TYzN6VXZJUmduVTNEb3dVWHRNRkhWcHZ6aGFnVV91ZEwwZkIxVEdSNGdWbkhDcENBQVpBMU8xUFlPcTdpQ3ZHR0tMWFVQX1E5TWx5QWVoYjZNSEVReDJsdFpWbVFUUVNreFdYV1J3?oc=5",
+        "published_at": "2026-04-11T07:18:17+00:00",
+        "event_type": "other",
+        "significance": "minor",
+        "classification": {
+          "confidence": 0.85,
+          "event_type": "other",
+          "significance": "minor",
+          "why_it_matters": "Stock evaluation revision based on mixed market indicators is analyst-level analysis rather than a material corporate action."
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "AFL"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "LLM call failed"
+          },
+          "significance": {
+            "confidence": 0.85,
+            "event_type": "other",
+            "significance": "minor",
+            "why_it_matters": "Stock evaluation revision based on mixed market indicators is analyst-level analysis rather than a material corporate action."
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "Recent mixed market indicators have prompted analysts to revise Aflac's stock evaluation, highlighting uncertainty around growth drivers and macro headwinds. The revision suggests a more cautious outlook, potentially leading to increased volatility as investors reassess valuations. While the fundamental business remains solid, the market's ambiguous signals could weigh on the stock in the near term. Stakeholders should keep an eye on upcoming earnings and macroeconomic data for further cues. This is direct company coverage for AFL.",
+        "confidence": 0.63,
+        "impact_horizon": "near_term",
+        "risk_direction": "neutral",
+        "scenario_summary": "Mixed market conditions have caused analysts to adjust Aflac's valuation, reflecting uncertain near\u2011term prospects. This is direct company coverage for AFL.",
+        "key_implications": [
+          "Increased sensitivity to macro data may lead to price swings.",
+          "Potential for downward revision of price targets if uncertainty persists.",
+          "Fundamental strengths remain but could be overshadowed by market sentiment."
+        ],
+        "recommended_followups": [
+          "Monitor upcoming earnings reports for guidance adjustments.",
+          "Track changes in analyst price targets and recommendations.",
+          "Watch macro indicators such as interest rates and consumer spending that affect insurance demand."
+        ]
+      },
+      {
+        "analysis_run_id": "429a6495-7720-4168-a116-1f0b05005fe7",
+        "position_id": "b0c2a7b5-4b96-4bbe-aae2-ca00fbb0a728",
+        "event_hash": "63236ecbf98a34517f7d878c8ec7b3ee96cb14d5c0adc881b27ae64f9bc62a7a",
+        "external_event_id": "CBMiygFBVV95cUxPREFXVDNTU2daUUp6ck5kS1lxUTE1T3ZwTFRLQjg3UjBaaUtCU3dwS3l6bWxkcjhuNU90T213Z1BnbXpjM29xWWxKSFhVSm5NYWdFdzZsVWMwakhSemlBckttbDhGWVN6ZENycTd5OFpzbmM0YnhNNDdmYXJMeU9mVzR0ajhQUnQwSmRuUVI5NlZ2MWNPMmhKTWo1R1JoakoyYW92ejE3ZFplZlU1YzdZZGJ0cC1CdWIxS0xhcHplWFRCNVFfSU9VeXdR",
+        "title": "Sumitomo Mitsui Trust Group Inc. Trims Stake in Aflac Incorporated $AFL",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiygFBVV95cUxPREFXVDNTU2daUUp6ck5kS1lxUTE1T3ZwTFRLQjg3UjBaaUtCU3dwS3l6bWxkcjhuNU90T213Z1BnbXpjM29xWWxKSFhVSm5NYWdFdzZsVWMwakhSemlBckttbDhGWVN6ZENycTd5OFpzbmM0YnhNNDdmYXJMeU9mVzR0ajhQUnQwSmRuUVI5NlZ2MWNPMmhKTWo1R1JoakoyYW92ejE3ZFplZlU1YzdZZGJ0cC1CdWIxS0xhcHplWFRCNVFfSU9VeXdR?oc=5\" target=\"_blank\">Sumitomo Mitsui Trust Group Inc. Trims Stake in Aflac Incorporated $AFL</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">MarketBeat</font>",
+        "source": "MarketBeat",
+        "source_url": "https://news.google.com/rss/articles/CBMiygFBVV95cUxPREFXVDNTU2daUUp6ck5kS1lxUTE1T3ZwTFRLQjg3UjBaaUtCU3dwS3l6bWxkcjhuNU90T213Z1BnbXpjM29xWWxKSFhVSm5NYWdFdzZsVWMwakhSemlBckttbDhGWVN6ZENycTd5OFpzbmM0YnhNNDdmYXJMeU9mVzR0ajhQUnQwSmRuUVI5NlZ2MWNPMmhKTWo1R1JoakoyYW92ejE3ZFplZlU1YzdZZGJ0cC1CdWIxS0xhcHplWFRCNVFfSU9VeXdR?oc=5",
+        "published_at": "2026-04-13T09:52:28+00:00",
+        "event_type": "other",
+        "significance": "major",
+        "classification": {
+          "rule": "keyword",
+          "confidence": 0.95,
+          "event_type": "other",
+          "significance": "major",
+          "why_it_matters": "Keyword detected major event"
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "AFL"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "LLM call failed"
+          },
+          "significance": {
+            "rule": "keyword",
+            "confidence": 0.95,
+            "event_type": "other",
+            "significance": "major",
+            "why_it_matters": "Keyword detected major event"
+          }
+        },
+        "analysis_source": "minimax_fallback",
+        "long_analysis": "Sumitomo Mitsui Trust Group Inc., a major Japanese institutional investor, has trimmed its stake in Aflac Incorporated, a large U.S. supplemental insurer. This represents a notable reallocation by one of Japan's largest trust banking groups, which manages substantial assets under custody. While institutional stake reductions can signal various strategic motives (rebalancing, risk management, liquidity optimization), they don't inherently indicate fundamental concerns about the target company's business. Aflac's core cancer and supplemental insurance operations remain steady, supported by the company's distinctive W reed model and strong brand recognition in Japan. The transaction's impact on Aflac's stock should be limited given its massive market capitalization and diverse shareholder base, though any large block sale could create modest near-term trading pressure. This kind of institutional rebalancing is common and typically reflects portfolio-level decisions rather than a view on target company valuation. This is direct company coverage for AFL.",
+        "confidence": 0.73,
+        "impact_horizon": "near_term",
+        "risk_direction": "neutral",
+        "scenario_summary": "A Japanese megabank-trust group reduces its Aflac position for portfolio rebalancing, with minimal lasting impact on the insurance company's fundamentals or valuation. This is direct company coverage for AFL.",
+        "key_implications": [
+          "Aflac's largest shareholders remain diversified, limiting single-transaction market impact",
+          "The sale reflects institutional portfolio management rather than concerns about Aflac's earnings power",
+          "Japanese investors broadly may be reducing U.S. equity exposure, worth monitoring for broader trends"
+        ],
+        "recommended_followups": [
+          "Monitor for follow-up filings showing whether the trim was a single transaction or systematic reduction",
+          "Check if other Japanese institutional investors are making similar moves in U.S. insurance/financials",
+          "Aflac's next earnings call could address shareholder base changes if asked by analysts"
+        ]
+      }
+    ],
+    "ticker_metadata": {
+      "id": "0dacb0a7-f39a-4df1-9bc8-0950f2178903",
+      "ticker": "AFL",
+      "company_name": "Aflac Inc",
+      "asset_class": null,
+      "sector": "Insurance",
+      "industry": null,
+      "exchange": "NEW YORK STOCK EXCHANGE, INC.",
+      "market_cap": 57162097495.7575,
+      "market_cap_bucket": "high",
+      "float_shares": null,
+      "avg_daily_dollar_volume": 217644676.2,
+      "spread_proxy": 0.001,
+      "beta": 0.65306866,
+      "volatility_proxy": 0.163267165,
+      "profitability_profile": "mixed",
+      "leverage_profile": "moderate",
+      "macro_sensitivity": null,
+      "structural_fragility": null,
+      "liquidity_risk": null,
+      "updated_at": "2026-04-13T20:15:55.178544+00:00",
+      "created_at": "2026-04-12T21:58:16.240175+00:00",
+      "pe_ratio": 15.6366,
+      "week_52_high": 119.32,
+      "week_52_low": 96.95,
+      "price": 112.14,
+      "price_as_of": "2026-04-13T20:15:55.063807+00:00",
+      "avg_volume": 1.94083,
+      "previous_close": 110.7,
+      "open_price": 109.68,
+      "day_high": 112.28,
+      "day_low": 109.08,
+      "last_price_source": "finnhub",
+      "is_supported": true
+    },
+    "macro_impact": {
+      "ticker": "AFL",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    }
+  }
+}

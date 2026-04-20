@@ -20,7 +20,7 @@
 # Ideal Customer Profile
 
 **Who they are**
-Self-directed investors who pick individual stocks and hold them for 1–3 years. They have a real portfolio ($50k–$2M), a real thesis for each position, and a day job that limits how much time they can spend monitoring it.
+Self-directed investors who pick individual stocks and hold them for 1–3 years. They have a real portfolio ($50k–$2M), a clear risk profile for each position, and a day job that limits how much time they can spend monitoring it.
 
 **Demographics**
 - Age 28–55
@@ -30,7 +30,7 @@ Self-directed investors who pick individual stocks and hold them for 1–3 years
 
 **How they invest**
 - Buys individual stocks, holds 3 quarters minimum
-- Has a written or mental thesis for every position
+- Has a written or mental risk view for every position
 - Tracks macro trends, reads earnings, follows sector news
 - Not a day trader. Not a passive index investor.
 
@@ -42,7 +42,7 @@ They spend an hour just to answer "am I still okay?" — and they have no system
 
 **What they're not**
 - Day traders
-- Beginners without a thesis
+- Beginners without a risk framework
 - Passive index investors
 - Institutional funds
 
@@ -62,7 +62,7 @@ They built a process to handle this — open the brokerage, read the news, conne
 
 The tools that exist don't solve this. Brokerage platforms show you what happened, not what it means for your specific book. Financial news apps are written for everyone, so they're useful to no one in particular. Portfolio trackers show allocation and performance but have no concept of risk changing in real time. General AI tools like ChatGPT can help you think through a position, but you have to do all the legwork yourself — pull the news, frame the question, interpret the output.
 
-The result is that a serious investor with a $200k portfolio and a clear thesis for every position has roughly the same risk visibility as someone who checks their account once a month.
+The result is that a serious investor with a $200k portfolio and a clear risk view for every position has roughly the same risk visibility as someone who checks their account once a month.
 
 Three specific gaps drive this:
 
@@ -84,7 +84,7 @@ Your portfolio's daily risk briefing — built around what you own, not the mark
 
 **The core promise**
 
-You built a thesis for every position you hold. We protect it. Every morning you get a clear picture of where your portfolio stands, what changed overnight, and whether anything needs your attention — without spending an hour figuring it out yourself.
+You built a risk view for every position you hold. We protect it. Every morning you get a clear picture of where your portfolio stands, what changed overnight, and whether anything needs your attention — without spending an hour figuring it out yourself.
 
 ---
 
@@ -284,11 +284,11 @@ Scoring is archetype-relative. The system classifies each position before scorin
 | Defensive | Minimal movement expected | Dividend cuts, defensive rotation breaking down |
 
 **Grade thresholds**
-- A = 80–100 (hold, thesis intact)
+- A = 80–100 (hold, setup intact)
 - B = 65–79 (watching, no action needed)
 - C = 50–64 (caution, review position)
 - D = 35–49 (deteriorating, consider trimming)
-- F = 0–34 (alert, thesis may be broken)
+- F = 0–34 (alert, setup may be broken)
 
 Grades are time-sensitive. A position can move from B to D in one morning if the right event hits.
 

@@ -114,6 +114,7 @@ struct FactorBreakdown: Codable {
     let macroAdjustment: Double?
     let eventAdjustment: Double?
     let eventCount: Int?
+    let aiDimensions: AIDimensions?
 
     enum CodingKeys: String, CodingKey {
         case marketCapBucket = "market_cap_bucket"
@@ -126,5 +127,22 @@ struct FactorBreakdown: Codable {
         case macroAdjustment = "macro_adjustment"
         case eventAdjustment = "event_adjustment"
         case eventCount = "event_count"
+        case aiDimensions = "ai_dimensions"
+    }
+}
+
+struct AIDimensions: Codable {
+    let newsSentiment: Double?
+    let macroExposure: Double?
+    let positionSizing: Double?
+    let thesisRisk: Double?
+    let volatilityTrend: Double?
+
+    enum CodingKeys: String, CodingKey {
+        case newsSentiment = "news_sentiment"
+        case macroExposure = "macro_exposure"
+        case positionSizing = "position_sizing"
+        case thesisRisk = "thesis_risk"
+        case volatilityTrend = "volatility_trend"
     }
 }

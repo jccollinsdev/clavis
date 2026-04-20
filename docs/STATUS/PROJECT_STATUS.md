@@ -198,15 +198,15 @@ Tables with RLS enabled:
 
 ```bash
 SUPABASE_URL=https://uwvwulhkxtzabykelvam.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-SUPABASE_JWT_SECRET=wzjkivUy1XRGBxzVVMo+JxOFwDMLIbgL9DpzV0omwF6...
+SUPABASE_ANON_KEY=your-supabase-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_JWT_SECRET=your-jwt-secret
 
-MINIMAX_API_KEY=sk-cp-_5HJnJz00YLnF72NYF2jn2VB4lR61JN9QO4DOaJyx_...
+MINIMAX_API_KEY=your-minimax-api-key
 MINIMAX_BASE_URL=https://api.minimax.io/v1
 
-FINNHUB_API_KEY=d794qehr01qp0fl76degd794qehr01qp0fl76df0
-POLYGON_API_KEY=ZhzOMxq5CHtYnTM6PHpmSvgSJydDlox9
+FINNHUB_API_KEY=your-finnhub-api-key
+POLYGON_API_KEY=your-polygon-api-key
 APNS_KEY_ID=YOUR_APNS_KEY_ID
 APNS_TEAM_ID=YOUR_APNS_TEAM_ID
 APNS_KEY_PATH=/app/apns/apns.p8
@@ -226,7 +226,7 @@ MIROFISH_URL=http://mirofish:8001
 - [x] Holdings CRUD (create, read, delete positions)
 - [x] Dashboard with portfolio grade display
 - [x] Position detail view with score breakdown, analysis, events, news
-- [x] Morning digest view (What Changed / What Matters / What To Do)
+- [x] Morning digest view (What Changed / What Matters / Monitoring Notes)
 - [x] Alerts view with grouped alerts, pull-to-refresh
 - [x] Settings view (digest time, notification preferences)
 - [x] Analysis progress polling during runs

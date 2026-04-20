@@ -1,0 +1,536 @@
+{
+  "position": {
+    "id": "3785a9c9-1699-4068-b096-611fe9967dfb",
+    "user_id": "00000000-0000-0000-0000-000000000001",
+    "ticker": "ABBV",
+    "shares": 0.0,
+    "purchase_price": 0.0,
+    "archetype": "growth",
+    "created_at": "2026-04-13T00:47:15.797313+00:00",
+    "updated_at": "2026-04-13T00:47:15.797313+00:00",
+    "current_price": 206.47,
+    "analysis_started_at": null
+  },
+  "inferred_labels": [
+    "growth"
+  ],
+  "related_articles": [
+    {
+      "external_id": "CBMiuAFBVV95cUxNVzlKbXBqaWNLamkzZ1BBc29fdFlqZlhoUmZkMUs4MENwczY0bTR3N0NYY0VEXzhja0RrZ2w5bTUxS0hfcnJkdDF3aTdjUnVuUzh1RFZDaldfTmNzczlhaXR6RDNmZnJ3aENTWXRsUzFIU0hadTZtVnRuZ25scHJaRDdFNno4MlV4MENNT3lGVW9zNllTYjhzeHBjd2YtWGNvUWs1YXlrMWFMUGt4blJrRjRUc3c0dlMt",
+      "event_hash": "7ab598fae41c679cbeb26230a6ca0756a198f51aba479b60ae205be828ccb02d",
+      "source_type": "company_news",
+      "source": "Stock Titan",
+      "title": "AbbVie strikes up to $745M pain-drug deal with China's Haisco",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiuAFBVV95cUxNVzlKbXBqaWNLamkzZ1BBc29fdFlqZlhoUmZkMUs4MENwczY0bTR3N0NYY0VEXzhja0RrZ2w5bTUxS0hfcnJkdDF3aTdjUnVuUzh1RFZDaldfTmNzczlhaXR6RDNmZnJ3aENTWXRsUzFIU0hadTZtVnRuZ25scHJaRDdFNno4MlV4MENNT3lGVW9zNllTYjhzeHBjd2YtWGNvUWs1YXlrMWFMUGt4blJrRjRUc3c0dlMt?oc=5\" target=\"_blank\">AbbVie strikes up to $745M pain-drug deal with China's Haisco</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Stock Titan</font>",
+      "body": "Comprehensive up-to-date news coverage, aggregated from sources all over the world by Google News.",
+      "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxNVzlKbXBqaWNLamkzZ1BBc29fdFlqZlhoUmZkMUs4MENwczY0bTR3N0NYY0VEXzhja0RrZ2w5bTUxS0hfcnJkdDF3aTdjUnVuUzh1RFZDaldfTmNzczlhaXR6RDNmZnJ3aENTWXRsUzFIU0hadTZtVnRuZ25scHJaRDdFNno4MlV4MENNT3lGVW9zNllTYjhzeHBjd2YtWGNvUWs1YXlrMWFMUGt4blJrRjRUc3c0dlMt?oc=5",
+      "published_at": "2026-04-13T06:24:00+00:00",
+      "ticker_hints": [
+        "ABBV"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMiuAFBVV95cUxNVzlKbXBqaWNLamkzZ1BBc29fdFlqZlhoUmZkMUs4MENwczY0bTR3N0NYY0VEXzhja0RrZ2w5bTUxS0hfcnJkdDF3aTdjUnVuUzh1RFZDaldfTmNzczlhaXR6RDNmZnJ3aENTWXRsUzFIU0hadTZtVnRuZ25scHJaRDdFNno4MlV4MENNT3lGVW9zNllTYjhzeHBjd2YtWGNvUWs1YXlrMWFMUGt4blJrRjRUc3c0dlMt",
+        "title": "AbbVie strikes up to $745M pain-drug deal with China's Haisco",
+        "source": "Stock Titan",
+        "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxNVzlKbXBqaWNLamkzZ1BBc29fdFlqZlhoUmZkMUs4MENwczY0bTR3N0NYY0VEXzhja0RrZ2w5bTUxS0hfcnJkdDF3aTdjUnVuUzh1RFZDaldfTmNzczlhaXR6RDNmZnJ3aENTWXRsUzFIU0hadTZtVnRuZ25scHJaRDdFNno4MlV4MENNT3lGVW9zNllTYjhzeHBjd2YtWGNvUWs1YXlrMWFMUGt4blJrRjRUc3c0dlMt?oc=5",
+        "published_at": "2026-04-13T06:24:00+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiuAFBVV95cUxNVzlKbXBqaWNLamkzZ1BBc29fdFlqZlhoUmZkMUs4MENwczY0bTR3N0NYY0VEXzhja0RrZ2w5bTUxS0hfcnJkdDF3aTdjUnVuUzh1RFZDaldfTmNzczlhaXR6RDNmZnJ3aENTWXRsUzFIU0hadTZtVnRuZ25scHJaRDdFNno4MlV4MENNT3lGVW9zNllTYjhzeHBjd2YtWGNvUWs1YXlrMWFMUGt4blJrRjRUc3c0dlMt?oc=5\" target=\"_blank\">AbbVie strikes up to $745M pain-drug deal with China's Haisco</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Stock Titan</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "ABBV",
+        "company_name": "AbbVie Inc",
+        "query": "AbbVie Inc stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "ABBV"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "Up to $745M pain-drug deal with Haisco expands ABBV's pipeline and growth opportunities."
+      },
+      "resolved_url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxNVzlKbXBqaWNLamkzZ1BBc29fdFlqZlhoUmZkMUs4MENwczY0bTR3N0NYY0VEXzhja0RrZ2w5bTUxS0hfcnJkdDF3aTdjUnVuUzh1RFZDaldfTmNzczlhaXR6RDNmZnJ3aENTWXRsUzFIU0hadTZtVnRuZ25scHJaRDdFNno4MlV4MENNT3lGVW9zNllTYjhzeHBjd2YtWGNvUWs1YXlrMWFMUGt4blJrRjRUc3c0dlMt?oc=5&hl=en-US&gl=US&ceid=US:en",
+      "content_source": "news.google.com",
+      "scrape_status": "ok"
+    },
+    {
+      "external_id": "CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTkJ2TmN1UQ",
+      "event_hash": "71a87b2621d105df3c8f0a0fb770e159ab85bc38f158166270abf676acef956b",
+      "source_type": "company_news",
+      "source": "National Today",
+      "title": "Factory Mutual Insurance Co. Decreases AbbVie Stock Position",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTkJ2TmN1UQ?oc=5\" target=\"_blank\">Factory Mutual Insurance Co. Decreases AbbVie Stock Position</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">National Today</font>",
+      "body": "Comprehensive up-to-date news coverage, aggregated from sources all over the world by Google News.",
+      "url": "https://news.google.com/rss/articles/CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTkJ2TmN1UQ?oc=5",
+      "published_at": "2026-04-11T13:38:22+00:00",
+      "ticker_hints": [
+        "ABBV"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTkJ2TmN1UQ",
+        "title": "Factory Mutual Insurance Co. Decreases AbbVie Stock Position",
+        "source": "National Today",
+        "url": "https://news.google.com/rss/articles/CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTkJ2TmN1UQ?oc=5",
+        "published_at": "2026-04-11T13:38:22+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTkJ2TmN1UQ?oc=5\" target=\"_blank\">Factory Mutual Insurance Co. Decreases AbbVie Stock Position</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">National Today</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "ABBV",
+        "company_name": "AbbVie Inc",
+        "query": "AbbVie Inc stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "ABBV"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "Institutional investor (Factory Mutual) reducing their AbbVie position signals potential sentiment shift for ABBV."
+      },
+      "resolved_url": "https://news.google.com/rss/articles/CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTkJ2TmN1UQ?oc=5&hl=en-US&gl=US&ceid=US:en",
+      "content_source": "news.google.com",
+      "scrape_status": "ok"
+    },
+    {
+      "external_id": "CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz",
+      "event_hash": "7d47e5b020e88983bc7b8c9a2f5a3211c6d34961c1e8edcd818edf3ddda97f08",
+      "source_type": "company_news",
+      "source": "Yahoo Finance",
+      "title": "Battle of Big Pharma: Is AbbVie Stock Pulling Ahead of Pfizer?",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz?oc=5\" target=\"_blank\">Battle of Big Pharma: Is AbbVie Stock Pulling Ahead of Pfizer?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Finance</font>",
+      "body": "Comprehensive up-to-date news coverage, aggregated from sources all over the world by Google News.",
+      "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz?oc=5",
+      "published_at": "2026-04-10T13:32:00+00:00",
+      "ticker_hints": [
+        "ABBV"
+      ],
+      "sector_hint": null,
+      "raw": {
+        "id": "CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz",
+        "title": "Battle of Big Pharma: Is AbbVie Stock Pulling Ahead of Pfizer?",
+        "source": "Yahoo Finance",
+        "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz?oc=5",
+        "published_at": "2026-04-10T13:32:00+00:00",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz?oc=5\" target=\"_blank\">Battle of Big Pharma: Is AbbVie Stock Pulling Ahead of Pfizer?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Finance</font>",
+        "sector": null,
+        "source_type": "company_news",
+        "ticker": "ABBV",
+        "company_name": "AbbVie Inc",
+        "query": "AbbVie Inc stock"
+      },
+      "relevance": {
+        "relevant": true,
+        "affected_tickers": [
+          "ABBV"
+        ],
+        "event_type": "company_specific",
+        "why_it_matters": "Article compares AbbVie's stock performance against Pfizer, directly relevant to the ABBV growth position."
+      },
+      "resolved_url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz?oc=5&hl=en-US&gl=US&ceid=US:en",
+      "content_source": "news.google.com",
+      "scrape_status": "ok"
+    }
+  ],
+  "event_analyses": [
+    {
+      "analysis_run_id": "77fd4aaf-4179-4396-a7fd-4a266a2f67d5",
+      "position_id": "3785a9c9-1699-4068-b096-611fe9967dfb",
+      "event_hash": "71a87b2621d105df3c8f0a0fb770e159ab85bc38f158166270abf676acef956b",
+      "external_event_id": "CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTkJ2TmN1UQ",
+      "title": "Factory Mutual Insurance Co. Decreases AbbVie Stock Position",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTkJ2TmN1UQ?oc=5\" target=\"_blank\">Factory Mutual Insurance Co. Decreases AbbVie Stock Position</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">National Today</font>",
+      "source": "National Today",
+      "source_url": "https://news.google.com/rss/articles/CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTkJ2TmN1UQ?oc=5",
+      "published_at": "2026-04-11T13:38:22+00:00",
+      "event_type": "other",
+      "significance": "minor",
+      "classification": {
+        "significance": "minor",
+        "event_type": "other",
+        "why_it_matters": "Factory Mutual Insurance reducing its AbbVie position is routine institutional portfolio rebalancing and does not reflect changes in AbbVie's underlying fundamentals.",
+        "confidence": 0.9
+      },
+      "classification_evidence": {
+        "relevance": {
+          "relevant": true,
+          "affected_tickers": [
+            "ABBV"
+          ],
+          "event_type": "company_specific",
+          "why_it_matters": "Institutional investor (Factory Mutual) reducing their AbbVie position signals potential sentiment shift for ABBV."
+        },
+        "significance": {
+          "significance": "minor",
+          "event_type": "other",
+          "why_it_matters": "Factory Mutual Insurance reducing its AbbVie position is routine institutional portfolio rebalancing and does not reflect changes in AbbVie's underlying fundamentals.",
+          "confidence": 0.9
+        }
+      },
+      "analysis_source": "minimax",
+      "long_analysis": "Factory Mutual Insurance Co.'s decision to trim its AbbVie stake suggests a reduction in institutional confidence in the near term, which could weigh on the stock's price and increase short\u2011term volatility. While the move may reflect routine portfolio rebalancing rather than a fundamental concern, it signals a shift in sentiment that market participants often react to quickly. Investors should watch for additional holdings data to determine whether this is an isolated transaction or part of a broader trend. This is direct company coverage for ABBV.",
+      "confidence": 0.7799999999999999,
+      "impact_horizon": "near_term",
+      "risk_direction": "worsening",
+      "scenario_summary": "A decline in a notable institutional stake points to heightened near\u2011term risk and possible downward pressure on AbbVie shares. This is direct company coverage for ABBV.",
+      "key_implications": [
+        "Reduced institutional support may amplify short\u2011term price swings.",
+        "Market perception of AbbVie's fundamentals could deteriorate if further selling emerges."
+      ],
+      "recommended_followups": [
+        "Track upcoming 13F filings to see if other large investors adjust positions.",
+        "Monitor the stock\u2019s price reaction in the days following the news for signs of sustained pressure.",
+        "Review the read-through against ABBV's current labels: growth."
+      ]
+    },
+    {
+      "analysis_run_id": "77fd4aaf-4179-4396-a7fd-4a266a2f67d5",
+      "position_id": "3785a9c9-1699-4068-b096-611fe9967dfb",
+      "event_hash": "7d47e5b020e88983bc7b8c9a2f5a3211c6d34961c1e8edcd818edf3ddda97f08",
+      "external_event_id": "CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz",
+      "title": "Battle of Big Pharma: Is AbbVie Stock Pulling Ahead of Pfizer?",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz?oc=5\" target=\"_blank\">Battle of Big Pharma: Is AbbVie Stock Pulling Ahead of Pfizer?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Finance</font>",
+      "source": "Yahoo Finance",
+      "source_url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz?oc=5",
+      "published_at": "2026-04-10T13:32:00+00:00",
+      "event_type": "other",
+      "significance": "minor",
+      "classification": {
+        "significance": "minor",
+        "event_type": "other",
+        "why_it_matters": "This is analytical commentary comparing AbbVie and Pfizer stock performance without any material new catalyst from either company.",
+        "confidence": 0.92
+      },
+      "classification_evidence": {
+        "relevance": {
+          "relevant": true,
+          "affected_tickers": [
+            "ABBV"
+          ],
+          "event_type": "company_specific",
+          "why_it_matters": "Article compares AbbVie's stock performance against Pfizer, directly relevant to the ABBV growth position."
+        },
+        "significance": {
+          "significance": "minor",
+          "event_type": "other",
+          "why_it_matters": "This is analytical commentary comparing AbbVie and Pfizer stock performance without any material new catalyst from either company.",
+          "confidence": 0.92
+        }
+      },
+      "analysis_source": "minimax",
+      "long_analysis": "Reports framing AbbVie as outpacing Pfizer in the pharma race suggest stronger relative performance, which could attract bullish investors and lift sentiment. However, the analysis hinges on product pipelines and market\u2011share dynamics; competitive advantages can be fleeting if pipeline setbacks arise. The near\u2011term impact is likely a modest positive, while long\u2011term prospects depend on execution of strategic initiatives. This is direct company coverage for ABBV.",
+      "confidence": 0.73,
+      "impact_horizon": "near_term",
+      "risk_direction": "improving",
+      "scenario_summary": "AbbVie appears to be gaining a competitive edge over Pfizer, supporting a more favorable risk outlook in the near term. This is direct company coverage for ABBV.",
+      "key_implications": [
+        "Positive comparative narrative may drive incremental buying interest.",
+        "Sustained leadership will require continued pipeline success and market\u2011share gains."
+      ],
+      "recommended_followups": [
+        "Compare upcoming quarterly earnings for both companies to validate relative performance.",
+        "Review pipeline announcements and regulatory milestones that could affect the competitive balance.",
+        "Review the read-through against ABBV's current labels: growth."
+      ]
+    },
+    {
+      "analysis_run_id": "77fd4aaf-4179-4396-a7fd-4a266a2f67d5",
+      "position_id": "3785a9c9-1699-4068-b096-611fe9967dfb",
+      "event_hash": "7ab598fae41c679cbeb26230a6ca0756a198f51aba479b60ae205be828ccb02d",
+      "external_event_id": "CBMiuAFBVV95cUxNVzlKbXBqaWNLamkzZ1BBc29fdFlqZlhoUmZkMUs4MENwczY0bTR3N0NYY0VEXzhja0RrZ2w5bTUxS0hfcnJkdDF3aTdjUnVuUzh1RFZDaldfTmNzczlhaXR6RDNmZnJ3aENTWXRsUzFIU0hadTZtVnRuZ25scHJaRDdFNno4MlV4MENNT3lGVW9zNllTYjhzeHBjd2YtWGNvUWs1YXlrMWFMUGt4blJrRjRUc3c0dlMt",
+      "title": "AbbVie strikes up to $745M pain-drug deal with China's Haisco",
+      "summary": "<a href=\"https://news.google.com/rss/articles/CBMiuAFBVV95cUxNVzlKbXBqaWNLamkzZ1BBc29fdFlqZlhoUmZkMUs4MENwczY0bTR3N0NYY0VEXzhja0RrZ2w5bTUxS0hfcnJkdDF3aTdjUnVuUzh1RFZDaldfTmNzczlhaXR6RDNmZnJ3aENTWXRsUzFIU0hadTZtVnRuZ25scHJaRDdFNno4MlV4MENNT3lGVW9zNllTYjhzeHBjd2YtWGNvUWs1YXlrMWFMUGt4blJrRjRUc3c0dlMt?oc=5\" target=\"_blank\">AbbVie strikes up to $745M pain-drug deal with China's Haisco</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Stock Titan</font>",
+      "source": "Stock Titan",
+      "source_url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxNVzlKbXBqaWNLamkzZ1BBc29fdFlqZlhoUmZkMUs4MENwczY0bTR3N0NYY0VEXzhja0RrZ2w5bTUxS0hfcnJkdDF3aTdjUnVuUzh1RFZDaldfTmNzczlhaXR6RDNmZnJ3aENTWXRsUzFIU0hadTZtVnRuZ25scHJaRDdFNno4MlV4MENNT3lGVW9zNllTYjhzeHBjd2YtWGNvUWs1YXlrMWFMUGt4blJrRjRUc3c0dlMt?oc=5",
+      "published_at": "2026-04-13T06:24:00+00:00",
+      "event_type": "mna",
+      "significance": "major",
+      "classification": {
+        "significance": "major",
+        "event_type": "mna",
+        "why_it_matters": "AbbVie's up to $745M deal with Haisco for a pain drug represents a significant strategic partnership that could materially impact AbbVie's pipeline and future revenue streams.",
+        "confidence": 0.85
+      },
+      "classification_evidence": {
+        "relevance": {
+          "relevant": true,
+          "affected_tickers": [
+            "ABBV"
+          ],
+          "event_type": "company_specific",
+          "why_it_matters": "Up to $745M pain-drug deal with Haisco expands ABBV's pipeline and growth opportunities."
+        },
+        "significance": {
+          "significance": "major",
+          "event_type": "mna",
+          "why_it_matters": "AbbVie's up to $745M deal with Haisco for a pain drug represents a significant strategic partnership that could materially impact AbbVie's pipeline and future revenue streams.",
+          "confidence": 0.85
+        }
+      },
+      "analysis_source": "minimax_fallback",
+      "long_analysis": "AbbVie's up to $745M deal with China's Haisco for a pain drug represents a strategic pipeline expansion that diversifies beyond its Humira-dependent revenue base. The partnership grants AbbVie access to Haisco's pain therapeutic candidate while leveraging Chinese pharmaceutical innovation at a relatively modest upfront cost relative to AbbVie's ~$300B market cap. This deal signals continued M&A/partnership activity as AbbVie actively hedges against Humira biosimilar erosion in key markets. For valuation, such milestone-structured deals spread financial risk while maintaining optionality on successful development. The China angle also reflects broader pharma industry trends of accessing cost-effective Chinese biotech assets. This is direct company coverage for ABBV.",
+      "confidence": 0.86,
+      "impact_horizon": "near_term",
+      "risk_direction": "neutral",
+      "scenario_summary": "AbbVie's partnership with Haisco expands its pain-drug pipeline with manageable financial risk, diversifying revenue sources amid Humira biosimilar headwinds. This is direct company coverage for ABBV.",
+      "key_implications": [
+        "AbbVie signals continued pipeline investment despite cost-containment pressures in pharma",
+        "Chinese biotech partnerships remain an attractive sourcing mechanism for Western pharma",
+        "Pain therapeutics represent a competitive but high-value market segment"
+      ],
+      "recommended_followups": [
+        "Monitor for clinical trial\u8fdb\u5c55 and regulatory milestones that would trigger payments",
+        "Watch for similar deal announcements from AbbVie competitors in pain or related CNS spaces",
+        "Assess whether $745M represents full deal value or if commercial milestones could push higher"
+      ]
+    }
+  ],
+  "position_report": {
+    "summary": "AbbVie's $745M Haisco partnership represents a strategically sound diversification move beyond its Humira-dependent revenue base, leveraging Chinese pharmaceutical innovation at a modest cost relative to its ~$300B market cap. The minor institutional selling by Factory Mutual likely reflects routine rebalancing rather than fundamental concerns, while positive relative performance framing versus Pfizer could attract growth-oriented flows. Near-term catalysts center on pipeline execution, while the long-term thesis hinges on successfully navigating the post-Humira patent cliff.",
+    "long_report": "The major Haisco deal signals AbbVie's commitment to M&A-driven pipeline expansion, a critical strategic imperative as Humira faces escalating biosimilar competition. The modest upfront investment relative to market cap demonstrates capital discipline while still accessing differentiated therapeutic candidates in the pain franchise\u2014a large addressable market with significant unmet need. The minor institutional trimming by Factory Mutual is unlikely to reflect fundamental concerns given AbbVie's scale and cash generation, though it may contribute to short-term price sensitivity if other large holders follow. The competitive narrative framing AbbVie ahead of Pfizer is a modest sentiment positive that could support multiple expansion, though competitive dynamics in pharma are fluid and execution risk remains. The growth thesis for this position depends heavily on pipeline milestone delivery and successful revenue diversification over the next 2-3 years.",
+    "methodology": "This report anchors analysis to the three event evidences provided, assessing their directional impact on an AbbVie growth thesis focused on pipeline diversification. Each event is weighted by reported magnitude (major vs minor), with near-term market reactions considered alongside longer-term fundamental implications. The framework evaluates whether events support, challenge, or leave neutral the inferred growth positioning, with particular attention to revenue concentration risk mitigation.",
+    "top_risks": [
+      "Pipeline failure or clinical setbacks for Haisco partnership candidates would invalidate the diversification thesis and impair capital allocation",
+      "Accelerated Humira biosimilar erosion could compress EBITDA faster than new drugs offset, pressuring the dividend and buyback capacity",
+      "Regulatory or reimbursement headwinds for pipeline candidates could limit commercial potential and delay revenue contribution"
+    ],
+    "watch_items": [
+      "Haisco partnership milestone announcements and IND/clinical progress updates for the pain therapeutic candidate",
+      "Humira revenue trajectory in quarterly reports\u2014monitoring biosimilar erosion rate relative to consensus expectations",
+      "Institutional ownership changes and any disclosure of large holder rationale for position adjustments"
+    ],
+    "thesis_verifier": []
+  },
+  "position_payload": {
+    "id": "3785a9c9-1699-4068-b096-611fe9967dfb",
+    "user_id": "00000000-0000-0000-0000-000000000001",
+    "ticker": "ABBV",
+    "shares": 0.0,
+    "purchase_price": 0.0,
+    "archetype": "growth",
+    "created_at": "2026-04-13T00:47:15.797313+00:00",
+    "updated_at": "2026-04-13T00:47:15.797313+00:00",
+    "current_price": 206.47,
+    "analysis_started_at": null,
+    "analysis_mode": "sp500_backfill",
+    "previous_grade": "D",
+    "previous_total_score": 38.8,
+    "summary": "AbbVie's $745M Haisco partnership represents a strategically sound diversification move beyond its Humira-dependent revenue base, leveraging Chinese pharmaceutical innovation at a modest cost relative to its ~$300B market cap. The minor institutional selling by Factory Mutual likely reflects routine rebalancing rather than fundamental concerns, while positive relative performance framing versus Pfizer could attract growth-oriented flows. Near-term catalysts center on pipeline execution, while the long-term thesis hinges on successfully navigating the post-Humira patent cliff.",
+    "long_report": "The major Haisco deal signals AbbVie's commitment to M&A-driven pipeline expansion, a critical strategic imperative as Humira faces escalating biosimilar competition. The modest upfront investment relative to market cap demonstrates capital discipline while still accessing differentiated therapeutic candidates in the pain franchise\u2014a large addressable market with significant unmet need. The minor institutional trimming by Factory Mutual is unlikely to reflect fundamental concerns given AbbVie's scale and cash generation, though it may contribute to short-term price sensitivity if other large holders follow. The competitive narrative framing AbbVie ahead of Pfizer is a modest sentiment positive that could support multiple expansion, though competitive dynamics in pharma are fluid and execution risk remains. The growth thesis for this position depends heavily on pipeline milestone delivery and successful revenue diversification over the next 2-3 years.",
+    "top_risks": [
+      "Pipeline failure or clinical setbacks for Haisco partnership candidates would invalidate the diversification thesis and impair capital allocation",
+      "Accelerated Humira biosimilar erosion could compress EBITDA faster than new drugs offset, pressuring the dividend and buyback capacity",
+      "Regulatory or reimbursement headwinds for pipeline candidates could limit commercial potential and delay revenue contribution"
+    ],
+    "watch_items": [
+      "Haisco partnership milestone announcements and IND/clinical progress updates for the pain therapeutic candidate",
+      "Humira revenue trajectory in quarterly reports\u2014monitoring biosimilar erosion rate relative to consensus expectations",
+      "Institutional ownership changes and any disclosure of large holder rationale for position adjustments"
+    ],
+    "top_news": [
+      "AbbVie strikes up to $745M pain-drug deal with China's Haisco",
+      "Factory Mutual Insurance Co. Decreases AbbVie Stock Position",
+      "Battle of Big Pharma: Is AbbVie Stock Pulling Ahead of Pfizer?"
+    ],
+    "inferred_labels": [
+      "growth"
+    ],
+    "methodology": "This report anchors analysis to the three event evidences provided, assessing their directional impact on an AbbVie growth thesis focused on pipeline diversification. Each event is weighted by reported magnitude (major vs minor), with near-term market reactions considered alongside longer-term fundamental implications. The framework evaluates whether events support, challenge, or leave neutral the inferred growth positioning, with particular attention to revenue concentration risk mitigation.",
+    "mirofish_used": false,
+    "thesis_verifier": [],
+    "event_analyses": [
+      {
+        "analysis_run_id": "77fd4aaf-4179-4396-a7fd-4a266a2f67d5",
+        "position_id": "3785a9c9-1699-4068-b096-611fe9967dfb",
+        "event_hash": "71a87b2621d105df3c8f0a0fb770e159ab85bc38f158166270abf676acef956b",
+        "external_event_id": "CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTkJ2TmN1UQ",
+        "title": "Factory Mutual Insurance Co. Decreases AbbVie Stock Position",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTkJ2TmN1UQ?oc=5\" target=\"_blank\">Factory Mutual Insurance Co. Decreases AbbVie Stock Position</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">National Today</font>",
+        "source": "National Today",
+        "source_url": "https://news.google.com/rss/articles/CBMivwFBVV95cUxQSE9DOGU0UHVlblBqOE1EeHJKaS0xa3lxTjU0VXNCcnp4WEl0Mmp3dUxKRlQ2Z2ZqUVhUQ2tHVVJISjQ0RFZpQnVzUzZXT3FYaGFreWliMFZZMEtpaTNjN3gtdW1fSDAxclo2empCdFVPb2lVR19JYnNVelM5UFA1MHFUMHdTSFVsc0Nldzd1SmRkeFNTTlFmTkxBakc1cmkyNGNvTTJyTTN1Uy1DaWFtX2hLUnVfZlFQTkJ2TmN1UQ?oc=5",
+        "published_at": "2026-04-11T13:38:22+00:00",
+        "event_type": "other",
+        "significance": "minor",
+        "classification": {
+          "significance": "minor",
+          "event_type": "other",
+          "why_it_matters": "Factory Mutual Insurance reducing its AbbVie position is routine institutional portfolio rebalancing and does not reflect changes in AbbVie's underlying fundamentals.",
+          "confidence": 0.9
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "ABBV"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "Institutional investor (Factory Mutual) reducing their AbbVie position signals potential sentiment shift for ABBV."
+          },
+          "significance": {
+            "significance": "minor",
+            "event_type": "other",
+            "why_it_matters": "Factory Mutual Insurance reducing its AbbVie position is routine institutional portfolio rebalancing and does not reflect changes in AbbVie's underlying fundamentals.",
+            "confidence": 0.9
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "Factory Mutual Insurance Co.'s decision to trim its AbbVie stake suggests a reduction in institutional confidence in the near term, which could weigh on the stock's price and increase short\u2011term volatility. While the move may reflect routine portfolio rebalancing rather than a fundamental concern, it signals a shift in sentiment that market participants often react to quickly. Investors should watch for additional holdings data to determine whether this is an isolated transaction or part of a broader trend. This is direct company coverage for ABBV.",
+        "confidence": 0.7799999999999999,
+        "impact_horizon": "near_term",
+        "risk_direction": "worsening",
+        "scenario_summary": "A decline in a notable institutional stake points to heightened near\u2011term risk and possible downward pressure on AbbVie shares. This is direct company coverage for ABBV.",
+        "key_implications": [
+          "Reduced institutional support may amplify short\u2011term price swings.",
+          "Market perception of AbbVie's fundamentals could deteriorate if further selling emerges."
+        ],
+        "recommended_followups": [
+          "Track upcoming 13F filings to see if other large investors adjust positions.",
+          "Monitor the stock\u2019s price reaction in the days following the news for signs of sustained pressure.",
+          "Review the read-through against ABBV's current labels: growth."
+        ]
+      },
+      {
+        "analysis_run_id": "77fd4aaf-4179-4396-a7fd-4a266a2f67d5",
+        "position_id": "3785a9c9-1699-4068-b096-611fe9967dfb",
+        "event_hash": "7d47e5b020e88983bc7b8c9a2f5a3211c6d34961c1e8edcd818edf3ddda97f08",
+        "external_event_id": "CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz",
+        "title": "Battle of Big Pharma: Is AbbVie Stock Pulling Ahead of Pfizer?",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz?oc=5\" target=\"_blank\">Battle of Big Pharma: Is AbbVie Stock Pulling Ahead of Pfizer?</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Yahoo Finance</font>",
+        "source": "Yahoo Finance",
+        "source_url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxNQXRIRElqM3dZOGtLMjhURW0xTHpsY25NeGZ2YkVwNWtkNEJCOUtnajBrOGVzM0h5TnNyRWNrZkttMFc2WEJOYS0tVzEtZHdKMElWWHhxcWFoTEw1ZVVITFdOdzVlM1lxeXNIemhJckFpUTA2c0dEZjY0bzUzUG1rcm5iR1d1RkZxQXZOM29Zei1tSE5jb0dMWmJHY09lN2Zz?oc=5",
+        "published_at": "2026-04-10T13:32:00+00:00",
+        "event_type": "other",
+        "significance": "minor",
+        "classification": {
+          "significance": "minor",
+          "event_type": "other",
+          "why_it_matters": "This is analytical commentary comparing AbbVie and Pfizer stock performance without any material new catalyst from either company.",
+          "confidence": 0.92
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "ABBV"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "Article compares AbbVie's stock performance against Pfizer, directly relevant to the ABBV growth position."
+          },
+          "significance": {
+            "significance": "minor",
+            "event_type": "other",
+            "why_it_matters": "This is analytical commentary comparing AbbVie and Pfizer stock performance without any material new catalyst from either company.",
+            "confidence": 0.92
+          }
+        },
+        "analysis_source": "minimax",
+        "long_analysis": "Reports framing AbbVie as outpacing Pfizer in the pharma race suggest stronger relative performance, which could attract bullish investors and lift sentiment. However, the analysis hinges on product pipelines and market\u2011share dynamics; competitive advantages can be fleeting if pipeline setbacks arise. The near\u2011term impact is likely a modest positive, while long\u2011term prospects depend on execution of strategic initiatives. This is direct company coverage for ABBV.",
+        "confidence": 0.73,
+        "impact_horizon": "near_term",
+        "risk_direction": "improving",
+        "scenario_summary": "AbbVie appears to be gaining a competitive edge over Pfizer, supporting a more favorable risk outlook in the near term. This is direct company coverage for ABBV.",
+        "key_implications": [
+          "Positive comparative narrative may drive incremental buying interest.",
+          "Sustained leadership will require continued pipeline success and market\u2011share gains."
+        ],
+        "recommended_followups": [
+          "Compare upcoming quarterly earnings for both companies to validate relative performance.",
+          "Review pipeline announcements and regulatory milestones that could affect the competitive balance.",
+          "Review the read-through against ABBV's current labels: growth."
+        ]
+      },
+      {
+        "analysis_run_id": "77fd4aaf-4179-4396-a7fd-4a266a2f67d5",
+        "position_id": "3785a9c9-1699-4068-b096-611fe9967dfb",
+        "event_hash": "7ab598fae41c679cbeb26230a6ca0756a198f51aba479b60ae205be828ccb02d",
+        "external_event_id": "CBMiuAFBVV95cUxNVzlKbXBqaWNLamkzZ1BBc29fdFlqZlhoUmZkMUs4MENwczY0bTR3N0NYY0VEXzhja0RrZ2w5bTUxS0hfcnJkdDF3aTdjUnVuUzh1RFZDaldfTmNzczlhaXR6RDNmZnJ3aENTWXRsUzFIU0hadTZtVnRuZ25scHJaRDdFNno4MlV4MENNT3lGVW9zNllTYjhzeHBjd2YtWGNvUWs1YXlrMWFMUGt4blJrRjRUc3c0dlMt",
+        "title": "AbbVie strikes up to $745M pain-drug deal with China's Haisco",
+        "summary": "<a href=\"https://news.google.com/rss/articles/CBMiuAFBVV95cUxNVzlKbXBqaWNLamkzZ1BBc29fdFlqZlhoUmZkMUs4MENwczY0bTR3N0NYY0VEXzhja0RrZ2w5bTUxS0hfcnJkdDF3aTdjUnVuUzh1RFZDaldfTmNzczlhaXR6RDNmZnJ3aENTWXRsUzFIU0hadTZtVnRuZ25scHJaRDdFNno4MlV4MENNT3lGVW9zNllTYjhzeHBjd2YtWGNvUWs1YXlrMWFMUGt4blJrRjRUc3c0dlMt?oc=5\" target=\"_blank\">AbbVie strikes up to $745M pain-drug deal with China's Haisco</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">Stock Titan</font>",
+        "source": "Stock Titan",
+        "source_url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxNVzlKbXBqaWNLamkzZ1BBc29fdFlqZlhoUmZkMUs4MENwczY0bTR3N0NYY0VEXzhja0RrZ2w5bTUxS0hfcnJkdDF3aTdjUnVuUzh1RFZDaldfTmNzczlhaXR6RDNmZnJ3aENTWXRsUzFIU0hadTZtVnRuZ25scHJaRDdFNno4MlV4MENNT3lGVW9zNllTYjhzeHBjd2YtWGNvUWs1YXlrMWFMUGt4blJrRjRUc3c0dlMt?oc=5",
+        "published_at": "2026-04-13T06:24:00+00:00",
+        "event_type": "mna",
+        "significance": "major",
+        "classification": {
+          "significance": "major",
+          "event_type": "mna",
+          "why_it_matters": "AbbVie's up to $745M deal with Haisco for a pain drug represents a significant strategic partnership that could materially impact AbbVie's pipeline and future revenue streams.",
+          "confidence": 0.85
+        },
+        "classification_evidence": {
+          "relevance": {
+            "relevant": true,
+            "affected_tickers": [
+              "ABBV"
+            ],
+            "event_type": "company_specific",
+            "why_it_matters": "Up to $745M pain-drug deal with Haisco expands ABBV's pipeline and growth opportunities."
+          },
+          "significance": {
+            "significance": "major",
+            "event_type": "mna",
+            "why_it_matters": "AbbVie's up to $745M deal with Haisco for a pain drug represents a significant strategic partnership that could materially impact AbbVie's pipeline and future revenue streams.",
+            "confidence": 0.85
+          }
+        },
+        "analysis_source": "minimax_fallback",
+        "long_analysis": "AbbVie's up to $745M deal with China's Haisco for a pain drug represents a strategic pipeline expansion that diversifies beyond its Humira-dependent revenue base. The partnership grants AbbVie access to Haisco's pain therapeutic candidate while leveraging Chinese pharmaceutical innovation at a relatively modest upfront cost relative to AbbVie's ~$300B market cap. This deal signals continued M&A/partnership activity as AbbVie actively hedges against Humira biosimilar erosion in key markets. For valuation, such milestone-structured deals spread financial risk while maintaining optionality on successful development. The China angle also reflects broader pharma industry trends of accessing cost-effective Chinese biotech assets. This is direct company coverage for ABBV.",
+        "confidence": 0.86,
+        "impact_horizon": "near_term",
+        "risk_direction": "neutral",
+        "scenario_summary": "AbbVie's partnership with Haisco expands its pain-drug pipeline with manageable financial risk, diversifying revenue sources amid Humira biosimilar headwinds. This is direct company coverage for ABBV.",
+        "key_implications": [
+          "AbbVie signals continued pipeline investment despite cost-containment pressures in pharma",
+          "Chinese biotech partnerships remain an attractive sourcing mechanism for Western pharma",
+          "Pain therapeutics represent a competitive but high-value market segment"
+        ],
+        "recommended_followups": [
+          "Monitor for clinical trial\u8fdb\u5c55 and regulatory milestones that would trigger payments",
+          "Watch for similar deal announcements from AbbVie competitors in pain or related CNS spaces",
+          "Assess whether $745M represents full deal value or if commercial milestones could push higher"
+        ]
+      }
+    ],
+    "ticker_metadata": {
+      "id": "a732512e-b96d-4c34-a1a1-4e13f6f417b7",
+      "ticker": "ABBV",
+      "company_name": "AbbVie Inc",
+      "asset_class": null,
+      "sector": "Biotechnology",
+      "industry": null,
+      "exchange": "NEW YORK STOCK EXCHANGE, INC.",
+      "market_cap": 365196362377.69086,
+      "market_cap_bucket": "high",
+      "float_shares": null,
+      "avg_daily_dollar_volume": 1290625387.7,
+      "spread_proxy": 0.001,
+      "beta": 0.32785282,
+      "volatility_proxy": 0.081963205,
+      "profitability_profile": "mixed",
+      "leverage_profile": "moderate",
+      "macro_sensitivity": null,
+      "structural_fragility": null,
+      "liquidity_risk": null,
+      "updated_at": "2026-04-14T10:22:51.986648+00:00",
+      "created_at": "2026-04-12T21:58:07.473359+00:00",
+      "pe_ratio": 86.4087,
+      "week_52_high": 244.81,
+      "week_52_low": 164.97,
+      "price": 206.47,
+      "price_as_of": "2026-04-14T10:22:51.980849+00:00",
+      "avg_volume": 6.25091,
+      "previous_close": 207.94,
+      "open_price": 206.43,
+      "day_high": 208.08,
+      "day_low": 203.01,
+      "last_price_source": "finnhub",
+      "is_supported": true
+    },
+    "macro_impact": {
+      "ticker": "ABBV",
+      "macro_relevance": "neutral",
+      "impact_summary": "No clear overnight macro read-through for this holding; company-specific developments remain the primary context unless new sector news broadens out."
+    }
+  }
+}

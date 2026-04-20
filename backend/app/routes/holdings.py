@@ -2,6 +2,11 @@ from fastapi import APIRouter, Request, HTTPException, Depends, BackgroundTasks
 from ..models.position import Position, PositionCreate, PositionUpdate
 from ..services.supabase import get_supabase
 from ..services.polygon import fetch_current_price
+from ..services.ticker_cache_service import (
+    ensure_ticker_in_universe,
+    enrich_positions_with_ticker_cache,
+    refresh_ticker_snapshot,
+)
 
 router = APIRouter()
 
@@ -27,47 +32,14 @@ async def list_holdings(
     supabase = get_supabase()
     positions = (
         supabase.table("positions").select("*").eq("user_id", user_id).execute().data
+        or []
     )
 
     for pos in positions:
         if pos.get("current_price") is None:
             background_tasks.add_task(refresh_position_price, pos["id"], pos["ticker"])
-        scores = (
-            supabase.table("risk_scores")
-            .select("grade, total_score, calculated_at")
-            .eq("position_id", pos["id"])
-            .order("calculated_at", desc=True)
-            .limit(2)
-            .execute()
-            .data
-        )
-        analyses = (
-            supabase.table("position_analyses")
-            .select(
-                "inferred_labels, summary, status, progress_message, source_count, updated_at, created_at"
-            )
-            .eq("position_id", pos["id"])
-            .order("updated_at", desc=True)
-            .order("created_at", desc=True)
-            .limit(1)
-            .execute()
-            .data
-        )
-        if len(scores) >= 1:
-            pos["risk_grade"] = scores[0].get("grade")
-            pos["total_score"] = scores[0].get("total_score")
-            pos["last_analyzed_at"] = scores[0].get("calculated_at")
-        else:
-            pos["risk_grade"] = None
-            pos["total_score"] = None
-            pos["last_analyzed_at"] = None
-        pos["previous_grade"] = scores[1].get("grade") if len(scores) >= 2 else None
-        pos["inferred_labels"] = (
-            analyses[0].get("inferred_labels") if analyses else None
-        )
-        pos["summary"] = analyses[0].get("summary") if analyses else None
 
-    return positions
+    return enrich_positions_with_ticker_cache(positions, supabase)
 
 
 @router.post("", response_model=Position)
@@ -79,8 +51,15 @@ async def create_holding(
     supabase = get_supabase()
     from datetime import datetime, timezone
 
+    supported = ensure_ticker_in_universe(supabase, position.ticker)
+    if not supported:
+        raise HTTPException(
+            400, "Ticker could not be validated from market data providers"
+        )
+
     data = {
         **position.model_dump(),
+        "ticker": supported["ticker"],
         "user_id": user_id,
         "current_price": None,
         "analysis_started_at": datetime.now(timezone.utc).isoformat(),
@@ -90,6 +69,13 @@ async def create_holding(
         raise HTTPException(500, "Failed to create position")
     created = result.data[0]
     background_tasks.add_task(refresh_position_price, created["id"], created["ticker"])
+    background_tasks.add_task(
+        refresh_ticker_snapshot,
+        supabase,
+        ticker=created["ticker"],
+        job_type="manual_refresh",
+        requested_by_user_id=user_id,
+    )
     return created
 
 

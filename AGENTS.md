@@ -3,6 +3,18 @@
 ## Overview
 Daily risk intelligence for self-directed investors. Monitors holdings, filters news, scores downside risk (A-F grades), alerts on changes.
 
+## Session Memory — Read First
+
+**At the start of every session, read these three files in order:**
+
+1. `AGENTS.md` — this file (context, routes, credentials)
+2. `docs/STATE/project_state.md` — current phase, blockers, active work, recent completions
+3. `docs/STATUS/roadmap.md` — full 11-phase plan and launch principles
+
+**For a manual bootstrap**, run: `bash scripts/session-start.sh`
+
+Keep `docs/STATE/project_state.md` current. Whenever the active phase, blockers, or current focus changes, update that file in the same change set. Use the `project-memory` skill to enforce this workflow.
+
 **Backend:** FastAPI (Python) in Docker container `clavis-backend-1`
 **iOS:** SwiftUI app (`~/Documents/Clavis/ios/`)
 **Database:** Supabase PostgreSQL with RLS
@@ -30,9 +42,18 @@ cloudflared tunnel run clavis-prod
 ```
 **URL:** https://clavis.andoverdigital.com
 
+## Deployment Workflow
+- `develop` is the day-to-day integration branch for backend work.
+- `main` is production; merging or pushing to `main` deploys the DigitalOcean droplet.
+- The droplet is prod-only. Do not edit code there by hand unless you are debugging an outage.
+- Production deploys sync the repo into `/opt/clavis`, then run `docker compose up -d --build`.
+- Keep secrets only on the VPS: `backend/.env`, `backend/apns/apns.p8`, and Cloudflare tunnel credentials.
+- Production ports should stay localhost-only; Cloudflare Tunnel is the public entrypoint.
+- For fast iteration, develop locally with the same compose stack and promote changes from `develop` to `main`.
+
 ## API Keys (in backend/.env)
-- **Polygon:** `ZhzOMxq5CHtYnTM6PHpmSvgSJydDlox9`
-- **Finnhub:** `d794qehr01qp0fl76degd794qehr01qp0fl76df0`
+- **Polygon:** keep in local secret storage / `backend/.env`
+- **Finnhub:** keep in local secret storage / `backend/.env`
 - **MiniMax:** AI analysis
 - **Supabase:** Project credentials
 
