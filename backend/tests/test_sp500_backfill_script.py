@@ -5,7 +5,7 @@ from app.scripts import sp500_backfill
 
 
 def test_start_launches_worker_from_backend_root():
-    args = SimpleNamespace(job_type="backfill", limit=25, batch_size=4, log_path=None)
+    args = SimpleNamespace(job_type="backfill", limit=25, batch_size=4, log_path=None, skip_structural=False)
 
     with (
         patch.object(sp500_backfill, "_get_active_run", return_value=None),

@@ -21,7 +21,9 @@ def test_extract_base64_str_rejects_non_google_url():
     assert _extract_base64_str("https://example.com/story") is None
 
 
-async def test_attach_decoded_google_news_urls_rewrites_source_url():
+def test_attach_decoded_google_news_urls_rewrites_source_url():
+    import asyncio
+
     article = {
         "url": "https://news.google.com/rss/articles/example123?oc=5",
         "source_url": "https://finance.yahoo.com",
@@ -29,17 +31,20 @@ async def test_attach_decoded_google_news_urls_rewrites_source_url():
         "title": "Example headline",
     }
 
-    with patch(
-        "app.pipeline.rss_ingest.decode_google_news_urls",
-        new=AsyncMock(
-            return_value={
-                "https://news.google.com/rss/articles/example123?oc=5": (
-                    "https://finance.yahoo.com/news/example-story-123.html"
-                )
-            }
-        ),
-    ):
-        rewritten = await _attach_decoded_google_news_urls([article])
+    async def _run():
+        with patch(
+            "app.pipeline.rss_ingest.decode_google_news_urls",
+            new=AsyncMock(
+                return_value={
+                    "https://news.google.com/rss/articles/example123?oc=5": (
+                        "https://finance.yahoo.com/news/example-story-123.html"
+                    )
+                }
+            ),
+        ):
+            return await _attach_decoded_google_news_urls([article])
+
+    rewritten = asyncio.run(_run())
 
     assert (
         rewritten[0]["source_url"]

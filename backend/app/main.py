@@ -20,10 +20,11 @@ from .routes.prices import router as prices_router
 from .routes.account import router as account_router
 from .routes.admin import router as admin_router
 from .routes.scheduler import router as scheduler_router
-from .routes.test_push import router as test_push_router
+from .routes.push_test_route import router as test_push_router
 from .routes.debug import router as debug_router
 from .routes.tickers import router as tickers_router
 from .routes.watchlists import router as watchlists_router
+from .routes.brokerage import router as brokerage_router
 from .pipeline.scheduler import start_scheduler
 from .services.apns import validate_apns_configuration
 from .config import get_settings
@@ -291,6 +292,7 @@ app.include_router(news_router, prefix="/news", tags=["news"])
 app.include_router(preferences_router, prefix="/preferences", tags=["preferences"])
 app.include_router(tickers_router, prefix="/tickers", tags=["tickers"])
 app.include_router(watchlists_router, prefix="/watchlists", tags=["watchlists"])
+app.include_router(brokerage_router, prefix="/brokerage", tags=["brokerage"])
 app.include_router(prices_router, prefix="/prices", tags=["prices"])
 app.include_router(account_router, prefix="/account", tags=["account"])
 app.include_router(scheduler_router, prefix="/scheduler", tags=["scheduler"])

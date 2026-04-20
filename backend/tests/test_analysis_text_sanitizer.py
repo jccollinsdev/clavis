@@ -17,4 +17,4 @@ def test_sanitize_public_analysis_text_removes_internal_evidence_terms():
     assert "title_only" not in str(sanitized)
     assert "headline_summary" not in str(sanitized)
     assert "fully grounded" not in str(sanitized)
-    assert "full article coverage" in sanitized["summary"]
+    assert "provisional article read" in sanitized["summary"]

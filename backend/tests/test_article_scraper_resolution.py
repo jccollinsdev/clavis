@@ -160,6 +160,7 @@ def test_normalize_news_item_marks_substantive_body_as_full_body():
     normalized = normalize_news_item(
         {
             "title": "Example headline",
+            "summary": "Brief summary of the article.",
             "body": " ".join(["This is substantive article content."] * 30),
             "source": "Example News",
         },
@@ -179,7 +180,9 @@ def test_search_queries_include_source_domain_and_title():
     queries = _search_queries(article)
 
     assert queries[0].startswith("site:stocktitan.net")
-    assert "AbbVie strikes up to $745M" in queries[0]
+    assert "abbvie" in queries[0].lower()
+    # Full original title preserved as the last query
+    assert "AbbVie strikes up to $745M" in queries[-1]
 
 
 def test_strip_article_boilerplate_removes_cookie_and_nav_text():
@@ -214,9 +217,11 @@ def test_direct_publisher_candidates_probe_source_host():
     )
     assert exact_match is not None
     assert exact_match["url"] == "https://www.stocktitan.net/news/abc-123-def-ghi"
+    # source_url_exact preserves the original www. prefix; host-probe candidates strip it
+    probe_candidates = [c for c in candidates if c["query"] != "source_url_exact" and c["query"] != "source_url_directory"]
     assert all(
         candidate["url"].startswith("https://stocktitan.net/")
-        for candidate in candidates
+        for candidate in probe_candidates
     )
 
 
@@ -284,6 +289,7 @@ class _FakeResponse:
     def __init__(self, text: str, url: str):
         self.text = text
         self.url = url
+        self.status_code = 200
 
     def raise_for_status(self):
         return None

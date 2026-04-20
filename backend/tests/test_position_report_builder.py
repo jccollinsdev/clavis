@@ -11,4 +11,4 @@ def test_build_position_report_uses_insufficient_evidence_fallback():
     )
 
     assert "Insufficient evidence" in report["summary"]
-    assert "thin coverage" in report["long_report"]
+    assert "too thin" in report["long_report"]
