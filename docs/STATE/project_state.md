@@ -1,16 +1,19 @@
 ---
 project: Clavis
 version: 1
-last_updated: 2026-04-19
+last_updated: 2026-04-20
 roadmap: docs/STATUS/roadmap.md
 status: active
-current_phase: "Phase 0 - V1 scope lock and final roadmap"
+current_phase: "Phase 1 - Security And Production Hardening"
 current_focus:
-  - Lock the V1 product scope: Clavix branding, handoff UI as source of truth, brokerage sync in V1, and Pro purchase at $25/month
-  - Define the missing News feed endpoint contract before implementation so the new Home/News/Article flow has a stable backend shape
-  - Build the final execution plan for phases 0-4, including the exact dependency order for iOS UI, backend API, and release readiness work
-  - Treat email summaries, advanced plan management, and institutional/data features as V2-only work
-  - Keep the shared ticker analysis assumptions stable while the UI/API plan is finalized
+  - Keep the backend running on the DigitalOcean VPS behind Cloudflare Tunnel and verify the public API end to end
+  - Remove the Mac-side backend from the public path so the app only talks to the VPS deployment
+  - Map the active background jobs, digest pipeline, structural refreshes, and backfill entry points so the production automation story is clear
+  - Finish checking the live API against a real bearer token, then fix any schema mismatches that still surface in production requests
+  - Keep the iOS app wired to the VPS backend and verify the main fetch flows still work after the cutover
+  - Keep the fully migrated iOS UI stable after the prototype-alignment pass across onboarding, Home, Holdings, Digest, Alerts, Settings, News, article detail, and ticker detail
+  - Build the protected browser-based admin dashboard for backend status, users, and manual refresh controls
+  - Continue security hardening by cleaning up route protection, CORS, and internal/debug surfaces
 blockers:
   gate_0:
     - Paid Apple Developer account
@@ -20,10 +23,48 @@ blockers:
     - SnapTrade developer application and approval
     - SnapTrade sandbox + brokerage sync setup once launch timing justifies it
   technical:
-    - News feed endpoint has no dedicated implementation yet and needs an explicit route/data contract before the handoff UI can be built
-    - App shell/UI migration for the handoff has not started yet
-    - Phase 3 and Phase 4 implementation order still needs to be broken into concrete file-level tasks
-  recent_completions:
+    - APNs is still not configured on the VPS because the production `apns.p8` key is not present yet
+    - App shell/UI migration is functionally complete, but final spacing polish and screenshot-level parity checks are still needed before release polish is considered done
+recent_completions:
+  - Added a root README plus repository-layout, backend-organization, dev/prod workflow, and backfill-artifacts references so the codebase has a clearer contributor map without changing app logic
+  - Synced the new admin-password setup to the live VPS, rebuilt the backend there, and verified the public `/admin` page now serves the protected login UI instead of the old 404
+  - Switched the admin browser console to password-based cookie auth so you can log in directly from the web UI without needing to understand Supabase admin roles
+  - Hardened the backend auth surface by switching to fail-closed middleware, tightening CORS to explicit production origins, and keeping the admin browser UI and debug surfaces behind authenticated access
+  - Added a protected browser admin surface with overview, user visibility, scheduler/cache status, and manual refresh controls for S&P backfill, structural refresh, metadata refresh, and digest triggering
+  - Moved the backend onto the DigitalOcean VPS, installed Docker/Compose and cloudflared, verified the public `/health` endpoint, and then stopped the Mac-side backend and tunnel so the public hostname only serves the VPS
+  - Verified the live protected API surface with a real Supabase bearer token, found and fixed the `/news` schema mismatch, and re-verified the core read endpoints after the VPS cutover
+  - Rebuilt and relaunched the Clavis iOS app in the iPhone 17 Simulator again after the digest/cache and ticker-detail work, confirming the current UI build still succeeds end to end
+  - Reworked digest loading to prefer a fresh cached dashboard/digest row before generating, passed real overnight CNBC macro context into digest compilation, silenced transient MiniMax overload errors in the dashboard/digest pollers, and relaunched the iOS app in Simulator after a successful rebuild
+  - Verified the iOS simulator build still succeeds after the digest and ticker-detail fixes, and traced the backend analysis pipeline enough to confirm digest freshness is cache-backed while position/ticker detail still falls back cleanly when no live analysis exists
+  - Simplified the digest risk score card by removing the sparkline, prior-digest delta, and thesis card, moved the score to the top of the page, added a visible What Matters Today section, and cleaned underscored macro/sector labels plus noisy watch-item phrasing
+  - Fixed the digest refresh path by caching synthesized fallback digests server-side and extending the iOS digest request timeout so the first slow load can complete instead of surfacing the generic error message
+  - Reverified the iOS simulator build/run state for the current routing and lazy-load gating pass; the app still launches successfully and Digest remains the initial tab due to persisted tab selection
+  - Routed dashboard, digest, and alerts position links to the shared ticker-detail screen so search, watchlist, holdings, dashboard, and alerts all land on the same improved detail UI
+  - Gated digest and alerts tab loading behind actual tab selection to reduce eager fetch pressure and restore the dashboard fetch path during app launch
+  - Replaced the old holdings-only position detail path with a thin bridge into the new ticker-detail UI so holdings, watchlist, and search all land on the same improved screen
+  - Replaced the custom bottom dot tab bar with a simpler native tab bar styled to the Clavix dark palette, per the latest iOS UI direction
+  - Replaced the Home digest teaser's leftover "sector overview" placeholder with a real sector-preview module backed by digest data
+  - Fixed Digest score overview parity by deriving the sparkline from real digest history and aligning the delta label with the actual prior-digest score change
+  - Restyled Holdings rows back toward the mockup by removing nested row cards, restoring flatter list rows with dividers, and simplifying the score/trend presentation
+  - Rebuilt and relaunched the iOS app in the iPhone 17 Simulator after the regression-repair pass: BUILD SUCCEEDED
+  - Restyled News to the prototype feed layout with a custom top bar, filter chips that include counts, a hero story card, and compact follow-on story rows
+  - Restyled ticker detail to the prototype long-scroll layout with a custom inline nav bar, score hero, price card with sparkline and range chips, fundamentals grid, dimension bars, watch list, and compact recent news and alert sections
+  - Updated article detail to use the same inline-back navigation pattern so the News-to-article-to-ticker flow stays visually consistent with the migrated design language
+  - Rebuilt and launched the fully migrated app in the iPhone 17 Simulator after the News and ticker-detail pass
+  - Restyled Holdings toward the prototype with a custom top header, persistent search bar, compact holdings summary card, prototype-style watchlist and needs-review sections, and an all-holdings section with inline sort control
+  - Restyled Digest toward the prototype with a custom top header, score overview card, reordered breakdown sections, and a dedicated What to Watch section
+  - Restyled Alerts toward the prototype with a compact summary grid, filter chips, and a timeline-style alert feed that deep-links into held positions or ticker detail when possible
+  - Verified the full iOS app still builds successfully after the Holdings, Digest, and Alerts parity pass: BUILD SUCCEEDED
+  - Refactored onboarding to the prototype-style 4-step flow with a real date-of-birth entry step, a top progress bar, updated Clavix branding, and the existing profile save path preserving backend compatibility by deriving the stored birth year from the entered DOB
+  - Restyled Home toward the prototype with a gauge-based hero, tighter top header actions, a prototype-style bottom tab bar, a compact 3-card stat strip, a change feed card, and an always-visible next scheduled run label
+  - Rebuilt Settings into grouped row cards closer to the prototype, including a conditional plan row that only appears when backed by real subscription-tier data from preferences
+  - Restyled the core iOS tab surfaces toward the design handoff: Home now has a triage hero, Holdings has a search/add control strip and filter chips, Digest has a summary hero, Alerts has a severity-first hero, and Settings now opens with a cleaner trust/preferences card
+  - Swapped the custom tab-shell action bars on Holdings, Digest, Alerts, and Settings for more native navigation bars and top-level toolbar actions
+  - Cleaned up the main iOS shell by removing duplicate top-bar tab shortcuts, keeping the bottom bar as the primary navigation pattern, and simplifying the settings actions menu
+  - Improved holdings row interactions by moving delete into native swipe actions while preserving the delete context menu for power users
+  - Rebuilt the iOS simulator target successfully and relaunched the Clavis app for hands-on UI testing
+  - Reduced onboarding to the four-step handoff flow, removed the first-position and notification-permission prompts, and added a preference step that persists the default alert choices
+  - Added the matching large price move alert toggle to Settings and regenerated the iOS Xcode project so the new news models are included in the app target
   - Created a branding guide documenting fonts, colors, spacing, tone, and UI presentation rules
   - Created a comprehensive UI wireframe brief covering Home, Holdings, Digest, Alerts, News, ticker detail, onboarding, and settings
   - Added the DigitalOcean VPS setup guide with droplet bootstrap steps, secret-copy steps, Cloudflare Tunnel systemd service, and verification commands
@@ -74,7 +115,7 @@ blockers:
   - Fixed the wrapper fallback regression introduced by the resolver diagnostics pass: `proxy_failure_reason` is now initialized before the wrapper branch so unresolved company-news items return structured fallback metadata instead of crashing
   - Began the smarter resolver pass: article enrichment now records structured failure reasons, candidate-level attempt diagnostics, and resolution status fields so unresolved company-news items can be debugged per article
   - Began the article-resolution hardening pass: company-news enrichment now records per-run resolution coverage telemetry, and the search resolver now tries broader headline/domain/ticker query variants before giving up
-  - Started the ticker-intelligence backfill refactor: selected company-news articles are now scraped before downstream analysis, bad relevance cache payloads with failed LLM explanations are no longer reused, Google sector RSS queries are now added alongside CNBC sector feeds, macro persistence now prefers normalized raw model output, backfill scoring now omits live position sizing in favor of thesis-risk semantics, and system backfill digest assembly no longer overwrites fresh current-run payloads with stale snapshot history
+  - Started the ticker-intelligence backfill refactor: selected company-news articles are now scraped before downstream analysis, bad relevance cache payloads with failed LLM explanations are no longer reused, Google sector RSS queries are now added alongside CNBC sector feeds, macro persistence now prefers normalized raw model output, backfill scoring now omits live position sizing in favor of risk-profile semantics, and system backfill digest assembly no longer overwrites fresh current-run payloads with stale snapshot history
   - Hardened ticker-intelligence evidence gating: low-information quote/chart, recap, holdings-history, and Google wrapper articles are now excluded from final per-ticker selection and from reused relevance cache payloads
   - Added a publisher-resolution path for Google RSS company articles: source_url is now preserved through normalization, search queries are derived from the headline and source domain, and resolved article pages are fetched through the `r.jina.ai` text proxy so article bodies are much richer than raw wrapper HTML
   - Moved company article enrichment ahead of relevance classification and version-gated legacy relevance cache rows so new body-based evidence cannot be bypassed by older wrapper-era cached decisions
