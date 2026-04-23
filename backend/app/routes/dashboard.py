@@ -1,7 +1,9 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response
 
+from ..services.alert_payloads import enrich_alert_rows
+from ..services.digest_selection import select_latest_trading_day_digest
 from ..services.supabase import get_supabase
 from ..services.ticker_cache_service import enrich_positions_with_ticker_cache
 from .analysis_runs import _enrich_run
@@ -25,8 +27,6 @@ def _enrich_positions(
 
 def _latest_digest_and_run(supabase, user_id: str):
     now = datetime.utcnow()
-    freshness_window = timedelta(hours=24)
-    cutoff = now - freshness_window
 
     latest_run_result = (
         supabase.table("analysis_runs")
@@ -52,17 +52,16 @@ def _latest_digest_and_run(supabase, user_id: str):
         supabase.table("digests")
         .select("*")
         .eq("user_id", user_id)
-        .gte("generated_at", cutoff.isoformat())
-        .lt("generated_at", now.isoformat())
         .order("generated_at", desc=True)
-        .limit(1)
+        .limit(12)
         .execute()
     )
 
     if not result.data:
         return None, _enrich_run(latest_run, latest_run_digest) if latest_run else None
 
-    digest = result.data[0]
+    saved_digest = result.data[0]
+    digest = select_latest_trading_day_digest(result.data, now)
     digest_run = None
     digest_run_digest = None
     if digest.get("analysis_run_id"):
@@ -92,6 +91,13 @@ def _latest_digest_and_run(supabase, user_id: str):
         if latest_run
         else None
     )
+    if digest is None:
+        digest = saved_digest
+    digest = {
+        **digest,
+        "saved_digest": saved_digest,
+        "generated_digest": None,
+    }
     return digest, analysis_run
 
 
@@ -136,6 +142,7 @@ async def get_dashboard(
         .data
         or []
     )
+    alerts = enrich_alert_rows(alerts)
 
     portfolio_risk_snapshot = (
         supabase.table("portfolio_risk_snapshots")
@@ -164,6 +171,8 @@ async def get_dashboard(
 
     return {
         "digest": digest,
+        "saved_digest": digest.get("saved_digest") if digest else None,
+        "generated_digest": digest.get("generated_digest") if digest else None,
         "analysis_run": analysis_run,
         "positions": positions,
         "alerts": alerts,

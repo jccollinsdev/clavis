@@ -1,6 +1,6 @@
 # Clavis — Current Delivery Roadmap
 
-**Last updated:** 2026-04-19
+**Last updated:** 2026-04-20
 
 **Goal:** Take Clavis from a feature-rich prototype and shared-ticker intelligence build into a secure, trustworthy, launch-ready v1.
 
@@ -61,6 +61,7 @@ This is the highest-risk open area and must finish before launch.
 - Broad RLS audit work has been performed and supporting migrations/docs exist
 - HTTPS production URL is in use for the app backend
 - Health endpoint exists
+- SnapTrade brokerage routes, additive schema fields, and iOS brokerage UI are wired locally for read-only holdings sync
 
 ### What still needs to be done
 

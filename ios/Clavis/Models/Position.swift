@@ -10,6 +10,10 @@ struct Position: Identifiable, Codable, Hashable {
     let createdAt: Date
     let updatedAt: Date
     var currentPrice: Double?
+    var syncedFromBrokerage: Bool?
+    var brokerageAuthorizationId: String?
+    var brokerageAccountId: String?
+    var brokerageLastSyncedAt: Date?
     var riskGrade: String?
     var totalScore: Double?
     var previousGrade: String?
@@ -55,6 +59,10 @@ struct Position: Identifiable, Codable, Hashable {
         return ((current - purchasePrice) / purchasePrice) * 100
     }
 
+    var isBrokerageSynced: Bool {
+        syncedFromBrokerage ?? false
+    }
+
     private func gradeValue(_ grade: String) -> Int {
         switch grade {
         case "A": return 5
@@ -76,6 +84,10 @@ struct Position: Identifiable, Codable, Hashable {
         case createdAt = "created_at"
         case updatedAt = "updated_at"
         case currentPrice = "current_price"
+        case syncedFromBrokerage = "synced_from_brokerage"
+        case brokerageAuthorizationId = "brokerage_authorization_id"
+        case brokerageAccountId = "brokerage_account_id"
+        case brokerageLastSyncedAt = "brokerage_last_synced_at"
         case riskGrade = "risk_grade"
         case totalScore = "total_score"
         case previousGrade = "previous_grade"
@@ -96,6 +108,10 @@ struct Position: Identifiable, Codable, Hashable {
         createdAt = try container.decode(Date.self, forKey: .createdAt)
         updatedAt = try container.decode(Date.self, forKey: .updatedAt)
         currentPrice = try container.decodeFlexibleDoubleIfPresent(forKey: .currentPrice)
+        syncedFromBrokerage = try container.decodeIfPresent(Bool.self, forKey: .syncedFromBrokerage)
+        brokerageAuthorizationId = try container.decodeIfPresent(String.self, forKey: .brokerageAuthorizationId)
+        brokerageAccountId = try container.decodeIfPresent(String.self, forKey: .brokerageAccountId)
+        brokerageLastSyncedAt = try container.decodeIfPresent(Date.self, forKey: .brokerageLastSyncedAt)
         riskGrade = try container.decodeIfPresent(String.self, forKey: .riskGrade)
         totalScore = try container.decodeFlexibleDoubleIfPresent(forKey: .totalScore)
         previousGrade = try container.decodeIfPresent(String.self, forKey: .previousGrade)

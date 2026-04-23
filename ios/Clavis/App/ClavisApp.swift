@@ -1,5 +1,6 @@
 import SwiftUI
 import Supabase
+import SafariServices
 
 @main
 struct ClavisApp: App {
@@ -44,5 +45,26 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
     ) {
         completionHandler(.newData)
+    }
+
+    func application(
+        _ app: UIApplication,
+        open url: URL,
+        options: [UIApplication.OpenURLOptionsKey: Any] = [:]
+    ) -> Bool {
+        guard url.scheme?.lowercased() == "clavis" else {
+            return false
+        }
+
+        if let rootController = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .flatMap({ $0.windows })
+            .first(where: { $0.isKeyWindow })?.rootViewController,
+           let safari = rootController.presentedViewController as? SFSafariViewController {
+            safari.dismiss(animated: true)
+        }
+
+        NotificationCenter.default.post(name: .snapTradeCallbackReceived, object: url)
+        return true
     }
 }

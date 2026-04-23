@@ -27,8 +27,8 @@ async def test_push(user_id: str = Depends(get_user_id)):
 
     payload = {
         "type": "test_push",
-        "title": "Clavynx Push Test",
-        "body": "This is a real APNs test notification from Clavynx.",
+        "title": "Clavis Push Test",
+        "body": "This is a real APNs test notification from Clavis.",
         "data": {"user_id": user_id},
     }
     result = await send_push(apns_token, payload, user_id=user_id)

@@ -1,10 +1,14 @@
 import openai
 import re
+import threading
+import time
 from ..config import get_settings
 from .backfill_artifacts import record_llm_call
 
 settings = get_settings()
 DEFAULT_CHAT_TIMEOUT_SECONDS = 120
+_MINIMAX_THROTTLE_LOCK = threading.Lock()
+_MINIMAX_NEXT_ALLOWED_AT = 0.0
 
 client = openai.OpenAI(
     api_key=settings.minimax_api_key, base_url=settings.minimax_base_url
@@ -15,13 +19,28 @@ def chatcompletion(messages: list, model: str = "MiniMax-M2.7", **kwargs):
     return client.chat.completions.create(model=model, messages=messages, **kwargs)
 
 
+def _wait_for_minimax_slot() -> None:
+    global _MINIMAX_NEXT_ALLOWED_AT
+
+    min_interval_seconds = max(float(settings.minimax_min_interval_seconds), 0.0)
+    if min_interval_seconds == 0:
+        return
+
+    while True:
+        with _MINIMAX_THROTTLE_LOCK:
+            now = time.monotonic()
+            wait_seconds = _MINIMAX_NEXT_ALLOWED_AT - now
+            if wait_seconds <= 0:
+                _MINIMAX_NEXT_ALLOWED_AT = now + min_interval_seconds
+                return
+        time.sleep(wait_seconds)
+
+
 def chatcompletion_text(messages: list, model: str = "MiniMax-M2.7", **kwargs) -> str:
     if "max_tokens" not in kwargs:
         kwargs["max_tokens"] = 1000
     if "timeout" not in kwargs:
         kwargs["timeout"] = DEFAULT_CHAT_TIMEOUT_SECONDS
-
-    import time
 
     start = time.perf_counter()
     response = None
@@ -33,6 +52,8 @@ def chatcompletion_text(messages: list, model: str = "MiniMax-M2.7", **kwargs) -
         "too many requests",
         "overloaded",
         "temporarily unavailable",
+        "bad gateway",
+        "502",
         "503",
         "529",
     )
@@ -40,6 +61,7 @@ def chatcompletion_text(messages: list, model: str = "MiniMax-M2.7", **kwargs) -
         delay = 0.8
         for attempt in range(3):
             try:
+                _wait_for_minimax_slot()
                 response = chatcompletion(messages, model, **kwargs)
                 msg = response.choices[0].message
                 content = msg.content or ""

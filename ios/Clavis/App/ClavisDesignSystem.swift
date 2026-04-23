@@ -63,6 +63,7 @@ enum ClavisTypography {
     static let topBarTitle       = h1
     static let eyebrow           = label
     static let brandTitle        = inter(18, weight: .bold)
+    static let brandWordmark     = inter(18, weight: .bold)
 }
 
 // MARK: - Color Palette
@@ -78,6 +79,7 @@ extension Color {
     static let textPrimary   = Color(hex: "#E8ECF0")
     static let textSecondary = Color(hex: "#7A8799")
     static let textTertiary  = Color(hex: "#7A8799")   // alias
+    static let brandCream    = Color(hex: "#E7D8B7")
 
     // MARK: Informational (non-risk blue — never near score displays)
     static let informational = Color(hex: "#1A6494")
@@ -364,6 +366,12 @@ struct ClavixGauge: View {
     }
 }
 
+enum ClavisCopy {
+    static let informationalDisclosure = "Clavix is informational only. It is not financial advice."
+    static let riskAcknowledgment = "Clavix is informational only. Risk grades and scores reflect risk signals derived from public data and model outputs. They are not recommendations to buy, sell, or hold any security."
+    static let settingsDisclaimer = "Clavix provides risk intelligence for informational purposes only. Scores reflect model output based on available data and do not constitute investment advice."
+}
+
 private struct GaugeArc: Shape {
     let shapeGrade: String
     let progress: CGFloat
@@ -398,6 +406,41 @@ struct ClavisBrandMark: View {
     }
 }
 
+// MARK: - Brand Header
+
+struct ClavixWordmarkHeader<Accessory: View>: View {
+    let subtitle: String?
+    @ViewBuilder let accessory: Accessory
+
+    init(subtitle: String? = nil, @ViewBuilder accessory: () -> Accessory = { EmptyView() }) {
+        self.subtitle = subtitle
+        self.accessory = accessory()
+    }
+
+    var body: some View {
+            HStack(alignment: .center, spacing: 12) {
+                ClavisBrandMark()
+                    .frame(width: 68, height: 68)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("CLAVIX")
+                    .font(ClavisTypography.brandWordmark)
+                    .foregroundColor(.brandCream)
+                    .kerning(2.1)
+                if let subtitle, !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(ClavisTypography.label)
+                        .foregroundColor(.textSecondary)
+                }
+            }
+
+            Spacer(minLength: 12)
+
+            accessory
+        }
+    }
+}
+
 // MARK: - Top Bar
 
 struct ClavisTopBar<MenuContent: View>: View {
@@ -420,9 +463,8 @@ struct ClavisTopBar<MenuContent: View>: View {
             HStack {
                 Button(action: onLogoTap) {
                     ClavisBrandMark()
-                        .frame(width: 62, height: 62)
-                        .frame(width: 70, height: 62, alignment: .leading)
-                        .scaleEffect(1.15)
+                        .frame(width: 72, height: 72)
+                        .frame(width: 80, height: 72, alignment: .leading)
                 }
                 .buttonStyle(.plain)
 

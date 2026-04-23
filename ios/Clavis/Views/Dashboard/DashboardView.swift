@@ -8,7 +8,11 @@ struct DashboardView: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    DashboardTopHeader(selectedTab: $selectedTab)
+                    DashboardTopHeader()
+
+                    if NetworkStatusMonitor.shared.isOffline {
+                        OfflineStatusBanner()
+                    }
 
                     if viewModel.isLoading && viewModel.holdings.isEmpty {
                         DashboardLoadingCard()
@@ -65,42 +69,8 @@ struct DashboardView: View {
 }
 
 private struct DashboardTopHeader: View {
-    @Binding var selectedTab: Int
-
     var body: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(Date().formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
-                    .font(ClavisTypography.label)
-                    .foregroundColor(.textSecondary)
-
-                Text("Good morning")
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(.textPrimary)
-            }
-
-            Spacer()
-
-            NavigationLink(destination: NewsView()) {
-                DashboardHeaderButton {
-                    Image(systemName: "doc.text")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.textSecondary)
-                }
-            }
-            .buttonStyle(.plain)
-
-            Button {
-                selectedTab = 4
-            } label: {
-                DashboardHeaderButton {
-                    Image(systemName: "gearshape")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.textSecondary)
-                }
-            }
-            .buttonStyle(.plain)
-        }
+        ClavixWordmarkHeader(subtitle: Date().formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
     }
 }
 
@@ -126,7 +96,7 @@ private struct DashboardPrototypeHeroCard: View {
             HStack(alignment: .center, spacing: 14) {
                 ClavixGauge(
                     score: Int(viewModel.portfolioScore.rounded()),
-                    grade: viewModel.portfolioGrade == "N/A" ? "C" : viewModel.portfolioGrade,
+                    grade: viewModel.portfolioGrade == "N/A" ? "—" : viewModel.portfolioGrade,
                     size: 112
                 )
 
@@ -138,7 +108,7 @@ private struct DashboardPrototypeHeroCard: View {
 
                     HStack(spacing: 7) {
                         Button(action: onRefresh) {
-                            Label("Refresh", systemImage: "arrow.clockwise")
+                            Label("Refresh", systemImage: "clock.arrow.circlepath")
                                 .font(ClavisTypography.footnoteEmphasis)
                                 .padding(.horizontal, 11)
                                 .padding(.vertical, 6)
@@ -215,7 +185,7 @@ private struct DashboardSummaryStatCard: View {
                 .monospacedDigit()
 
             Text(detail)
-                .font(.system(size: 10))
+                .font(.system(size: 15, weight: .regular))
                 .foregroundColor(.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -241,7 +211,7 @@ private struct DashboardWhatChangedCard: View {
             items.insert(
                 DashboardChangeEntry(
                     title: "Portfolio",
-                    grade: viewModel.portfolioGrade == "N/A" ? "C" : viewModel.portfolioGrade,
+                    grade: viewModel.portfolioGrade == "N/A" ? "—" : viewModel.portfolioGrade,
                     message: "Score \(Int(viewModel.portfolioScore.rounded())) · \(viewModel.portfolioRiskState.displayName)",
                     time: viewModel.lastUpdatedAt?.relativeTimestamp ?? "Now"
                 ),
@@ -275,7 +245,7 @@ private struct DashboardWhatChangedCard: View {
                     Spacer()
 
                     Text(entry.time)
-                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .font(.system(size: 15, weight: .medium, design: .monospaced))
                         .foregroundColor(.textSecondary)
                 }
             }
@@ -328,16 +298,12 @@ private struct DashboardDigestSectorPreview: View {
     let items: [DigestSectorOverviewItem]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Sector overview")
-                .font(ClavisTypography.label)
-                .foregroundColor(.textSecondary)
-
-            if items.isEmpty {
-                Text("Sector-level drivers will appear here after the next completed digest.")
-                    .font(ClavisTypography.footnote)
+        if !items.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Sector overview")
+                    .font(ClavisTypography.label)
                     .foregroundColor(.textSecondary)
-            } else {
+
                 ForEach(items) { item in
                     HStack(alignment: .top, spacing: 8) {
                         Circle()
@@ -357,15 +323,15 @@ private struct DashboardDigestSectorPreview: View {
                     }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .background(Color.surfaceElevated)
+            .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous)
+                    .stroke(Color.border, lineWidth: 1)
+            )
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .background(Color.surfaceElevated)
-        .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous)
-                .stroke(Color.border, lineWidth: 1)
-        )
     }
 }
 

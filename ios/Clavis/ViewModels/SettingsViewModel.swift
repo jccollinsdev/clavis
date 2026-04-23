@@ -22,11 +22,15 @@ class SettingsViewModel: ObservableObject {
     @Published var quietHoursEnd = Calendar.current.date(from: DateComponents(hour: 7, minute: 0)) ?? Date()
     @Published var userEmail: String = "Loading..."
     @Published var isLoading = false
+    @Published var accountMessage: String?
+    @Published var isExportingAccount = false
+    @Published var isDeletingAccount = false
 
     private let api = APIService.shared
 
     func load() async {
         isLoading = true
+        accountMessage = nil
         userEmail = await SupabaseAuthService.shared.getUserEmail() ?? "Unknown"
 
         do {
@@ -95,6 +99,48 @@ class SettingsViewModel: ObservableObject {
         }
 
         isLoading = false
+    }
+
+    func exportAccount() async {
+        guard !isExportingAccount else { return }
+        isExportingAccount = true
+        accountMessage = nil
+
+        do {
+            let data = try await api.exportAccount()
+            let object = try JSONSerialization.jsonObject(with: data)
+            let topLevelCount: Int
+            if let dict = object as? [String: Any] {
+                topLevelCount = dict.count
+            } else if let array = object as? [Any] {
+                topLevelCount = array.count
+            } else {
+                topLevelCount = 1
+            }
+            accountMessage = "Account export ready (\(topLevelCount) top-level items)."
+        } catch {
+            accountMessage = error.localizedDescription
+        }
+
+        isExportingAccount = false
+    }
+
+    func deleteAccount() async -> Bool {
+        guard !isDeletingAccount else { return false }
+        isDeletingAccount = true
+        accountMessage = nil
+
+        do {
+            _ = try await api.deleteAccount()
+            accountMessage = "Account deleted."
+            isDeletingAccount = false
+            return true
+        } catch {
+            accountMessage = error.localizedDescription
+        }
+
+        isDeletingAccount = false
+        return false
     }
 
     func saveDigestTime() async {

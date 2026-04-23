@@ -38,6 +38,11 @@ class SupabaseAuthService {
     }
 
     @MainActor
+    func resetPassword(email: String) async throws {
+        try await supabase.auth.resetPasswordForEmail(email)
+    }
+
+    @MainActor
     func checkSession() async -> Bool {
         do {
             _ = try await supabase.auth.session

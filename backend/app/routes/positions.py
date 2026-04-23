@@ -7,6 +7,7 @@ from fastapi import (
     Response,
 )
 from ..services.supabase import get_supabase
+from ..services.alert_payloads import enrich_alert_rows
 from ..services.ticker_cache_service import (
     _get_latest_position_score_for_ids,
     build_position_analysis_from_snapshot,
@@ -144,6 +145,7 @@ async def get_position_detail(
             snapshot,
             position_id=position_id,
             latest_position_score=latest_position_score,
+            coverage_context=current_analysis,
         )
     )
     recent_news = []
@@ -176,8 +178,7 @@ async def get_position_detail(
             if snapshot
             else None,
             "latest_event_analyses": event_result.data,
-            "mirofish_used_this_cycle": False,
             "recent_news": recent_news,
-            "recent_alerts": alerts_result.data,
+            "recent_alerts": enrich_alert_rows(alerts_result.data),
         }
     )

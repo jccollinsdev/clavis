@@ -3,6 +3,7 @@ import UIKit
 
 struct MainTabView: View {
     @AppStorage("clavix.selectedTab") private var selectedTab = 0
+    @State private var pendingTickerDetail: String?
 
     init() {
         let navAppearance = UINavigationBarAppearance()
@@ -60,7 +61,7 @@ struct MainTabView: View {
                 }
                 .tag(0)
 
-            HoldingsListView(selectedTab: $selectedTab)
+            HoldingsListView(selectedTab: $selectedTab, deepLinkTicker: $pendingTickerDetail)
                 .tabItem {
                     Label("Holdings", systemImage: "briefcase")
                 }
@@ -78,12 +79,23 @@ struct MainTabView: View {
                 }
                 .tag(3)
 
-            SettingsView(selectedTab: $selectedTab)
+            SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gearshape")
                 }
                 .tag(4)
         }
         .tint(Color.textPrimary)
+        .onReceive(NotificationCenter.default.publisher(for: .openDigest)) { _ in
+            selectedTab = 2
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openPositionDetail)) { notification in
+            selectedTab = 1
+            pendingTickerDetail = notification.object as? String
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .positionAnalysisComplete)) { notification in
+            selectedTab = 1
+            pendingTickerDetail = notification.object as? String
+        }
     }
 }

@@ -9,6 +9,7 @@ class AuthViewModel: ObservableObject {
     @Published var hasCompletedOnboarding = false
     @Published var subscriptionTier = "free"
     @Published var errorMessage: String?
+    @Published var statusMessage: String?
 
     private let authService = SupabaseAuthService.shared
     private let api = APIService.shared
@@ -28,6 +29,7 @@ class AuthViewModel: ObservableObject {
 
         isLoading = true
         errorMessage = nil
+        statusMessage = nil
 
         do {
             try await authService.signIn(email: email, password: password)
@@ -57,6 +59,7 @@ class AuthViewModel: ObservableObject {
 
         isLoading = true
         errorMessage = nil
+        statusMessage = nil
 
         do {
             try await authService.signUp(email: email, password: password)
@@ -69,6 +72,28 @@ class AuthViewModel: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
             print("Sign up error: \(error)")
+        }
+
+        isLoading = false
+    }
+
+    func resetPassword(email: String) async {
+        guard !email.isEmpty else {
+            errorMessage = "Please enter your email address"
+            return
+        }
+
+        isLoading = true
+        errorMessage = nil
+        statusMessage = nil
+
+        do {
+            try await authService.resetPassword(email: email)
+            statusMessage = "Password reset email sent."
+        } catch let error as NSError {
+            errorMessage = error.localizedDescription
+        } catch {
+            errorMessage = error.localizedDescription
         }
 
         isLoading = false

@@ -136,6 +136,43 @@ The product doc specifies a freemium model. This is the monetization layer.
 
 ## Phase 4 — Launch Readiness
 
+### Onboarding Upgrade Plan
+
+Current onboarding already exists and is functional: welcome, name/DOB, risk acknowledgement, preferences, and optional brokerage connect/manual exit. For production polish, the flow should become a clearer trust-and-value sequence.
+
+#### Current screens
+- Welcome + profile entry
+- DOB / age verification
+- Risk acknowledgement
+- Preferences toggles
+- Brokerage connect or manual add
+
+#### Production requirements
+- Sharper product intro and value proposition
+- Short explanation for why each field is requested
+- Real notification permission moment
+- Durable resume state if the app exits mid-flow
+- Legal/privacy links available during onboarding
+- Clear finish screen that hands the user into the app with confidence
+- Consistent branding and copy across every step
+
+#### Recommended build order
+1. Rewrite welcome/value prop copy
+2. Tighten name and DOB explanations
+3. Replace risk disclaimer wall with shorter legal copy
+4. Add OS notification permission step
+5. Keep preferences lean and editable later in Settings
+6. Polish brokerage connect/manual split
+7. Add finish screen with a strong completion moment
+
+#### Copy direction
+- "Know your portfolio risk in 30 seconds a day."
+- "Clavis helps you see what changed, what matters, and what to look at first."
+- "Clavis is informational only, not investment advice."
+- "Turn on alerts so Clavis can notify you about grade changes and major events."
+- "Connect your brokerage to auto-import holdings."
+- "You’re set up. Your first digest is ready to go."
+
 ### App Store preparation
 - [ ] App Store Connect account (requires Apple Dev account)
 - [ ] App icon (1024×1024 required)

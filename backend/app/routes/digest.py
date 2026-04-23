@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Request, Depends
-from datetime import datetime, timedelta
+from fastapi import APIRouter, Request, Depends, HTTPException
+from datetime import datetime, timedelta, timezone
 from ..services.supabase import get_supabase
+from ..services.digest_selection import select_latest_trading_day_digest
 from ..services.ticker_cache_service import (
     enrich_positions_with_ticker_cache,
     get_default_watchlist_detail,
@@ -40,13 +41,6 @@ def _compute_shared_portfolio_grade(positions: list[dict]) -> tuple[float, str]:
     return round(avg, 1), grade
 
 
-def _digest_is_current(digest: dict | None) -> bool:
-    sections = digest.get("structured_sections") if digest else None
-    return bool(
-        isinstance(sections, dict) and sections.get("digest_version") == DIGEST_VERSION
-    )
-
-
 def _build_watchlist_alerts(
     alert_rows: list[dict], watchlist_tickers: set[str]
 ) -> list[str]:
@@ -84,11 +78,65 @@ def _build_watchlist_alerts(
     return alerts
 
 
+def _parse_iso_datetime(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def _manual_refresh_ready(supabase, user_id: str, now: datetime) -> tuple[bool, int]:
+    prefs = (
+        supabase.table("user_preferences")
+        .select("last_manual_refresh_at")
+        .eq("user_id", user_id)
+        .limit(1)
+        .execute()
+        .data
+        or []
+    )
+    last_refresh_at = (
+        _parse_iso_datetime(prefs[0].get("last_manual_refresh_at")) if prefs else None
+    )
+    if not last_refresh_at:
+        return True, 0
+
+    cooldown = timedelta(hours=1)
+    elapsed = now - last_refresh_at
+    if elapsed >= cooldown:
+        return True, 0
+
+    remaining = int((cooldown - elapsed).total_seconds() // 60) + 1
+    return False, remaining
+
+
+def _touch_manual_refresh(supabase, user_id: str, now: datetime) -> None:
+    payload = {"user_id": user_id, "last_manual_refresh_at": now.isoformat()}
+    existing = (
+        supabase.table("user_preferences")
+        .select("id")
+        .eq("user_id", user_id)
+        .limit(1)
+        .execute()
+        .data
+    )
+    if existing:
+        supabase.table("user_preferences").update(payload).eq(
+            "user_id", user_id
+        ).execute()
+    else:
+        supabase.table("user_preferences").insert(payload).execute()
+
+
 @router.get("")
 async def get_digest(force_refresh: bool = False, user_id: str = Depends(get_user_id)):
     supabase = get_supabase()
-    now = datetime.utcnow()
-    freshness_window = timedelta(hours=24)
+    now = datetime.now(timezone.utc)
 
     latest_run_result = (
         supabase.table("analysis_runs")
@@ -110,83 +158,89 @@ async def get_digest(force_refresh: bool = False, user_id: str = Depends(get_use
             .data
         )
 
-    result = (
+    all_digests_result = (
         supabase.table("digests")
         .select("*")
         .eq("user_id", user_id)
         .order("generated_at", desc=True)
-        .limit(1)
+        .limit(12)
         .execute()
     )
 
-    latest_digest = result.data[0] if result.data else None
-    if not force_refresh and (
-        latest_digest
-        and latest_digest.get("generated_at")
-        and _digest_is_current(latest_digest)
-    ):
-        try:
-            generated_at = datetime.fromisoformat(
-                str(latest_digest["generated_at"]).replace("Z", "+00:00")
-            )
-            if now - generated_at.replace(tzinfo=None) < freshness_window:
-                return {
-                    "digest": latest_digest,
-                    "analysis_run": _enrich_run(latest_run, latest_run_digest)
-                    if latest_run
-                    else None,
-                    "overall_grade": latest_digest.get("overall_grade"),
-                    "structured_sections": latest_digest.get("structured_sections"),
-                    "generated_at": latest_digest.get("generated_at"),
-                    "grade_summary": latest_digest.get("grade_summary"),
-                    "message": "ok",
-                }
-        except Exception:
-            pass
-
-    fresh_result = (
-        supabase.table("digests")
-        .select("*")
-        .eq("user_id", user_id)
-        .gte("generated_at", (now - freshness_window).isoformat())
-        .lt("generated_at", now.isoformat())
-        .order("generated_at", desc=True)
-        .limit(1)
-        .execute()
+    latest_saved_digest = (
+        all_digests_result.data[0] if all_digests_result.data else None
     )
-    fresh_digest = fresh_result.data[0] if fresh_result.data else None
-    if not force_refresh and fresh_digest and _digest_is_current(fresh_digest):
+    selected_digest = select_latest_trading_day_digest(all_digests_result.data, now)
+
+    def build_digest_response(digest: dict | None, message: str = "ok"):
         return {
-            "digest": fresh_digest,
+            "digest": digest,
+            "saved_digest": latest_saved_digest,
+            "generated_digest": None,
             "analysis_run": _enrich_run(latest_run, latest_run_digest)
             if latest_run
             else None,
-            "overall_grade": fresh_digest.get("overall_grade"),
-            "structured_sections": fresh_digest.get("structured_sections"),
-            "generated_at": fresh_digest.get("generated_at"),
-            "grade_summary": fresh_digest.get("grade_summary"),
-            "message": "ok",
+            "overall_grade": digest.get("overall_grade") if digest else None,
+            "structured_sections": digest.get("structured_sections")
+            if digest
+            else None,
+            "generated_at": digest.get("generated_at") if digest else None,
+            "grade_summary": digest.get("grade_summary") if digest else None,
+            "message": message,
         }
 
     positions = (
         supabase.table("positions").select("*").eq("user_id", user_id).execute().data
         or []
     )
-    if not positions and latest_digest:
+    if force_refresh and positions:
+        ready, minutes_remaining = _manual_refresh_ready(supabase, user_id, now)
+        if not ready:
+            raise HTTPException(
+                429,
+                f"Manual digest refresh is limited to once per hour. Try again in about {minutes_remaining} minutes.",
+            )
+
+    if not positions and selected_digest:
+        return build_digest_response(selected_digest)
+
+    if not force_refresh:
+        if selected_digest:
+            return build_digest_response(selected_digest)
         return {
-            "digest": latest_digest,
+            "digest": None,
+            "saved_digest": latest_saved_digest,
+            "generated_digest": None,
             "analysis_run": _enrich_run(latest_run, latest_run_digest)
             if latest_run
             else None,
-            "overall_grade": latest_digest.get("overall_grade"),
-            "structured_sections": latest_digest.get("structured_sections"),
-            "generated_at": latest_digest.get("generated_at"),
-            "grade_summary": latest_digest.get("grade_summary"),
-            "message": "ok",
+            "message": "No digest saved yet",
         }
 
     if positions:
         positions = enrich_positions_with_ticker_cache(positions, supabase)
+
+        position_ids = [position["id"] for position in positions if position.get("id")]
+        analysis_rows = []
+        if position_ids:
+            analysis_rows = (
+                supabase.table("position_analyses")
+                .select(
+                    "position_id, summary, methodology, watch_items, top_risks, source_count, major_event_count, minor_event_count, updated_at"
+                )
+                .in_("position_id", position_ids)
+                .order("updated_at", desc=True)
+                .execute()
+                .data
+                or []
+            )
+
+        analysis_by_position: dict[str, dict] = {}
+        for row in analysis_rows:
+            position_id = str(row.get("position_id") or "")
+            if position_id and position_id not in analysis_by_position:
+                analysis_by_position[position_id] = row
+
         for position in positions:
             position["grade"] = position.get("risk_grade") or position.get("grade")
             position["safety_score"] = position.get("total_score") or position.get(
@@ -196,8 +250,13 @@ async def get_digest(force_refresh: bool = False, user_id: str = Depends(get_use
             position["structural_base_score"] = position.get(
                 "structural_base_score"
             ) or position.get("total_score")
-            position["top_risks"] = position.get("top_risks") or []
-            position["watch_items"] = position.get("watch_items") or []
+            analysis = analysis_by_position.get(str(position.get("id") or ""), {})
+            position["top_risks"] = (
+                position.get("top_risks") or analysis.get("top_risks") or []
+            )
+            position["watch_items"] = (
+                position.get("watch_items") or analysis.get("watch_items") or []
+            )
             position["thesis_verifier"] = position.get("thesis_verifier") or []
 
         overall_score, overall_grade = _compute_shared_portfolio_grade(positions)
@@ -296,6 +355,7 @@ async def get_digest(force_refresh: bool = False, user_id: str = Depends(get_use
             supabase.table("digests").insert(digest_payload).execute().data
         )
         digest_record = inserted_digest[0] if inserted_digest else digest_payload
+        _touch_manual_refresh(supabase, user_id, now)
 
         return {
             "digest": {
@@ -315,6 +375,8 @@ async def get_digest(force_refresh: bool = False, user_id: str = Depends(get_use
                     "summary", compiled_digest["overall_summary"]
                 ),
             },
+            "saved_digest": latest_saved_digest,
+            "generated_digest": digest_record,
             "analysis_run": None,
             "overall_grade": overall_grade,
             "structured_sections": digest_record.get(
@@ -327,13 +389,7 @@ async def get_digest(force_refresh: bool = False, user_id: str = Depends(get_use
             "message": "generated from shared ticker cache",
         }
 
-    return {
-        "digest": None,
-        "analysis_run": _enrich_run(latest_run, latest_run_digest)
-        if latest_run
-        else None,
-        "message": "No digest generated yet",
-    }
+    return build_digest_response(selected_digest, message="No digest generated yet")
 
 
 @router.get("/history")

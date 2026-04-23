@@ -13,7 +13,14 @@ enum Config {
 
         return ""
     }()
-    static let backendBaseUrl = "https://clavis.andoverdigital.com"
+    static let backendBaseUrl: String = {
+        if let bundleValue = Bundle.main.object(forInfoDictionaryKey: "BACKEND_BASE_URL") as? String {
+            let trimmed = bundleValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty { return trimmed }
+        }
+
+        return "https://clavis.andoverdigital.com"
+    }()
 }
 
 enum APIError: Error, LocalizedError {
@@ -22,7 +29,7 @@ enum APIError: Error, LocalizedError {
     case unauthorized
     case serverError(Int)
     case decodingError(Error)
-    case networkError(Error)
+    case networkError(String, Error)
 
     var errorDescription: String? {
         switch self {
@@ -31,7 +38,7 @@ enum APIError: Error, LocalizedError {
         case .unauthorized: return "Unauthorized - please log in again"
         case .serverError(let code): return "Server error: \(code)"
         case .decodingError(let error): return "Failed to decode response: \(error.localizedDescription)"
-        case .networkError(let error): return "Network error: \(error.localizedDescription)"
+        case .networkError(let url, let error): return "Network error for \(url): \(error.localizedDescription)"
         }
     }
 }
@@ -69,8 +76,11 @@ class APIService {
         timeoutInterval: TimeInterval = 12
     ) async throws -> Data {
         guard let url = URL(string: "\(baseURL)\(path)") else {
+            print("API request invalid URL base=\(baseURL) path=\(path)")
             throw APIError.invalidURL
         }
+
+        print("API request \(method) \(url.absoluteString)")
 
         var request = URLRequest(url: url)
         request.httpMethod = method
@@ -104,9 +114,13 @@ class APIService {
                 throw APIError.serverError(httpResponse.statusCode)
             }
         } catch let error as APIError {
+            print("API request failed \(method) \(url.absoluteString): \(error)")
             throw error
+        } catch let error as URLError where error.code == .cancelled {
+            throw CancellationError()
         } catch {
-            throw APIError.networkError(error)
+            print("API request failed \(method) \(url.absoluteString): \(error)")
+            throw APIError.networkError(url.absoluteString, error)
         }
     }
 
@@ -310,9 +324,139 @@ class APIService {
         }
     }
 
+    struct BrokerageConnection: Codable, Identifiable {
+        let id: String
+        let institutionName: String?
+        let broker: String?
+        let disabled: Bool
+        let disabledDate: Date?
+
+        enum CodingKeys: String, CodingKey {
+            case id
+            case institutionName = "institution_name"
+            case broker
+            case disabled
+            case disabledDate = "disabled_date"
+        }
+    }
+
+    struct BrokerageAccount: Codable, Identifiable {
+        let id: String
+        let brokerageAuthorizationId: String?
+        let institutionName: String?
+        let name: String?
+        let numberMasked: String?
+        let lastHoldingsSyncAt: Date?
+        let isPaper: Bool
+
+        enum CodingKeys: String, CodingKey {
+            case id
+            case brokerageAuthorizationId = "brokerage_authorization_id"
+            case institutionName = "institution_name"
+            case name
+            case numberMasked = "number_masked"
+            case lastHoldingsSyncAt = "last_holdings_sync_at"
+            case isPaper = "is_paper"
+        }
+    }
+
+    struct BrokerageStatusResponse: Codable {
+        let configured: Bool
+        let registered: Bool
+        let connected: Bool
+        let autoSyncEnabled: Bool
+        let syncMode: String
+        let lastSyncAt: Date?
+        let connections: [BrokerageConnection]
+        let accounts: [BrokerageAccount]
+
+        enum CodingKeys: String, CodingKey {
+            case configured
+            case registered
+            case connected
+            case autoSyncEnabled = "auto_sync_enabled"
+            case syncMode = "sync_mode"
+            case lastSyncAt = "last_sync_at"
+            case connections
+            case accounts
+        }
+    }
+
+    struct BrokerageConnectRequest: Encodable {
+        let broker: String?
+        let reconnect_connection_id: String?
+    }
+
+    struct BrokerageConnectResponse: Codable {
+        let redirectURI: String
+        let sessionId: String?
+
+        enum CodingKeys: String, CodingKey {
+            case redirectURI = "redirect_uri"
+            case sessionId = "session_id"
+        }
+    }
+
+    struct BrokerageSyncRequest: Encodable {
+        let refresh_remote: Bool
+    }
+
+    struct BrokerageSyncResponse: Codable {
+        let connectedAccounts: Int
+        let createdPositions: Int
+        let updatedPositions: Int
+        let deletedPositions: Int
+        let skippedPositions: Int
+        let lastSyncAt: Date?
+
+        enum CodingKeys: String, CodingKey {
+            case connectedAccounts = "connected_accounts"
+            case createdPositions = "created_positions"
+            case updatedPositions = "updated_positions"
+            case deletedPositions = "deleted_positions"
+            case skippedPositions = "skipped_positions"
+            case lastSyncAt = "last_sync_at"
+        }
+    }
+
+    struct BrokerageSettingsUpdate: Encodable {
+        let auto_sync_enabled: Bool
+    }
+
     func fetchPreferences() async throws -> PreferencesResponse {
         let data = try await makeRequest(path: "/preferences")
         return try decoder.decode(PreferencesResponse.self, from: data)
+    }
+
+    func fetchBrokerageStatus() async throws -> BrokerageStatusResponse {
+        let data = try await makeRequest(path: "/brokerage/status")
+        return try decoder.decode(BrokerageStatusResponse.self, from: data)
+    }
+
+    func createBrokerageConnectLink(broker: String? = nil, reconnectConnectionId: String? = nil) async throws -> BrokerageConnectResponse {
+        let body = try JSONEncoder().encode(
+            BrokerageConnectRequest(
+                broker: broker,
+                reconnect_connection_id: reconnectConnectionId
+            )
+        )
+        let data = try await makeRequest(path: "/brokerage/connect", method: "POST", body: body)
+        return try decoder.decode(BrokerageConnectResponse.self, from: data)
+    }
+
+    func syncBrokerage(refreshRemote: Bool = false) async throws -> BrokerageSyncResponse {
+        let body = try JSONEncoder().encode(BrokerageSyncRequest(refresh_remote: refreshRemote))
+        let data = try await makeRequest(path: "/brokerage/sync", method: "POST", body: body, timeoutInterval: 60)
+        return try decoder.decode(BrokerageSyncResponse.self, from: data)
+    }
+
+    func updateBrokerageSettings(autoSyncEnabled: Bool) async throws {
+        let body = try JSONEncoder().encode(BrokerageSettingsUpdate(auto_sync_enabled: autoSyncEnabled))
+        _ = try await makeRequest(path: "/brokerage/settings", method: "PATCH", body: body)
+    }
+
+    func disconnectBrokerage() async throws {
+        _ = try await makeRequest(path: "/brokerage/disconnect", method: "DELETE")
     }
 
     struct PreferencesUpdate: Encodable {
@@ -382,6 +526,14 @@ class APIService {
         let update = ProfileUpdate(name: name, birth_year: birthYear)
         let body = try JSONEncoder().encode(update)
         _ = try await makeRequest(path: "/preferences/profile", method: "POST", body: body)
+    }
+
+    func exportAccount() async throws -> Data {
+        try await makeRequest(path: "/account/export")
+    }
+
+    func deleteAccount() async throws {
+        _ = try await makeRequest(path: "/account", method: "DELETE")
     }
 
     // MARK: - Prices
@@ -515,7 +667,6 @@ struct TickerDetailResponse: Codable {
     let methodology: String?
     let dimensionBreakdown: [String: String]?
     let latestEventAnalyses: [EventAnalysis]
-    let mirofishUsedThisCycle: Bool
     let recentNews: [NewsItem]
     let recentAlerts: [Alert]
     let freshness: TickerFreshness
@@ -532,7 +683,6 @@ struct TickerDetailResponse: Codable {
         case methodology
         case dimensionBreakdown = "dimension_breakdown"
         case latestEventAnalyses = "latest_event_analyses"
-        case mirofishUsedThisCycle = "mirofish_used_this_cycle"
         case recentNews = "recent_news"
         case recentAlerts = "recent_alerts"
         case freshness
@@ -551,7 +701,6 @@ struct TickerDetailResponse: Codable {
         methodology = try container.decodeIfPresent(String.self, forKey: .methodology)
         dimensionBreakdown = try? container.decodeIfPresent([String: String].self, forKey: .dimensionBreakdown)
         latestEventAnalyses = (try? container.decode([EventAnalysis].self, forKey: .latestEventAnalyses)) ?? []
-        mirofishUsedThisCycle = (try? container.decode(Bool.self, forKey: .mirofishUsedThisCycle)) ?? false
         recentNews = (try? container.decode([NewsItem].self, forKey: .recentNews)) ?? []
         recentAlerts = (try? container.decode([Alert].self, forKey: .recentAlerts)) ?? []
         freshness = try container.decode(TickerFreshness.self, forKey: .freshness)

@@ -2,6 +2,8 @@ import Foundation
 
 struct DashboardResponse: Decodable {
     let digest: Digest?
+    let savedDigest: Digest?
+    let generatedDigest: Digest?
     let analysisRun: AnalysisRun?
     let positions: [Position]
     let alerts: [Alert]
@@ -10,6 +12,8 @@ struct DashboardResponse: Decodable {
 
     enum CodingKeys: String, CodingKey {
         case digest
+        case savedDigest = "saved_digest"
+        case generatedDigest = "generated_digest"
         case analysisRun = "analysis_run"
         case positions
         case alerts
@@ -20,6 +24,8 @@ struct DashboardResponse: Decodable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         digest = try container.decodeIfPresent(Digest.self, forKey: .digest)
+        savedDigest = try container.decodeIfPresent(Digest.self, forKey: .savedDigest)
+        generatedDigest = try container.decodeIfPresent(Digest.self, forKey: .generatedDigest)
         analysisRun = try container.decodeIfPresent(AnalysisRun.self, forKey: .analysisRun)
         positions = (try? container.decode([Position].self, forKey: .positions)) ?? []
         alerts = (try? container.decode([Alert].self, forKey: .alerts)) ?? []

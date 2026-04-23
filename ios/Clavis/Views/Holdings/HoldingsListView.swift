@@ -2,28 +2,41 @@ import SwiftUI
 
 struct HoldingsListView: View {
     @Binding var selectedTab: Int
+    @Binding var deepLinkTicker: String?
     @StateObject private var viewModel = HoldingsViewModel()
     @State private var showTickerSearch = false
     @State private var searchQuery = ""
+    @State private var tickerSearchResults: [TickerSearchResult] = []
+    @State private var isSearchingTickers = false
+    @State private var tickerSearchError: String?
+    @State private var tickerSearchTask: Task<Void, Never>?
     @State private var selectedSort: HoldingSort = .grade
+    @State private var selectedFilter: HoldingFilter = .all
+    @State private var deleteTickerCandidate: Position?
+    @State private var navigationPath: [String] = []
 
     private var sortedHoldings: [Position] {
         selectedSort.sort(filteredHoldings)
     }
 
     private var filteredHoldings: [Position] {
-        let trimmed = searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return viewModel.holdings }
+        viewModel.holdings.filter { selectedFilter.matches(position: $0) }
+    }
 
-        return viewModel.holdings.filter {
-            $0.ticker.localizedCaseInsensitiveContains(trimmed) ||
-            ($0.summary?.localizedCaseInsensitiveContains(trimmed) ?? false) ||
-            $0.archetype.displayName.localizedCaseInsensitiveContains(trimmed)
-        }
+    private var trimmedSearchQuery: String {
+        searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var isSearchingUniverse: Bool {
+        !trimmedSearchQuery.isEmpty
+    }
+
+    private var watchlistTickers: Set<String> {
+        Set(viewModel.watchlistItems.map { $0.ticker.uppercased() })
     }
 
     private var holdingsCount: Int {
-        filteredHoldings.count
+        viewModel.holdings.count
     }
 
     private var watchlistCount: Int {
@@ -31,21 +44,22 @@ struct HoldingsListView: View {
     }
 
     private var highRiskCount: Int {
-        filteredHoldings.filter { $0.riskGrade == "D" || $0.riskGrade == "F" }.count
+        viewModel.holdings.filter { $0.riskGrade == "D" || $0.riskGrade == "F" }.count
     }
 
     private var improvingCount: Int {
-        filteredHoldings.filter { $0.riskTrend == .improving }.count
+        viewModel.holdings.filter { $0.riskTrend == .improving }.count
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
                     HoldingsTopHeader(
                         onAddPosition: { viewModel.showAddSheet = true },
                         onRefresh: { Task { await viewModel.refreshHoldings() } },
-                        isRefreshing: viewModel.isRefreshing
+                        isRefreshing: viewModel.isRefreshing,
+                        isOffline: NetworkStatusMonitor.shared.isOffline
                     )
 
                     HoldingsSearchBar(
@@ -55,8 +69,14 @@ struct HoldingsListView: View {
 
                     HoldingsSummaryCard(
                         positions: viewModel.holdings,
-                        lastUpdatedAt: viewModel.lastRefreshedAt
+                        lastUpdatedAt: viewModel.lastRefreshedAt,
+                        brokerageLastSyncedAt: viewModel.brokerageLastSyncedAt,
+                        isOffline: NetworkStatusMonitor.shared.isOffline
                     )
+
+                    if NetworkStatusMonitor.shared.isOffline {
+                        OfflineStatusBanner()
+                    }
 
                     if let errorMessage = viewModel.errorMessage {
                         DashboardErrorCard(message: errorMessage)
@@ -64,9 +84,27 @@ struct HoldingsListView: View {
 
                     if viewModel.isLoading && viewModel.holdings.isEmpty {
                         ClavisLoadingCard(title: "Loading holdings", subtitle: "Pulling positions and the latest scores.")
+                    } else if isSearchingUniverse {
+                        HoldingsTickerSearchResultsCard(
+                            query: trimmedSearchQuery,
+                            results: tickerSearchResults,
+                            isSearching: isSearchingTickers,
+                            errorMessage: tickerSearchError,
+                            watchlistedTickers: watchlistTickers,
+                            onToggleWatchlist: { result in
+                                Task { await toggleWatchlist(for: result) }
+                            }
+                        )
                     } else if viewModel.holdings.isEmpty {
                         HoldingsEmptyState(onAddPosition: { viewModel.showAddSheet = true })
                     } else {
+                        HoldingsControlCard(
+                            selectedFilter: $selectedFilter,
+                            selectedSort: $selectedSort,
+                            isRefreshing: viewModel.isRefreshing,
+                            onRefresh: { Task { await viewModel.refreshHoldings() } }
+                        )
+
                         if !viewModel.watchlistItems.isEmpty {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Watchlist · \(viewModel.watchlistItems.count)")
@@ -75,10 +113,17 @@ struct HoldingsListView: View {
 
                                 PrototypeHoldingsSection {
                                     ForEach(Array(viewModel.watchlistItems.enumerated()), id: \.element.id) { index, item in
-                                        NavigationLink(destination: TickerDetailView(ticker: item.ticker)) {
+                                        NavigationLink(value: item.ticker) {
                                             WatchlistCardRow(item: item, showsDivider: index < viewModel.watchlistItems.count - 1)
                                         }
                                         .buttonStyle(.plain)
+                                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                            Button(role: .destructive) {
+                                                Task { _ = try? await viewModel.removeTickerFromWatchlist(item.ticker) }
+                                            } label: {
+                                                Label("Remove", systemImage: "star.slash")
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -156,6 +201,9 @@ struct HoldingsListView: View {
             .refreshable {
                 await viewModel.refreshHoldings()
             }
+            .onChange(of: searchQuery) { _, newValue in
+                scheduleTickerSearch(for: newValue)
+            }
             .background(ClavisAtmosphereBackground())
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $viewModel.showAddSheet) {
@@ -172,12 +220,113 @@ struct HoldingsListView: View {
             } message: {
                 Text(viewModel.errorMessage ?? "Unknown error")
             }
+            .alert("Delete position?", isPresented: Binding(get: { deleteTickerCandidate != nil }, set: { if !$0 { deleteTickerCandidate = nil } })) {
+                Button("Delete", role: .destructive) {
+                    if let candidate = deleteTickerCandidate {
+                        Task { await viewModel.deleteHolding(candidate) }
+                    }
+                    deleteTickerCandidate = nil
+                }
+                Button("Cancel", role: .cancel) { deleteTickerCandidate = nil }
+            } message: {
+                Text("This removes the position from your holdings.")
+            }
             .onAppear {
                 viewModel.showError = false
                 if viewModel.holdings.isEmpty && !viewModel.isLoading {
                     Task { await viewModel.loadHoldings() }
                 }
             }
+            .onChange(of: deepLinkTicker) { _, newValue in
+                guard let newValue else { return }
+                navigationPath = [newValue]
+                deepLinkTicker = nil
+            }
+            .navigationDestination(for: String.self) { ticker in
+                TickerDetailView(ticker: ticker)
+            }
+        }
+    }
+
+    private func scheduleTickerSearch(for rawQuery: String) {
+        tickerSearchTask?.cancel()
+
+        let trimmed = rawQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            tickerSearchResults = []
+            tickerSearchError = nil
+            isSearchingTickers = false
+            return
+        }
+
+        tickerSearchTask = Task { [trimmed] in
+            isSearchingTickers = true
+            tickerSearchError = nil
+
+            do {
+                try await Task.sleep(nanoseconds: 250_000_000)
+                guard !Task.isCancelled else { return }
+                let results = try await viewModel.searchTickers(query: trimmed, limit: 50)
+                guard !Task.isCancelled else { return }
+                tickerSearchResults = prioritizedSearchResults(results, query: trimmed)
+            } catch is CancellationError {
+                return
+            } catch {
+                tickerSearchResults = []
+                tickerSearchError = error.localizedDescription
+            }
+
+            isSearchingTickers = false
+        }
+    }
+
+    private func prioritizedSearchResults(_ results: [TickerSearchResult], query: String) -> [TickerSearchResult] {
+        let normalizedQuery = query.uppercased()
+
+        return results.sorted { left, right in
+            let leftKey = searchRank(for: left, query: normalizedQuery)
+            let rightKey = searchRank(for: right, query: normalizedQuery)
+
+            if leftKey.priority != rightKey.priority {
+                return leftKey.priority < rightKey.priority
+            }
+
+            if leftKey.secondary != rightKey.secondary {
+                return leftKey.secondary < rightKey.secondary
+            }
+
+            return left.ticker < right.ticker
+        }
+    }
+
+    private func searchRank(for result: TickerSearchResult, query: String) -> (priority: Int, secondary: Int) {
+        let ticker = result.ticker.uppercased()
+        let company = result.companyName.uppercased()
+
+        if ticker == query { return (0, 0) }
+        if ticker.hasPrefix(query) { return (1, 0) }
+        if company.hasPrefix(query) { return (2, 0) }
+        if ticker.contains(query) { return (3, 0) }
+        if company.contains(query) { return (4, 0) }
+        return (5, 0)
+    }
+
+    private func toggleWatchlist(for result: TickerSearchResult) async {
+        let ticker = result.ticker.uppercased()
+
+        do {
+            if watchlistTickers.contains(ticker) {
+                try await viewModel.removeTickerFromWatchlist(ticker)
+            } else {
+                try await viewModel.addTickerToWatchlist(ticker)
+            }
+
+            tickerSearchTask?.cancel()
+            searchQuery = ""
+            tickerSearchResults = []
+            tickerSearchError = nil
+        } catch {
+            tickerSearchError = "Watchlist update failed: \(error.localizedDescription)"
         }
     }
 
@@ -189,22 +338,156 @@ struct HoldingsListView: View {
 
     @ViewBuilder
     private func holdingRow(for position: Position, isLast: Bool) -> some View {
-        NavigationLink(destination: TickerDetailView(ticker: position.ticker)) {
+        NavigationLink(value: position.ticker) {
             PositionCardRow(position: position, showsDivider: !isLast)
         }
         .buttonStyle(.plain)
         .contextMenu {
+            Button {
+                Task {
+                    if watchlistTickers.contains(position.ticker.uppercased()) {
+                        _ = try? await viewModel.removeTickerFromWatchlist(position.ticker)
+                    } else {
+                        _ = try? await viewModel.addTickerToWatchlist(position.ticker)
+                    }
+                }
+            } label: {
+                Label(watchlistTickers.contains(position.ticker.uppercased()) ? "Remove from watchlist" : "Add to watchlist", systemImage: "star")
+            }
+
             Button(role: .destructive) {
-                Task { await viewModel.deleteHolding(position) }
+                deleteTickerCandidate = position
             } label: {
                 Label("Delete Position", systemImage: "trash")
             }
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive) {
-                Task { await viewModel.deleteHolding(position) }
+                deleteTickerCandidate = position
             } label: {
                 Label("Delete", systemImage: "trash")
+            }
+        }
+        .swipeActions(edge: .leading, allowsFullSwipe: false) {
+            Button {
+                Task {
+                    if watchlistTickers.contains(position.ticker.uppercased()) {
+                        _ = try? await viewModel.removeTickerFromWatchlist(position.ticker)
+                    } else {
+                        _ = try? await viewModel.addTickerToWatchlist(position.ticker)
+                    }
+                }
+            } label: {
+                Label(watchlistTickers.contains(position.ticker.uppercased()) ? "Unstar" : "Star", systemImage: "star")
+            }
+            .tint(.informational)
+        }
+    }
+}
+
+private struct HoldingsTickerSearchResultsCard: View {
+    let query: String
+    let results: [TickerSearchResult]
+    let isSearching: Bool
+    let errorMessage: String?
+    let watchlistedTickers: Set<String>
+    let onToggleWatchlist: (TickerSearchResult) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Search results")
+                        .font(ClavisTypography.label)
+                        .foregroundColor(.textSecondary)
+                    Text(query.uppercased())
+                        .font(ClavisTypography.bodyEmphasis)
+                        .foregroundColor(.textPrimary)
+                }
+
+                Spacer()
+
+                if isSearching {
+                    ProgressView()
+                }
+            }
+
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.riskF)
+            }
+
+            if !isSearching && results.isEmpty && errorMessage == nil {
+                Text("No tickers matched your search.")
+                    .font(ClavisTypography.body)
+                    .foregroundColor(.textSecondary)
+            }
+
+            ForEach(Array(results.enumerated()), id: \.element.id) { index, result in
+                HoldingsTickerSearchResultRow(
+                    result: result,
+                    isWatchlisted: watchlistedTickers.contains(result.ticker.uppercased()),
+                    showsDivider: index < results.count - 1,
+                    onToggleWatchlist: { onToggleWatchlist(result) }
+                )
+            }
+        }
+        .padding(ClavisTheme.cardPadding)
+        .clavisCardStyle()
+    }
+}
+
+private struct HoldingsTickerSearchResultRow: View {
+    let result: TickerSearchResult
+    let isWatchlisted: Bool
+    let showsDivider: Bool
+    let onToggleWatchlist: () -> Void
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            NavigationLink(destination: TickerDetailView(ticker: result.ticker)) {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 8) {
+                        Text(result.ticker)
+                            .font(ClavisTypography.bodyEmphasis)
+                            .foregroundColor(.textPrimary)
+                        GradeTag(grade: result.grade ?? "C", compact: true)
+                    }
+
+                    Text(result.companyName)
+                        .font(ClavisTypography.footnote)
+                        .foregroundColor(.textSecondary)
+
+                    if let summary = result.summary, !summary.isEmpty {
+                        Text(summary.sanitizedDisplayText)
+                            .font(ClavisTypography.footnote)
+                            .foregroundColor(.textTertiary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .buttonStyle(.plain)
+
+            Button(action: onToggleWatchlist) {
+                Image(systemName: isWatchlisted ? "star.fill" : "star")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(isWatchlisted ? .informational : .textSecondary)
+                    .frame(width: 32, height: 32)
+                    .background(Color.surface)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(Color.border, lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.vertical, 12)
+        .overlay(alignment: .bottom) {
+            if showsDivider {
+                Rectangle()
+                    .fill(Color.border)
+                    .frame(height: 1)
+                    .offset(x: 0, y: 8)
             }
         }
     }
@@ -214,25 +497,23 @@ private struct HoldingsTopHeader: View {
     let onAddPosition: () -> Void
     let onRefresh: () -> Void
     let isRefreshing: Bool
+    let isOffline: Bool
 
     var body: some View {
-        HStack(alignment: .bottom) {
-            Text("Holdings")
-                .font(.system(size: 26, weight: .bold))
-                .foregroundColor(.textPrimary)
+        ClavixWordmarkHeader(subtitle: Date().formatted(.dateTime.weekday(.wide).month(.abbreviated).day())) {
+            HStack(spacing: 10) {
+                Button(action: onAddPosition) {
+                    HoldingsHeaderButton(systemName: "plus")
+                }
+                .buttonStyle(.plain)
 
-            Spacer()
-
-            Button(action: onAddPosition) {
-                HoldingsHeaderButton(systemName: "plus")
+                Button(action: onRefresh) {
+                    HoldingsHeaderButton(systemName: isRefreshing ? "hourglass" : "arrow.clockwise")
+                }
+                .buttonStyle(.plain)
+                .disabled(isRefreshing || isOffline)
+                .accessibilityLabel(isRefreshing ? "Refreshing holdings" : "Refresh holdings")
             }
-            .buttonStyle(.plain)
-
-            Button(action: onRefresh) {
-                HoldingsHeaderButton(systemName: isRefreshing ? "hourglass" : "arrow.clockwise")
-            }
-            .buttonStyle(.plain)
-            .disabled(isRefreshing)
         }
     }
 }
@@ -242,7 +523,7 @@ private struct HoldingsHeaderButton: View {
 
     var body: some View {
         Image(systemName: systemName)
-            .font(.system(size: 13, weight: .semibold))
+            .font(.system(size: 15, weight: .semibold))
             .foregroundColor(.textSecondary)
             .frame(width: 40, height: 40)
             .background(Color.surface)
@@ -258,10 +539,10 @@ private struct HoldingsSearchBar: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: 15, weight: .medium))
                 .foregroundColor(.textSecondary)
 
-            TextField("Search ticker or company", text: $query)
+            TextField("Search all stocks", text: $query)
                 .font(ClavisTypography.body)
                 .foregroundColor(.textPrimary)
                 .autocorrectionDisabled()
@@ -287,6 +568,8 @@ private struct HoldingsSearchBar: View {
 private struct HoldingsSummaryCard: View {
     let positions: [Position]
     let lastUpdatedAt: Date?
+    let brokerageLastSyncedAt: Date?
+    let isOffline: Bool
 
     private var averageScore: Double {
         let scores = positions.compactMap(\.totalScore)
@@ -338,6 +621,18 @@ private struct HoldingsSummaryCard: View {
                 Text("Updated \(lastUpdatedAt.formatted(date: .abbreviated, time: .shortened))")
                     .font(ClavisTypography.footnote)
                     .foregroundColor(.textSecondary)
+            }
+
+            if let brokerageLastSyncedAt {
+                Text("Brokerage sync \(brokerageLastSyncedAt.formatted(date: .abbreviated, time: .shortened))")
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.informational)
+            }
+
+            if isOffline {
+                Text("Read-only while offline")
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.riskD)
             }
         }
         .padding(14)
@@ -672,13 +967,23 @@ struct PositionCardRow: View {
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 8) {
                         Text(position.ticker)
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(.textPrimary)
 
                         Text(position.archetype.displayName)
                             .font(ClavisTypography.footnote)
                             .foregroundColor(.textSecondary)
                             .lineLimit(1)
+
+                        if position.isBrokerageSynced {
+                            Text("Synced")
+                                .font(ClavisTypography.label)
+                                .foregroundColor(.informational)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 3)
+                                .background(Color.informational.opacity(0.12))
+                                .clipShape(Capsule())
+                        }
                     }
 
                     Text(subtitleText)
@@ -691,12 +996,12 @@ struct PositionCardRow: View {
 
                 VStack(alignment: .trailing, spacing: 4) {
                     Text(scoreText)
-                        .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                        .font(.system(size: 15, weight: .semibold, design: .monospaced))
                         .foregroundColor(.textPrimary)
                         .monospacedDigit()
 
                     Text(trendSymbol)
-                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                        .font(.system(size: 15, weight: .semibold, design: .monospaced))
                         .foregroundColor(trendColor)
                 }
             }
@@ -985,7 +1290,7 @@ struct WatchlistCardRow: View {
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(item.ticker)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(.textPrimary)
 
                     Text(item.companyName ?? "Cached S&P ticker")
@@ -997,7 +1302,7 @@ struct WatchlistCardRow: View {
                 Spacer(minLength: 12)
 
                 Text(item.safetyScore.map { "\(Int($0.rounded()))" } ?? "--")
-                    .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                    .font(.system(size: 15, weight: .semibold, design: .monospaced))
                     .foregroundColor(.textPrimary)
                     .monospacedDigit()
             }

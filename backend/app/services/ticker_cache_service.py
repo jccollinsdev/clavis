@@ -11,6 +11,7 @@ from fastapi import HTTPException
 
 from ..pipeline.risk_scorer import score_position_structural, score_to_grade
 from ..pipeline.analysis_utils import sanitize_public_analysis_text
+from .alert_payloads import enrich_alert_rows
 from .ticker_metadata import upsert_ticker_metadata
 
 
@@ -265,6 +266,7 @@ def enrich_positions_with_ticker_cache(
         position["previous_grade"] = previous.get("grade")
         position["inferred_labels"] = None
         position["summary"] = latest.get("news_summary") or latest.get("reasoning")
+        position["dimension_breakdown"] = latest.get("dimension_rationale") or {}
 
     return positions
 
@@ -336,10 +338,14 @@ def build_risk_score_response(
     *,
     position_id: str,
     latest_position_score: dict[str, Any] | None = None,
+    include_position_sizing: bool = True,
+    coverage_context: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
-    if not snapshot:
+    if not snapshot and not latest_position_score:
         return None
+    snapshot = snapshot or {}
     fallback = latest_position_score or {}
+    coverage_context = coverage_context or {}
     factor_breakdown = fallback.get("factor_breakdown") or snapshot.get(
         "factor_breakdown"
     )
@@ -351,6 +357,77 @@ def build_risk_score_response(
         except Exception:
             factor_breakdown = {}
     ai_dims = (factor_breakdown or {}).get("ai_dimensions") or {}
+    if not include_position_sizing and isinstance(factor_breakdown, dict):
+        factor_breakdown = {
+            **factor_breakdown,
+            "ai_dimensions": {
+                **ai_dims,
+                "position_sizing": None,
+            },
+        }
+        ai_dims = factor_breakdown.get("ai_dimensions") or {}
+
+    def _first_present(*values: Any) -> Any:
+        for value in values:
+            if value is not None:
+                return value
+        return None
+
+    source_count = _first_present(
+        fallback.get("source_count"),
+        coverage_context.get("source_count"),
+        snapshot.get("source_count"),
+    )
+    major_event_count = _first_present(
+        fallback.get("major_event_count"),
+        coverage_context.get("major_event_count"),
+    )
+    minor_event_count = _first_present(
+        fallback.get("minor_event_count"),
+        coverage_context.get("minor_event_count"),
+    )
+    coverage_state = (
+        fallback.get("coverage_state")
+        or coverage_context.get("coverage_state")
+        or (
+            "provisional"
+            if not source_count
+            else "thin"
+            if int(source_count) <= 2
+            else "substantive"
+        )
+    )
+    coverage_note = (
+        fallback.get("coverage_note")
+        or coverage_context.get("coverage_note")
+        or (
+            "Coverage was limited, so this score leans mostly on ticker metadata and cached context."
+            if coverage_state == "provisional"
+            else f"Only {source_count} analyzed event(s) were available, so the score should be treated as coverage-limited."
+            if coverage_state == "thin"
+            else f"{source_count} analyzed event(s) supported this score."
+        )
+    )
+    is_provisional = bool(
+        fallback.get("is_provisional")
+        or coverage_context.get("is_provisional")
+        or coverage_state != "substantive"
+    )
+    reasoning = fallback.get("reasoning") or snapshot.get("reasoning")
+    if not reasoning:
+        size_value = (
+            fallback.get("position_sizing") if include_position_sizing else None
+        )
+        if size_value is None:
+            size_value = ai_dims.get("position_sizing")
+        if size_value is None:
+            size_value = 50
+        reasoning = (
+            f"{coverage_note} News={fallback.get('news_sentiment') or ai_dims.get('news_sentiment') or 50}, "
+            f"Macro={fallback.get('macro_exposure') or ai_dims.get('macro_exposure') or 50}, "
+            f"Size={size_value if include_position_sizing else 'hidden'}, "
+            f"Volatility={fallback.get('volatility_trend') or ai_dims.get('volatility_trend') or 50}."
+        )
     return sanitize_public_analysis_text(
         {
             "id": snapshot.get("id"),
@@ -366,7 +443,7 @@ def build_risk_score_response(
             "event_adjustment": fallback.get("event_adjustment")
             or snapshot.get("event_adjustment"),
             "grade": fallback.get("grade") or snapshot.get("grade"),
-            "reasoning": fallback.get("reasoning") or snapshot.get("reasoning"),
+            "reasoning": reasoning,
             "factor_breakdown": factor_breakdown,
             "mirofish_used": False,
             "calculated_at": fallback.get("calculated_at")
@@ -378,10 +455,19 @@ def build_risk_score_response(
             or ai_dims.get("news_sentiment"),
             "macro_exposure": fallback.get("macro_exposure")
             or ai_dims.get("macro_exposure"),
-            "position_sizing": fallback.get("position_sizing")
-            or ai_dims.get("position_sizing"),
+            "position_sizing": (
+                fallback.get("position_sizing") or ai_dims.get("position_sizing")
+            )
+            if include_position_sizing
+            else None,
             "volatility_trend": fallback.get("volatility_trend")
             or ai_dims.get("volatility_trend"),
+            "source_count": source_count,
+            "major_event_count": major_event_count,
+            "minor_event_count": minor_event_count,
+            "coverage_state": coverage_state,
+            "coverage_note": coverage_note,
+            "is_provisional": is_provisional,
         }
     )
 
@@ -566,6 +652,8 @@ def get_ticker_detail_bundle(supabase, user_id: str, ticker: str) -> dict[str, A
             reference_position_ids[0] if reference_position_ids else f"virtual:{ticker}"
         ),
         latest_position_score=latest_position_score,
+        include_position_sizing=bool(held_positions),
+        coverage_context=latest_position_analysis or current_analysis,
     )
 
     if held_positions:
@@ -657,7 +745,7 @@ def get_ticker_detail_bundle(supabase, user_id: str, ticker: str) -> dict[str, A
             "recent_news": _news_rows_to_response(
                 news_result.data or [], user_id=user_id, ticker=ticker
             ),
-            "recent_alerts": alerts_result.data or [],
+            "recent_alerts": enrich_alert_rows(alerts_result.data or []),
             "freshness": {
                 "price_as_of": metadata.get("price_as_of"),
                 "analysis_as_of": snapshot.get("analysis_as_of") if snapshot else None,

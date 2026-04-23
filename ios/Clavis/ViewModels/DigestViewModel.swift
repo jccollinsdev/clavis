@@ -53,27 +53,9 @@ class DigestViewModel: ObservableObject {
         switch resolvedDashboard {
         case .success(let response):
             resolvedRun = response.analysisRun ?? previousRunningRun
-            todayDigest = response.digest ?? previousDigest
+            todayDigest = response.digest ?? response.generatedDigest ?? response.savedDigest ?? previousDigest
             holdings = response.positions
             alerts = response.alerts
-
-            if shouldRefreshDigest(todayDigest, holdingCount: holdings.count) {
-                do {
-                    let generated = try await api.fetchTodayDigest()
-                    if generation == loadGeneration {
-                        todayDigest = generated.digest ?? todayDigest
-                        if let run = generated.analysisRun {
-                            resolvedRun = run
-                            let displayError = run.displayErrorMessage
-                            activeRun = run.lifecycleStatus == "failed" && isTransientAnalysisError(displayError) ? nil : run
-                        }
-                    }
-                } catch {
-                    if previousDigest == nil && todayDigest == nil {
-                        errorMessage = "We couldn't load the latest digest right now."
-                    }
-                }
-            }
 
             switch resolvedRun?.lifecycleStatus {
             case "running", "queued":
@@ -127,6 +109,10 @@ class DigestViewModel: ObservableObject {
         }
     }
 
+    func reloadDigestFromDatabase() async {
+        await loadDigest(showLoading: false)
+    }
+
     func triggerAnalysis() async {
         isLoading = true
         errorMessage = nil
@@ -142,6 +128,8 @@ class DigestViewModel: ObservableObject {
                     await loadDigest(showLoading: false)
                 }
             }
+        } catch is CancellationError {
+            errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -157,11 +145,6 @@ class DigestViewModel: ObservableObject {
             || message.contains("temporarily unavailable")
     }
 
-    private func shouldRefreshDigest(_ digest: Digest?, holdingCount: Int) -> Bool {
-        guard holdingCount > 0 else { return false }
-        return digest?.structuredSections?.digestVersion != 2
-    }
-
     func pollAnalysisRun(runId: String) async -> Bool {
         for _ in 0..<240 {
             do {
@@ -175,6 +158,8 @@ class DigestViewModel: ObservableObject {
                     }
                     return true
                 }
+            } catch is CancellationError {
+                return false
             } catch {
                 errorMessage = error.localizedDescription
                 return false
@@ -190,11 +175,13 @@ class DigestViewModel: ObservableObject {
     private func waitForDigestReady() async {
         for _ in 0..<10 {
             do {
-                let response = try await api.fetchTodayDigest(forceRefresh: true, timeoutInterval: 75)
-                if let digest = response.digest {
+                let response = try await api.fetchDashboard()
+                if let digest = response.digest ?? response.generatedDigest ?? response.savedDigest {
                     todayDigest = digest
                     return
                 }
+            } catch is CancellationError {
+                return
             } catch {
                 break
             }

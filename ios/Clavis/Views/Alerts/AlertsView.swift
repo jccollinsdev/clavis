@@ -10,10 +10,11 @@ struct AlertsView: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    AlertsTopHeader(
-                        onRefresh: { Task { await viewModel.loadAlerts() } },
-                        isLoading: viewModel.isLoading,
-                    )
+                    AlertsTopHeader()
+
+                    if NetworkStatusMonitor.shared.isOffline {
+                        OfflineStatusBanner()
+                    }
 
                     if let errorMessage = viewModel.errorMessage {
                         DashboardErrorCard(message: errorMessage)
@@ -63,34 +64,8 @@ struct AlertsView: View {
 }
 
 private struct AlertsTopHeader: View {
-    let onRefresh: () -> Void
-    let isLoading: Bool
-
     var body: some View {
-        HStack(alignment: .bottom) {
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Alerts")
-                    .font(.system(size: 26, weight: .bold))
-                    .foregroundColor(.textPrimary)
-                Text("\(Date().formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))")
-                    .font(ClavisTypography.label)
-                    .foregroundColor(.textSecondary)
-            }
-
-            Spacer()
-
-            Button(action: onRefresh) {
-                Image(systemName: isLoading ? "hourglass" : "arrow.clockwise")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.textSecondary)
-                    .frame(width: 40, height: 40)
-                    .background(Color.surface)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.border, lineWidth: 1))
-            }
-            .buttonStyle(.plain)
-            .disabled(isLoading)
-        }
+        ClavixWordmarkHeader(subtitle: Date().formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
     }
 }
 
@@ -135,7 +110,7 @@ private struct AlertsSummaryGrid: View {
                 .foregroundColor(tint)
                 .monospacedDigit()
             Text(label)
-                .font(.system(size: 10))
+                .font(.system(size: 15, weight: .medium))
                 .foregroundColor(.textSecondary)
         }
         .frame(maxWidth: .infinity)
@@ -167,7 +142,7 @@ private struct AlertFilterChipRow: View {
                         selectedFilter = filter
                     } label: {
                         Text(filter.label(with: alerts))
-                            .font(.system(size: 12, weight: selectedFilter == filter ? .semibold : .medium))
+                            .font(.system(size: 15, weight: selectedFilter == filter ? .semibold : .medium))
                             .foregroundColor(selectedFilter == filter ? .textPrimary : .textSecondary)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
@@ -244,8 +219,8 @@ private struct AlertsTimelineRow: View {
 
                     Spacer()
 
-                    Text(alert.createdAt.formatted(date: .omitted, time: .shortened))
-                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    Text(alert.createdAt.formatted(date: .abbreviated, time: .shortened))
+                        .font(.system(size: 15, weight: .medium, design: .monospaced))
                         .foregroundColor(.textSecondary)
                 }
 
@@ -256,7 +231,7 @@ private struct AlertsTimelineRow: View {
 
                 if let ticker = alert.positionTicker {
                     Text(ticker)
-                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .font(.system(size: 15, weight: .medium, design: .monospaced))
                         .foregroundColor(.textSecondary)
                 }
 
@@ -264,7 +239,7 @@ private struct AlertsTimelineRow: View {
                     HStack(spacing: 8) {
                         GradeTag(grade: previous, compact: true)
                         Image(systemName: "arrow.right")
-                            .font(.system(size: 10, weight: .semibold))
+                            .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(.textTertiary)
                         GradeTag(grade: next, compact: true)
                     }
@@ -466,7 +441,7 @@ struct AlertsSeverityPill: View {
         HStack(spacing: 6) {
             if let icon {
                 Image(systemName: icon)
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundColor(tint)
             }
             Text("\(count)")
@@ -496,6 +471,10 @@ struct AlertCard: View {
 
     private var displayBody: String {
         group.alerts.first?.message.sanitizedDisplayText ?? ""
+    }
+
+    private var changeReasonText: String? {
+        group.alerts.first?.changeReason?.sanitizedDisplayText
     }
 
     private var timestampText: String {
@@ -554,11 +533,18 @@ struct AlertCard: View {
                             .lineLimit(2)
                     }
 
+                    if let changeReasonText, !changeReasonText.isEmpty {
+                        Text(changeReasonText)
+                            .font(ClavisTypography.footnote)
+                            .foregroundColor(.textTertiary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
                     if let (from, to) = gradeInfo {
                         HStack(spacing: ClavisTheme.smallSpacing) {
                             GradeTag(grade: from, compact: true)
                             Image(systemName: "arrow.right")
-                                .font(.system(size: 10, weight: .semibold))
+                                .font(.system(size: 15, weight: .semibold))
                                 .foregroundColor(.textTertiary)
                             GradeTag(grade: to, compact: true)
 

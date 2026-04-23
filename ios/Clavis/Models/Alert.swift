@@ -7,6 +7,8 @@ struct Alert: Identifiable, Codable {
     let type: AlertType
     let previousGrade: String?
     let newGrade: String?
+    let changeReason: String?
+    let changeDetails: [String: String]?
     let message: String
     let createdAt: Date
 
@@ -17,6 +19,8 @@ struct Alert: Identifiable, Codable {
         case type
         case previousGrade = "previous_grade"
         case newGrade = "new_grade"
+        case changeReason = "change_reason"
+        case changeDetails = "change_details"
         case message
         case createdAt = "created_at"
     }
@@ -29,6 +33,8 @@ struct Alert: Identifiable, Codable {
         type = (try? container.decode(AlertType.self, forKey: .type)) ?? .digestReady
         previousGrade = try container.decodeIfPresent(String.self, forKey: .previousGrade)
         newGrade = try container.decodeIfPresent(String.self, forKey: .newGrade)
+        changeReason = try container.decodeIfPresent(String.self, forKey: .changeReason)
+        changeDetails = try? container.decodeIfPresent([String: String].self, forKey: .changeDetails)
         message = try container.decodeIfPresent(String.self, forKey: .message) ?? ""
         createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
     }

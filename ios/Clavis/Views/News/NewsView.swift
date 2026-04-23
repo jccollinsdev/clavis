@@ -80,8 +80,8 @@ struct NewsView: View {
                     Button {
                         viewModel.selectedCategory = category
                     } label: {
-                        Text(chipLabel(for: category))
-                            .font(.system(size: 12, weight: viewModel.selectedCategory == category ? .semibold : .medium))
+                    Text(chipLabel(for: category))
+                            .font(.system(size: 15, weight: viewModel.selectedCategory == category ? .semibold : .medium))
                             .foregroundColor(viewModel.selectedCategory == category ? .textPrimary : .textSecondary)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
@@ -172,7 +172,7 @@ private struct NewsHeroCard: View {
                 HStack(alignment: .center, spacing: 8) {
                     GradeTag(grade: story.grade ?? story.currentGrade ?? "C", compact: true)
                     Text(story.ticker ?? story.category.title.uppercased())
-                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                        .font(.system(size: 15, weight: .semibold, design: .monospaced))
                         .foregroundColor(.textPrimary)
                     Text("· \(story.source ?? "") · \(story.displayTimestamp)")
                         .font(ClavisTypography.footnote)
@@ -180,7 +180,7 @@ private struct NewsHeroCard: View {
                 }
 
                 Text(story.title)
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.system(size: 18, weight: .semibold))
                     .foregroundColor(.textPrimary)
                     .multilineTextAlignment(.leading)
 
@@ -191,7 +191,7 @@ private struct NewsHeroCard: View {
 
                 HStack {
                     Text(relevanceText)
-                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .font(.system(size: 15, weight: .medium, design: .monospaced))
                         .foregroundColor(.textPrimary)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
@@ -242,7 +242,7 @@ private struct NewsStoryCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .center, spacing: 6) {
                     Text(story.ticker ?? story.category.title.uppercased())
-                        .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                        .font(.system(size: 15, weight: .semibold, design: .monospaced))
                         .foregroundColor(.textPrimary)
                     Text("· \(story.source ?? "")")
                         .font(ClavisTypography.footnote)
@@ -263,7 +263,7 @@ private struct NewsStoryCard: View {
                     Spacer()
 
                     Text(story.relevance ?? story.category.title)
-                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .font(.system(size: 15, weight: .medium, design: .monospaced))
                         .foregroundColor((story.relevance ?? "").lowercased() == "high" ? .riskD : .textSecondary)
                 }
             }

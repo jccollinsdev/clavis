@@ -1,19 +1,24 @@
 ---
 project: Clavis
 version: 1
-last_updated: 2026-04-20
+last_updated: 2026-04-22
 roadmap: docs/STATUS/roadmap.md
 status: active
 current_phase: "Phase 1 - Security And Production Hardening"
 current_focus:
-  - Keep the backend running on the DigitalOcean VPS behind Cloudflare Tunnel and verify the public API end to end
-  - Remove the Mac-side backend from the public path so the app only talks to the VPS deployment
-  - Map the active background jobs, digest pipeline, structural refreshes, and backfill entry points so the production automation story is clear
-  - Finish checking the live API against a real bearer token, then fix any schema mismatches that still surface in production requests
-  - Keep the iOS app wired to the VPS backend and verify the main fetch flows still work after the cutover
-  - Keep the fully migrated iOS UI stable after the prototype-alignment pass across onboarding, Home, Holdings, Digest, Alerts, Settings, News, article detail, and ticker detail
-  - Build the protected browser-based admin dashboard for backend status, users, and manual refresh controls
-  - Continue security hardening by cleaning up route protection, CORS, and internal/debug surfaces
+  - Work through the structural audit items that are now shippable in code: cooldowns/rate limits, account export/delete UI, local JWT verification fallback, and shared disclaimer copy
+  - Execute a 7-day launch sprint: day 1 harden launch scope, repo drift, debug gating, and app-wide polish; day 3 clear the Apple Developer account blocker; final 2 days implement RevenueCat/payments; use the remaining days for QA, legal/trust, notifications, and release prep
+  - Make day 1 visibly convincing by clicking through the whole app and fixing the highest-friction bugs in onboarding, settings, ticker detail, news, alerts, and digest so the current app can be shown to family before purchase approval
+  - Prioritize the latest full-app QA findings for day 1: remove the non-essential News surface, fix stale digest freshness and empty sector/watch messaging, clarify or remove ambiguous refresh actions, improve holdings search/watchlist flow, and add visible Clavix branding to the main shell
+  - Deep debug the missing risk-dimension card on held stock detail and keep the ticker-detail score path honest when the shared snapshot is missing
+  - Diagnose the remaining UI+backend issues and turn them into an ordered build plan before making the next code pass
+  - Reconcile repo-to-production drift in Supabase schema/migrations and deploy config so a fresh environment can be recreated from the repo and production deploy checks match the actual stack
+  - Gate or remove production debug and test surfaces, and reduce or more aggressively test service-role-driven user flows before launch
+  - After repo drift and debug gating are done, polish onboarding and settings, then run a full button-by-button QA pass across the app
+  - Decide the launch monetization path, then implement RevenueCat and subscription enforcement in the final 2 days if paid v1 remains the chosen route
+  - Keep coverage-quality messaging and ticker-detail score honesty stable while the launch-hardening pass continues
+  - Validate the SnapTrade backend env vars and brokerage routes on the DigitalOcean VPS against a real supported brokerage, or explicitly defer the brokerage flow from the launch path if approval/setup is not ready
+  - Keep the S&P backfill, nightly holdings refresh, and structural refresh automation reliable on the VPS after the recent scheduler fixes
 blockers:
   gate_0:
     - Paid Apple Developer account
@@ -24,8 +29,41 @@ blockers:
     - SnapTrade sandbox + brokerage sync setup once launch timing justifies it
   technical:
     - APNs is still not configured on the VPS because the production `apns.p8` key is not present yet
+    - SnapTrade is wired locally and the simulator now works against `http://127.0.0.1:8000`, but the VPS backend still needs the SnapTrade client ID / consumer key configured before the production brokerage flow can work
     - App shell/UI migration is functionally complete, but final spacing polish and screenshot-level parity checks are still needed before release polish is considered done
 recent_completions:
+  - Restored the typography to the actual pre-change git baseline instead of the earlier approximation: reverted `ClavisTypography` label/row/body/card/footnote/metric/grade sizes, restored the gauge caption size, and returned the tab-bar labels to the original 10pt sizing before relaunching the iOS Simulator
+  - Restored the original text sizing baseline after the smaller-font experiment, including the shared header/body styles and the bottom tab-bar labels, and relaunched the iOS Simulator to apply it
+  - Trimmed the main app typography further after the screenshot review: reduced top header wordmarks, lowered body/card/footnote sizes, and shrank the bottom tab-bar labels to stop the Home and Holdings screens from feeling oversized
+  - Trimmed the oversized app top-bar branding so the nav/header text stays readable without looking bulged: reduced the shared brand wordmark size, lowered the top-bar title size, and removed some of the extra scaling
+  - Fixed the stock-detail risk-dimension regression by letting `build_risk_score_response()` fall back to the latest held-position `risk_scores` row when the shared ticker snapshot is absent, which restores the card on tickers like HOOD that have user-level scoring before shared-cache coverage lands
+  - Began the structural pass by adding digest and manual-analysis cooldowns, wiring account export/delete actions into Settings, and switching backend auth middleware to local JWT verification with auth API fallback
+  - Completed the easy audit fix pass: renamed the backend API title to Clavix, reconciled score bands and methodology copy, removed fabricated previous-score and empty-portfolio defaults, added forgot-password and DOB picker flows, scheduled news cleanup, tightened the prices RLS policy, and exposed core service status in `/health`
+  - Reworked the iOS top-of-screen branding to use the App Logo asset and a large cream CLAVIX wordmark across the main tabs, settings, login, and ticker detail
+  - Removed the user-facing reload DB chrome from digest and replaced the risk-score internal metric tiles/risk-dimension card with a simpler rationale-only presentation
+  - Synced the backend tree to the prod VPS, rebuilt the backend service, and verified `https://clavis.andoverdigital.com/health` returns `{"status":"ok"}`
+  - Verified the digest/alert/ticker-search changes with targeted backend tests in the backend container and confirmed the new digest helpers and fallback logic pass
+  - Rebuilt and relaunched the Clavis iOS app in the iPhone 17 Simulator after the digest/dashboard/alerts pass; BUILD SUCCEEDED
+  - Throttled Minimax calls globally, reduced S&P backfill fan-out concurrency, and persisted batch ticker lists on `analysis_runs` so failed batches are easier to reconstruct and rate-limit failures are less likely
+  - Reworked the iOS Home, Holdings, Digest, and Alerts surfaces to remove the non-essential News entry point, drop the Home settings shortcut, add visible Clavix branding, clarify refresh actions, and improve digest/alert timestamps and section behavior
+  - Saved the onboarding upgrade plan into `docs/STATUS/BUILD_PLAN.md` so the next session can resume from the exact production polish sequence
+  - Reconciled the local schema snapshot in `supabase_schema.sql` with the current production extensions for preferences, analysis runs, ticker cache, scheduler jobs, watchlists, and analysis cache so the repo documents the live database shape more accurately
+  - Saved the current free-vs-Pro pricing plan locally in `docs/PRODUCT/pricing.md` and updated it to reflect the launch split, feature matrix, and cost assumptions
+  - Gated production debug/test surfaces behind a new backend feature flag and removed the stale `8001` deploy healthcheck mismatch so prod deploy verification now matches the actual compose stack
+  - Completed a full-stack launch audit across backend, iOS, Supabase, migrations, docs, and deploy config; confirmed the core app is feature-rich and usable, but identified the top launch blockers as missing subscriptions/entitlements, incomplete notification UX, missing in-app account management/recovery flows, legal/public trust gaps, repo-to-production schema drift, and production exposure from debug/test surfaces
+  - Surfaced coverage quality in the ticker detail flow by carrying source/event counts and coverage state through the backend score response, synthesizing non-blank rationales for blank AI outputs, tightening confidence levels on provisional rows, and updating the iOS rationale card to show methodology plus an explicit coverage warning
+  - Stopped the active S&P backfill run `12b54f23-f0e7-4eaa-937f-c53c3c20128c`, verified the worker process exited, and confirmed the run is now marked failed because the server restarted
+  - Improved the risk-scoring prompts to explicitly use a 0=penny-stock / 100=treasury scale, added notional and portfolio-weight context, and relaxed the neutral fallback gate so only fully neutral outputs are rejected
+  - Probed the live backend on a real held HOOD position and a synthetic BXP backfill row; both now return `llm_scoring_used: true` with non-neutral dimensions instead of collapsing to the deterministic fallback path
+  - Audited the shared ticker backfill scoring path and confirmed the current `sp500_backfill` mode was forcing deterministic risk scoring despite AI-generated analysis reports; patched the scorer to allow LLM scoring for backfill runs, labeled deterministic fallbacks honestly in snapshot methodology metadata, removed the stale iOS-only thesis dimension, renamed the UI card to Risk dimensions, and hid position sizing on non-held ticker detail surfaces
+  - Updated the held-position detail path to use the same AI dimension card as ticker detail, then rebuilt and relaunched the iOS app successfully in the Simulator
+  - Swapped the ticker detail risk-dimension card to show the AI dimension set from `currentScore.factorBreakdown.aiDimensions` instead of the structural liquidity/volatility/leverage/profitability panel, keeping the same bar-card presentation
+  - Fixed the VPS overnight scheduler regressions: the 2AM holdings AI refresh and 3AM S&P refresh now register coroutine jobs correctly, structural refresh no longer depends on notification settings, and daily structural profile writes now upsert per ticker/date instead of crashing on duplicate-key races
+  - Added a one-time 2AM UTC S&P backfill scheduler job on backend startup, exposed its next-run status in the cache monitor payload, and kept the existing daily refresh jobs intact
+  - Repointed the iOS Settings legal links to getclavix.com, added public methodology/refund-policy links, and removed the force-unwrapped external URL so invalid URLs fail safely instead of crashing
+  - Fixed the iOS local-dev backend URL packaging bug by inlining the simulator backend URL in Info.plist, then reinstalling the app in Xcode Simulator so brokerage connect now targets the correct local backend instead of a broken `http:` host
+  - Updated the iOS onboarding brokerage step so `I’ll add manually for now` stays available as an exit path while the brokerage portal flow uses the shared SnapTrade view model
+  - Added the first SnapTrade integration slice end to end: additive Supabase fields, backend `/brokerage` routes plus SnapTrade service, iOS onboarding/settings/holdings brokerage UI, deep-link callback handling, and a successful simulator build/run after wiring the new flow
   - Added a root README plus repository-layout, backend-organization, dev/prod workflow, and backfill-artifacts references so the codebase has a clearer contributor map without changing app logic
   - Synced the new admin-password setup to the live VPS, rebuilt the backend there, and verified the public `/admin` page now serves the protected login UI instead of the old 404
   - Switched the admin browser console to password-based cookie auth so you can log in directly from the web UI without needing to understand Supabase admin roles

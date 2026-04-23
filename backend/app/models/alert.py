@@ -10,6 +10,8 @@ class AlertBase(BaseModel):
     new_grade: Optional[str] = None
     event_hash: Optional[str] = None
     analysis_run_id: Optional[str] = None
+    change_reason: Optional[str] = None
+    change_details: Optional[dict] = None
     message: str
 
 

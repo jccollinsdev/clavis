@@ -14,21 +14,24 @@ from .structural_scorer import (
 
 SYSTEM_PROMPT = """You are a risk scoring AI for individual stock positions. Given the position context, recent news analysis, and optional MiroFish swarm report, score this position across 4 dimensions (0-100) and determine a grade.
 
+Use a single scale where 0 means penny-stock-like / very risky and 100 means treasury-like / very safe. Higher scores always mean lower risk.
+
 Position:
 - Ticker: {ticker}
 - Shares: {shares} @ ${purchase_price}
+- Approximate position value: ${position_value}
 - Inferred labels: {labels}
 - Position report summary: {summary}
 
 Long-form position report: {long_report}
 
 Scoring criteria:
-1. news_sentiment (0-100): Is recent news positive, negative, or neutral? 50 is neutral.
-2. macro_exposure (0-100): How exposed is this to macro headwinds? Lower = more exposed.
-3. position_sizing (0-100): Is the position size appropriate for the risk? Larger positions with high risk = lower score.
-4. volatility_trend (0-100): Is volatility increasing or decreasing? Decreasing = higher score.
+1. news_sentiment (0-100): Positive / supportive news moves toward 100, negative / dangerous news moves toward 0. Use 50 only when the news is truly balanced.
+2. macro_exposure (0-100): Less macro-sensitive / more treasury-like moves toward 100. More macro-sensitive / more speculative moves toward 0.
+3. position_sizing (0-100): Appropriately sized, prudent risk for the holding moves toward 100. Oversized or speculative exposure moves toward 0.
+4. volatility_trend (0-100): Falling volatility / stable trend moves toward 100. Rising volatility / unstable behavior moves toward 0.
 
-Use plain English only. Do not mention internal evidence labels, body-depth terms, or implementation jargon such as full_body, title_only, or headline_summary.
+Use plain English only. Do not mention internal evidence labels, body-depth terms, or implementation jargon such as full_body, title_only, or headline_summary. Avoid returning 50 for every dimension unless the evidence is genuinely neutral.
 
 Respond in this exact JSON format (no markdown, no explanation):
 {{"news_sentiment": 0-100, "macro_exposure": 0-100, "position_sizing": 0-100, "volatility_trend": 0-100, "grade": "A|B|C|D|F", "reasoning": "plain English explanation of the scores and grade", "dimension_rationale": {{"news_sentiment": "...", "macro_exposure": "...", "position_sizing": "...", "volatility_trend": "..."}}}}"""
@@ -57,12 +60,16 @@ def _neutral_dimension_count(scores: dict | None) -> int:
     return sum(clamp_score(scores.get(key), 50) == 50 for key in DIMENSION_KEYS)
 
 
-def has_suspicious_neutral_scores(scores: dict | None, threshold: int = 3) -> bool:
+def has_suspicious_neutral_scores(
+    scores: dict | None, threshold: int = len(DIMENSION_KEYS)
+) -> bool:
     return _neutral_dimension_count(scores) >= threshold
 
 
 def _is_batch_response_suspicious(
-    parsed_scores: dict[str, dict], tickers: list[str], threshold: int = 3
+    parsed_scores: dict[str, dict],
+    tickers: list[str],
+    threshold: int = len(DIMENSION_KEYS),
 ) -> bool:
     expected = [str(t).strip().upper() for t in tickers if str(t).strip()]
     if not expected:
@@ -73,6 +80,64 @@ def _is_batch_response_suspicious(
         if has_suspicious_neutral_scores(score, threshold=threshold):
             suspicious += 1
     return suspicious > 0
+
+
+def _coverage_state_for_position(position_data: dict) -> tuple[str, int, int, int, str]:
+    event_analyses = list(position_data.get("event_analyses") or [])
+    source_count = len(event_analyses)
+    major_event_count = sum(
+        1
+        for event in event_analyses
+        if str(event.get("significance") or "minor").strip().lower() == "major"
+    )
+    minor_event_count = max(source_count - major_event_count, 0)
+    summary = str(position_data.get("summary") or "").strip().lower()
+
+    if source_count == 0 or summary.startswith("insufficient evidence"):
+        coverage_state = "provisional"
+        coverage_note = "Coverage was limited, so this score leans mostly on ticker metadata and cached context."
+    elif source_count <= 2:
+        coverage_state = "thin"
+        coverage_note = f"Only {source_count} analyzed event(s) were available, so the score should be treated as coverage-limited."
+    else:
+        coverage_state = "substantive"
+        coverage_note = f"{source_count} analyzed event(s) supported this score."
+
+    return (
+        coverage_state,
+        source_count,
+        major_event_count,
+        minor_event_count,
+        coverage_note,
+    )
+
+
+def _synthesized_reasoning(
+    ticker: str,
+    scores: dict,
+    coverage_state: str,
+    source_count: int,
+    coverage_note: str,
+    llm_used: bool,
+) -> str:
+    if coverage_state == "provisional":
+        prefix = f"Coverage is limited for {ticker}, so this is a provisional score grounded mostly in ticker metadata and cached context."
+    elif coverage_state == "thin":
+        prefix = f"Coverage is thin for {ticker}, so the score leans on {source_count} analyzed event(s) and cached context."
+    else:
+        prefix = f"{ticker} is grounded in {source_count} analyzed event(s) and cached context."
+
+    if llm_used:
+        prefix = f"{prefix} The model did not provide a usable written rationale, so this summary was synthesized from the final dimension scores."
+
+    detail_note = coverage_note if coverage_state == "substantive" else ""
+    detail_note = f"{detail_note} " if detail_note else ""
+
+    return (
+        f"{prefix} {detail_note}"
+        f"News={scores.get('news_sentiment', 50)}, Macro={scores.get('macro_exposure', 50)}, "
+        f"Size={scores.get('position_sizing', 50)}, Volatility={scores.get('volatility_trend', 50)}."
+    )
 
 
 def _parse_batch_scores(raw_text: str, tickers: list[str]) -> dict[str, dict]:
@@ -129,13 +194,6 @@ def _parse_batch_scores(raw_text: str, tickers: list[str]) -> dict[str, dict]:
 
 
 logger = logging.getLogger(__name__)
-
-
-def _is_backfill_mode(position_data: dict) -> bool:
-    return (
-        str(position_data.get("analysis_mode") or "").strip().lower()
-        == "sp500_backfill"
-    )
 
 
 def _safe_float(value, default: float = 0.0) -> float:
@@ -219,6 +277,13 @@ def _deterministic_dimension_scores(
     portfolio_total_value: float,
 ) -> dict:
     event_analyses = list(position_data.get("event_analyses") or [])
+    (
+        coverage_state,
+        source_count,
+        major_event_count,
+        minor_event_count,
+        coverage_note,
+    ) = _coverage_state_for_position(position_data)
     ticker_metadata = position_data.get("ticker_metadata") or {}
     current_price = _safe_float(
         position_data.get("current_price")
@@ -320,6 +385,13 @@ def _deterministic_dimension_scores(
             "position_sizing": sizing_rationale,
             "volatility_trend": volatility_rationale,
         },
+        "source_count": source_count,
+        "major_event_count": major_event_count,
+        "minor_event_count": minor_event_count,
+        "coverage_state": coverage_state,
+        "coverage_note": coverage_note,
+        "is_provisional": coverage_state != "substantive",
+        "llm_scoring_used": False,
         "mirofish_used": position_data.get("mirofish_used", False),
     }
 
@@ -335,10 +407,6 @@ def _needs_llm_scoring(position_data: dict) -> bool:
 
 
 def _prefer_llm_scoring(position_data: dict) -> bool:
-    analysis_mode = str(position_data.get("analysis_mode") or "").strip().lower()
-    if analysis_mode == "sp500_backfill":
-        return False
-
     if position_data.get("event_analyses"):
         return True
 
@@ -352,6 +420,7 @@ def _llm_score_prompt(position_data: dict) -> str:
         ticker=position_data.get("ticker", ""),
         shares=position_data.get("shares", 0),
         purchase_price=position_data.get("purchase_price", 0),
+        position_value=round(_safe_float(position_data.get("position_value"), 0.0), 2),
         labels=", ".join(position_data.get("inferred_labels", []) or []),
         summary=position_data.get("summary", ""),
         long_report=position_data.get("long_report", ""),
@@ -411,6 +480,13 @@ async def score_position(
         or position_report.get("inferred_labels", []),
         "mirofish_used": mirofish_used,
     }
+    position_data["position_value"] = max(
+        _safe_float(
+            position_data.get("current_price") or position_data.get("purchase_price")
+        )
+        * _safe_float(position_data.get("shares")),
+        0.0,
+    )
     deterministic = _deterministic_dimension_scores(
         position_data,
         portfolio_total_value=max(
@@ -479,6 +555,23 @@ async def score_position(
         "position_sizing": clamp_score(scores.get("position_sizing"), 50),
         "volatility_trend": clamp_score(scores.get("volatility_trend"), 50),
     }
+    (
+        coverage_state,
+        source_count,
+        major_event_count,
+        minor_event_count,
+        coverage_note,
+    ) = _coverage_state_for_position(position_data)
+    reasoning = (scores.get("reasoning") or "").strip()
+    if not reasoning:
+        reasoning = _synthesized_reasoning(
+            str(position_data.get("ticker") or "this position"),
+            normalized_scores,
+            coverage_state,
+            source_count,
+            coverage_note,
+            llm_used=True,
+        )
 
     weighted = calculate_weighted_score(normalized_scores)
     total = round(
@@ -492,13 +585,10 @@ async def score_position(
     dimension_rationale = scores.get("dimension_rationale") or {}
 
     if position_report.get("previous_grade") and grade != score_to_grade(weighted):
-        reasoning = scores.get("reasoning", "")
         if reasoning:
             reasoning = f"{reasoning} Grade held at {grade} to stay consistent near the threshold."
         else:
             reasoning = f"Grade held at {grade} to stay consistent near the threshold."
-    else:
-        reasoning = scores.get("reasoning", "")
 
     return {
         "news_sentiment": normalized_scores["news_sentiment"],
@@ -511,6 +601,13 @@ async def score_position(
         "grade_reason": reasoning,
         "evidence_summary": position_data.get("summary", ""),
         "dimension_rationale": dimension_rationale,
+        "source_count": source_count,
+        "major_event_count": major_event_count,
+        "minor_event_count": minor_event_count,
+        "coverage_state": coverage_state,
+        "coverage_note": coverage_note,
+        "is_provisional": coverage_state != "substantive",
+        "llm_scoring_used": True,
         "mirofish_used": mirofish_used,
     }
 
@@ -580,19 +677,45 @@ def score_position_structural(
         )
 
     safety_grade = score_to_grade(final_safety)
+    source_count = len(recent_events)
+    major_event_count = sum(
+        1
+        for event in recent_events
+        if str(event.get("significance") or "minor").strip().lower() == "major"
+    )
+    minor_event_count = max(source_count - major_event_count, 0)
+    if source_count == 0:
+        coverage_state = "provisional"
+        coverage_note = "No recent event coverage was available, so this structural score is provisional."
+    elif source_count <= 2:
+        coverage_state = "thin"
+        coverage_note = f"Only {source_count} recent event(s) were available, so this structural score is coverage-limited."
+    else:
+        coverage_state = "substantive"
+        coverage_note = (
+            f"{source_count} recent event(s) supported this structural score."
+        )
+
+    confidence = structural_result["confidence"]
+    if source_count == 0:
+        confidence = max(0.35, confidence - 0.2)
+    elif source_count == 1:
+        confidence = max(0.45, confidence - 0.12)
+    elif source_count == 2:
+        confidence = max(0.5, confidence - 0.08)
 
     factor_breakdown = structural_result.get("factor_breakdown", {})
     factor_breakdown.update(
         {
             "macro_adjustment": macro_adj,
             "event_adjustment": total_event_adjustment,
-            "event_count": len(recent_events),
+            "event_count": source_count,
         }
     )
 
     return {
         "safety_score": final_safety,
-        "confidence": structural_result["confidence"],
+        "confidence": confidence,
         "structural_base_score": structural_result["structural_base_score"],
         "macro_adjustment": macro_adj,
         "event_adjustment": total_event_adjustment,
@@ -607,6 +730,12 @@ def score_position_structural(
             "macro_adjustment": f"Regime {regime_state} with {macro_sensitivity} sensitivity",
             "event_adjustment": f"{len(recent_events)} recent events contributing {total_event_adjustment}",
         },
+        "source_count": source_count,
+        "major_event_count": major_event_count,
+        "minor_event_count": minor_event_count,
+        "coverage_state": coverage_state,
+        "coverage_note": coverage_note,
+        "is_provisional": coverage_state != "substantive",
         "mirofish_used": False,
     }
 
@@ -661,6 +790,9 @@ async def score_positions_batch(
             f"""Position {i + 1}:
 - Ticker: {position.get("ticker", "")}
 - Shares: {position.get("shares", 0)} @ ${position.get("purchase_price", 0)}
+- Approximate current price: ${position.get("current_price") or position.get("purchase_price", 0)}
+- Estimated position value: ${round(_safe_float(position.get("current_price") or position.get("purchase_price")) * _safe_float(position.get("shares")), 2)}
+- Portfolio weight: {round(((_safe_float(position.get("current_price") or position.get("purchase_price")) * _safe_float(position.get("shares"))) / portfolio_total_value) * 100, 2)}%
 - Inferred labels: {", ".join(position.get("inferred_labels", [])) or position.get("archetype", "core")}
 - Position report summary: {position.get("summary", "no summary")[:200]}
 - Long report excerpt: {position.get("long_report", "")[:300]}"""
@@ -674,17 +806,24 @@ async def score_positions_batch(
         )
         prompt = f"""Score each position across 4 dimensions (0-100) and assign a grade.
 
+Use a single scale where 0 means penny-stock-like / very risky and 100 means treasury-like / very safe. Higher scores always mean lower risk.
+
 {positions_text}
 
 Return EXACTLY this JSON format (no markdown, no explanation, no thinking):
 {{"scores": {{{score_example}}}}}
 
         Scoring criteria:
-        - news_sentiment: positive news=high (70-90), negative=low (20-40), neutral=50
-        - macro_exposure: low macro sensitivity=high (60-80), high sensitivity=low (20-40)
-        - position_sizing: appropriate size=high (70-90), oversized=low (20-40)
-        - volatility_trend: decreasing vol=high (60-80), increasing vol=low (20-40)
+        - news_sentiment: positive/supportive news=high (70-100), negative/dangerous news=low (0-40), neutral=50 only when truly balanced
+        - macro_exposure: less macro-sensitive / more treasury-like=high (70-100), more macro-sensitive / more speculative=low (0-40)
+        - position_sizing: prudent, appropriately sized exposure=high (70-100), oversized or speculative exposure=low (0-40)
+        - volatility_trend: falling volatility / stable trend=high (70-100), rising volatility / unstable behavior=low (0-40)
         - Grade A=80+, B=65-79, C=50-64, D=35-49, F=<35
+
+        Important:
+        - Do not return 50 across all four dimensions unless the evidence is genuinely absent.
+        - If the evidence is directional, move the relevant dimensions away from 50.
+        - Use the position value and portfolio weight context in the prompt when estimating position sizing.
 
 Respond with ONLY the JSON object. Start with {{ and end with }}."""
 
@@ -739,6 +878,13 @@ Respond with ONLY the JSON object. Start with {{ and end with }}."""
             raw_scores = all_scores.get(ticker, {})
             if not raw_scores:
                 continue
+            (
+                coverage_state,
+                source_count,
+                major_event_count,
+                minor_event_count,
+                coverage_note,
+            ) = _coverage_state_for_position(position)
             if _prefer_llm_scoring(position) and has_suspicious_neutral_scores(
                 raw_scores
             ):
@@ -753,6 +899,16 @@ Respond with ONLY the JSON object. Start with {{ and end with }}."""
                 "position_sizing": clamp_score(raw_scores.get("position_sizing"), 50),
                 "volatility_trend": clamp_score(raw_scores.get("volatility_trend"), 50),
             }
+            reasoning = (raw_scores.get("reasoning") or "").strip()
+            if not reasoning:
+                reasoning = _synthesized_reasoning(
+                    ticker,
+                    normalized,
+                    coverage_state,
+                    source_count,
+                    coverage_note,
+                    llm_used=True,
+                )
             weighted = calculate_weighted_score(normalized)
             total = round(
                 smooth_score_change(
@@ -762,7 +918,6 @@ Respond with ONLY the JSON object. Start with {{ and end with }}."""
                 1,
             )
             grade = _apply_grade_hysteresis(total, position.get("previous_grade"))
-            reasoning = raw_scores.get("reasoning", "")
             if position.get("previous_grade") and grade != score_to_grade(weighted):
                 reasoning = (
                     f"{reasoning} Grade held at {grade} to stay consistent near the threshold."
@@ -780,6 +935,13 @@ Respond with ONLY the JSON object. Start with {{ and end with }}."""
                 "grade_reason": reasoning,
                 "evidence_summary": position.get("summary", ""),
                 "dimension_rationale": raw_scores.get("dimension_rationale") or {},
+                "source_count": source_count,
+                "major_event_count": major_event_count,
+                "minor_event_count": minor_event_count,
+                "coverage_state": coverage_state,
+                "coverage_note": coverage_note,
+                "is_provisional": coverage_state != "substantive",
+                "llm_scoring_used": True,
                 "mirofish_used": position.get("mirofish_used", False),
                 "factor_breakdown": {
                     "ai_dimensions": {

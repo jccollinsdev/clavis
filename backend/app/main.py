@@ -27,6 +27,7 @@ from .routes.watchlists import router as watchlists_router
 from .routes.brokerage import router as brokerage_router
 from .pipeline.scheduler import start_scheduler
 from .services.apns import validate_apns_configuration
+from .services.snaptrade import snaptrade_is_configured
 from .config import get_settings
 from .services.supabase import get_supabase
 import json
@@ -84,7 +85,30 @@ def log_event(level: int, event: str, **fields) -> None:
     logger.log(level, json.dumps(payload, default=str, sort_keys=True))
 
 
+def _resolve_user_id_from_token(token: str) -> str | None:
+    try:
+        payload = jwt.decode(token, settings.supabase_jwt_secret, algorithms=["HS256"])
+        user_id = payload.get("sub")
+        return str(user_id) if user_id else None
+    except JWTError:
+        pass
+
+    try:
+        user_response = get_supabase().auth.get_user(token)
+        user = getattr(user_response, "user", None)
+        user_id = getattr(user, "id", None)
+        return str(user_id) if user_id else None
+    except Exception:
+        return None
+
+
 configure_sentry()
+
+if (
+    settings.enable_debug_surfaces
+    and settings.sentry_environment.strip().lower() == "production"
+):
+    raise RuntimeError("enable_debug_surfaces cannot be enabled in production")
 
 
 @asynccontextmanager
@@ -103,7 +127,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Clavynx API",
+    title="Clavix API",
     version="1.0.0",
     lifespan=lifespan,
     docs_url="/docs" if settings.enable_public_docs else None,
@@ -143,41 +167,17 @@ async def validate_jwt_middleware(request: Request, call_next):
 
     token = auth_header[7:]
 
-    try:
-        user_response = get_supabase().auth.get_user(token)
-        user = getattr(user_response, "user", None)
-        user_id = getattr(user, "id", None)
-        if not user_id:
-            return JSONResponse(
-                status_code=401,
-                content={"detail": "Please sign in again - no user ID in token"},
-            )
-
-        request.state.user_id = str(user_id)
-
-    except JWTError as e:
+    user_id = _resolve_user_id_from_token(token)
+    if not user_id:
         log_event(
             logging.WARNING,
             "auth_invalid",
             method=request.method,
             path=request.url.path,
-            error=str(e),
         )
         return JSONResponse(status_code=401, content={"detail": "Invalid token"})
-    except HTTPException:
-        raise
-    except Exception as e:
-        log_event(
-            logging.ERROR,
-            "auth_error",
-            method=request.method,
-            path=request.url.path,
-            error=str(e),
-        )
-        return JSONResponse(
-            status_code=401,
-            content={"detail": "Authentication failed"},
-        )
+
+    request.state.user_id = user_id
 
     return await call_next(request)
 
@@ -186,6 +186,9 @@ async def validate_jwt_middleware(request: Request, call_next):
 async def debug_middleware(request: Request, call_next):
     from .services.debug_service import track_request, finish_request
     import json
+
+    if not settings.enable_debug_surfaces:
+        return await call_next(request)
 
     if request.url.path.startswith("/debug"):
         return await call_next(request)
@@ -276,7 +279,16 @@ async def debug_middleware(request: Request, call_next):
 
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    apns_status = validate_apns_configuration()
+    return {
+        "status": "ok",
+        "apns": "configured" if apns_status["configured"] else "missing",
+        "snaptrade": "configured" if snaptrade_is_configured() else "missing",
+        "minimax": "configured" if settings.minimax_api_key.strip() else "missing",
+        "supabase": "configured"
+        if settings.supabase_url.strip() and settings.supabase_service_role_key.strip()
+        else "missing",
+    }
 
 
 app.include_router(holdings_router, prefix="/holdings", tags=["holdings"])
@@ -296,6 +308,7 @@ app.include_router(brokerage_router, prefix="/brokerage", tags=["brokerage"])
 app.include_router(prices_router, prefix="/prices", tags=["prices"])
 app.include_router(account_router, prefix="/account", tags=["account"])
 app.include_router(scheduler_router, prefix="/scheduler", tags=["scheduler"])
-app.include_router(test_push_router, prefix="/test-push", tags=["test-push"])
-app.include_router(debug_router, prefix="/debug", tags=["debug"])
+if settings.enable_debug_surfaces:
+    app.include_router(test_push_router, prefix="/test-push", tags=["test-push"])
+    app.include_router(debug_router, prefix="/debug", tags=["debug"])
 app.include_router(admin_router, prefix="/admin", tags=["admin"])

@@ -25,6 +25,10 @@ class Position(PositionBase):
     id: str
     user_id: str
     current_price: Optional[float] = None
+    synced_from_brokerage: bool = False
+    brokerage_authorization_id: Optional[str] = None
+    brokerage_account_id: Optional[str] = None
+    brokerage_last_synced_at: Optional[datetime] = None
     analysis_started_at: Optional[datetime] = None
     risk_grade: Optional[str] = None
     total_score: Optional[float] = None

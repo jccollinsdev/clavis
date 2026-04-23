@@ -2,15 +2,24 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
-    @Binding var selectedTab: Int
     @StateObject private var viewModel = SettingsViewModel()
+    @StateObject private var brokerageViewModel = BrokerageViewModel()
     @State private var hasLoaded = false
+    @State private var showDeleteAccountConfirmation = false
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
+                    ClavixWordmarkHeader(subtitle: "Preferences and account")
+
+                    if NetworkStatusMonitor.shared.isOffline {
+                        OfflineStatusBanner()
+                    }
+
                     DigestSettingsGroup(viewModel: viewModel)
+
+                    BrokerageSettingsGroup(viewModel: brokerageViewModel)
 
                     AlertsSettingsGroup(viewModel: viewModel)
 
@@ -19,7 +28,11 @@ struct SettingsView: View {
                     AccountSettingsGroup(
                         email: viewModel.userEmail,
                         planLabel: planLabel,
-                        onSignOut: { Task { await authViewModel.signOut() } }
+                        accountMessage: viewModel.accountMessage,
+                        isExporting: viewModel.isExportingAccount,
+                        isDeleting: viewModel.isDeletingAccount,
+                        onExport: { Task { await viewModel.exportAccount() } },
+                        onDelete: { showDeleteAccountConfirmation = true }
                     )
 
                     AboutSection()
@@ -34,22 +47,41 @@ struct SettingsView: View {
                 .padding(.top, ClavisTheme.largeSpacing)
                 .padding(.bottom, ClavisTheme.extraLargeSpacing)
             }
-            .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        selectedTab = 0
-                    } label: {
-                        Image(systemName: "house.fill")
-                    }
-                }
-            }
             .background(ClavisAtmosphereBackground())
+            .toolbar(.hidden, for: .navigationBar)
             .onAppear {
                 guard !hasLoaded else { return }
                 hasLoaded = true
-                Task { await viewModel.load() }
+                Task {
+                    await viewModel.load()
+                    await brokerageViewModel.loadStatus()
+                }
+            }
+            .sheet(
+                isPresented: Binding(
+                    get: { brokerageViewModel.presentedURL != nil },
+                    set: { if !$0 { brokerageViewModel.presentedURL = nil } }
+                )
+            ) {
+                if let url = brokerageViewModel.presentedURL {
+                    SafariView(url: url)
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .snapTradeCallbackReceived)) { notification in
+                guard let url = notification.object as? URL else { return }
+                Task { await brokerageViewModel.handleCallback(url: url) }
+            }
+            .alert("Delete your account?", isPresented: $showDeleteAccountConfirmation) {
+                Button("Delete", role: .destructive) {
+                    Task {
+                        if await viewModel.deleteAccount() {
+                            await authViewModel.signOut()
+                        }
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This permanently deletes your data and account.")
             }
         }
     }
@@ -62,6 +94,94 @@ struct SettingsView: View {
             return "Admin"
         default:
             return nil
+        }
+    }
+}
+
+struct BrokerageSettingsGroup: View {
+    @ObservedObject var viewModel: BrokerageViewModel
+
+    var body: some View {
+        SettingsGroupCard(
+            title: "Brokerage",
+            footnote: "SnapTrade stays read-only here. Clavix only imports holdings and lets you choose between manual and automatic sync behavior."
+        ) {
+            if let infoMessage = viewModel.infoMessage {
+                SettingsMessageRow(message: infoMessage, color: .informational)
+            }
+
+            if let errorMessage = viewModel.errorMessage {
+                SettingsMessageRow(message: errorMessage, color: .riskF)
+            }
+
+            SettingsStaticRow(
+                label: "Status",
+                value: viewModel.isConnected ? "Connected" : "Not connected"
+            )
+
+            if let connection = viewModel.primaryConnection {
+                SettingsStaticRow(
+                    label: "Institution",
+                    value: connection.institutionName ?? "Connected brokerage"
+                )
+            }
+
+            if viewModel.isConnected {
+                SettingsStaticRow(label: "Sync mode", value: viewModel.autoSyncEnabled ? "Automatic" : "Manual")
+
+                if let lastSyncAt = viewModel.status?.lastSyncAt {
+                    SettingsStaticRow(
+                        label: "Last sync",
+                        value: lastSyncAt.formatted(date: .abbreviated, time: .shortened)
+                    )
+                }
+
+                if let firstAccount = viewModel.status?.accounts.first {
+                    SettingsStaticRow(
+                        label: "Account",
+                        value: [firstAccount.name, firstAccount.numberMasked].compactMap { $0 }.joined(separator: " · ")
+                    )
+                }
+
+                SettingsActionRow(
+                    title: viewModel.autoSyncEnabled ? "Use manual sync" : "Use automatic sync",
+                    tint: .informational
+                ) {
+                    Task { await viewModel.setAutoSyncEnabled(!viewModel.autoSyncEnabled) }
+                }
+
+                if viewModel.primaryConnection?.disabled == true {
+                    SettingsActionRow(title: "Reconnect brokerage", tint: .informational) {
+                        Task { await viewModel.startConnect(reconnectConnectionId: viewModel.primaryConnection?.id) }
+                    }
+                }
+
+                SettingsActionRow(
+                    title: viewModel.isSyncing ? "Syncing holdings..." : "Sync holdings now",
+                    tint: .informational,
+                    disabled: viewModel.isSyncing
+                ) {
+                    Task { await viewModel.syncNow(refreshRemote: true) }
+                }
+
+                SettingsActionRow(
+                    title: viewModel.isDisconnecting ? "Disconnecting..." : "Disconnect brokerage",
+                    tint: .riskF,
+                    disabled: viewModel.isDisconnecting,
+                    last: true
+                ) {
+                    Task { await viewModel.disconnect() }
+                }
+            } else {
+                SettingsActionRow(
+                    title: viewModel.isLoading ? "Loading..." : "Connect brokerage",
+                    tint: .informational,
+                    disabled: viewModel.isLoading,
+                    last: true
+                ) {
+                    Task { await viewModel.startConnect() }
+                }
+            }
         }
     }
 }
@@ -190,7 +310,11 @@ struct NotificationSettingsGroup: View {
 struct AccountSettingsGroup: View {
     let email: String
     let planLabel: String?
-    let onSignOut: () -> Void
+    let accountMessage: String?
+    let isExporting: Bool
+    let isDeleting: Bool
+    let onExport: () -> Void
+    let onDelete: () -> Void
 
     var body: some View {
         SettingsGroupCard(title: "Account") {
@@ -200,7 +324,26 @@ struct AccountSettingsGroup: View {
                 SettingsStaticRow(label: "Plan", value: planLabel)
             }
 
-            SettingsLinkRow(title: "Data & privacy", urlString: "https://clavis.app/privacy", last: true)
+            if let accountMessage {
+                SettingsMessageRow(message: accountMessage, color: .informational)
+            }
+
+            SettingsActionRow(
+                title: isExporting ? "Exporting..." : "Export my data",
+                tint: .informational,
+                disabled: isExporting
+            ) {
+                onExport()
+            }
+
+            SettingsActionRow(
+                title: isDeleting ? "Deleting..." : "Delete account",
+                tint: .riskF,
+                disabled: isDeleting,
+                last: true
+            ) {
+                onDelete()
+            }
         }
     }
 }
@@ -340,6 +483,56 @@ struct SettingsStaticRow: View {
     }
 }
 
+struct SettingsMessageRow: View {
+    let message: String
+    let color: Color
+    var last: Bool = false
+
+    var body: some View {
+        Text(message)
+            .font(ClavisTypography.footnote)
+            .foregroundColor(color)
+            .padding(.vertical, 13)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .overlay(alignment: .bottom) {
+                if !last {
+                    Rectangle()
+                        .fill(Color.border)
+                        .frame(height: 1)
+                }
+            }
+    }
+}
+
+struct SettingsActionRow: View {
+    let title: String
+    let tint: Color
+    var disabled: Bool = false
+    var last: Bool = false
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Text(title)
+                    .font(ClavisTypography.body)
+                    .foregroundColor(disabled ? .textTertiary : tint)
+                Spacer()
+            }
+            .padding(.vertical, 13)
+        }
+        .buttonStyle(.plain)
+        .disabled(disabled)
+        .overlay(alignment: .bottom) {
+            if !last {
+                Rectangle()
+                    .fill(Color.border)
+                    .frame(height: 1)
+            }
+        }
+    }
+}
+
 struct AboutSection: View {
     var body: some View {
         SettingsGroupCard(title: "About") {
@@ -355,8 +548,10 @@ struct AboutSection: View {
             }
             .buttonStyle(.plain)
 
-            SettingsLinkRow(title: "Privacy policy", urlString: "https://clavis.app/privacy")
-            SettingsLinkRow(title: "Terms of service", urlString: "https://clavis.app/terms", last: true)
+            SettingsLinkRow(title: "Methodology", urlString: "https://getclavix.com/methodology")
+            SettingsLinkRow(title: "Privacy policy", urlString: "https://getclavix.com/privacy")
+            SettingsLinkRow(title: "Terms of service", urlString: "https://getclavix.com/terms")
+            SettingsLinkRow(title: "Refund policy", urlString: "https://getclavix.com/refund", last: true)
         }
     }
 }
@@ -372,7 +567,7 @@ struct SettingsNavigationRow: View {
                 .foregroundColor(.textPrimary)
             Spacer()
             Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(.textTertiary)
         }
         .padding(.vertical, 13)
@@ -392,28 +587,29 @@ struct SettingsLinkRow: View {
     var last: Bool = false
 
     var body: some View {
-        Link(destination: URL(string: urlString)!) {
-            HStack {
-                Text(title)
-                    .font(ClavisTypography.body)
-                    .foregroundColor(.textPrimary)
-                Spacer()
-                Image(systemName: "arrow.up.right")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(.textTertiary)
-            }
-            .padding(.vertical, 13)
-            .overlay(alignment: .bottom) {
-                if !last {
-                    Rectangle()
-                        .fill(Color.border)
-                        .frame(height: 1)
+        if let url = URL(string: urlString) {
+            Link(destination: url) {
+                HStack {
+                    Text(title)
+                        .font(ClavisTypography.body)
+                        .foregroundColor(.textPrimary)
+                    Spacer()
+                    Image(systemName: "arrow.up.right")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.textTertiary)
+                }
+                .padding(.vertical, 13)
+                .overlay(alignment: .bottom) {
+                    if !last {
+                        Rectangle()
+                            .fill(Color.border)
+                            .frame(height: 1)
+                    }
                 }
             }
         }
     }
 }
-
 struct SettingsDisclaimerCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -421,7 +617,7 @@ struct SettingsDisclaimerCard: View {
                 .font(ClavisTypography.label)
                 .foregroundColor(.textSecondary)
 
-            Text("Clavix provides risk intelligence for informational purposes only. Scores reflect model output based on available data and do not constitute investment advice.")
+            Text(ClavisCopy.settingsDisclaimer)
                 .font(ClavisTypography.footnote)
                 .foregroundColor(.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -464,11 +660,11 @@ struct ScoreExplanationView: View {
                 }
 
                 VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-                    ScoreBandRow(grade: "A", range: "75–100", description: "Safe — minimum risk exposure", color: .riskA)
-                    ScoreBandRow(grade: "B", range: "55–74", description: "Stable — low risk", color: .riskB)
-                    ScoreBandRow(grade: "C", range: "35–54", description: "Watch — moderate risk", color: .riskC)
-                    ScoreBandRow(grade: "D", range: "15–34", description: "Risky — elevated risk", color: .riskD)
-                    ScoreBandRow(grade: "F", range: "0–14", description: "Critical — high risk", color: .riskF)
+                    ScoreBandRow(grade: "A", range: "80–100", description: "Safe — minimum risk exposure", color: .riskA)
+                    ScoreBandRow(grade: "B", range: "65–79", description: "Stable — low risk", color: .riskB)
+                    ScoreBandRow(grade: "C", range: "50–64", description: "Watch — moderate risk", color: .riskC)
+                    ScoreBandRow(grade: "D", range: "35–49", description: "Risky — elevated risk", color: .riskD)
+                    ScoreBandRow(grade: "F", range: "0–34", description: "Critical — high risk", color: .riskF)
                 }
 
                 Text("Informational only. Scores reflect model output based on available data. They do not constitute financial advice.")
@@ -525,7 +721,7 @@ struct MethodologyView: View {
                 VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
                     MethodologyStepRow(number: "01", title: "Data Collection", description: "Real-time price, news, and market structure signals are gathered for each position.")
                     MethodologyStepRow(number: "02", title: "Relevance Filtering", description: "Market noise is filtered out so only position-relevant stories move forward.")
-                    MethodologyStepRow(number: "03", title: "Risk Analysis", description: "Each position is scored across five dimensions: news sentiment, macro exposure, position sizing, volatility trend, and durability.")
+                    MethodologyStepRow(number: "03", title: "Risk Analysis", description: "Each position is scored across four dimensions: news sentiment, macro exposure, position sizing, and volatility trend.")
                     MethodologyStepRow(number: "04", title: "Grade Assignment", description: "Composite scores are mapped to letter grades with fixed boundaries.")
                 }
 

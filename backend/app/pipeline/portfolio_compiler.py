@@ -137,6 +137,27 @@ def _is_valid_sector_name(value: str | None) -> bool:
     return bool(normalized and normalized not in {"unknown", "none", "null", "n/a"})
 
 
+def _clean_text_list(values: list[object] | None) -> list[str]:
+    cleaned = []
+    for value in values or []:
+        text = str(value or "").strip().replace("_", " ")
+        if text:
+            cleaned.append(" ".join(text.split()))
+    return cleaned
+
+
+def _sanitize_dimension_breakdown(value: object) -> dict[str, str]:
+    if not isinstance(value, dict):
+        return {}
+
+    cleaned: dict[str, str] = {}
+    for key, raw_value in value.items():
+        text = str(raw_value or "").strip().replace("_", " ")
+        if text:
+            cleaned[str(key)] = " ".join(text.split())
+    return cleaned
+
+
 def _sanitize_sector_overview(items: list[dict] | None) -> list[dict]:
     sanitized = []
     seen = set()
@@ -161,6 +182,56 @@ def _sanitize_sector_overview(items: list[dict] | None) -> list[dict]:
     return sanitized
 
 
+def _fallback_sector_overview(
+    position_data: list[dict], macro_context: dict | None = None
+) -> list[dict]:
+    sector_map: dict[str, dict] = {}
+
+    for position in position_data:
+        sector = str(position.get("sector") or "unknown").strip().lower()
+        if not _is_valid_sector_name(sector):
+            sector = "other"
+
+        sector_entry = sector_map.setdefault(
+            sector,
+            {"sector": sector, "brief": "", "headlines": []},
+        )
+
+        ticker = _normalize_ticker(position.get("ticker")) or "Unknown"
+        summary = _first_sentence(position.get("summary")) or _short_watch_item(
+            position
+        )
+        if summary and len(sector_entry["headlines"]) < 3:
+            sector_entry["headlines"].append(f"{ticker}: {summary}")
+
+    if not sector_map and macro_context and macro_context.get("overnight_macro"):
+        overnight_macro = macro_context["overnight_macro"]
+        return [
+            {
+                "sector": "portfolio",
+                "brief": str(
+                    overnight_macro.get("brief")
+                    or "No sector-specific overnight update."
+                ).strip(),
+                "headlines": _clean_text_list(overnight_macro.get("headlines")),
+            }
+        ]
+
+    fallback_sections: list[dict] = []
+    for sector, entry in sorted(sector_map.items()):
+        lead_text = (
+            entry["headlines"][0].split(": ", 1)[-1]
+            if entry["headlines"]
+            else "No material overnight change."
+        )
+        entry["brief"] = (
+            f"{len(entry['headlines']) or 1} holding(s) tied to this sector. {lead_text}"
+        )
+        fallback_sections.append(entry)
+
+    return fallback_sections
+
+
 def _normalize_position_impacts(
     impacts: list[dict] | None,
     position_data: list[dict],
@@ -182,6 +253,13 @@ def _normalize_position_impacts(
                 .lower()
                 or "neutral",
                 "impact_summary": str(item.get("impact_summary") or "").strip(),
+                "watch_items": _clean_text_list(item.get("watch_items")),
+                "top_risks": _clean_text_list(item.get("top_risks")),
+                "dimension_breakdown": _sanitize_dimension_breakdown(
+                    item.get("dimension_breakdown")
+                ),
+                "urgency": str(item.get("urgency") or "medium").strip().lower()
+                or "medium",
             }
 
     normalized = []
@@ -191,6 +269,19 @@ def _normalize_position_impacts(
             continue
         impact = impact_map.get(ticker)
         if impact and impact.get("impact_summary"):
+            impact["watch_items"] = impact.get("watch_items") or _clean_text_list(
+                position.get("watch_items")
+            )
+            impact["top_risks"] = impact.get("top_risks") or _clean_text_list(
+                position.get("top_risks")
+            )
+            impact["dimension_breakdown"] = impact.get(
+                "dimension_breakdown"
+            ) or _sanitize_dimension_breakdown(position.get("dimension_breakdown"))
+            impact["urgency"] = (
+                impact.get("urgency")
+                or str(position.get("urgency") or "medium").strip().lower()
+            )
             normalized.append(impact)
             continue
         normalized.append(
@@ -198,6 +289,13 @@ def _normalize_position_impacts(
                 "ticker": ticker,
                 "macro_relevance": "neutral",
                 "impact_summary": "No clear overnight macro change for this holding; keep the focus on company-specific developments and any follow-through in its sector.",
+                "watch_items": _clean_text_list(position.get("watch_items")),
+                "top_risks": _clean_text_list(position.get("top_risks")),
+                "dimension_breakdown": _sanitize_dimension_breakdown(
+                    position.get("dimension_breakdown")
+                ),
+                "urgency": str(position.get("urgency") or "medium").strip().lower()
+                or "medium",
             }
         )
     return normalized
@@ -423,6 +521,15 @@ def _fallback_portfolio_digest(
             "ticker": position.get("ticker", "Unknown"),
             "macro_relevance": "neutral",
             "impact_summary": f"No material macro change. {_short_watch_item(position)}",
+            "watch_items": _clean_text_list(position.get("watch_items")),
+            "top_risks": _clean_text_list(position.get("top_risks")),
+            "dimension_breakdown": _sanitize_dimension_breakdown(
+                position.get("dimension_breakdown")
+            ),
+            "urgency": "high"
+            if position.get("previous_grade")
+            and position.get("previous_grade") != position.get("grade")
+            else "medium",
         }
         for position in ranked_positions
     ]
@@ -468,13 +575,34 @@ def _fallback_portfolio_digest(
         if alert_lines:
             watchlist_alerts_block = "**Watchlist Alerts**\n" + "\n".join(alert_lines)
 
+    sector_overview_lines = _fallback_sector_overview(position_data)
+    if sector_overview_lines:
+        sector_overview_block = "**Sector Overview**\n" + "\n".join(
+            f"- {sector.get('sector', 'unknown')}: {sector.get('brief', '')}"
+            for sector in sector_overview_lines
+        )
+    else:
+        sector_overview_block = (
+            "**Sector Overview**\n- No sector-specific headlines available."
+        )
+
+    position_impacts_block = (
+        "**Position Impacts**\n"
+        + "\n".join(
+            f"- {impact['ticker']}: {impact['impact_summary']}"
+            for impact in fallback_impacts
+        )
+        if fallback_impacts
+        else "**Position Impacts**\n- No macro position impacts available."
+    )
+
     content_parts = [
         "**Morning Portfolio Digest**",
         f"**Overall Portfolio Grade: {overall_grade}**",
         opening,
         "**Overnight Macro**\n- No overnight macro developments.",
-        "**Sector Overview**\n- No sector-specific headlines available.",
-        "**Position Impacts**\n- No macro position impacts available.",
+        sector_overview_block,
+        position_impacts_block,
         "**Portfolio Impact**\n- The highest-urgency holding is the main current change driver.",
     ]
     if watchlist_alerts_block:
@@ -501,7 +629,7 @@ def _fallback_portfolio_digest(
                 "themes": [],
                 "brief": "No overnight macro developments.",
             },
-            "sector_overview": [],
+            "sector_overview": _fallback_sector_overview(position_data),
             "position_impacts": fallback_impacts,
             "portfolio_impact": ["Focus on the highest-urgency holding first."],
             "what_matters_today": [],
@@ -573,6 +701,7 @@ Portfolio Risk Analysis:
                     f"  Summary: {position.get('summary') or 'No summary available.'}",
                     f"  Watch items: {', '.join(str(item).replace('_', ' ') for item in position.get('watch_items', [])[:3]) or 'none'}",
                     f"  Top risks: {', '.join(position.get('top_risks', [])[:3]) or 'none'}",
+                    f"  Dimension breakdown: {position.get('dimension_breakdown') or 'none'}",
                     f"  Risk verifier: {position.get('thesis_verifier', [])}",
                 ]
             )
@@ -612,6 +741,7 @@ Important instruction:
 - Use "what_matters_today" for forward-looking items (earnings, data releases, Fed speakers).
 - Use "watchlist_alerts" only for watchlist names that have real news or risk changes.
 - Base watchlist items on the article evidence already captured on each company, not generic market language.
+- Preserve structured watch_items, top_risks, and dimension_breakdown data on each position when available.
 - Build "watch_list" from each holding's own watch items or news-driven changes first, then fall back to risk notes only if needed.
 - Keep watch list items concise and avoid repeating the same ticker or company name more than once.
 - Emit the markdown content in this exact order: overall grade, overnight macro, sector overview, position impacts, portfolio impact, what matters today, watchlist alerts, per position, monitoring notes.
@@ -648,6 +778,7 @@ Positions:
     normalized_sector_overview = _sanitize_sector_overview(
         sections.get("sector_overview")
         or (sector_context.get("sector_overview") if sector_context else None)
+        or _fallback_sector_overview(ranked_positions, macro_context=macro_context)
         or fallback["sections"].get("sector_overview")
     )
     normalized_position_impacts = _normalize_position_impacts(

@@ -9,6 +9,7 @@ from dateutil.parser import isoparse
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.date import DateTrigger
 
 from .analysis_utils import utcnow_iso, clamp_score
 from .news_normalizer import normalize_news_batch, _evidence_quality
@@ -60,6 +61,7 @@ JOB_PREFIX = "user_"
 SP500_DAILY_JOB_ID = "system_sp500_daily_refresh"
 HOLDINGS_DAILY_AI_JOB_ID = "system_holdings_daily_ai_refresh"
 SP500_BACKFILL_JOB_ID = "system_sp500_backfill"
+NEWS_CLEANUP_JOB_ID = "system_news_cleanup"
 SYSTEM_SP500_USER_ID = "00000000-0000-0000-0000-000000000001"
 SP500_BACKFILL_TRIGGER = "sp500_backfill"
 MAJOR_PRIORITY_KEYWORDS = (
@@ -749,9 +751,21 @@ def _sync_user_job(
 ) -> dict:
     normalized_time, hour, minute = _parse_digest_time(digest_time)
     job_id = _job_id_for_user(user_id)
+    structural_job_id = f"{JOB_PREFIX}{user_id}_structural_refresh"
 
     if scheduler.get_job(job_id):
         scheduler.remove_job(job_id)
+    if scheduler.get_job(structural_job_id):
+        scheduler.remove_job(structural_job_id)
+
+    scheduler.add_job(
+        trigger_structural_refresh,
+        CronTrigger(hour=6, minute=30),
+        id=structural_job_id,
+        args=[user_id],
+        misfire_grace_time=7200,
+        replace_existing=True,
+    )
 
     if not notifications_enabled:
         return _mark_scheduler_inactive(
@@ -769,16 +783,6 @@ def _sync_user_job(
         id=job_id,
         args=[user_id],
         misfire_grace_time=3600,
-        replace_existing=True,
-    )
-
-    structural_job_id = f"{JOB_PREFIX}{user_id}_structural_refresh"
-    scheduler.add_job(
-        trigger_structural_refresh,
-        CronTrigger(hour=6, minute=30),
-        id=structural_job_id,
-        args=[user_id],
-        misfire_grace_time=7200,
         replace_existing=True,
     )
 
@@ -1387,6 +1391,7 @@ async def create_analysis_run(
     user_id: str,
     triggered_by: str,
     target_position_id: str | None = None,
+    target_tickers: list[str] | None = None,
 ) -> dict:
     from ..services.supabase import get_supabase
 
@@ -1404,6 +1409,17 @@ async def create_analysis_run(
         )
         if position:
             target_ticker = position[0].get("ticker")
+    normalized_target_tickers = None
+    if target_tickers:
+        normalized_target_tickers = list(
+            dict.fromkeys(
+                [
+                    str(ticker).strip().upper()
+                    for ticker in target_tickers
+                    if str(ticker).strip()
+                ]
+            )
+        )
     run_result = (
         supabase.table("analysis_runs")
         .insert(
@@ -1415,6 +1431,7 @@ async def create_analysis_run(
                 "current_stage_message": "Queued for analysis.",
                 "target_position_id": target_position_id,
                 "target_ticker": target_ticker,
+                "target_tickers": normalized_target_tickers,
             }
         )
         .execute()
@@ -2101,7 +2118,9 @@ async def execute_analysis_run(
         )
         notifications_enabled = bool(prefs and prefs[0].get("notifications_enabled"))
         apns_token = prefs[0].get("apns_token") if prefs else None
-        summary_length = (prefs[0].get("summary_length") or "standard") if prefs else "standard"
+        summary_length = (
+            (prefs[0].get("summary_length") or "standard") if prefs else "standard"
+        )
         weekday_only = bool(prefs and prefs[0].get("weekday_only"))
 
         _set_analysis_stage(
@@ -2487,6 +2506,14 @@ async def execute_analysis_run(
                         "message": f"Major event detected for {ticker}: {article.get('title', '')}",
                         "event_hash": event_hash,
                         "analysis_run_id": analysis_run_id,
+                        "change_reason": article.get("summary")
+                        or article.get("title", "Major event detected."),
+                        "change_details": {
+                            "event_type": significance.get("event_type", "other"),
+                            "significance": significance.get("significance", "major"),
+                            "title": article.get("title", ""),
+                            "source": article.get("source", ""),
+                        },
                     },
                     dedupe_event_hash=event_hash,
                 )
@@ -2852,6 +2879,25 @@ async def execute_analysis_run(
                     else None
                 )
                 if previous_grade and grade and previous_grade != grade:
+                    top_risks = (
+                        position_payloads[i].get("top_risks", [])
+                        if i < len(position_payloads)
+                        else []
+                    )
+                    watch_items = (
+                        position_payloads[i].get("watch_items", [])
+                        if i < len(position_payloads)
+                        else []
+                    )
+                    change_reason = (
+                        "; ".join(
+                            str(item)
+                            for item in (watch_items[:2] or top_risks[:2])
+                            if str(item).strip()
+                        )
+                        or position_payloads[i].get("summary", "")
+                        or f"Latest analysis changed the risk read for {ticker}."
+                    )
                     alert_payload = {
                         "user_id": user_id,
                         "position_ticker": ticker,
@@ -2860,6 +2906,18 @@ async def execute_analysis_run(
                         "new_grade": grade,
                         "message": f"{ticker} grade changed from {previous_grade} to {grade}",
                         "analysis_run_id": analysis_run_id,
+                        "change_reason": change_reason,
+                        "change_details": {
+                            "previous_grade": previous_grade,
+                            "new_grade": grade,
+                            "watch_items": ", ".join(
+                                str(item) for item in watch_items[:3]
+                            ),
+                            "top_risks": ", ".join(str(item) for item in top_risks[:3]),
+                            "summary": position_payloads[i].get("summary", "")
+                            if i < len(position_payloads)
+                            else "",
+                        },
                     }
                     supabase.table("alerts").insert(alert_payload).execute()
                     if notifications_enabled and apns_token:
@@ -3035,6 +3093,12 @@ async def execute_analysis_run(
                         "new_grade": overall_grade,
                         "message": f"Overall portfolio grade changed from {previous_portfolio_grade} to {overall_grade}",
                         "analysis_run_id": analysis_run_id,
+                        "change_reason": "Portfolio-wide score moved after the latest full analysis run.",
+                        "change_details": {
+                            "previous_grade": previous_portfolio_grade,
+                            "new_grade": overall_grade,
+                            "overall_score": f"{portfolio_score:.1f}",
+                        },
                     },
                 )
                 if created and notifications_enabled and apns_token:
@@ -3061,6 +3125,8 @@ async def execute_analysis_run(
                     continue
                 previous_score = previous_scores_for_alerts.get(position_id)
                 if previous_score is not None and current_score < previous_score - 10:
+                    top_risks = p.get("top_risks", []) or []
+                    watch_items = p.get("watch_items", []) or []
                     created = await _maybe_create_alert(
                         supabase,
                         {
@@ -3071,6 +3137,24 @@ async def execute_analysis_run(
                             "new_grade": p.get("grade"),
                             "message": f"{ticker} safety score dropped from {previous_score:.1f} to {current_score:.1f}",
                             "analysis_run_id": analysis_run_id,
+                            "change_reason": (
+                                "; ".join(
+                                    str(item)
+                                    for item in (watch_items[:2] or top_risks[:2])
+                                    if str(item).strip()
+                                )
+                                or f"Safety score fell by {previous_score - current_score:.1f} points."
+                            ),
+                            "change_details": {
+                                "previous_score": f"{previous_score:.1f}",
+                                "new_score": f"{current_score:.1f}",
+                                "top_risks": ", ".join(
+                                    str(item) for item in top_risks[:3]
+                                ),
+                                "watch_items": ", ".join(
+                                    str(item) for item in watch_items[:3]
+                                ),
+                            },
                         },
                         dedupe_hours=12,
                     )
@@ -3079,6 +3163,7 @@ async def execute_analysis_run(
                 risk_score = portfolio_risk.get("portfolio_allocation_risk_score", 0)
                 concentration = portfolio_risk.get("concentration_risk", 0)
                 if concentration > 50:
+                    top_drivers = portfolio_risk.get("top_risk_drivers", []) or []
                     created = await _maybe_create_alert(
                         supabase,
                         {
@@ -3086,6 +3171,15 @@ async def execute_analysis_run(
                             "type": "concentration_danger",
                             "message": f"Portfolio concentration risk elevated at {concentration}/100",
                             "analysis_run_id": analysis_run_id,
+                            "change_reason": "Concentration risk is above the review threshold for the latest portfolio snapshot.",
+                            "change_details": {
+                                "concentration_risk": f"{concentration}",
+                                "top_drivers": ", ".join(
+                                    str(driver.get("type") or "driver")
+                                    for driver in top_drivers[:3]
+                                    if isinstance(driver, dict)
+                                ),
+                            },
                         },
                         dedupe_hours=24,
                     )
@@ -3102,6 +3196,10 @@ async def execute_analysis_run(
                             "type": "cluster_risk",
                             "message": f"Portfolio has exposure to risky clusters: {', '.join(danger_clusters[:3])}",
                             "analysis_run_id": analysis_run_id,
+                            "change_reason": "Multiple holdings now share the same risk cluster.",
+                            "change_details": {
+                                "danger_clusters": ", ".join(danger_clusters[:3]),
+                            },
                         },
                         dedupe_hours=24,
                     )
@@ -3277,7 +3375,12 @@ async def enqueue_analysis_run(
                 "overall_grade": None,
             }
 
-    run = await create_analysis_run(user_id, triggered_by, target_position_id)
+    run = await create_analysis_run(
+        user_id,
+        triggered_by,
+        target_position_id,
+        target_tickers=target_tickers,
+    )
     task = asyncio.create_task(
         asyncio.to_thread(
             _run_analysis_in_thread,
@@ -3326,7 +3429,9 @@ async def trigger_scheduled_digest(user_id: str):
     )
     weekday_only = bool(prefs_row and prefs_row[0].get("weekday_only"))
     if weekday_only and datetime.now(timezone.utc).weekday() >= 5:
-        logger.info(f"Skipping scheduled digest for {user_id}: weekday_only=True and today is weekend")
+        logger.info(
+            f"Skipping scheduled digest for {user_id}: weekday_only=True and today is weekend"
+        )
         return None
 
     return await enqueue_analysis_run(user_id, "scheduled")
@@ -3568,9 +3673,12 @@ async def trigger_structural_refresh(user_id: str):
     )
 
     today = datetime.utcnow().date()
+    today_iso = today.isoformat()
+    tickers = sorted(
+        {str(position.get("ticker") or "").strip().upper() for position in positions}
+    )
 
-    for position in positions:
-        ticker = position.get("ticker")
+    for ticker in tickers:
         if not ticker:
             continue
 
@@ -3579,7 +3687,7 @@ async def trigger_structural_refresh(user_id: str):
         meta_result = (
             supabase.table("ticker_metadata")
             .select("*")
-            .eq("ticker", ticker.upper())
+            .eq("ticker", ticker)
             .limit(1)
             .execute()
         )
@@ -3592,7 +3700,7 @@ async def trigger_structural_refresh(user_id: str):
         previous_score_result = (
             supabase.table("asset_safety_profiles")
             .select("safety_score")
-            .eq("ticker", ticker.upper())
+            .eq("ticker", ticker)
             .order("as_of_date", desc=True)
             .limit(1)
             .execute()
@@ -3626,19 +3734,9 @@ async def trigger_structural_refresh(user_id: str):
 
         factor_breakdown = structural_result.get("factor_breakdown", {})
 
-        existing = (
-            supabase.table("asset_safety_profiles")
-            .select("id")
-            .eq("ticker", ticker.upper())
-            .eq("as_of_date", today.isoformat())
-            .limit(1)
-            .execute()
-            .data
-        )
-
         profile_payload = {
-            "ticker": ticker.upper(),
-            "as_of_date": today.isoformat(),
+            "ticker": ticker,
+            "as_of_date": today_iso,
             "structural_base_score": structural_result["structural_base_score"],
             "macro_adjustment": 0.0,
             "event_adjustment": 0.0,
@@ -3654,12 +3752,10 @@ async def trigger_structural_refresh(user_id: str):
             "factor_breakdown": factor_breakdown,
         }
 
-        if existing:
-            supabase.table("asset_safety_profiles").update(profile_payload).eq(
-                "id", existing[0]["id"]
-            ).execute()
-        else:
-            supabase.table("asset_safety_profiles").insert(profile_payload).execute()
+        supabase.table("asset_safety_profiles").upsert(
+            profile_payload,
+            on_conflict="ticker,as_of_date",
+        ).execute()
 
     return {"status": "structural_refresh_complete", "user_id": user_id}
 
@@ -3763,6 +3859,12 @@ def get_sp500_cache_status(limit: int = 10) -> dict:
         "daily_next_run_at": _serialize_datetime(
             scheduler.get_job(SP500_DAILY_JOB_ID).next_run_time
             if scheduler.get_job(SP500_DAILY_JOB_ID)
+            else None
+        ),
+        "backfill_job_present": scheduler.get_job(SP500_BACKFILL_JOB_ID) is not None,
+        "backfill_next_run_at": _serialize_datetime(
+            scheduler.get_job(SP500_BACKFILL_JOB_ID).next_run_time
+            if scheduler.get_job(SP500_BACKFILL_JOB_ID)
             else None
         ),
         "recent_jobs": latest_jobs[:limit],
@@ -3903,7 +4005,17 @@ def _sync_ai_scores_to_ticker_snapshots_sync(
         "news_summary": analysis.get("summary") or "",
         "source_count": ai_score.get("source_count", 0),
         "methodology_version": (
-            "sp500-ai-backfill-v2" if job_type == "backfill" else "sp500-ai-analysis-v2"
+            (
+                "sp500-ai-backfill-v2"
+                if job_type == "backfill"
+                else "sp500-ai-analysis-v2"
+            )
+            if ai_score.get("llm_scoring_used")
+            else (
+                "sp500-backfill-deterministic-fallback-v1"
+                if job_type == "backfill"
+                else "sp500-analysis-deterministic-fallback-v1"
+            )
         ),
         "analysis_as_of": ai_score.get("calculated_at") or now_iso,
         "refresh_triggered_by_user_id": None,
@@ -4122,7 +4234,7 @@ async def run_sp500_full_ai_analysis_fast(
             "failed": [{"error": "No system positions found for SP500 tickers"}],
         }
 
-    REFRESH_CONCURRENCY = 4
+    REFRESH_CONCURRENCY = 2
 
     def _print_ticker_analysis(ticker: str, meta: dict) -> None:
         pe = meta.get("pe_ratio") or "N/A"
@@ -4444,7 +4556,7 @@ async def run_sp500_full_ai_analysis_fast(
             f"Syncing AI scores for batch {batch_number}/{total_batches}.",
             positions_processed=synced,
         )
-        sync_semaphore = asyncio.Semaphore(4)
+        sync_semaphore = asyncio.Semaphore(2)
 
         async def _sync_one_ticker(ticker: str):
             async with sync_semaphore:
@@ -4502,7 +4614,7 @@ async def run_sp500_full_ai_analysis_fast(
         )
         for batch_index in range(0, len(successful), batch_size)
     ]
-    batch_concurrency = max(1, min(4, len(batch_jobs)))
+    batch_concurrency = max(1, min(2, len(batch_jobs)))
     print(
         f"[SP500] Running {len(batch_jobs)} analysis batches with concurrency {batch_concurrency}..."
     )
@@ -4620,7 +4732,7 @@ def _schedule_holdings_daily_ai_refresh() -> None:
     if scheduler.get_job(HOLDINGS_DAILY_AI_JOB_ID):
         scheduler.remove_job(HOLDINGS_DAILY_AI_JOB_ID)
     scheduler.add_job(
-        lambda: asyncio.create_task(run_user_holdings_daily_ai_refresh()),
+        run_user_holdings_daily_ai_refresh,
         trigger=CronTrigger(hour=2, minute=0),
         id=HOLDINGS_DAILY_AI_JOB_ID,
         replace_existing=True,
@@ -4628,13 +4740,67 @@ def _schedule_holdings_daily_ai_refresh() -> None:
     )
 
 
+def _next_2am_utc(reference: datetime | None = None) -> datetime:
+    current_time = reference or datetime.now(timezone.utc)
+    run_time = current_time.replace(hour=2, minute=0, second=0, microsecond=0)
+    if run_time <= current_time:
+        run_time += timedelta(days=1)
+    return run_time
+
+
+async def _run_scheduled_sp500_backfill() -> None:
+    try:
+        await enqueue_sp500_backfill_run(
+            requested_by_user_id=SYSTEM_SP500_USER_ID,
+            job_type="backfill",
+            batch_size=10,
+        )
+    except Exception as exc:
+        logger.error(
+            "[SP500_BACKFILL] Scheduled S&P 500 backfill failed: %s",
+            exc,
+            exc_info=True,
+        )
+
+
+def _schedule_sp500_backfill_once() -> None:
+    if scheduler.get_job(SP500_BACKFILL_JOB_ID):
+        scheduler.remove_job(SP500_BACKFILL_JOB_ID)
+    scheduler.add_job(
+        _run_scheduled_sp500_backfill,
+        trigger=DateTrigger(run_date=_next_2am_utc()),
+        id=SP500_BACKFILL_JOB_ID,
+        replace_existing=True,
+        misfire_grace_time=6 * 3600,
+    )
+
+
 def _schedule_sp500_daily_refresh() -> None:
     if scheduler.get_job(SP500_DAILY_JOB_ID):
         scheduler.remove_job(SP500_DAILY_JOB_ID)
     scheduler.add_job(
-        lambda: asyncio.create_task(refresh_sp500_cache(job_type="daily")),
+        refresh_sp500_cache,
         trigger=CronTrigger(hour=3, minute=0),
         id=SP500_DAILY_JOB_ID,
+        replace_existing=True,
+        kwargs={"job_type": "daily"},
+    )
+
+
+def _cleanup_old_news_items() -> None:
+    from ..services.supabase import get_supabase
+
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+    get_supabase().table("news_items").delete().lt("processed_at", cutoff).execute()
+
+
+def _schedule_news_cleanup() -> None:
+    if scheduler.get_job(NEWS_CLEANUP_JOB_ID):
+        scheduler.remove_job(NEWS_CLEANUP_JOB_ID)
+    scheduler.add_job(
+        _cleanup_old_news_items,
+        trigger=CronTrigger(hour=3, minute=30),
+        id=NEWS_CLEANUP_JOB_ID,
         replace_existing=True,
     )
 
@@ -4649,8 +4815,10 @@ def start_scheduler():
     if not scheduler.running:
         scheduler.start()
 
+    _schedule_sp500_backfill_once()
     _schedule_sp500_daily_refresh()
     _schedule_holdings_daily_ai_refresh()
+    _schedule_news_cleanup()
 
     current_jobs = [
         job.id for job in scheduler.get_jobs() if job.id.startswith(JOB_PREFIX)

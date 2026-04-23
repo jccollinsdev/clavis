@@ -18,8 +18,9 @@ struct TickerDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
+                ClavixWordmarkHeader(subtitle: navTitle)
+
                 TickerInlineNavBar(
-                    title: navTitle,
                     isWatchlisted: isInWatchlist,
                     isRefreshing: isRefreshingTicker,
                     canRefresh: authViewModel.subscriptionTier == "pro" || authViewModel.subscriptionTier == "admin",
@@ -48,6 +49,10 @@ struct TickerDetailView: View {
                         rationale: tickerRationale(for: detail)
                     )
 
+                    if let dimensions = riskDimensions(for: detail) {
+                        TickerRiskDimensionsCard(dimensions: dimensions)
+                    }
+
                     TickerPriceCard(
                         price: currency(detail.latestPrice.price),
                         changeText: priceChangeText(for: detail),
@@ -68,8 +73,8 @@ struct TickerDetailView: View {
 
                     TickerMetricGridCard(metrics: fundamentals(for: detail))
 
-                    if !riskDimensionsForDisplay(detail).isEmpty {
-                        TickerDimensionsCard(dimensions: riskDimensionsForDisplay(detail))
+                    if detail.currentScore != nil || detail.currentAnalysis != nil {
+                        aiScoreRationaleCard(detail)
                     }
 
                     if !detail.latestEventAnalyses.isEmpty {
@@ -124,11 +129,11 @@ struct TickerDetailView: View {
         detail.currentScore?.displayGrade ?? detail.latestRiskSnapshot?.grade ?? detail.position.riskGrade ?? "C"
     }
 
-    private func estimatedPreviousScore(for detail: TickerDetailResponse) -> Int {
+    private func estimatedPreviousScore(for detail: TickerDetailResponse) -> Int? {
         if let previousGrade = detail.position.previousGrade {
             return previousScore(for: previousGrade)
         }
-        return max(0, displayScore(for: detail) - 8)
+        return nil
     }
 
     private func previousScore(for grade: String) -> Int {
@@ -146,13 +151,19 @@ struct TickerDetailView: View {
         if let reasoning = detail.currentScore?.reasoning?.trimmingCharacters(in: .whitespacesAndNewlines), !reasoning.isEmpty {
             return reasoning
         }
+        if let methodology = detail.currentAnalysis?.methodology?.trimmingCharacters(in: .whitespacesAndNewlines), !methodology.isEmpty {
+            return methodology
+        }
+        if let coverageNote = detail.currentScore?.coverageNote?.trimmingCharacters(in: .whitespacesAndNewlines), !coverageNote.isEmpty {
+            return coverageNote
+        }
         if let reasoning = detail.latestRiskSnapshot?.reasoning?.trimmingCharacters(in: .whitespacesAndNewlines), !reasoning.isEmpty {
             return reasoning
         }
         if let summary = detail.latestRiskSnapshot?.newsSummary?.trimmingCharacters(in: .whitespacesAndNewlines), !summary.isEmpty {
             return summary
         }
-        return "Analysis data is available, but the latest rationale is still being assembled."
+        return "Coverage is still being assembled for this ticker."
     }
 
     private func priceChangePercent(for detail: TickerDetailResponse) -> Double? {
@@ -182,18 +193,23 @@ struct TickerDetailView: View {
         ]
     }
 
-    private func riskDimensionsForDisplay(_ detail: TickerDetailResponse) -> [TickerDimensionItem] {
-        if let breakdown = detail.latestRiskSnapshot?.factorBreakdown {
+    private func riskDimensions(for detail: TickerDetailResponse) -> [TickerRiskDimensionItem]? {
+        if let ai = detail.currentScore?.factorBreakdown?.aiDimensions ?? detail.latestRiskSnapshot?.factorBreakdown?.aiDimensions {
             return [
-                TickerDimensionItem(label: "Liquidity", value: breakdown.liquidityScore),
-                TickerDimensionItem(label: "Volatility", value: breakdown.volatilityScore),
-                TickerDimensionItem(label: "Leverage", value: breakdown.leverageScore),
-                TickerDimensionItem(label: "Profitability", value: breakdown.profitabilityScore),
-                TickerDimensionItem(label: "Macro", value: breakdown.macroAdjustment)
+                TickerRiskDimensionItem(title: "News sentiment", value: ai.newsSentiment, accent: .riskA),
+                TickerRiskDimensionItem(title: "Macro exposure", value: ai.macroExposure, accent: .riskB),
+                TickerRiskDimensionItem(title: "Position sizing", value: ai.positionSizing, accent: .riskC),
+                TickerRiskDimensionItem(title: "Volatility trend", value: ai.volatilityTrend, accent: .riskD),
             ]
         }
 
-        return []
+        guard let score = detail.currentScore else { return nil }
+        return [
+            TickerRiskDimensionItem(title: "News sentiment", value: score.newsSentiment, accent: .riskA),
+            TickerRiskDimensionItem(title: "Macro exposure", value: score.macroExposure, accent: .riskB),
+            TickerRiskDimensionItem(title: "Position sizing", value: score.positionSizing, accent: .riskC),
+            TickerRiskDimensionItem(title: "Volatility trend", value: score.volatilityTrend, accent: .riskD),
+        ]
     }
 
     private func watchItems(for detail: TickerDetailResponse) -> [String] {
@@ -269,25 +285,22 @@ struct TickerDetailView: View {
     }
 
     @ViewBuilder
-    private func aiScoreRationaleCard(_ score: RiskScore) -> some View {
+    private func aiScoreRationaleCard(_ detail: TickerDetailResponse) -> some View {
+        let rationale = tickerRationale(for: detail)
+        let methodology = detail.currentAnalysis?.methodology?.trimmingCharacters(in: .whitespacesAndNewlines)
+            ?? detail.currentScore?.coverageNote?.trimmingCharacters(in: .whitespacesAndNewlines)
+            ?? detail.methodology?.trimmingCharacters(in: .whitespacesAndNewlines)
+
         HoldingsSectionCard(
-            title: "AI Score Rationale",
-            subtitle: "Generated from the backfill analysis path"
+            title: "Risk Score Rationale",
+            subtitle: "Method and summary"
         ) {
-            HStack(spacing: ClavisTheme.smallSpacing) {
-                metricPill(title: "Grade", value: score.displayGrade)
-                metricPill(title: "Score", value: String(format: "%.0f", score.displayScore))
-                metricPill(title: "Confidence", value: score.confidenceLevel.rawValue)
-            }
+            Text(rationale)
+                .font(ClavisTypography.footnote)
+                .foregroundColor(.textSecondary)
 
-            if let dims = score.factorBreakdown?.aiDimensions {
-                ForEach(aiDimensions(from: dims)) { dimension in
-                    TickerRiskDimensionRow(dimension: dimension)
-                }
-            }
-
-            if let reasoning = score.reasoning?.trimmingCharacters(in: .whitespacesAndNewlines), !reasoning.isEmpty {
-                Text(reasoning)
+            if let methodology, !methodology.isEmpty {
+                Text(methodology)
                     .font(ClavisTypography.footnote)
                     .foregroundColor(.textSecondary)
                     .padding(.top, 4)
@@ -332,32 +345,6 @@ struct TickerDetailView: View {
         }
     }
 
-    private func riskDimensions(from breakdown: FactorBreakdown) -> [TickerRiskDimensionRowData] {
-        [
-            TickerRiskDimensionRowData(label: "Liquidity", value: breakdown.liquidityScore, icon: "drop.fill"),
-            TickerRiskDimensionRowData(label: "Volatility", value: breakdown.volatilityScore, icon: "waveform.path.ecg"),
-            TickerRiskDimensionRowData(label: "Leverage", value: breakdown.leverageScore, icon: "scalemass"),
-            TickerRiskDimensionRowData(label: "Profitability", value: breakdown.profitabilityScore, icon: "chart.line.uptrend.xyaxis"),
-            TickerRiskDimensionRowData(label: "Macro", value: breakdown.macroAdjustment, icon: "globe"),
-            TickerRiskDimensionRowData(label: "Events", value: breakdown.eventAdjustment, icon: "newspaper")
-        ]
-    }
-
-    private func aiDimensions(from dims: AIDimensions) -> [TickerRiskDimensionRowData] {
-        [
-            TickerRiskDimensionRowData(label: "News Sentiment", value: dims.newsSentiment, icon: "newspaper"),
-            TickerRiskDimensionRowData(label: "Macro Exposure", value: dims.macroExposure, icon: "globe"),
-            TickerRiskDimensionRowData(label: "Position Sizing", value: dims.positionSizing, icon: "chart.pie"),
-            TickerRiskDimensionRowData(label: "Volatility", value: dims.volatilityTrend, icon: "waveform.path.ecg"),
-            TickerRiskDimensionRowData(label: "Durability", value: dims.thesisRisk, icon: "shield.lefthalf.filled")
-        ]
-    }
-
-    private func hasDetailedDimensions(_ score: RiskScore?) -> Bool {
-        guard let score else { return false }
-        return score.newsSentiment != nil || score.macroExposure != nil || score.positionSizing != nil || score.volatilityTrend != nil
-    }
-
     @ViewBuilder
     private func alertsCard(_ alerts: [Alert]) -> some View {
         HoldingsSectionCard(title: "Recent Alerts", subtitle: "Ticker-specific changes for your account") {
@@ -369,6 +356,11 @@ struct TickerDetailView: View {
                     Text(alert.message)
                         .font(ClavisTypography.body)
                         .foregroundColor(.textSecondary)
+                    if let reason = alert.changeReason?.sanitizedDisplayText, !reason.isEmpty {
+                        Text(reason)
+                            .font(ClavisTypography.footnote)
+                            .foregroundColor(.textTertiary)
+                    }
                     Text(alert.createdAt.formatted(date: .abbreviated, time: .shortened))
                         .font(ClavisTypography.footnote)
                         .foregroundColor(.textTertiary)
@@ -501,7 +493,6 @@ struct TickerDetailView: View {
 }
 
 private struct TickerInlineNavBar: View {
-    let title: String
     let isWatchlisted: Bool
     let isRefreshing: Bool
     let canRefresh: Bool
@@ -518,17 +509,12 @@ private struct TickerInlineNavBar: View {
             }
             .buttonStyle(.plain)
 
-            Text(title)
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundColor(.textPrimary)
-                .lineLimit(1)
-
             Spacer()
 
             if canRefresh {
                 Button(action: onRefresh) {
                     Image(systemName: isRefreshing ? "hourglass" : "arrow.clockwise")
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(.textSecondary)
                 }
                 .buttonStyle(.plain)
@@ -550,7 +536,7 @@ private struct TickerHeroCard: View {
     let sector: String
     let grade: String
     let score: Int
-    let previousScore: Int
+    let previousScore: Int?
     let rationale: String
 
     var body: some View {
@@ -564,14 +550,16 @@ private struct TickerHeroCard: View {
                         .foregroundColor(.textPrimary)
                         .monospacedDigit()
 
-                    HStack(spacing: 8) {
-                        Text("Risk score · was \(previousScore)")
-                            .font(ClavisTypography.footnote)
-                            .foregroundColor(.textSecondary)
+                    if let previousScore {
+                        HStack(spacing: 8) {
+                            Text("Risk score · was \(previousScore)")
+                                .font(ClavisTypography.footnote)
+                                .foregroundColor(.textSecondary)
 
-                        Text(scoreDeltaText)
-                            .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                            .foregroundColor(score >= previousScore ? .riskA : .riskD)
+                            Text(scoreDeltaText(previousScore: previousScore))
+                                .font(.system(size: 15, weight: .semibold, design: .monospaced))
+                                .foregroundColor(score >= previousScore ? .riskA : .riskD)
+                        }
                     }
 
                     Text(sector.uppercased())
@@ -592,7 +580,7 @@ private struct TickerHeroCard: View {
         .clavisCardStyle(fill: .surface)
     }
 
-    private var scoreDeltaText: String {
+    private func scoreDeltaText(previousScore: Int) -> String {
         let delta = score - previousScore
         let arrow = delta >= 0 ? "▲" : "▼"
         return "\(arrow) \(abs(delta))"
@@ -649,7 +637,7 @@ private struct TickerPriceCard: View {
                         onDaysChange(days)
                     } label: {
                         Text(labelForDays(days))
-                            .font(.system(size: 11, weight: .medium, design: .monospaced))
+                            .font(.system(size: 15, weight: .medium, design: .monospaced))
                             .foregroundColor(selectedDays == days ? .textPrimary : .textSecondary)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 6)
@@ -984,7 +972,7 @@ private struct TickerMetricGridCard: View {
                             .font(ClavisTypography.label)
                             .foregroundColor(.textSecondary)
                         Text(metric.value)
-                            .font(.system(size: 14, weight: .bold, design: .monospaced))
+                            .font(.system(size: 15, weight: .bold, design: .monospaced))
                             .foregroundColor(.textPrimary)
                             .monospacedDigit()
                     }
@@ -999,57 +987,73 @@ private struct TickerMetricGridCard: View {
     }
 }
 
-private struct TickerDimensionItem: Identifiable {
+private struct TickerRiskDimensionItem: Identifiable {
     let id = UUID()
-    let label: String
+    let title: String
     let value: Double?
+    let accent: Color
 }
 
-private struct TickerDimensionsCard: View {
-    let dimensions: [TickerDimensionItem]
+private struct TickerRiskDimensionsCard: View {
+    let dimensions: [TickerRiskDimensionItem]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Risk dimensions")
-                .font(ClavisTypography.label)
+                .font(ClavisTypography.cardTitle)
                 .foregroundColor(.textSecondary)
 
-            ForEach(dimensions) { dimension in
-                VStack(alignment: .leading, spacing: 5) {
-                    HStack {
-                        Text(dimension.label)
-                            .font(ClavisTypography.footnote)
-                            .foregroundColor(.textSecondary)
-                        Spacer()
-                        Text(valueText(for: dimension.value))
-                            .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                            .foregroundColor(.textPrimary)
-                    }
+            Text("These are the four signals used to build the score.")
+                .font(ClavisTypography.bodyEmphasis)
+                .foregroundColor(.textSecondary)
 
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            Rectangle()
-                                .fill(Color.border)
-                                .frame(height: 4)
-                            Rectangle()
-                                .fill(Color.textPrimary.opacity(0.5))
-                                .frame(width: geo.size.width * normalizedValue(dimension.value), height: 4)
-                        }
-                    }
-                    .frame(height: 4)
+            VStack(spacing: 10) {
+                ForEach(dimensions) { item in
+                    TickerRiskDimensionRow(item: item)
                 }
             }
         }
         .padding(ClavisTheme.cardPadding)
         .clavisCardStyle(fill: .surface)
     }
+}
 
-    private func normalizedValue(_ value: Double?) -> CGFloat {
-        CGFloat(min(max((value ?? 20) / 100, 0.05), 1.0))
+private struct TickerRiskDimensionRow: View {
+    let item: TickerRiskDimensionItem
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(item.title)
+                    .font(ClavisTypography.bodyEmphasis)
+                    .foregroundColor(.textPrimary)
+                Spacer()
+                Text(valueText)
+                    .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                    .foregroundColor(.textSecondary)
+            }
+
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 999, style: .continuous)
+                        .fill(Color.border)
+                        .frame(height: 10)
+                    RoundedRectangle(cornerRadius: 999, style: .continuous)
+                        .fill(item.accent)
+                        .frame(width: geo.size.width * progress, height: 10)
+                }
+            }
+            .frame(height: 10)
+        }
     }
 
-    private func valueText(for value: Double?) -> String {
-        guard let value else { return "--" }
+    private var progress: CGFloat {
+        guard let value = item.value else { return 0.1 }
+        return CGFloat(max(0, min(value, 100)) / 100)
+    }
+
+    private var valueText: String {
+        guard let value = item.value else { return "--" }
         return "\(Int(value.rounded()))"
     }
 }
@@ -1172,72 +1176,6 @@ private struct TickerAlertsListCard: View {
     }
 }
 
-struct TickerRiskDimensionRowData: Identifiable {
-    let id = UUID()
-    let label: String
-    let value: Double?
-    let icon: String
-}
-
-struct TickerRiskDimensionRow: View {
-    let dimension: TickerRiskDimensionRowData
-
-    var body: some View {
-        HStack(spacing: ClavisTheme.mediumSpacing) {
-            Image(systemName: dimension.icon)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(dimensionColor)
-                .frame(width: 24)
-
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(dimension.label)
-                        .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
-                    Spacer()
-                    Text(valueText)
-                        .font(ClavisTypography.bodyEmphasis)
-                        .foregroundColor(dimensionColor)
-                }
-
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(Color.surfaceSecondary)
-                            .frame(height: 4)
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(dimensionColor)
-                            .frame(width: max(8, geo.size.width * normalizedValue), height: 4)
-                    }
-                }
-                .frame(height: 4)
-            }
-        }
-    }
-
-    private var normalizedValue: Double {
-        guard let value = dimension.value else { return 0.2 }
-        return min(max(value / 100.0, 0.05), 1.0)
-    }
-
-    private var valueText: String {
-        guard let value = dimension.value else { return "--" }
-        return "\(Int(value.rounded()))"
-    }
-
-    private var dimensionColor: Color {
-        guard let value = dimension.value else { return .textTertiary }
-        switch value {
-        case ..<35:
-            return .criticalTone
-        case ..<65:
-            return .warningTone
-        default:
-            return .successTone
-        }
-    }
-}
-
 struct TickerSearchSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var query = ""
@@ -1309,11 +1247,39 @@ struct TickerSearchSheet: View {
         defer { isSearching = false }
 
         do {
-            results = try await APIService.shared.searchTickers(query: trimmed)
+            let fetched = try await APIService.shared.searchTickers(query: trimmed, limit: 50)
+            results = prioritizedResults(fetched, query: trimmed)
             errorMessage = nil
         } catch {
             results = []
             errorMessage = error.localizedDescription
         }
+    }
+
+    private func prioritizedResults(_ results: [TickerSearchResult], query: String) -> [TickerSearchResult] {
+        let normalizedQuery = query.uppercased()
+
+        return results.sorted { left, right in
+            let leftRank = searchRank(for: left, query: normalizedQuery)
+            let rightRank = searchRank(for: right, query: normalizedQuery)
+
+            if leftRank != rightRank {
+                return leftRank < rightRank
+            }
+
+            return left.ticker < right.ticker
+        }
+    }
+
+    private func searchRank(for result: TickerSearchResult, query: String) -> Int {
+        let ticker = result.ticker.uppercased()
+        let company = result.companyName.uppercased()
+
+        if ticker == query { return 0 }
+        if ticker.hasPrefix(query) { return 1 }
+        if company.hasPrefix(query) { return 2 }
+        if ticker.contains(query) { return 3 }
+        if company.contains(query) { return 4 }
+        return 5
     }
 }

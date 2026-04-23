@@ -16,6 +16,12 @@ struct RiskScore: Identifiable, Codable {
     let macroAdjustment: Double?
     let eventAdjustment: Double?
     let factorBreakdown: FactorBreakdown?
+    let sourceCount: Int?
+    let majorEventCount: Int?
+    let minorEventCount: Int?
+    let coverageState: String?
+    let coverageNote: String?
+    let isProvisional: Bool?
 
     let reasoning: String?
     let mirofishUsed: Bool
@@ -36,6 +42,12 @@ struct RiskScore: Identifiable, Codable {
         case macroAdjustment = "macro_adjustment"
         case eventAdjustment = "event_adjustment"
         case factorBreakdown = "factor_breakdown"
+        case sourceCount = "source_count"
+        case majorEventCount = "major_event_count"
+        case minorEventCount = "minor_event_count"
+        case coverageState = "coverage_state"
+        case coverageNote = "coverage_note"
+        case isProvisional = "is_provisional"
         case reasoning
         case mirofishUsed = "mirofish_used"
         case calculatedAt = "calculated_at"
@@ -57,6 +69,12 @@ struct RiskScore: Identifiable, Codable {
         macroAdjustment = try? container.decodeFlexibleDoubleIfPresent(forKey: .macroAdjustment)
         eventAdjustment = try? container.decodeFlexibleDoubleIfPresent(forKey: .eventAdjustment)
         factorBreakdown = try? container.decode(FactorBreakdown.self, forKey: .factorBreakdown)
+        sourceCount = try? container.decodeFlexibleIntIfPresent(forKey: .sourceCount)
+        majorEventCount = try? container.decodeFlexibleIntIfPresent(forKey: .majorEventCount)
+        minorEventCount = try? container.decodeFlexibleIntIfPresent(forKey: .minorEventCount)
+        coverageState = try? container.decodeIfPresent(String.self, forKey: .coverageState)
+        coverageNote = try? container.decodeIfPresent(String.self, forKey: .coverageNote)
+        isProvisional = try? container.decodeIfPresent(Bool.self, forKey: .isProvisional)
         reasoning = try? container.decodeIfPresent(String.self, forKey: .reasoning)
         mirofishUsed = (try? container.decode(Bool.self, forKey: .mirofishUsed)) ?? false
         calculatedAt = try container.decode(Date.self, forKey: .calculatedAt)
@@ -82,9 +100,9 @@ struct RiskScore: Identifiable, Codable {
     }
 
     var confidenceLevel: ConfidenceLevel {
-        guard let conf = confidence else { return .low }
-        if conf >= 0.80 { return .high }
-        if conf >= 0.55 { return .medium }
+        guard let conf = confidence, isProvisional != true else { return .low }
+        if conf >= 0.90 { return .high }
+        if conf >= 0.70 { return .medium }
         return .low
     }
 }
@@ -135,14 +153,12 @@ struct AIDimensions: Codable {
     let newsSentiment: Double?
     let macroExposure: Double?
     let positionSizing: Double?
-    let thesisRisk: Double?
     let volatilityTrend: Double?
 
     enum CodingKeys: String, CodingKey {
         case newsSentiment = "news_sentiment"
         case macroExposure = "macro_exposure"
         case positionSizing = "position_sizing"
-        case thesisRisk = "thesis_risk"
         case volatilityTrend = "volatility_trend"
     }
 }

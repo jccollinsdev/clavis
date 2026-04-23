@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from fastapi import Request
+from ..services.alert_payloads import enrich_alert_rows
 from ..services.supabase import get_supabase
 
 router = APIRouter()
@@ -20,4 +21,4 @@ async def get_alerts(user_id: str = Depends(get_user_id)):
         .limit(20)
         .execute()
     )
-    return result.data
+    return enrich_alert_rows(result.data)

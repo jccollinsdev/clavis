@@ -17,10 +17,12 @@ class HoldingsViewModel: ObservableObject {
     @Published var pendingTicker: String?
     @Published var createdPositionId: String?
     @Published var lastRefreshedAt: Date?
+    @Published var brokerageLastSyncedAt: Date?
 
     private let api = APIService.shared
     private var analysisTask: Task<Void, Never>?
     private let softTimeoutSeconds: TimeInterval = 60
+    private let brokerageAutoSyncInterval: TimeInterval = 4 * 60 * 60
 
     func loadHoldings(showLoading: Bool = true) async {
         if showLoading {
@@ -38,6 +40,18 @@ class HoldingsViewModel: ObservableObject {
             let watchlists = try await fetchedWatchlists
             watchlistItems = watchlists.first?.items ?? []
             lastRefreshedAt = Date()
+            if let brokerageStatus = try? await api.fetchBrokerageStatus() {
+                applyBrokerageStatus(brokerageStatus)
+                if shouldAutoSyncBrokerage(brokerageStatus) {
+                    try? await api.syncBrokerage(refreshRemote: false)
+                    holdings = try await api.fetchHoldings()
+                    brokerageLastSyncedAt = Date()
+                    lastRefreshedAt = Date()
+                    if let refreshedStatus = try? await api.fetchBrokerageStatus() {
+                        applyBrokerageStatus(refreshedStatus)
+                    }
+                }
+            }
         } catch is CancellationError {
             errorMessage = nil
         } catch {
@@ -135,8 +149,8 @@ class HoldingsViewModel: ObservableObject {
         }
     }
 
-    func searchTickers(query: String) async throws -> [TickerSearchResult] {
-        try await api.searchTickers(query: query)
+    func searchTickers(query: String, limit: Int = 50) async throws -> [TickerSearchResult] {
+        try await api.searchTickers(query: query, limit: limit)
     }
 
     func addTickerToWatchlist(_ ticker: String) async throws {
@@ -160,9 +174,12 @@ class HoldingsViewModel: ObservableObject {
 
                 if run.isTerminal {
                     if run.lifecycleStatus == "failed" {
-                        throw APIError.networkError(NSError(domain: "Clavis", code: 1, userInfo: [
-                            NSLocalizedDescriptionKey: run.errorMessage ?? "Analysis failed."
-                        ]))
+                        throw APIError.networkError(
+                            "analysis-run",
+                            NSError(domain: "Clavis", code: 1, userInfo: [
+                                NSLocalizedDescriptionKey: run.errorMessage ?? "Analysis failed."
+                            ])
+                        )
                     }
                     await handleAnalysisCompletion()
                     return
@@ -187,7 +204,11 @@ class HoldingsViewModel: ObservableObject {
             } catch {
                 showProgressSheet = false
                 progressValue = 0.0
-                errorMessage = "Failed to analyze: \(error.localizedDescription)"
+                if let apiError = error as? APIError {
+                    errorMessage = "Failed to analyze: \(apiError.localizedDescription)"
+                } else {
+                    errorMessage = "Failed to analyze: \(error.localizedDescription)"
+                }
                 showError = true
                 activeRun = nil
                 pendingTicker = nil
@@ -245,5 +266,15 @@ class HoldingsViewModel: ObservableObject {
         } else {
             holdings.insert(position, at: 0)
         }
+    }
+
+    private func applyBrokerageStatus(_ status: APIService.BrokerageStatusResponse) {
+        brokerageLastSyncedAt = status.lastSyncAt
+    }
+
+    private func shouldAutoSyncBrokerage(_ status: APIService.BrokerageStatusResponse) -> Bool {
+        guard status.connected, status.autoSyncEnabled else { return false }
+        guard let lastSyncAt = status.lastSyncAt else { return true }
+        return Date().timeIntervalSince(lastSyncAt) >= brokerageAutoSyncInterval
     }
 }

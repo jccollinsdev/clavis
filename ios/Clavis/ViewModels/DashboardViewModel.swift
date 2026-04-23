@@ -4,7 +4,6 @@ import SwiftUI
 @MainActor
 class DashboardViewModel: ObservableObject {
     @Published private(set) var dashboard: DashboardResponse?
-    @Published private var digestOverride: Digest?
     @Published var isLoading = false
     @Published var isRefreshingAnalysis = false
     @Published var errorMessage: String?
@@ -13,7 +12,9 @@ class DashboardViewModel: ObservableObject {
     private let api = APIService.shared
 
     var holdings: [Position] { dashboard?.positions ?? [] }
-    var todayDigest: Digest? { digestOverride ?? dashboard?.digest }
+    var todayDigest: Digest? {
+        dashboard?.digest ?? dashboard?.generatedDigest ?? dashboard?.savedDigest
+    }
     var alerts: [Alert] { dashboard?.alerts ?? [] }
     var portfolioRiskSnapshot: PortfolioRiskSnapshot? { dashboard?.portfolioRiskSnapshot }
 
@@ -213,20 +214,10 @@ class DashboardViewModel: ObservableObject {
             isLoading = true
         }
         errorMessage = nil
-        digestOverride = nil
 
         do {
             let fetched = try await api.fetchDashboard()
             dashboard = fetched
-
-            if shouldRefreshDigest(fetched.digest, holdingCount: fetched.positions.count) {
-                do {
-                    let refreshed = try await api.fetchTodayDigest()
-                    digestOverride = refreshed.digest
-                } catch {
-                    digestOverride = nil
-                }
-            }
 
             switch fetched.analysisRun?.lifecycleStatus {
             case "running", "queued":
@@ -298,6 +289,8 @@ class DashboardViewModel: ObservableObject {
                 default:
                     break
                 }
+            } catch is CancellationError {
+                return false
             } catch {
                 errorMessage = error.localizedDescription
                 activeRun = nil
@@ -356,11 +349,6 @@ class DashboardViewModel: ObservableObject {
         }
 
         return "Monitoring this position."
-    }
-
-    private func shouldRefreshDigest(_ digest: Digest?, holdingCount: Int) -> Bool {
-        guard holdingCount > 0 else { return false }
-        return digest?.structuredSections?.digestVersion != 2
     }
 
     private var topRiskDriverSummary: String? {

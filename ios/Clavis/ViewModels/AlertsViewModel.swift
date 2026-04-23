@@ -18,6 +18,8 @@ class AlertsViewModel: ObservableObject {
         do {
             alerts = try await api.fetchAlerts()
             holdings = (try? await api.fetchHoldings()) ?? []
+        } catch is CancellationError {
+            errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
         }

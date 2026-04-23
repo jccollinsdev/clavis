@@ -39,6 +39,8 @@ struct Digest: Identifiable, Codable {
 
 struct DigestResponse: Codable {
     let digest: Digest?
+    let savedDigest: Digest?
+    let generatedDigest: Digest?
     let analysisRun: AnalysisRun?
     let overallGrade: String?
     let structuredSections: DigestSections?
@@ -48,6 +50,8 @@ struct DigestResponse: Codable {
 
     enum CodingKeys: String, CodingKey {
         case digest
+        case savedDigest = "saved_digest"
+        case generatedDigest = "generated_digest"
         case analysisRun = "analysis_run"
         case overallGrade = "overall_grade"
         case structuredSections = "structured_sections"
@@ -59,6 +63,8 @@ struct DigestResponse: Codable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         digest = try? container.decodeIfPresent(Digest.self, forKey: .digest)
+        savedDigest = try? container.decodeIfPresent(Digest.self, forKey: .savedDigest)
+        generatedDigest = try? container.decodeIfPresent(Digest.self, forKey: .generatedDigest)
         analysisRun = try? container.decodeIfPresent(AnalysisRun.self, forKey: .analysisRun)
         overallGrade = try container.decodeIfPresent(String.self, forKey: .overallGrade)
         structuredSections = try? container.decodeIfPresent(DigestSections.self, forKey: .structuredSections)
@@ -131,6 +137,10 @@ struct DigestPositionImpact: Codable, Hashable, Identifiable {
     let ticker: String
     let macroRelevance: String
     let impactSummary: String
+    let watchItems: [String]
+    let topRisks: [String]
+    let dimensionBreakdown: [String: String]
+    let urgency: String?
 
     var id: String { ticker }
 
@@ -138,6 +148,21 @@ struct DigestPositionImpact: Codable, Hashable, Identifiable {
         case ticker
         case macroRelevance = "macro_relevance"
         case impactSummary = "impact_summary"
+        case watchItems = "watch_items"
+        case topRisks = "top_risks"
+        case dimensionBreakdown = "dimension_breakdown"
+        case urgency
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        ticker = try container.decode(String.self, forKey: .ticker)
+        macroRelevance = try container.decodeIfPresent(String.self, forKey: .macroRelevance) ?? "neutral"
+        impactSummary = try container.decodeIfPresent(String.self, forKey: .impactSummary) ?? ""
+        watchItems = (try? container.decode([String].self, forKey: .watchItems)) ?? []
+        topRisks = (try? container.decode([String].self, forKey: .topRisks)) ?? []
+        dimensionBreakdown = (try? container.decode([String: String].self, forKey: .dimensionBreakdown)) ?? [:]
+        urgency = try container.decodeIfPresent(String.self, forKey: .urgency)
     }
 }
 

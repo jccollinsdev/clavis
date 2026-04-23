@@ -10,6 +10,17 @@
 	<string>Clavix</string>
 	<key>SUPABASE_ANON_KEY</key>
 	<string>$(SUPABASE_ANON_KEY)</string>
+	<key>BACKEND_BASE_URL</key>
+	<string>https://clavis.andoverdigital.com</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>clavis</string>
+			</array>
+		</dict>
+	</array>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Inter-Variable.ttf</string>
@@ -46,6 +57,8 @@
     </array>
     <key>NSAppTransportSecurity</key>
     <dict>
+        <key>NSAllowsLocalNetworking</key>
+        <true/>
         <key>NSAllowsArbitraryLoads</key>
         <false/>
         <key>NSExceptionDomains</key>

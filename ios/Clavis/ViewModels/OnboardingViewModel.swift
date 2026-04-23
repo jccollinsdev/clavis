@@ -1,12 +1,11 @@
 import Foundation
 import SwiftUI
-import UserNotifications
 
 @MainActor
 class OnboardingViewModel: ObservableObject {
     @Published var currentPage: OnboardingPage = .welcome
     @Published var name: String = ""
-    @Published var dateOfBirthText: String = ""
+    @Published var dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -18, to: Date()) ?? Date()
     @Published var morningDigestEnabled = true
     @Published var alertsGradeChangesEnabled = true
     @Published var alertsMajorEventsEnabled = true
@@ -36,7 +35,7 @@ class OnboardingViewModel: ObservableObject {
 
     func saveProfile() async throws {
         guard !name.isEmpty else { return }
-        let birthYear = parseBirthYear(from: dateOfBirthText)
+        let birthYear = Calendar.current.component(.year, from: dateOfBirth)
         try await api.updateProfile(name: name, birthYear: birthYear)
     }
 
@@ -71,42 +70,7 @@ class OnboardingViewModel: ObservableObject {
         }
     }
 
-    private func parseBirthYear(from text: String) -> Int? {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return nil }
-
-        let digits = trimmed.filter(
-            { $0.isNumber }
-        )
-        if digits.count >= 4, let year = Int(digits.suffix(4)) {
-            return year
-        }
-
-        return Int(trimmed)
-    }
-
-    func isValidDateOfBirth(_ text: String) -> Bool {
-        let digits = text.filter(\.isNumber)
-        guard digits.count == 8 else { return false }
-
-        let dayText = String(digits.prefix(2))
-        let monthText = String(digits.dropFirst(2).prefix(2))
-        let yearText = String(digits.suffix(4))
-
-        guard let day = Int(dayText),
-              let month = Int(monthText),
-              let year = Int(yearText),
-              year > 1900 else {
-            return false
-        }
-
-        var components = DateComponents()
-        components.day = day
-        components.month = month
-        components.year = year
-
-        guard let date = Calendar.current.date(from: components) else { return false }
-
+    func isValidDateOfBirth(_ date: Date) -> Bool {
         let now = Date()
         guard date <= now else { return false }
 
