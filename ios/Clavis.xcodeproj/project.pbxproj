@@ -46,11 +46,8 @@
 		B8B6B6FAF7596041845F530D /* DecodingHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C0926DEC5A852E71E5F348 /* DecodingHelpers.swift */; };
 		B9DD10F0D12C47D0C61BEF8D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5856048E7E14BD3C2E4B76B9 /* SettingsView.swift */; };
 		C3B908BF8D2C24F59E42F8D6 /* PositionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1FCE7F1240CC9D1BB5D9A91 /* PositionDetailView.swift */; };
-		C5CF36306EDD3ABC9AD689F4 /* NewsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F030665321D77D9FD06EA617 /* NewsView.swift */; };
 		D6CE6DA725D651B0796E0F78 /* AnalysisRun.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11006E9F2139120F0114C419 /* AnalysisRun.swift */; };
 		E9D835436887C65DC61A0B7C /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = A5451017CC31874BF6BE7AAD /* Supabase */; };
-		ECCB1085D47FB14A5F2B76E8 /* NewsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05ECA750F7BB487D1B64481E /* NewsViewModel.swift */; };
-		F881EEB994F0622C4861B626 /* ArticleDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABB1554250176C08062D02B2 /* ArticleDetailView.swift */; };
 		F93CCEE1F1296B9D0C69B5DE /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5460710645F8A1BFF558CFE /* DashboardView.swift */; };
 		FA0755FB18875171EAD7FFD7 /* TickerDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12E13C8D040E91F932034B3 /* TickerDetailView.swift */; };
 		FF2EFFAFA4C71C004E7BE8F0 /* Alert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87747037B87C524712EB60CE /* Alert.swift */; };
@@ -58,7 +55,6 @@
 
 /* Begin PBXFileReference section */
 		011115DAEE21B65A0074A27C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		05ECA750F7BB487D1B64481E /* NewsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsViewModel.swift; sourceTree = "<group>"; };
 		0C394F153A0BBF81D597DFF4 /* SafariView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariView.swift; sourceTree = "<group>"; };
 		0FBC158DBA1385D691EFFC37 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		109D64880EF83D2FC224A3F4 /* DigestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DigestView.swift; sourceTree = "<group>"; };
@@ -90,7 +86,6 @@
 		A11A8924CBD4DBD5E9A3884E /* BrokerageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrokerageViewModel.swift; sourceTree = "<group>"; };
 		A1C38C07B0CF0ED9A35F1AC9 /* HoldingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldingsViewModel.swift; sourceTree = "<group>"; };
 		A5460710645F8A1BFF558CFE /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
-		ABB1554250176C08062D02B2 /* ArticleDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleDetailView.swift; sourceTree = "<group>"; };
 		B47422C72E57F1AD65337925 /* HoldingsListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldingsListView.swift; sourceTree = "<group>"; };
 		B80F8C63EDE5E09B0FB7067F /* ClavisApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClavisApp.swift; sourceTree = "<group>"; };
 		B8722709AAABD33C139625D0 /* AlertsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertsView.swift; sourceTree = "<group>"; };
@@ -105,7 +100,6 @@
 		E39592197B205D7C5872DC4B /* OnboardingContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingContainerView.swift; sourceTree = "<group>"; };
 		E435B87D2019D238DB264C8B /* PositionAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositionAnalysis.swift; sourceTree = "<group>"; };
 		E839D4A9335DA9418736C503 /* RiskScore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiskScore.swift; sourceTree = "<group>"; };
-		F030665321D77D9FD06EA617 /* NewsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -179,7 +173,6 @@
 				5BF6E99DAA89FDB9AA24DB3B /* DashboardViewModel.swift */,
 				1C6F0F05198A0A2B6FCFBAC5 /* DigestViewModel.swift */,
 				A1C38C07B0CF0ED9A35F1AC9 /* HoldingsViewModel.swift */,
-				05ECA750F7BB487D1B64481E /* NewsViewModel.swift */,
 				B87D91420FBAE5F914EE15EB /* OnboardingViewModel.swift */,
 				DB1A7BF18764341D7867CC44 /* SettingsViewModel.swift */,
 			);
@@ -215,8 +208,6 @@
 		62936F60D994A7DCC69BE0C8 /* News */ = {
 			isa = PBXGroup;
 			children = (
-				ABB1554250176C08062D02B2 /* ArticleDetailView.swift */,
-				F030665321D77D9FD06EA617 /* NewsView.swift */,
 			);
 			path = News;
 			sourceTree = "<group>";
@@ -426,7 +417,6 @@
 				2968C7B9D5B0CD322BFC6BA5 /* AlertsView.swift in Sources */,
 				B27C10B2A3807B3DF6854E93 /* AlertsViewModel.swift in Sources */,
 				D6CE6DA725D651B0796E0F78 /* AnalysisRun.swift in Sources */,
-				F881EEB994F0622C4861B626 /* ArticleDetailView.swift in Sources */,
 				AC8980659B3AB2CCC50D1CC8 /* AuthViewModel.swift in Sources */,
 				742AAB5C90C711E72FFB0B34 /* BrokerageViewModel.swift in Sources */,
 				B288C1564FD3A5CA715AEE40 /* ClavisApp.swift in Sources */,
@@ -446,8 +436,6 @@
 				9112C7EA91240C472D69C7AC /* MainTabView.swift in Sources */,
 				B132E9643F3BA783E542C73C /* NewsFeed.swift in Sources */,
 				A2374B88B846298636A93F5B /* NewsItem.swift in Sources */,
-				C5CF36306EDD3ABC9AD689F4 /* NewsView.swift in Sources */,
-				ECCB1085D47FB14A5F2B76E8 /* NewsViewModel.swift in Sources */,
 				5325BE30E38E60F995043C32 /* OnboardingContainerView.swift in Sources */,
 				6FE547B9F353AA87A205A35E /* OnboardingViewModel.swift in Sources */,
 				10A597D9B89AF751C8F6220F /* Position.swift in Sources */,

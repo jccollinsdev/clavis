@@ -3,17 +3,17 @@ import SwiftUI
 // MARK: - Theme Constants
 
 enum ClavisTheme {
-    static let cornerRadius: CGFloat = 8          // cards
-    static let innerCornerRadius: CGFloat = 4     // data elements, grade tags
-    static let sectionSpacing: CGFloat = 20
-    static let cardPadding: CGFloat = 16
+    static let cornerRadius: CGFloat = 12         // cards
+    static let innerCornerRadius: CGFloat = 10    // controls and inline surfaces
+    static let sectionSpacing: CGFloat = 10
+    static let cardPadding: CGFloat = 12
     static let screenPadding: CGFloat = 16
     static let microSpacing: CGFloat = 4
     static let smallSpacing: CGFloat = 8
     static let mediumSpacing: CGFloat = 16
-    static let largeSpacing: CGFloat = 24
-    static let extraLargeSpacing: CGFloat = 48
-    static let topBarSpacing: CGFloat = 30
+    static let largeSpacing: CGFloat = 16
+    static let extraLargeSpacing: CGFloat = 24
+    static let topBarSpacing: CGFloat = 14
     static let floatingTabInset: CGFloat = 16
     static let floatingTabHeight: CGFloat = 74
 }
@@ -71,9 +71,11 @@ enum ClavisTypography {
 extension Color {
     // MARK: Surfaces (dark)
     static let backgroundPrimary = Color(hex: "#0F1117")
-    static let surface           = Color(hex: "#161B24")
-    static let surfaceElevated   = Color(hex: "#1E2530")
+    static let surface           = Color(hex: "#14171E")
+    static let surfaceElevated   = Color(hex: "#1B1F28")
+    static let surfaceMuted      = Color(hex: "#101319")
     static let border            = Color(hex: "#2A3140")
+    static let borderSubtleTone  = Color(hex: "#1E232D")
 
     // MARK: Text
     static let textPrimary   = Color(hex: "#E8ECF0")
@@ -82,7 +84,7 @@ extension Color {
     static let brandCream    = Color(hex: "#E7D8B7")
 
     // MARK: Informational (non-risk blue — never near score displays)
-    static let informational = Color(hex: "#1A6494")
+    static let informational = Color(hex: "#3B82C4")
 
     // MARK: Risk Scale — 5-state closed set. Color = state, never brand.
     static let riskA = Color(hex: "#1D9E75")   // Safe      75–100
@@ -111,7 +113,7 @@ extension Color {
     static let appBackground      = backgroundPrimary
     static let surfacePrimary     = surface
     static let surfaceSecondary   = surfaceElevated
-    static let borderSubtle       = border
+    static let borderSubtle       = borderSubtleTone
     static let borderStrong       = border
     static let successTone        = riskA
     static let warningTone        = riskC
@@ -303,9 +305,160 @@ struct GradeTag: View {
             .font(large ? .system(size: 40, weight: .bold, design: .monospaced) : ClavisTypography.gradeTag)
             .fontWeight(.medium)
             .foregroundColor(ClavisGradeStyle.gradeBandText(for: grade))
-            .frame(width: large ? 56 : (compact ? 24 : 32), height: large ? 56 : (compact ? 24 : 32), alignment: .center)
+            .frame(width: large ? 76 : (compact ? 26 : 34), height: large ? 76 : (compact ? 20 : 26), alignment: .center)
             .background(ClavisGradeStyle.gradeBandBg(for: grade))
             .cornerRadius(4)
+    }
+}
+
+struct CX2NavBar: View {
+    let title: String?
+    let subtitle: String?
+    let transparent: Bool
+    let showBorder: Bool
+    private let leading: AnyView
+    private let trailing: AnyView
+
+    init(
+        title: String? = nil,
+        subtitle: String? = nil,
+        transparent: Bool = false,
+        showBorder: Bool = true,
+        @ViewBuilder leading: () -> some View = { EmptyView() },
+        @ViewBuilder trailing: () -> some View = { EmptyView() }
+    ) {
+        self.title = title
+        self.subtitle = subtitle
+        self.transparent = transparent
+        self.showBorder = showBorder
+        self.leading = AnyView(leading())
+        self.trailing = AnyView(trailing())
+    }
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 8) {
+            HStack {
+                leading
+            }
+            .frame(width: 64, alignment: .leading)
+
+            VStack(spacing: 1) {
+                if let title, !title.isEmpty {
+                    Text(title)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.textPrimary)
+                        .lineLimit(1)
+                }
+
+                if let subtitle, !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(.system(size: 11, weight: .regular))
+                        .foregroundColor(.textSecondary)
+                        .lineLimit(1)
+                }
+            }
+            .frame(maxWidth: .infinity)
+
+            HStack(spacing: 6) {
+                trailing
+            }
+            .frame(width: 64, alignment: .trailing)
+        }
+        .padding(.top, 18)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 4)
+        .background(transparent ? Color.clear : Color.backgroundPrimary)
+        .overlay(alignment: .bottom) {
+            if showBorder {
+                Rectangle()
+                    .fill(Color.borderSubtle)
+                    .frame(height: 1)
+            }
+        }
+    }
+}
+
+struct CX2LargeTitle: View {
+    let title: String
+    private let trailing: AnyView
+
+    init(_ title: String, @ViewBuilder trailing: () -> some View = { EmptyView() }) {
+        self.title = title
+        self.trailing = AnyView(trailing())
+    }
+
+    var body: some View {
+        HStack(alignment: .lastTextBaseline, spacing: 12) {
+            Text(title)
+                .font(.system(size: 30, weight: .bold))
+                .foregroundColor(.textPrimary)
+
+            Spacer(minLength: 12)
+
+            trailing
+                .padding(.bottom, 4)
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 0)
+        .padding(.bottom, 4)
+    }
+}
+
+struct CX2IconButton<Content: View>: View {
+    let size: CGFloat
+    let action: () -> Void
+    @ViewBuilder let content: Content
+
+    init(size: CGFloat = 32, action: @escaping () -> Void, @ViewBuilder content: () -> Content) {
+        self.size = size
+        self.action = action
+        self.content = content()
+    }
+
+    var body: some View {
+        Button(action: action) {
+            content
+                .frame(width: size, height: size)
+                .foregroundColor(.textPrimary)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct CX2SectionLabel: View {
+    let text: String
+
+    var body: some View {
+        Text(text.uppercased())
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundColor(.textSecondary)
+            .tracking(0.8)
+    }
+}
+
+struct CX2Chevron: View {
+    var body: some View {
+        Image(systemName: "chevron.right")
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundColor(.textTertiary)
+    }
+}
+
+struct CX2Toggle: View {
+    @Binding var isOn: Bool
+
+    var body: some View {
+        ZStack(alignment: isOn ? .trailing : .leading) {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(isOn ? Color.riskA : Color.border)
+                .frame(width: 40, height: 24)
+
+            Circle()
+                .fill(Color.white)
+                .frame(width: 20, height: 20)
+                .padding(2)
+        }
+        .animation(.easeInOut(duration: 0.15), value: isOn)
     }
 }
 

@@ -11,6 +11,11 @@ struct AlertsView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
                     AlertsTopHeader()
+                    CX2LargeTitle("Alerts") {
+                        Text("Last 24h")
+                            .font(.system(size: 13, weight: .regular))
+                            .foregroundColor(.textSecondary)
+                    }
 
                     if NetworkStatusMonitor.shared.isOffline {
                         OfflineStatusBanner()
@@ -35,9 +40,11 @@ struct AlertsView: View {
                     }
                 }
                 .padding(.horizontal, ClavisTheme.screenPadding)
-                .padding(.top, ClavisTheme.largeSpacing)
-                .padding(.bottom, ClavisTheme.extraLargeSpacing)
+                .padding(.top, 0)
+                .padding(.bottom, ClavisTheme.largeSpacing)
             }
+            .contentMargins(.top, 0, for: .scrollContent)
+            .contentMargins(.bottom, 0, for: .scrollContent)
             .refreshable {
                 await viewModel.loadAlerts()
             }
@@ -65,7 +72,7 @@ struct AlertsView: View {
 
 private struct AlertsTopHeader: View {
     var body: some View {
-        ClavixWordmarkHeader(subtitle: Date().formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
+        CX2NavBar(transparent: true, showBorder: false)
     }
 }
 
@@ -74,19 +81,13 @@ private struct AlertsSummaryGrid: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Last 24 hours")
-                .font(ClavisTypography.label)
-                .foregroundColor(.textSecondary)
-
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 summaryCell(label: "Critical", count: alerts.filter { $0.type.severity == .critical }.count, tint: .riskF, fill: .dangerSurface, border: .riskF)
                 summaryCell(label: "High", count: alerts.filter { severityBucket(for: $0) == .high }.count, tint: .riskD, fill: .warningSurface, border: .riskD)
                 summaryCell(label: "Watch", count: alerts.filter { severityBucket(for: $0) == .watch }.count, tint: .riskC, fill: .warningSurface, border: .riskC)
                 summaryCell(label: "Info", count: alerts.filter { $0.type.severity == .informational }.count, tint: .textPrimary, fill: .surface, border: .border)
             }
         }
-        .padding(14)
-        .clavisCardStyle(fill: .surface)
     }
 
     private func severityBucket(for alert: Alert) -> AlertSummaryBucket {
@@ -105,22 +106,29 @@ private struct AlertsSummaryGrid: View {
 
     private func summaryCell(label: String, count: Int, tint: Color, fill: Color, border: Color) -> some View {
         VStack(spacing: 3) {
+            Text(label)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.textSecondary)
+
             Text("\(count)")
                 .font(.system(size: 22, weight: .bold, design: .monospaced))
-                .foregroundColor(tint)
+                .foregroundColor(.textPrimary)
                 .monospacedDigit()
-            Text(label)
-                .font(.system(size: 15, weight: .medium))
-                .foregroundColor(.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 10)
-        .background(fill)
+        .background(Color.surface)
         .overlay(
-            RoundedRectangle(cornerRadius: 7, style: .continuous)
-                .stroke(border, lineWidth: 1)
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .stroke(Color.border, lineWidth: 1)
         )
-        .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(tint)
+                .frame(height: 2)
+                .clipShape(RoundedRectangle(cornerRadius: 1))
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 }
 

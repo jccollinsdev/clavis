@@ -13,55 +13,79 @@ struct LoginView: View {
 
                 GeometryReader { geo in
                     VStack(spacing: 0) {
-                        Spacer(minLength: 12)
+                        Spacer(minLength: 0)
 
-                        VStack(spacing: ClavisTheme.mediumSpacing) {
-                            VStack(spacing: 10) {
-                                Image("AppLogo")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 96, height: 96)
+                        VStack(spacing: 0) {
+                            VStack(spacing: 0) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.surface)
+                                        .frame(width: 56, height: 56)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                .stroke(Color.border, lineWidth: 1)
+                                        )
 
-                                VStack(spacing: 6) {
-                                    Text("CLAVIX")
-                                        .font(ClavisTypography.brandWordmark)
+                                    Text("C")
+                                        .font(.system(size: 26, weight: .bold, design: .monospaced))
                                         .foregroundColor(.brandCream)
-                                        .kerning(2.2)
-
-                                    Text("Portfolio intelligence for self-directed investors")
-                                        .font(ClavisTypography.bodyEmphasis)
-                                        .foregroundColor(.textSecondary)
-                                        .multilineTextAlignment(.center)
                                 }
+                                .padding(.bottom, 16)
+
+                                Text("CLAVIX")
+                                    .font(.custom("JetBrainsMono-Regular", size: 20))
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.brandCream)
+                                    .tracking(4)
+                                    .padding(.bottom, 10)
+
+                                Text("Portfolio intelligence for self-directed investors")
+                                    .font(.system(size: 14, weight: .regular))
+                                    .foregroundColor(.textSecondary)
+                                    .multilineTextAlignment(.center)
+                                    .lineSpacing(4)
+                                    .frame(maxWidth: 240)
+                                    .padding(.bottom, 36)
                             }
 
-                            VStack(spacing: ClavisTheme.mediumSpacing) {
-                                TextField("Email", text: $email)
-                                    .textFieldStyle(.roundedBorder)
+                            VStack(spacing: 12) {
+                                TextField("Email address", text: $email)
+                                    .textFieldStyle(ClavisTextFieldStyle())
                                     .textContentType(.emailAddress)
                                     .textInputAutocapitalization(.never)
                                     .autocorrectionDisabled()
                                     .keyboardType(.emailAddress)
 
-                                SecureField("Password", text: $password)
-                                    .textFieldStyle(.roundedBorder)
-                                    .textContentType(isSignUp ? .newPassword : .password)
+                                VStack(alignment: .trailing, spacing: 8) {
+                                    SecureField("Password", text: $password)
+                                        .textFieldStyle(ClavisTextFieldStyle())
+                                        .textContentType(isSignUp ? .newPassword : .password)
 
-                                if let error = authViewModel.errorMessage {
-                                    Text(error)
-                                        .font(ClavisTypography.footnote)
-                                        .foregroundColor(.riskF)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                        .minimumScaleFactor(0.9)
-                                }
-
-                                if let status = authViewModel.statusMessage {
-                                    Text(status)
-                                        .font(ClavisTypography.footnote)
+                                    if !isSignUp {
+                                        Button("Forgot password?") {
+                                            Task {
+                                                await authViewModel.resetPassword(email: email)
+                                            }
+                                        }
+                                        .font(.system(size: 13, weight: .regular))
                                         .foregroundColor(.informational)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                        .minimumScaleFactor(0.9)
+                                        .disabled(authViewModel.isLoading || email.isEmpty)
+                                    }
                                 }
+
+                                Group {
+                                    if let error = authViewModel.errorMessage {
+                                        Text(error)
+                                            .foregroundColor(.riskF)
+                                    } else if let status = authViewModel.statusMessage {
+                                        Text(status)
+                                            .foregroundColor(.informational)
+                                    } else {
+                                        Color.clear
+                                    }
+                                }
+                                .font(.system(size: 12, weight: .regular))
+                                .frame(maxWidth: .infinity, minHeight: 18, alignment: .leading)
 
                                 Button {
                                     Task {
@@ -72,45 +96,51 @@ struct LoginView: View {
                                         }
                                     }
                                 } label: {
-                                    if authViewModel.isLoading {
-                                        ProgressView()
-                                            .tint(.textPrimary)
-                                            .frame(maxWidth: .infinity)
-                                    } else {
-                                        Text(isSignUp ? "Create Account" : "Sign In")
-                                            .font(ClavisTypography.bodyEmphasis)
-                                            .frame(maxWidth: .infinity)
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .fill(Color.textPrimary)
+                                            .frame(height: 50)
+
+                                        if authViewModel.isLoading {
+                                            ProgressView()
+                                                .tint(.backgroundPrimary)
+                                        } else {
+                                            Text(isSignUp ? "Create Account" : "Sign In")
+                                                .font(.system(size: 16, weight: .semibold))
+                                                .foregroundColor(.backgroundPrimary)
+                                        }
                                     }
                                 }
-                                .buttonStyle(.borderedProminent)
-                                .tint(Color.informational)
-                                .controlSize(.regular)
-                                .padding(.vertical, 2)
+                                .buttonStyle(.plain)
                                 .disabled(authViewModel.isLoading || email.isEmpty || password.isEmpty)
-
-                                Button(isSignUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up") {
-                                    isSignUp.toggle()
-                                }
-                                .font(ClavisTypography.footnote)
-                                .foregroundColor(.textSecondary)
-
-                                Button("Forgot password?") {
-                                    Task {
-                                        await authViewModel.resetPassword(email: email)
-                                    }
-                                }
-                                .font(ClavisTypography.footnote)
-                                .foregroundColor(.informational)
-                                .disabled(authViewModel.isLoading || email.isEmpty)
                             }
-                            .padding(ClavisTheme.largeSpacing)
-                            .clavisCardStyle()
-                        }
-                        .frame(maxWidth: 420)
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, 20)
+                            .frame(maxWidth: 420)
 
-                        Spacer(minLength: 12)
+                            Button {
+                                isSignUp.toggle()
+                            } label: {
+                                HStack(spacing: 0) {
+                                    Text(isSignUp ? "Already have one? " : "Don't have an account? ")
+                                        .foregroundColor(.textSecondary)
+                                    Text(isSignUp ? "Sign in" : "Sign up")
+                                        .foregroundColor(.informational)
+                                        .fontWeight(.medium)
+                                }
+                                .font(.system(size: 14, weight: .regular))
+                            }
+                            .buttonStyle(.plain)
+                            .padding(.top, 22)
+                        }
+                        .padding(.horizontal, 24)
+
+                        Spacer(minLength: 0)
+
+                        Text("By continuing you agree to our Terms of Service\nand Privacy Policy.")
+                            .font(.system(size: 11, weight: .regular))
+                            .foregroundColor(.textTertiary)
+                            .multilineTextAlignment(.center)
+                            .lineSpacing(4)
+                            .padding(.bottom, 36)
                     }
                     .frame(width: geo.size.width, height: geo.size.height)
                     .ignoresSafeArea(.keyboard, edges: .bottom)

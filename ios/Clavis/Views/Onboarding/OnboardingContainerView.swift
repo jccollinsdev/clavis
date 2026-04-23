@@ -484,18 +484,28 @@ private struct OnboardingToggleCard: View {
     @Binding var isOn: Bool
 
     var body: some View {
-        Toggle(isOn: $isOn) {
+        Button {
+            isOn.toggle()
+        } label: {
             VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(ClavisTypography.bodyEmphasis)
-                    .foregroundColor(.textPrimary)
+                HStack(spacing: 14) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(title)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.textPrimary)
 
-                Text(subtitle)
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.textSecondary)
+                        Text(subtitle)
+                            .font(.system(size: 12, weight: .regular))
+                            .foregroundColor(.textSecondary)
+                    }
+
+                    Spacer()
+
+                    CX2Toggle(isOn: $isOn)
+                }
             }
         }
-        .tint(.informational)
+        .buttonStyle(.plain)
         .padding(14)
         .clavisCardStyle(fill: .surface)
     }
@@ -530,9 +540,9 @@ private struct OnboardingPrimaryButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(ClavisTypography.action)
+                .font(.system(size: 16, weight: .semibold))
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 13)
+                .padding(.vertical, 15)
                 .background(Color.textPrimary)
                 .foregroundColor(.backgroundPrimary)
                 .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous))
@@ -548,10 +558,10 @@ private struct OnboardingSecondaryButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(ClavisTypography.footnoteEmphasis)
+                .font(.system(size: 15, weight: .regular))
                 .foregroundColor(.textSecondary)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
+                .padding(.vertical, 12)
         }
         .buttonStyle(.plain)
     }
@@ -562,9 +572,9 @@ struct ClavisTextFieldStyle: TextFieldStyle {
 
     func _body(configuration: TextField<Self._Label>) -> some View {
         configuration
-            .font(monospaced ? .system(size: 15, weight: .regular, design: .monospaced) : ClavisTypography.body)
+            .font(monospaced ? .system(size: 15, weight: .regular, design: .monospaced) : .system(size: 15, weight: .regular))
             .padding(13)
-            .background(Color.surface)
+            .background(Color.surfaceElevated)
             .foregroundColor(.textPrimary)
             .overlay(
                 RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous)

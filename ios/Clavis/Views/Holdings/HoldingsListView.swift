@@ -67,12 +67,19 @@ struct HoldingsListView: View {
                         onOpenTickerSearch: { showTickerSearch = true }
                     )
 
-                    HoldingsSummaryCard(
-                        positions: viewModel.holdings,
-                        lastUpdatedAt: viewModel.lastRefreshedAt,
-                        brokerageLastSyncedAt: viewModel.brokerageLastSyncedAt,
-                        isOffline: NetworkStatusMonitor.shared.isOffline
-                    )
+                    if viewModel.lastRefreshedAt != nil || viewModel.brokerageLastSyncedAt != nil {
+                        VStack(alignment: .leading, spacing: 4) {
+                            if let lastRefreshedAt = viewModel.lastRefreshedAt {
+                                Text("Updated \(lastRefreshedAt.formatted(date: .abbreviated, time: .shortened))")
+                            }
+
+                            if let brokerageLastSyncedAt = viewModel.brokerageLastSyncedAt {
+                                Text("Brokerage sync \(brokerageLastSyncedAt.formatted(date: .abbreviated, time: .shortened))")
+                            }
+                        }
+                        .font(.system(size: 11, weight: .regular))
+                        .foregroundColor(.textSecondary)
+                    }
 
                     if NetworkStatusMonitor.shared.isOffline {
                         OfflineStatusBanner()
@@ -195,9 +202,11 @@ struct HoldingsListView: View {
                     }
                 }
                 .padding(.horizontal, ClavisTheme.screenPadding)
-                .padding(.top, ClavisTheme.largeSpacing)
-                .padding(.bottom, ClavisTheme.extraLargeSpacing)
+                .padding(.top, 0)
+                .padding(.bottom, ClavisTheme.largeSpacing)
             }
+            .contentMargins(.top, 0, for: .scrollContent)
+            .contentMargins(.bottom, 0, for: .scrollContent)
             .refreshable {
                 await viewModel.refreshHoldings()
             }
@@ -500,19 +509,23 @@ private struct HoldingsTopHeader: View {
     let isOffline: Bool
 
     var body: some View {
-        ClavixWordmarkHeader(subtitle: Date().formatted(.dateTime.weekday(.wide).month(.abbreviated).day())) {
-            HStack(spacing: 10) {
-                Button(action: onAddPosition) {
-                    HoldingsHeaderButton(systemName: "plus")
-                }
-                .buttonStyle(.plain)
+        VStack(spacing: 0) {
+            CX2NavBar(transparent: true, showBorder: false)
 
-                Button(action: onRefresh) {
-                    HoldingsHeaderButton(systemName: isRefreshing ? "hourglass" : "arrow.clockwise")
+            CX2LargeTitle("Holdings") {
+                HStack(spacing: 6) {
+                    Button(action: onAddPosition) {
+                        HoldingsHeaderButton(systemName: "plus")
+                    }
+                    .buttonStyle(.plain)
+
+                    Button(action: onRefresh) {
+                        HoldingsHeaderButton(systemName: isRefreshing ? "hourglass" : "arrow.clockwise")
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isRefreshing || isOffline)
+                    .accessibilityLabel(isRefreshing ? "Refreshing holdings" : "Refresh holdings")
                 }
-                .buttonStyle(.plain)
-                .disabled(isRefreshing || isOffline)
-                .accessibilityLabel(isRefreshing ? "Refreshing holdings" : "Refresh holdings")
             }
         }
     }
@@ -523,12 +536,9 @@ private struct HoldingsHeaderButton: View {
 
     var body: some View {
         Image(systemName: systemName)
-            .font(.system(size: 15, weight: .semibold))
-            .foregroundColor(.textSecondary)
-            .frame(width: 40, height: 40)
-            .background(Color.surface)
-            .clipShape(Circle())
-            .overlay(Circle().stroke(Color.border, lineWidth: 1))
+            .font(.system(size: 16, weight: .medium))
+            .foregroundColor(.textPrimary)
+            .frame(width: 32, height: 32)
     }
 }
 
@@ -542,14 +552,14 @@ private struct HoldingsSearchBar: View {
                 .font(.system(size: 15, weight: .medium))
                 .foregroundColor(.textSecondary)
 
-            TextField("Search all stocks", text: $query)
-                .font(ClavisTypography.body)
+            TextField("Search ticker or company", text: $query)
+                .font(.system(size: 15, weight: .regular))
                 .foregroundColor(.textPrimary)
                 .autocorrectionDisabled()
 
             Button(action: onOpenTickerSearch) {
-                Image(systemName: "arrow.up.right.circle")
-                    .font(.system(size: 16, weight: .semibold))
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(.textSecondary)
             }
             .buttonStyle(.plain)
@@ -724,15 +734,7 @@ struct HoldingsControlCard: View {
     let onRefresh: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-            ClavisSectionHeader("Review tools", subtitle: "Filter by concern and change the sort order.") {
-                Button(action: onRefresh) {
-                    Label(isRefreshing ? "Refreshing" : "Refresh", systemImage: "arrow.clockwise")
-                        .font(ClavisTypography.footnoteEmphasis)
-                }
-                .disabled(isRefreshing)
-            }
-
+        VStack(alignment: .leading, spacing: 10) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     ForEach(HoldingFilter.allCases, id: \.self) { filter in
@@ -744,31 +746,53 @@ struct HoldingsControlCard: View {
             }
 
             HStack(spacing: 8) {
-                ForEach(HoldingSort.allCases, id: \.self) { sort in
-                    controlPill(title: sort.rawValue, isSelected: selectedSort == sort) {
-                        selectedSort = sort
+                Spacer()
+
+                Menu {
+                    ForEach(HoldingSort.allCases, id: \.self) { sort in
+                        Button(sort.rawValue) {
+                            selectedSort = sort
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("Sort")
+                            .font(.system(size: 12, weight: .regular))
+                            .foregroundColor(.textSecondary)
+                        Text(selectedSort.rawValue)
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(.textPrimary)
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(.textPrimary)
                     }
                 }
+
+                Button(action: onRefresh) {
+                    Text(isRefreshing ? "Refreshing" : "Refresh")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.textPrimary)
+                }
+                .buttonStyle(.plain)
+                .disabled(isRefreshing)
             }
         }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surface)
     }
 
     @ViewBuilder
     private func controlPill(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
-                .font(ClavisTypography.footnoteEmphasis)
-                .foregroundColor(isSelected ? .backgroundPrimary : .textPrimary)
+                .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
+                .foregroundColor(isSelected ? .backgroundPrimary : .textSecondary)
                 .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(isSelected ? Color.textPrimary : Color.surfaceElevated)
-                .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous))
+                .padding(.vertical, 6)
+                .background(isSelected ? Color.textPrimary : Color.clear)
                 .overlay(
-                    RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous)
-                        .stroke(Color.border, lineWidth: isSelected ? 0 : 1)
+                    Capsule()
+                        .stroke(isSelected ? Color.textPrimary : Color.border, lineWidth: 1)
                 )
+                .clipShape(Capsule())
         }
         .buttonStyle(.plain)
     }

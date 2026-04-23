@@ -18,16 +18,34 @@ struct TickerDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                ClavixWordmarkHeader(subtitle: navTitle)
+                CX2NavBar(
+                    title: ticker,
+                    subtitle: detail?.profile.companyName ?? detail?.profile.sector ?? "Ticker detail"
+                ) {
+                    Button(action: { dismiss() }) {
+                        HStack(spacing: 1) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 12, weight: .semibold))
+                            Text("Holdings")
+                                .font(.system(size: 15, weight: .regular))
+                        }
+                        .foregroundColor(.informational)
+                    }
+                    .buttonStyle(.plain)
+                } trailing: {
+                    if authViewModel.subscriptionTier == "pro" || authViewModel.subscriptionTier == "admin" {
+                        CX2IconButton(action: { Task { await refreshTicker() } }) {
+                            Image(systemName: isRefreshingTicker ? "hourglass" : "arrow.clockwise")
+                                .font(.system(size: 15, weight: .medium))
+                        }
+                    }
 
-                TickerInlineNavBar(
-                    isWatchlisted: isInWatchlist,
-                    isRefreshing: isRefreshingTicker,
-                    canRefresh: authViewModel.subscriptionTier == "pro" || authViewModel.subscriptionTier == "admin",
-                    onBack: { dismiss() },
-                    onToggleWatchlist: { Task { await toggleWatchlist() } },
-                    onRefresh: { Task { await refreshTicker() } }
-                )
+                    CX2IconButton(action: { Task { await toggleWatchlist() } }) {
+                        Image(systemName: isInWatchlist ? "star.fill" : "star")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(isInWatchlist ? .informational : .textPrimary)
+                    }
+                }
 
                 if let errorMessage {
                     DashboardErrorCard(message: errorMessage)
@@ -49,10 +67,6 @@ struct TickerDetailView: View {
                         rationale: tickerRationale(for: detail)
                     )
 
-                    if let dimensions = riskDimensions(for: detail) {
-                        TickerRiskDimensionsCard(dimensions: dimensions)
-                    }
-
                     TickerPriceCard(
                         price: currency(detail.latestPrice.price),
                         changeText: priceChangeText(for: detail),
@@ -73,6 +87,10 @@ struct TickerDetailView: View {
 
                     TickerMetricGridCard(metrics: fundamentals(for: detail))
 
+                    if let dimensions = riskDimensions(for: detail) {
+                        TickerRiskDimensionsCard(dimensions: dimensions)
+                    }
+
                     if detail.currentScore != nil || detail.currentAnalysis != nil {
                         aiScoreRationaleCard(detail)
                     }
@@ -85,19 +103,17 @@ struct TickerDetailView: View {
                         TickerBulletedListCard(title: "Urgent", items: watchItems(for: detail))
                     }
 
-                    if !detail.recentNews.isEmpty {
-                        TickerNewsListCard(news: Array(detail.recentNews.prefix(3)))
-                    }
-
                     if !detail.recentAlerts.isEmpty {
                         TickerAlertsListCard(alerts: Array(detail.recentAlerts.prefix(3)))
                     }
                 }
             }
             .padding(.horizontal, ClavisTheme.screenPadding)
-            .padding(.vertical, ClavisTheme.largeSpacing)
-            .padding(.bottom, ClavisTheme.extraLargeSpacing)
+            .padding(.top, 0)
+            .padding(.bottom, ClavisTheme.largeSpacing)
         }
+        .contentMargins(.top, 0, for: .scrollContent)
+        .contentMargins(.bottom, 0, for: .scrollContent)
         .background(ClavisAtmosphereBackground())
         .toolbar(.hidden, for: .navigationBar)
         .task {
@@ -309,43 +325,6 @@ struct TickerDetailView: View {
     }
 
     @ViewBuilder
-    private func newsCard(_ detail: TickerDetailResponse) -> some View {
-        HoldingsSectionCard(title: "Recent News", subtitle: "Shared ticker-level coverage") {
-            ForEach(detail.recentNews.prefix(5)) { item in
-                NavigationLink(destination: ArticleDetailView(articleId: item.id)) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(item.title)
-                            .font(ClavisTypography.bodyEmphasis)
-                            .foregroundColor(.textPrimary)
-
-                        if let summary = item.summary?.trimmingCharacters(in: .whitespacesAndNewlines), !summary.isEmpty {
-                            Text(summary)
-                                .font(ClavisTypography.footnote)
-                                .foregroundColor(.textSecondary)
-                        }
-
-                        HStack {
-                            if let source = item.source {
-                                Text(source)
-                                    .font(ClavisTypography.footnote)
-                                    .foregroundColor(.textTertiary)
-                            }
-                            Spacer()
-                            Text("Read article →")
-                                .font(ClavisTypography.footnoteEmphasis)
-                                .foregroundColor(.informational)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(ClavisTheme.cardPadding)
-                    .clavisCardStyle(fill: .surfaceElevated)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-    }
-
-    @ViewBuilder
     private func alertsCard(_ alerts: [Alert]) -> some View {
         HoldingsSectionCard(title: "Recent Alerts", subtitle: "Ticker-specific changes for your account") {
             ForEach(alerts.prefix(5)) { alert in
@@ -540,44 +519,42 @@ private struct TickerHeroCard: View {
     let rationale: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .center, spacing: 16) {
+        VStack(alignment: .leading, spacing: 18) {
+            HStack(alignment: .top, spacing: 14) {
                 GradeTag(grade: grade, large: true)
 
                 VStack(alignment: .leading, spacing: 4) {
+                    CX2SectionLabel(text: "Risk score")
+
                     Text("\(score)")
-                        .font(ClavisTypography.dataNumber)
+                        .font(.system(size: 44, weight: .bold, design: .monospaced))
                         .foregroundColor(.textPrimary)
                         .monospacedDigit()
 
                     if let previousScore {
                         HStack(spacing: 8) {
-                            Text("Risk score · was \(previousScore)")
-                                .font(ClavisTypography.footnote)
-                                .foregroundColor(.textSecondary)
-
                             Text(scoreDeltaText(previousScore: previousScore))
-                                .font(.system(size: 15, weight: .semibold, design: .monospaced))
+                                .font(.system(size: 13, weight: .semibold, design: .monospaced))
                                 .foregroundColor(score >= previousScore ? .riskA : .riskD)
+
+                            Text("was \(previousScore)")
+                                .font(.system(size: 12, weight: .regular))
+                                .foregroundColor(.textSecondary)
                         }
                     }
 
-                    Text(sector.uppercased())
-                        .font(ClavisTypography.label)
+                    Text(sector)
+                        .font(.system(size: 12, weight: .regular))
                         .foregroundColor(.textSecondary)
                 }
             }
 
-            Divider()
-                .overlay(Color.border)
-
             Text(rationale)
-                .font(ClavisTypography.bodySmall)
+                .font(.system(size: 14, weight: .regular))
                 .foregroundColor(.textSecondary)
+                .lineSpacing(3)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surface)
     }
 
     private func scoreDeltaText(previousScore: Int) -> String {
@@ -601,34 +578,34 @@ private struct TickerPriceCard: View {
     let priceHistory: [PricePoint]
     let onDaysChange: (Int) -> Void
 
-    private let dayOptions: [Int] = [30, 90, 365]
+    private let dayOptions: [Int] = [1, 7, 30, 90, 365]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Price · \(labelForDays(selectedDays))")
-                        .font(ClavisTypography.label)
-                        .foregroundColor(.textSecondary)
                     Text(price)
-                        .font(ClavisTypography.dataNumber)
+                        .font(.system(size: 26, weight: .bold, design: .monospaced))
                         .foregroundColor(.textPrimary)
+                    Text(labelForDays(selectedDays).lowercased())
+                        .font(.system(size: 12, weight: .regular))
+                        .foregroundColor(.textSecondary)
                 }
 
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(changeText)
-                        .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                        .font(.system(size: 14, weight: .semibold, design: .monospaced))
                         .foregroundColor(changeColor)
                     Text("Today")
-                        .font(ClavisTypography.footnote)
+                        .font(.system(size: 11, weight: .regular))
                         .foregroundColor(.textSecondary)
                 }
             }
 
             TickerSparkline(priceHistory: priceHistory, direction: changeDirection)
-                .frame(height: 64)
+                .frame(height: 56)
 
             HStack(spacing: 6) {
                 ForEach(dayOptions, id: \.self) { days in
@@ -637,7 +614,7 @@ private struct TickerPriceCard: View {
                         onDaysChange(days)
                     } label: {
                         Text(labelForDays(days))
-                            .font(.system(size: 15, weight: .medium, design: .monospaced))
+                            .font(.system(size: 11, weight: .semibold, design: .monospaced))
                             .foregroundColor(selectedDays == days ? .textPrimary : .textSecondary)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 6)
@@ -652,8 +629,6 @@ private struct TickerPriceCard: View {
                 }
             }
         }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surface)
     }
 
     private var changeColor: Color {
@@ -666,6 +641,8 @@ private struct TickerPriceCard: View {
 
     private func labelForDays(_ days: Int) -> String {
         switch days {
+        case 1: return "1D"
+        case 7: return "1W"
         case 30: return "1M"
         case 90: return "3M"
         default: return "1Y"
@@ -779,25 +756,29 @@ private struct TickerAnalysisActionCard: View {
     let onRefreshAnalysis: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Position analysis")
-                .font(ClavisTypography.label)
-                .foregroundColor(.textSecondary)
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                CX2SectionLabel(text: "Position analysis")
+                Text("Queue a fresh backend run for this held position.")
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundColor(.textSecondary)
+            }
 
-            Text("Queue a fresh backend run for this held position.")
-                .font(ClavisTypography.body)
-                .foregroundColor(.textSecondary)
+            Spacer()
 
             Button(action: onRefreshAnalysis) {
-                Label(isRefreshing ? "Refreshing" : "Refresh analysis", systemImage: "arrow.clockwise")
-                    .font(ClavisTypography.footnoteEmphasis)
-                    .frame(maxWidth: .infinity)
+                Text(isRefreshing ? "Refreshing" : "Refresh")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.backgroundPrimary)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(Color.textPrimary)
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.informational)
+            .buttonStyle(.plain)
             .disabled(isRefreshing)
         }
-        .padding(ClavisTheme.cardPadding)
+        .padding(14)
         .clavisCardStyle(fill: .surface)
     }
 }
@@ -876,7 +857,7 @@ private struct TickerEventAnalysisDetailView: View {
             }
             .padding(.horizontal, ClavisTheme.screenPadding)
             .padding(.vertical, ClavisTheme.largeSpacing)
-            .padding(.bottom, ClavisTheme.extraLargeSpacing)
+            .padding(.bottom, ClavisTheme.largeSpacing)
         }
         .background(ClavisAtmosphereBackground())
         .toolbar(.hidden, for: .navigationBar)
@@ -961,15 +942,13 @@ private struct TickerMetricGridCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Snapshot & fundamentals")
-                .font(ClavisTypography.label)
-                .foregroundColor(.textSecondary)
+            CX2SectionLabel(text: "Fundamentals")
 
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 0), count: 3), spacing: 0) {
                 ForEach(metrics) { metric in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(metric.label)
-                            .font(ClavisTypography.label)
+                            .font(.system(size: 11, weight: .regular))
                             .foregroundColor(.textSecondary)
                         Text(metric.value)
                             .font(.system(size: 15, weight: .bold, design: .monospaced))
@@ -977,13 +956,23 @@ private struct TickerMetricGridCard: View {
                             .monospacedDigit()
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(10)
-                    .clavisSecondaryCardStyle(fill: .surfaceElevated)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 12)
+                    .background(Color.surface)
+                    .overlay(alignment: .trailing) {
+                        Rectangle()
+                            .fill(Color.border)
+                            .frame(width: 1)
+                            .opacity(metric.id == metrics.last?.id ? 0 : 1)
+                    }
                 }
             }
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(Color.border, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surface)
     }
 }
 
@@ -999,13 +988,7 @@ private struct TickerRiskDimensionsCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Risk dimensions")
-                .font(ClavisTypography.cardTitle)
-                .foregroundColor(.textSecondary)
-
-            Text("These are the four signals used to build the score.")
-                .font(ClavisTypography.bodyEmphasis)
-                .foregroundColor(.textSecondary)
+            CX2SectionLabel(text: "Risk dimensions")
 
             VStack(spacing: 10) {
                 ForEach(dimensions) { item in
@@ -1013,8 +996,6 @@ private struct TickerRiskDimensionsCard: View {
                 }
             }
         }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surface)
     }
 }
 
@@ -1025,25 +1006,25 @@ private struct TickerRiskDimensionRow: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(item.title)
-                    .font(ClavisTypography.bodyEmphasis)
+                    .font(.system(size: 13, weight: .regular))
                     .foregroundColor(.textPrimary)
                 Spacer()
                 Text(valueText)
-                    .font(.system(size: 16, weight: .semibold, design: .monospaced))
-                    .foregroundColor(.textSecondary)
+                    .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                    .foregroundColor(.textPrimary)
             }
 
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 999, style: .continuous)
+                    RoundedRectangle(cornerRadius: 2, style: .continuous)
                         .fill(Color.border)
-                        .frame(height: 10)
-                    RoundedRectangle(cornerRadius: 999, style: .continuous)
-                        .fill(item.accent)
-                        .frame(width: geo.size.width * progress, height: 10)
+                        .frame(height: 4)
+                    RoundedRectangle(cornerRadius: 2, style: .continuous)
+                        .fill(Color.textPrimary.opacity(0.55))
+                        .frame(width: geo.size.width * progress, height: 4)
                 }
             }
-            .frame(height: 10)
+            .frame(height: 4)
         }
     }
 
@@ -1085,58 +1066,18 @@ private struct TickerBulletedListCard: View {
     }
 }
 
-private struct TickerNewsListCard: View {
-    let news: [NewsItem]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Recent news")
-                .font(ClavisTypography.label)
-                .foregroundColor(.textSecondary)
-
-            VStack(spacing: 0) {
-                ForEach(news) { item in
-                    NavigationLink(destination: ArticleDetailView(articleId: item.id)) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
-                                Text(item.source ?? "")
-                                    .font(ClavisTypography.footnote)
-                                    .foregroundColor(.textSecondary)
-                                Spacer()
-                                Text(item.publishedAt?.formatted(date: .omitted, time: .shortened) ?? "")
-                                    .font(ClavisTypography.footnote)
-                                    .foregroundColor(.textSecondary)
-                            }
-
-                            Text(item.title)
-                                .font(ClavisTypography.bodySmall)
-                                .foregroundColor(.textPrimary)
-                                .multilineTextAlignment(.leading)
-
-                            Text("Read article →")
-                                .font(ClavisTypography.footnoteEmphasis)
-                                .foregroundColor(.informational)
-                        }
-                        .padding(.vertical, 12)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 2)
-            .clavisCardStyle(fill: .surface)
-        }
-    }
-}
-
 private struct TickerAlertsListCard: View {
     let alerts: [Alert]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Recent alerts")
-                .font(ClavisTypography.label)
-                .foregroundColor(.textSecondary)
+            HStack(alignment: .lastTextBaseline) {
+                CX2SectionLabel(text: "Recent alerts")
+                Spacer()
+                Text("All alerts")
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundColor(.informational)
+            }
 
             VStack(spacing: 0) {
                 ForEach(alerts) { alert in

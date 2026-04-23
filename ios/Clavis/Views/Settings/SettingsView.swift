@@ -11,7 +11,8 @@ struct SettingsView: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    ClavixWordmarkHeader(subtitle: "Preferences and account")
+                    CX2NavBar(transparent: true, showBorder: false)
+                    CX2LargeTitle("Settings")
 
                     if NetworkStatusMonitor.shared.isOffline {
                         OfflineStatusBanner()
@@ -44,9 +45,11 @@ struct SettingsView: View {
                     }
                 }
                 .padding(.horizontal, ClavisTheme.screenPadding)
-                .padding(.top, ClavisTheme.largeSpacing)
-                .padding(.bottom, ClavisTheme.extraLargeSpacing)
+                .padding(.top, 0)
+                .padding(.bottom, ClavisTheme.largeSpacing)
             }
+            .contentMargins(.top, 0, for: .scrollContent)
+            .contentMargins(.bottom, 0, for: .scrollContent)
             .background(ClavisAtmosphereBackground())
             .toolbar(.hidden, for: .navigationBar)
             .onAppear {
@@ -362,8 +365,7 @@ struct SettingsGroupCard<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if let title, !title.isEmpty {
-                Text(title.uppercased())
-                    .font(ClavisTypography.label)
+                CX2SectionLabel(text: title)
                     .foregroundColor(.textSecondary)
                     .padding(.leading, 2)
             }
@@ -395,22 +397,25 @@ struct SettingsToggleListRow: View {
         HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(label)
-                    .font(ClavisTypography.body)
+                    .font(.system(size: 15, weight: .regular))
                     .foregroundColor(.textPrimary)
 
                 if let subtitle, !subtitle.isEmpty {
                     Text(subtitle)
-                        .font(ClavisTypography.footnote)
+                        .font(.system(size: 12, weight: .regular))
                         .foregroundColor(.textSecondary)
                 }
             }
 
             Spacer()
 
-            Toggle("", isOn: $isOn)
-                .labelsHidden()
-                .tint(.informational)
-                .onChange(of: isOn) { _, _ in onChange() }
+            Button {
+                isOn.toggle()
+                onChange()
+            } label: {
+                CX2Toggle(isOn: $isOn)
+            }
+            .buttonStyle(.plain)
         }
         .padding(.vertical, 13)
         .overlay(alignment: .bottom) {
@@ -437,7 +442,7 @@ struct SettingsValueRow<ValueView: View>: View {
     var body: some View {
         HStack(spacing: 12) {
             Text(label)
-                .font(ClavisTypography.body)
+                .font(.system(size: 15, weight: .regular))
                 .foregroundColor(.textPrimary)
 
             Spacer()
@@ -463,13 +468,13 @@ struct SettingsStaticRow: View {
     var body: some View {
         HStack(spacing: 12) {
             Text(label)
-                .font(ClavisTypography.body)
+                .font(.system(size: 15, weight: .regular))
                 .foregroundColor(.textPrimary)
 
             Spacer()
 
             Text(value)
-                .font(ClavisTypography.footnote)
+                .font(.system(size: 14, weight: .regular))
                 .foregroundColor(.textSecondary)
         }
         .padding(.vertical, 13)
@@ -515,9 +520,10 @@ struct SettingsActionRow: View {
         Button(action: action) {
             HStack {
                 Text(title)
-                    .font(ClavisTypography.body)
+                    .font(.system(size: 15, weight: .regular))
                     .foregroundColor(disabled ? .textTertiary : tint)
                 Spacer()
+                CX2Chevron()
             }
             .padding(.vertical, 13)
         }

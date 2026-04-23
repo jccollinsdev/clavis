@@ -24,6 +24,11 @@ struct DigestView: View {
                     DigestTopHeader(
                         onOpenHoldings: { selectedTab = 1 }
                     )
+                    CX2LargeTitle("Digest") {
+                        Text(Date().formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day()))
+                            .font(.system(size: 13, weight: .regular))
+                            .foregroundColor(.textSecondary)
+                    }
 
                     if NetworkStatusMonitor.shared.isOffline {
                         OfflineStatusBanner()
@@ -69,9 +74,11 @@ struct DigestView: View {
                     }
                 }
                 .padding(.horizontal, ClavisTheme.screenPadding)
-                .padding(.top, ClavisTheme.largeSpacing)
-                .padding(.bottom, ClavisTheme.extraLargeSpacing)
+                .padding(.top, 0)
+                .padding(.bottom, ClavisTheme.largeSpacing)
             }
+            .contentMargins(.top, 0, for: .scrollContent)
+            .contentMargins(.bottom, 0, for: .scrollContent)
             .refreshable {
                 await viewModel.reloadDigestFromDatabase()
             }
@@ -107,11 +114,14 @@ private struct DigestTopHeader: View {
     let onOpenHoldings: () -> Void
 
     var body: some View {
-        HStack(alignment: .center) {
-            ClavixWordmarkHeader(subtitle: Date().formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
-
+        CX2NavBar(transparent: true, showBorder: false) {
+            EmptyView()
+        } trailing: {
             Button(action: onOpenHoldings) {
-                DigestHeaderButton(title: "", systemName: "briefcase.fill")
+                Image(systemName: "briefcase.fill")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(.textPrimary)
+                    .frame(width: 32, height: 32)
             }
             .buttonStyle(.plain)
         }
@@ -311,34 +321,47 @@ struct DigestHeroCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-            ClavisEyebrowHeader(eyebrow: "Digest", title: "Morning summary")
+            VStack(alignment: .leading, spacing: 10) {
+                CX2SectionLabel(text: "Thesis · \(digest?.generatedAt.formatted(date: .omitted, time: .shortened) ?? "Pending")")
 
-            Text(summaryText)
-                .font(ClavisTypography.body)
-                .foregroundColor(.textSecondary)
-
-            HStack(spacing: ClavisTheme.smallSpacing) {
-                ClavisMetricLabel(label: "Updated", value: digest?.generatedAt.formatted(date: .abbreviated, time: .shortened) ?? "Pending")
-                ClavisMetricLabel(label: "Holdings", value: "\(holdings.count)")
+                Text(summaryText)
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(.textPrimary)
+                    .lineSpacing(4)
             }
 
-            HStack(spacing: ClavisTheme.smallSpacing) {
+            HStack(spacing: 10) {
+                Text("\(holdings.count) holding\(holdings.count == 1 ? "" : "s")")
+                Text("·")
+                Text(activeRun == nil ? "Stable" : (activeRun?.status.capitalized ?? "Running"))
+
+                Spacer()
+
                 Button(action: onRunDigest) {
-                    Label(isLoading ? "Running" : "Run digest", systemImage: "arrow.clockwise")
-                        .font(ClavisTypography.footnoteEmphasis)
-                        .frame(maxWidth: .infinity)
+                    HStack(spacing: 5) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 11, weight: .semibold))
+                        Text(isLoading ? "Running" : "Run")
+                    }
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.textPrimary)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .stroke(Color.border, lineWidth: 1)
+                    )
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.informational)
+                .buttonStyle(.plain)
                 .disabled(isLoading || activeRun?.status == "running")
             }
+            .font(.system(size: 12, weight: .regular))
+            .foregroundColor(.textSecondary)
 
             Text("Informational only. Not financial advice.")
-                .font(ClavisTypography.footnote)
+                .font(.system(size: 11, weight: .regular))
                 .foregroundColor(.textTertiary)
         }
-        .padding(ClavisTheme.cardPadding)
-        .clavisHeroCardStyle(fill: .surface)
     }
 }
 
@@ -441,9 +464,7 @@ struct DigestMacroSectionView: View {
     var body: some View {
         if let macro {
             VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-                Text("Overnight Macro")
-                    .font(ClavisTypography.cardTitle)
-                    .foregroundColor(.textPrimary)
+                CX2SectionLabel(text: "Overnight macro")
 
                 Text(macro.brief.sanitizedDisplayText)
                     .font(ClavisTypography.body)
@@ -612,9 +633,7 @@ struct DigestWatchlistAlertsSection: View {
     var body: some View {
         if !items.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Watchlist alerts")
-                    .font(ClavisTypography.cardTitle)
-                    .foregroundColor(.textSecondary)
+                CX2SectionLabel(text: "Watchlist alerts")
 
                 DigestPrototypeListCard {
                     ForEach(Array(items.enumerated()), id: \.offset) { index, item in

@@ -1,11 +1,12 @@
 ---
 project: Clavis
 version: 1
-last_updated: 2026-04-22
+last_updated: 2026-04-23
 roadmap: docs/STATUS/roadmap.md
 status: active
 current_phase: "Phase 1 - Security And Production Hardening"
 current_focus:
+  - Apply the provided Clavix HTML handoff to the iOS app shell and core screens, keeping the existing auth, onboarding, holdings, digest, alerts, settings, news, and ticker-detail flows intact while tightening screenshot-level parity
   - Work through the structural audit items that are now shippable in code: cooldowns/rate limits, account export/delete UI, local JWT verification fallback, and shared disclaimer copy
   - Execute a 7-day launch sprint: day 1 harden launch scope, repo drift, debug gating, and app-wide polish; day 3 clear the Apple Developer account blocker; final 2 days implement RevenueCat/payments; use the remaining days for QA, legal/trust, notifications, and release prep
   - Make day 1 visibly convincing by clicking through the whole app and fixing the highest-friction bugs in onboarding, settings, ticker detail, news, alerts, and digest so the current app can be shown to family before purchase approval
@@ -32,6 +33,7 @@ blockers:
     - SnapTrade is wired locally and the simulator now works against `http://127.0.0.1:8000`, but the VPS backend still needs the SnapTrade client ID / consumer key configured before the production brokerage flow can work
     - App shell/UI migration is functionally complete, but final spacing polish and screenshot-level parity checks are still needed before release polish is considered done
 recent_completions:
+  - Reworked the iOS presentation layer around the provided Clavix HTML handoff: updated the shared dark tokens, restyled login/onboarding plus the Home, Holdings, Digest, Alerts, Settings, News, Article, and ticker-detail shells to match the new layout direction, preserved the existing data/view-model flows underneath, and rebuilt the app successfully for the iPhone 17 Simulator
   - Restored the typography to the actual pre-change git baseline instead of the earlier approximation: reverted `ClavisTypography` label/row/body/card/footnote/metric/grade sizes, restored the gauge caption size, and returned the tab-bar labels to the original 10pt sizing before relaunching the iOS Simulator
   - Restored the original text sizing baseline after the smaller-font experiment, including the shared header/body styles and the bottom tab-bar labels, and relaunched the iOS Simulator to apply it
   - Trimmed the main app typography further after the screenshot review: reduced top header wordmarks, lowered body/card/footnote sizes, and shrank the bottom tab-bar labels to stop the Home and Holdings screens from feeling oversized
