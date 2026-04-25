@@ -56,6 +56,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             return false
         }
 
+        // Dismiss any presented SafariViewController (e.g. SnapTrade portal).
         if let rootController = UIApplication.shared.connectedScenes
             .compactMap({ $0 as? UIWindowScene })
             .flatMap({ $0.windows })
@@ -64,6 +65,15 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             safari.dismiss(animated: true)
         }
 
+        // Supabase email confirmation / password-reset PKCE callback.
+        // The URL looks like: clavis://auth/callback?code=<pkce_code>
+        if url.host?.lowercased() == "auth" {
+            print("[Auth] Received auth callback URL host=\(url.host ?? "") path=\(url.path)")
+            NotificationCenter.default.post(name: .supabaseAuthCallbackReceived, object: url)
+            return true
+        }
+
+        // SnapTrade brokerage connection callback.
         NotificationCenter.default.post(name: .snapTradeCallbackReceived, object: url)
         return true
     }

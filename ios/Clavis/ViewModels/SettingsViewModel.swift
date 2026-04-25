@@ -132,9 +132,19 @@ class SettingsViewModel: ObservableObject {
 
         do {
             _ = try await api.deleteAccount()
-            accountMessage = "Account deleted."
             isDeletingAccount = false
             return true
+        } catch let error as APIError {
+            switch error {
+            case .unauthorized:
+                accountMessage = "Session expired. Please sign out and sign in again before deleting your account."
+            case .serverError:
+                accountMessage = "Something went wrong on our end. Please try again or contact support."
+            case .networkError:
+                accountMessage = "No connection. Please check your internet and try again."
+            default:
+                accountMessage = error.localizedDescription
+            }
         } catch {
             accountMessage = error.localizedDescription
         }

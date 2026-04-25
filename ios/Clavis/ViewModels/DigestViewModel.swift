@@ -57,6 +57,29 @@ class DigestViewModel: ObservableObject {
             holdings = response.positions
             alerts = response.alerts
 
+#if DEBUG
+            let authUserId = await SupabaseAuthService.shared.getUserId() ?? "nil"
+            let formattedScore: (Double?) -> String = { value in
+                guard let value else { return "nil" }
+                return String(format: "%.1f", value)
+            }
+            let formattedDate: (Date?) -> String = { value in
+                value?.formatted() ?? "nil"
+            }
+            let payloadSummary = [
+                "baseURL=\(Config.backendBaseUrl)",
+                "authUserId=\(authUserId)",
+                "topLevelScore=\(formattedScore(response.overallScore))",
+                "digestScore=\(formattedScore(response.digest?.overallScore))",
+                "savedDigestScore=\(formattedScore(response.savedDigest?.overallScore))",
+                "generatedDigestScore=\(formattedScore(response.generatedDigest?.overallScore))",
+                "overallGrade=\(response.overallGrade ?? "nil")",
+                "scoreSource=\(response.scoreSource ?? "nil")",
+                "scoreAsOf=\(formattedDate(response.scoreAsOf))",
+            ].joined(separator: " | ")
+            print("[DigestScorePayload] \(payloadSummary)")
+#endif
+
             switch resolvedRun?.lifecycleStatus {
             case "running", "queued":
                 activeRun = resolvedRun

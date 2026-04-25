@@ -131,6 +131,46 @@ class APIService {
         let archetype: String
     }
 
+    struct HoldingWorkflowResponse: Codable {
+        let holdingId: String
+        let ticker: String
+        let analysisState: String
+        let analysisRunId: String?
+        let latestRefreshJob: TickerRefreshJob?
+        let coverageState: String?
+        let coverageNote: String?
+        let analysisAsOf: Date?
+        let scoreSource: String?
+        let scoreAsOf: Date?
+        let scoreVersion: String?
+        let lastNewsRefreshAt: Date?
+        let newsRefreshStatus: String?
+        let newsAsOf: Date?
+        let priceAsOf: Date?
+        let position: Position?
+        let source: String?
+
+        enum CodingKeys: String, CodingKey {
+            case holdingId = "holding_id"
+            case ticker
+            case analysisState = "analysis_state"
+            case analysisRunId = "analysis_run_id"
+            case latestRefreshJob = "latest_refresh_job"
+            case coverageState = "coverage_state"
+            case coverageNote = "coverage_note"
+            case analysisAsOf = "analysis_as_of"
+            case scoreSource = "score_source"
+            case scoreAsOf = "score_as_of"
+            case scoreVersion = "score_version"
+            case lastNewsRefreshAt = "last_news_refresh_at"
+            case newsRefreshStatus = "news_refresh_status"
+            case newsAsOf = "news_as_of"
+            case priceAsOf = "price_as_of"
+            case position
+            case source
+        }
+    }
+
     // MARK: - Holdings
 
     func fetchHoldings() async throws -> [Position] {
@@ -143,11 +183,11 @@ class APIService {
         return try decoder.decode(DashboardResponse.self, from: data)
     }
 
-    func createHolding(ticker: String, shares: Double, purchasePrice: Double, archetype: Archetype) async throws -> Position {
+    func createHolding(ticker: String, shares: Double, purchasePrice: Double, archetype: Archetype) async throws -> HoldingWorkflowResponse {
         let req = CreateHoldingRequest(ticker: ticker, shares: shares, purchase_price: purchasePrice, archetype: archetype.rawValue)
         let body = try JSONEncoder().encode(req)
         let data = try await makeRequest(path: "/holdings", method: "POST", body: body)
-        return try decoder.decode(Position.self, from: data)
+        return try decoder.decode(HoldingWorkflowResponse.self, from: data)
     }
 
     // MARK: - Tickers
@@ -172,6 +212,11 @@ class APIService {
     func fetchTickerRefreshStatus(ticker: String) async throws -> TickerRefreshStatusResponse {
         let data = try await makeRequest(path: "/tickers/\(ticker)/refresh-status")
         return try decoder.decode(TickerRefreshStatusResponse.self, from: data)
+    }
+
+    func fetchSchedulerStatus() async throws -> SchedulerStatusResponse {
+        let data = try await makeRequest(path: "/scheduler/status")
+        return try decoder.decode(SchedulerStatusResponse.self, from: data)
     }
 
     // MARK: - Watchlists
@@ -661,6 +706,11 @@ struct TickerDetailResponse: Codable {
     let profile: TickerProfile
     let position: Position
     let latestPrice: TickerLatestPrice
+    let source: String?
+    let analysisState: TickerAnalysisState?
+    let latestAnalysisRun: AnalysisRun?
+    let latestRefreshJob: TickerRefreshJob?
+    let coverageState: String?
     let latestRiskSnapshot: TickerRiskSnapshot?
     let currentScore: RiskScore?
     let currentAnalysis: PositionAnalysis?
@@ -677,6 +727,11 @@ struct TickerDetailResponse: Codable {
         case profile
         case position
         case latestPrice = "latest_price"
+        case source
+        case analysisState = "analysis_state"
+        case latestAnalysisRun = "latest_analysis_run"
+        case latestRefreshJob = "latest_refresh_job"
+        case coverageState = "coverage_state"
         case latestRiskSnapshot = "latest_risk_snapshot"
         case currentScore = "current_score"
         case currentAnalysis = "current_analysis"
@@ -695,6 +750,11 @@ struct TickerDetailResponse: Codable {
         profile = try container.decode(TickerProfile.self, forKey: .profile)
         position = try container.decode(Position.self, forKey: .position)
         latestPrice = try container.decode(TickerLatestPrice.self, forKey: .latestPrice)
+        source = try container.decodeIfPresent(String.self, forKey: .source)
+        analysisState = try? container.decodeIfPresent(TickerAnalysisState.self, forKey: .analysisState)
+        latestAnalysisRun = try? container.decodeIfPresent(AnalysisRun.self, forKey: .latestAnalysisRun)
+        latestRefreshJob = try? container.decodeIfPresent(TickerRefreshJob.self, forKey: .latestRefreshJob)
+        coverageState = try container.decodeIfPresent(String.self, forKey: .coverageState)
         latestRiskSnapshot = try? container.decodeIfPresent(TickerRiskSnapshot.self, forKey: .latestRiskSnapshot)
         currentScore = try? container.decodeIfPresent(RiskScore.self, forKey: .currentScore)
         currentAnalysis = try? container.decodeIfPresent(PositionAnalysis.self, forKey: .currentAnalysis)
@@ -787,10 +847,76 @@ struct TickerRiskSnapshot: Codable {
 struct TickerFreshness: Codable {
     let priceAsOf: Date?
     let analysisAsOf: Date?
+    let lastNewsRefreshAt: Date?
+    let newsRefreshStatus: String?
+    let newsAsOf: Date?
 
     enum CodingKeys: String, CodingKey {
         case priceAsOf = "price_as_of"
         case analysisAsOf = "analysis_as_of"
+        case lastNewsRefreshAt = "last_news_refresh_at"
+        case newsRefreshStatus = "news_refresh_status"
+        case newsAsOf = "news_as_of"
+    }
+}
+
+struct TickerAnalysisState: Codable {
+    let status: String
+    let source: String?
+    let coverageState: String?
+    let latestAnalysisRunId: String?
+    let latestAnalysisStatus: String?
+    let latestRefreshJobId: String?
+    let latestRefreshStatus: String?
+    let newsRefreshStatus: String?
+    let lastSuccessAt: Date?
+    let lastFailureAt: Date?
+    let analysisAsOf: Date?
+    let scoreSource: String?
+    let scoreAsOf: Date?
+    let scoreVersion: String?
+    let lastNewsRefreshAt: Date?
+    let priceAsOf: Date?
+    let newsAsOf: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case status
+        case source
+        case coverageState = "coverage_state"
+        case latestAnalysisRunId = "latest_analysis_run_id"
+        case latestAnalysisStatus = "latest_analysis_status"
+        case latestRefreshJobId = "latest_refresh_job_id"
+        case latestRefreshStatus = "latest_refresh_status"
+        case newsRefreshStatus = "news_refresh_status"
+        case lastSuccessAt = "last_success_at"
+        case lastFailureAt = "last_failure_at"
+        case analysisAsOf = "analysis_as_of"
+        case scoreSource = "score_source"
+        case scoreAsOf = "score_as_of"
+        case scoreVersion = "score_version"
+        case lastNewsRefreshAt = "last_news_refresh_at"
+        case priceAsOf = "price_as_of"
+        case newsAsOf = "news_as_of"
+    }
+}
+
+struct TickerRefreshJob: Codable {
+    let id: String?
+    let ticker: String?
+    let jobType: String?
+    let status: String?
+    let startedAt: Date?
+    let completedAt: Date?
+    let errorMessage: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case ticker
+        case jobType = "job_type"
+        case status
+        case startedAt = "started_at"
+        case completedAt = "completed_at"
+        case errorMessage = "error_message"
     }
 }
 
@@ -882,5 +1008,27 @@ struct TickerRefreshStatusResponse: Codable {
         case startedAt = "started_at"
         case completedAt = "completed_at"
         case errorMessage = "error_message"
+    }
+}
+
+struct SchedulerStatusResponse: Codable {
+    let userId: String
+    let digestTime: String
+    let notificationsEnabled: Bool
+    let runtimeJobPresent: Bool
+    let runtimeNextRunAt: Date?
+    let lastSuccessAt: Date?
+    let lastFailureAt: Date?
+    let lastRunStatus: String?
+
+    enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
+        case digestTime = "digest_time"
+        case notificationsEnabled = "notifications_enabled"
+        case runtimeJobPresent = "runtime_job_present"
+        case runtimeNextRunAt = "runtime_next_run_at"
+        case lastSuccessAt = "last_success_at"
+        case lastFailureAt = "last_failure_at"
+        case lastRunStatus = "last_run_status"
     }
 }

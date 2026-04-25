@@ -54,6 +54,15 @@ final class BrokerageViewModel: ObservableObject {
                 return
             }
             presentedURL = url
+        } catch let error as APIError {
+            switch error {
+            case .serverError(let code) where code == 503:
+                errorMessage = "Brokerage auto-import is not available on this account. You can add positions manually."
+            case .unauthorized:
+                errorMessage = "Session expired — please sign out and sign in again."
+            default:
+                errorMessage = error.localizedDescription
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -140,7 +149,9 @@ final class BrokerageViewModel: ObservableObject {
             return try await operation()
         } catch let error as APIError {
             guard case .unauthorized = error else { throw error }
-            try? await Task.sleep(nanoseconds: 750_000_000)
+            // Attempt a session refresh before retrying; the SDK stores the refreshed token
+            // so the next getAccessToken() call will pick it up.
+            try? await SupabaseAuthService.shared.refreshSession()
             return try await operation()
         }
     }

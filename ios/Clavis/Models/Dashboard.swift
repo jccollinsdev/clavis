@@ -8,6 +8,11 @@ struct DashboardResponse: Decodable {
     let positions: [Position]
     let alerts: [Alert]
     let portfolioRiskSnapshot: PortfolioRiskSnapshot?
+    let overallScore: Double?
+    let overallGrade: String?
+    let scoreSource: String?
+    let scoreAsOf: Date?
+    let scoreVersion: String?
     let message: String?
 
     enum CodingKeys: String, CodingKey {
@@ -18,6 +23,11 @@ struct DashboardResponse: Decodable {
         case positions
         case alerts
         case portfolioRiskSnapshot = "portfolio_risk_snapshot"
+        case overallScore = "overall_score"
+        case overallGrade = "overall_grade"
+        case scoreSource = "score_source"
+        case scoreAsOf = "score_as_of"
+        case scoreVersion = "score_version"
         case message
     }
 
@@ -30,6 +40,11 @@ struct DashboardResponse: Decodable {
         positions = (try? container.decode([Position].self, forKey: .positions)) ?? []
         alerts = (try? container.decode([Alert].self, forKey: .alerts)) ?? []
         portfolioRiskSnapshot = try container.decodeIfPresent(PortfolioRiskSnapshot.self, forKey: .portfolioRiskSnapshot)
+        overallScore = try container.decodeFlexibleDoubleIfPresent(forKey: .overallScore)
+        overallGrade = try container.decodeIfPresent(String.self, forKey: .overallGrade)
+        scoreSource = try container.decodeIfPresent(String.self, forKey: .scoreSource)
+        scoreAsOf = try container.decodeIfPresent(Date.self, forKey: .scoreAsOf)
+        scoreVersion = try container.decodeIfPresent(String.self, forKey: .scoreVersion)
         message = try container.decodeIfPresent(String.self, forKey: .message)
     }
 }

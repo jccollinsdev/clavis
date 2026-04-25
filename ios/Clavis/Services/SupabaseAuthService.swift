@@ -1,6 +1,10 @@
 import Foundation
 import Supabase
 
+extension Notification.Name {
+    static let supabaseAuthCallbackReceived = Notification.Name("supabaseAuthCallbackReceived")
+}
+
 class SupabaseAuthService {
     static let shared = SupabaseAuthService()
 
@@ -24,12 +28,20 @@ class SupabaseAuthService {
     }
 
     @MainActor
-    func signUp(email: String, password: String) async throws {
-        let session = try await supabase.auth.signUp(
+    func signUp(email: String, password: String) async throws -> Bool {
+        let response = try await supabase.auth.signUp(
             email: email,
-            password: password
+            password: password,
+            redirectTo: URL(string: "https://getclavix.com/confirm")
         )
-        print("Signed up: \(session.user.id)")
+        let sessionEstablished = response.session != nil
+        print("[Auth] signUp userId=\(response.user.id) sessionEstablished=\(sessionEstablished)")
+        return sessionEstablished
+    }
+
+    @MainActor
+    func refreshSession() async throws {
+        try await supabase.auth.refreshSession()
     }
 
     @MainActor
@@ -39,7 +51,17 @@ class SupabaseAuthService {
 
     @MainActor
     func resetPassword(email: String) async throws {
-        try await supabase.auth.resetPasswordForEmail(email)
+        try await supabase.auth.resetPasswordForEmail(
+            email,
+            redirectTo: URL(string: "https://getclavix.com/confirm")
+        )
+    }
+
+    // Called from AppDelegate when the OS opens a clavis://auth/callback URL.
+    // Exchanges the PKCE authorization code for a live session.
+    @MainActor
+    func handleAuthCallback(url: URL) async throws {
+        try await supabase.auth.session(from: url)
     }
 
     @MainActor

@@ -11,8 +11,7 @@ struct SettingsView: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    CX2NavBar(transparent: true, showBorder: false)
-                    CX2LargeTitle("Settings")
+                    ClavixPageHeader(title: "Settings")
 
                     if NetworkStatusMonitor.shared.isOffline {
                         OfflineStatusBanner()
@@ -321,7 +320,7 @@ struct AccountSettingsGroup: View {
 
     var body: some View {
         SettingsGroupCard(title: "Account") {
-            SettingsStaticRow(label: "Profile", value: email)
+            SettingsStaticRow(label: "Email", value: email)
 
             if let planLabel {
                 SettingsStaticRow(label: "Plan", value: planLabel)
@@ -554,7 +553,6 @@ struct AboutSection: View {
             }
             .buttonStyle(.plain)
 
-            SettingsLinkRow(title: "Methodology", urlString: "https://getclavix.com/methodology")
             SettingsLinkRow(title: "Privacy policy", urlString: "https://getclavix.com/privacy")
             SettingsLinkRow(title: "Terms of service", urlString: "https://getclavix.com/terms")
             SettingsLinkRow(title: "Refund policy", urlString: "https://getclavix.com/refund", last: true)
@@ -638,15 +636,9 @@ struct SignOutGroup: View {
 
     var body: some View {
         SettingsGroupCard {
-            Button(role: .destructive, action: onSignOut) {
-                HStack {
-                    Text("Sign out")
-                        .font(ClavisTypography.body)
-                    Spacer()
-                }
-                .padding(.vertical, 13)
+            SettingsActionRow(title: "Sign out", tint: .riskF, last: true) {
+                onSignOut()
             }
-            .buttonStyle(.plain)
         }
     }
 }
@@ -666,18 +658,19 @@ struct ScoreExplanationView: View {
                 }
 
                 VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-                    ScoreBandRow(grade: "A", range: "80–100", description: "Safe — minimum risk exposure", color: .riskA)
-                    ScoreBandRow(grade: "B", range: "65–79", description: "Stable — low risk", color: .riskB)
-                    ScoreBandRow(grade: "C", range: "50–64", description: "Watch — moderate risk", color: .riskC)
-                    ScoreBandRow(grade: "D", range: "35–49", description: "Risky — elevated risk", color: .riskD)
-                    ScoreBandRow(grade: "F", range: "0–34", description: "Critical — high risk", color: .riskF)
+                    ScoreBandRow(grade: "A", range: "75–100", description: "Safe — minimum risk exposure", color: .riskA)
+                    ScoreBandRow(grade: "B", range: "55–74", description: "Stable — low risk", color: .riskB)
+                    ScoreBandRow(grade: "C", range: "35–54", description: "Watch — moderate risk", color: .riskC)
+                    ScoreBandRow(grade: "D", range: "15–34", description: "Risky — elevated risk", color: .riskD)
+                    ScoreBandRow(grade: "F", range: "0–14", description: "Critical — high risk", color: .riskF)
                 }
 
                 Text("Informational only. Scores reflect model output based on available data. They do not constitute financial advice.")
                     .font(ClavisTypography.footnote)
                     .foregroundColor(.textTertiary)
             }
-            .padding(ClavisTheme.cardPadding)
+            .padding(.horizontal, ClavisTheme.screenPadding)
+            .padding(.vertical, ClavisTheme.largeSpacing)
         }
         .background(ClavisAtmosphereBackground())
         .navigationTitle("Score Explanation")
@@ -735,7 +728,8 @@ struct MethodologyView: View {
                     .font(ClavisTypography.footnote)
                     .foregroundColor(.textTertiary)
             }
-            .padding(ClavisTheme.cardPadding)
+            .padding(.horizontal, ClavisTheme.screenPadding)
+            .padding(.vertical, ClavisTheme.largeSpacing)
         }
         .background(ClavisAtmosphereBackground())
         .navigationTitle("Methodology")

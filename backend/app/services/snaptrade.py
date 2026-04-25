@@ -541,3 +541,25 @@ def disconnect_brokerage(user_id: str) -> dict[str, Any]:
         "connections_removed": connections_removed,
         "deleted_positions": deleted_positions,
     }
+
+
+def delete_snaptrade_user(user_id: str) -> dict[str, Any]:
+    """Delete the SnapTrade user registration for this Clavix user.
+
+    This is a complete removal of the SnapTrade user identity (not just a
+    brokerage disconnect). Callers are responsible for catching any exception
+    and treating it as non-fatal when used during account deletion.
+
+    Returns a dict with 'deleted' bool and 'skipped_reason' if applicable.
+    """
+    if not snaptrade_is_configured():
+        return {"deleted": False, "skipped_reason": "not_configured"}
+
+    credentials = _get_registered_credentials(user_id)
+    if not credentials:
+        return {"deleted": False, "skipped_reason": "no_snaptrade_registration"}
+
+    snaptrade_user_id, _ = credentials
+    client = _require_snaptrade_client()
+    client.authentication.delete_snap_trade_user(user_id=snaptrade_user_id)
+    return {"deleted": True}

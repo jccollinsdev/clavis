@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Confirm your Clavix account</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0A0A0A;
+      --surface:   #111111;
+      --border:    #1E1E1E;
+      --gold:      #E8D5A3;
+      --gold-dim:  #B8A57A;
+      --text:      #F0EDE8;
+      --muted:     #6B6560;
+      --green:     #4CAF7D;
+      --red:       #E05555;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      min-height: 100svh;
+    }
+
+    /* ── Monogram ── */
+    .monogram {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #1A1A1A 0%, #141414 100%);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 28px;
+      box-shadow: 0 0 0 1px rgba(232,213,163,0.06), 0 8px 32px rgba(0,0,0,0.6);
+    }
+
+    .monogram svg {
+      width: 34px;
+      height: 34px;
+    }
+
+    /* ── Card ── */
+    .card {
+      width: 100%;
+      max-width: 400px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 32px;
+      text-align: center;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    }
+
+    /* ── Icon states ── */
+    .state-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+    }
+
+    .state-icon.loading {
+      background: rgba(232,213,163,0.08);
+      border: 1.5px solid rgba(232,213,163,0.15);
+    }
+
+    .state-icon.success {
+      background: rgba(76,175,125,0.1);
+      border: 1.5px solid rgba(76,175,125,0.25);
+    }
+
+    .state-icon.error {
+      background: rgba(224,85,85,0.1);
+      border: 1.5px solid rgba(224,85,85,0.25);
+    }
+
+    /* Spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid rgba(232,213,163,0.15);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    /* ── Typography ── */
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      color: var(--text);
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+
+    p.subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: opacity 0.15s ease, transform 0.1s ease;
+      margin-bottom: 10px;
+      letter-spacing: -0.1px;
+    }
+
+    .btn:active { transform: scale(0.98); opacity: 0.9; }
+
+    .btn-primary {
+      background: var(--gold);
+      color: #0A0A0A;
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .btn-secondary:hover { border-color: #2E2E2E; color: var(--text); }
+
+    /* ── Countdown badge ── */
+    .countdown {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .countdown-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--gold-dim);
+      animation: pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+
+    /* ── App Store badge ── */
+    .store-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      margin-top: 8px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      transition: border-color 0.15s ease;
+    }
+
+    .store-link:hover { border-color: #2E2E2E; color: var(--text); }
+
+    .store-link svg { flex-shrink: 0; }
+
+    /* ── Hidden by default ── */
+    [data-state] { display: none; }
+    [data-state].active { display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="monogram" aria-hidden="true">
+    <!-- Clavix C monogram -->
+    <svg viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M24.5 11.5C22.5 9 19.5 7.5 16.5 7.5C11 7.5 6.5 12 6.5 17.5C6.5 23 11 27.5 16.5 27.5C19.5 27.5 22.5 26 24.5 23.5" stroke="#E8D5A3" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+  </div>
+
+  <div class="card">
+
+    <!-- STATE: loading -->
+    <div data-state="loading" class="active">
+      <div class="state-icon loading">
+        <div class="spinner"></div>
+      </div>
+      <h1>Confirming your account</h1>
+      <p class="subtitle">Verifying your email and opening Clavix&hellip;</p>
+      <div class="countdown">
+        <span class="countdown-dot"></span>
+        <span id="countdown-text">Opening in 2s</span>
+      </div>
+      <button class="btn btn-primary" onclick="openApp()">Open Clavix now</button>
+    </div>
+
+    <!-- STATE: opening -->
+    <div data-state="opening">
+      <div class="state-icon success">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M4.5 11L9 15.5L17.5 7" stroke="#4CAF7D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h1>Email confirmed</h1>
+      <p class="subtitle">Your account is ready. Clavix should open automatically &mdash; if not, tap below.</p>
+      <button class="btn btn-primary" onclick="openApp()">Open Clavix</button>
+      <a href="https://apps.apple.com/app/clavix/id0000000000" class="store-link" id="appstore-link" style="display:none">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M7 1L9.5 5.5H12.5L10.5 8.5L11.5 12.5L7 10L2.5 12.5L3.5 8.5L1.5 5.5H4.5L7 1Z" stroke="#6B6560" stroke-width="1.2" stroke-linejoin="round"/>
+        </svg>
+        Not installed? Get Clavix on the App Store
+      </a>
+    </div>
+
+    <!-- STATE: error -->
+    <div data-state="error">
+      <div class="state-icon error">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M11 7V11.5M11 14.5V15" stroke="#E05555" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="11" cy="11" r="8.5" stroke="#E05555" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <h1>Link expired or invalid</h1>
+      <p class="subtitle">This confirmation link has expired or already been used. Sign in to resend a new verification email.</p>
+      <button class="btn btn-secondary" onclick="window.close()">Close this window</button>
+    </div>
+
+  </div>
+
+  <script>
+    (function () {
+      var deepLink = null;
+      var openAttempted = false;
+
+      // ── Build the clavis:// deep link ─────────────────────────────────────
+      // Supabase may deliver auth params as query params (?code=, ?token_hash=)
+      // or as hash fragments (#access_token=, #type=signup).
+      // We merge both into the deep link as query params so the iOS URL
+      // parser exposes them via url.query for supabase.auth.session(from:).
+      function buildDeepLink() {
+        var params = new URLSearchParams(window.location.search);
+
+        var hash = window.location.hash;
+        if (hash) {
+          var hashStr = hash.startsWith('#') ? hash.slice(1) : hash;
+          var hashParams = new URLSearchParams(hashStr);
+          hashParams.forEach(function (v, k) { params.set(k, v); });
+        }
+
+        var qs = params.toString();
+        return 'clavis://auth/callback' + (qs ? '?' + qs : '');
+      }
+
+      // Validate we actually got something useful from Supabase.
+      // If there are zero params we were opened directly — show error state.
+      function hasAuthParams() {
+        var search = window.location.search;
+        var hash = window.location.hash;
+        return (
+          search.includes('code=') ||
+          search.includes('token_hash=') ||
+          search.includes('access_token=') ||
+          hash.includes('access_token=') ||
+          hash.includes('type=') ||
+          hash.includes('code=')
+        );
+      }
+
+      // ── State helpers ─────────────────────────────────────────────────────
+      function setState(name) {
+        document.querySelectorAll('[data-state]').forEach(function (el) {
+          el.classList.toggle('active', el.dataset.state === name);
+        });
+      }
+
+      // ── Open app ──────────────────────────────────────────────────────────
+      function openApp() {
+        if (!deepLink) return;
+        openAttempted = true;
+        setState('opening');
+
+        // Attempt to open the custom scheme
+        window.location.href = deepLink;
+
+        // After 2.5s, if still on page, show App Store fallback
+        setTimeout(function () {
+          var link = document.getElementById('appstore-link');
+          if (link) link.style.display = 'inline-flex';
+        }, 2500);
+      }
+
+      // Expose for onclick handlers
+      window.openApp = openApp;
+
+      // ── Countdown ─────────────────────────────────────────────────────────
+      function startCountdown(seconds) {
+        var el = document.getElementById('countdown-text');
+        var remaining = seconds;
+
+        function tick() {
+          if (!el) return;
+          remaining--;
+          if (remaining <= 0) {
+            openApp();
+          } else {
+            el.textContent = 'Opening in ' + remaining + 's';
+            setTimeout(tick, 1000);
+          }
+        }
+
+        if (el) el.textContent = 'Opening in ' + seconds + 's';
+        setTimeout(tick, 1000);
+      }
+
+      // ── Init ──────────────────────────────────────────────────────────────
+      function init() {
+        if (!hasAuthParams()) {
+          setState('error');
+          return;
+        }
+
+        deepLink = buildDeepLink();
+        setState('loading');
+        startCountdown(2);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
+  </script>
+
+</body>
+</html>

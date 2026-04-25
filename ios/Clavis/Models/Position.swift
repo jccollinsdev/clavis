@@ -20,6 +20,22 @@ struct Position: Identifiable, Codable, Hashable {
     var inferredLabels: [String]?
     var summary: String?
     var lastAnalyzedAt: Date?
+    var analysisState: String?
+    var coverageState: String?
+    var coverageNote: String?
+    var analysisRunId: String?
+    var latestAnalysisRunStatus: String?
+    var latestRefreshJobId: String?
+    var latestRefreshJobStatus: String?
+    var analysisAsOf: Date?
+    var scoreSource: String?
+    var scoreAsOf: Date?
+    var scoreVersion: String?
+    var lastNewsRefreshAt: Date?
+    var newsRefreshStatus: String?
+    var priceAsOf: Date?
+    var newsAsOf: Date?
+    var source: String?
     var analysisStartedAt: Date?
 
     var riskState: RiskState? {
@@ -94,6 +110,22 @@ struct Position: Identifiable, Codable, Hashable {
         case inferredLabels = "inferred_labels"
         case summary
         case lastAnalyzedAt = "last_analyzed_at"
+        case analysisState = "analysis_state"
+        case coverageState = "coverage_state"
+        case coverageNote = "coverage_note"
+        case analysisRunId = "analysis_run_id"
+        case latestAnalysisRunStatus = "latest_analysis_run_status"
+        case latestRefreshJobId = "latest_refresh_job_id"
+        case latestRefreshJobStatus = "latest_refresh_job_status"
+        case analysisAsOf = "analysis_as_of"
+        case scoreSource = "score_source"
+        case scoreAsOf = "score_as_of"
+        case scoreVersion = "score_version"
+        case lastNewsRefreshAt = "last_news_refresh_at"
+        case newsRefreshStatus = "news_refresh_status"
+        case priceAsOf = "price_as_of"
+        case newsAsOf = "news_as_of"
+        case source
         case analysisStartedAt = "analysis_started_at"
     }
 
@@ -118,6 +150,22 @@ struct Position: Identifiable, Codable, Hashable {
         inferredLabels = try container.decodeIfPresent([String].self, forKey: .inferredLabels)
         summary = try container.decodeIfPresent(String.self, forKey: .summary)
         lastAnalyzedAt = try container.decodeIfPresent(Date.self, forKey: .lastAnalyzedAt)
+        analysisState = try container.decodeIfPresent(String.self, forKey: .analysisState)
+        coverageState = try container.decodeIfPresent(String.self, forKey: .coverageState)
+        coverageNote = try container.decodeIfPresent(String.self, forKey: .coverageNote)
+        analysisRunId = try container.decodeIfPresent(String.self, forKey: .analysisRunId)
+        latestAnalysisRunStatus = try container.decodeIfPresent(String.self, forKey: .latestAnalysisRunStatus)
+        latestRefreshJobId = try container.decodeIfPresent(String.self, forKey: .latestRefreshJobId)
+        latestRefreshJobStatus = try container.decodeIfPresent(String.self, forKey: .latestRefreshJobStatus)
+        analysisAsOf = try container.decodeIfPresent(Date.self, forKey: .analysisAsOf)
+        scoreSource = try container.decodeIfPresent(String.self, forKey: .scoreSource)
+        scoreAsOf = try container.decodeIfPresent(Date.self, forKey: .scoreAsOf)
+        scoreVersion = try container.decodeIfPresent(String.self, forKey: .scoreVersion)
+        lastNewsRefreshAt = try container.decodeIfPresent(Date.self, forKey: .lastNewsRefreshAt)
+        newsRefreshStatus = try container.decodeIfPresent(String.self, forKey: .newsRefreshStatus)
+        priceAsOf = try container.decodeIfPresent(Date.self, forKey: .priceAsOf)
+        newsAsOf = try container.decodeIfPresent(Date.self, forKey: .newsAsOf)
+        source = try container.decodeIfPresent(String.self, forKey: .source)
         analysisStartedAt = try container.decodeIfPresent(Date.self, forKey: .analysisStartedAt)
     }
 }

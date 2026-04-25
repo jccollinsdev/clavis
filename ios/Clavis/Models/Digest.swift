@@ -7,6 +7,9 @@ struct Digest: Identifiable, Codable {
     let gradeSummary: [String: String]?
     let overallGrade: String?
     let overallScore: Double?
+    let scoreSource: String?
+    let scoreAsOf: Date?
+    let scoreVersion: String?
     let structuredSections: DigestSections?
     let summary: String?
     let generatedAt: Date
@@ -18,6 +21,9 @@ struct Digest: Identifiable, Codable {
         case gradeSummary = "grade_summary"
         case overallGrade = "overall_grade"
         case overallScore = "overall_score"
+        case scoreSource = "score_source"
+        case scoreAsOf = "score_as_of"
+        case scoreVersion = "score_version"
         case structuredSections = "structured_sections"
         case summary
         case generatedAt = "generated_at"
@@ -31,18 +37,25 @@ struct Digest: Identifiable, Codable {
         gradeSummary = try? container.decodeIfPresent([String: String].self, forKey: .gradeSummary)
         overallGrade = try container.decodeIfPresent(String.self, forKey: .overallGrade)
         overallScore = try container.decodeFlexibleDoubleIfPresent(forKey: .overallScore)
+        scoreSource = try container.decodeIfPresent(String.self, forKey: .scoreSource)
+        scoreAsOf = try container.decodeIfPresent(Date.self, forKey: .scoreAsOf)
+        scoreVersion = try container.decodeIfPresent(String.self, forKey: .scoreVersion)
         structuredSections = try? container.decodeIfPresent(DigestSections.self, forKey: .structuredSections)
         summary = try container.decodeIfPresent(String.self, forKey: .summary)
         generatedAt = try container.decodeIfPresent(Date.self, forKey: .generatedAt) ?? Date()
     }
 }
 
-struct DigestResponse: Codable {
+struct DigestResponse: Decodable {
     let digest: Digest?
     let savedDigest: Digest?
     let generatedDigest: Digest?
     let analysisRun: AnalysisRun?
     let overallGrade: String?
+    let overallScore: Double?
+    let scoreSource: String?
+    let scoreAsOf: Date?
+    let scoreVersion: String?
     let structuredSections: DigestSections?
     let generatedAt: Date?
     let gradeSummary: [String: String]?
@@ -54,6 +67,10 @@ struct DigestResponse: Codable {
         case generatedDigest = "generated_digest"
         case analysisRun = "analysis_run"
         case overallGrade = "overall_grade"
+        case overallScore = "overall_score"
+        case scoreSource = "score_source"
+        case scoreAsOf = "score_as_of"
+        case scoreVersion = "score_version"
         case structuredSections = "structured_sections"
         case generatedAt = "generated_at"
         case gradeSummary = "grade_summary"
@@ -67,6 +84,10 @@ struct DigestResponse: Codable {
         generatedDigest = try? container.decodeIfPresent(Digest.self, forKey: .generatedDigest)
         analysisRun = try? container.decodeIfPresent(AnalysisRun.self, forKey: .analysisRun)
         overallGrade = try container.decodeIfPresent(String.self, forKey: .overallGrade)
+        overallScore = try container.decodeFlexibleDoubleIfPresent(forKey: .overallScore)
+        scoreSource = try container.decodeIfPresent(String.self, forKey: .scoreSource)
+        scoreAsOf = try container.decodeIfPresent(Date.self, forKey: .scoreAsOf)
+        scoreVersion = try container.decodeIfPresent(String.self, forKey: .scoreVersion)
         structuredSections = try? container.decodeIfPresent(DigestSections.self, forKey: .structuredSections)
         generatedAt = try container.decodeIfPresent(Date.self, forKey: .generatedAt)
         gradeSummary = try? container.decodeIfPresent([String: String].self, forKey: .gradeSummary)

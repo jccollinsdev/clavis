@@ -23,21 +23,30 @@ final class NetworkStatusMonitor: ObservableObject {
 
 struct OfflineStatusBanner: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Offline")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(.red)
-            Text("Showing cached data. Actions will retry when the network returns.")
-                .font(.system(size: 15))
-                .foregroundColor(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "wifi.slash")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.riskD)
+                .padding(.top, 2)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Offline")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.textPrimary)
+                Text("Showing cached data. Actions will retry when the network returns.")
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundColor(.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 0)
         }
         .padding(12)
-        .background(Color(white: 0.14))
+        .background(Color.surface)
         .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(Color(white: 0.28), lineWidth: 1)
+            RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous)
+                .stroke(Color.border, lineWidth: 1)
         )
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous))
     }
 }

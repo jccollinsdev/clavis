@@ -9,11 +9,6 @@ struct DashboardView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
                     DashboardTopHeader(refresh: { Task { await viewModel.loadData() } })
-                    CX2LargeTitle("Good morning") {
-                        Text(Date().formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day()))
-                            .font(.system(size: 13, weight: .regular))
-                            .foregroundColor(.textSecondary)
-                    }
 
                     if NetworkStatusMonitor.shared.isOffline {
                         OfflineStatusBanner()
@@ -47,7 +42,7 @@ struct DashboardView: View {
                             DashboardNeedsAttentionCard(items: viewModel.priorityQueue)
                         }
 
-                        DashboardWhatChangedCard(viewModel: viewModel)
+                        DashboardWhatChangedCard(viewModel: viewModel, openAlerts: { selectedTab = 3 })
 
                         DashboardDigestTeaserCard(
                             digest: viewModel.todayDigest,
@@ -79,12 +74,10 @@ private struct DashboardTopHeader: View {
     let refresh: () -> Void
 
     var body: some View {
-        CX2NavBar(transparent: true, showBorder: false) {
-            Text("C")
-                .font(.custom("JetBrainsMono-Regular", size: 16))
-                .fontWeight(.bold)
-                .foregroundColor(.brandCream)
-        } trailing: {
+        ClavixPageHeader(
+            title: "Good morning",
+            subtitle: Date().formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day())
+        ) {
             CX2IconButton(action: refresh) {
                 Image(systemName: "clock")
                     .font(.system(size: 16, weight: .medium))
@@ -99,93 +92,51 @@ private struct DashboardPrototypeHeroCard: View {
     let onRunAnalysis: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            VStack(alignment: .leading, spacing: 0) {
-                CX2SectionLabel(text: "Portfolio score")
-                    .padding(.bottom, 10)
+        VStack(alignment: .leading, spacing: 0) {
+            CX2SectionLabel(text: "Portfolio Score")
+                .padding(.bottom, 10)
 
-                HStack(alignment: .lastTextBaseline, spacing: 12) {
-                    Text("\(Int(viewModel.portfolioScore.rounded()))")
-                        .font(.system(size: 64, weight: .bold, design: .monospaced))
-                        .foregroundColor(.textPrimary)
-                        .tracking(-2)
+            HStack(alignment: .center, spacing: 12) {
+                Text(viewModel.portfolioScoreText)
+                    .font(.system(size: 64, weight: .bold, design: .monospaced))
+                    .foregroundColor(.textPrimary)
+                    .tracking(-2)
 
-                    GradeTag(grade: viewModel.portfolioGrade == "N/A" ? "C" : viewModel.portfolioGrade)
+                GradeTag(grade: viewModel.portfolioGrade)
+            }
 
-                    if let previousScore {
-                        EmptyView()
-                    }
-                }
-
-                Text(viewModel.portfolioSummary)
-                    .font(.system(size: 15, weight: .regular))
-                    .foregroundColor(.textSecondary)
-                    .lineSpacing(3)
-                    .padding(.top, 10)
-
-                HStack(alignment: .center, spacing: 8) {
-                    Text("7 days")
-                        .font(.system(size: 11, weight: .regular))
-                        .foregroundColor(.textSecondary)
-
-                    Spacer()
-
-                    Button(action: onRefresh) {
-                        Text("Refresh")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.textPrimary)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(Color.surface)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                    .stroke(Color.border, lineWidth: 1)
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
-
-                    Button(action: onRunAnalysis) {
-                        Text(viewModel.isRefreshingAnalysis ? "Running" : "Run")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.backgroundPrimary)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(Color.textPrimary)
-                            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(viewModel.isRefreshingAnalysis || viewModel.isAnalysisRunning)
-                }
-
-                HStack(spacing: 8) {
-                    Text("Updated \(viewModel.lastUpdatedAt?.formatted(date: .omitted, time: .shortened) ?? "Pending")")
-                    Text("·")
-                    Text("Next \(viewModel.nextScheduledRunText)")
-                }
-                .font(.system(size: 11, weight: .regular))
+            Text(viewModel.portfolioSummary)
+                .font(.system(size: 15, weight: .regular))
                 .foregroundColor(.textSecondary)
-                .padding(.top, 6)
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 10)
+
+            HStack(spacing: 8) {
+                ClavisSmallButton(title: "Refresh", systemImage: "arrow.clockwise", kind: .neutral) {
+                    onRefresh()
+                }
+
+                ClavisSmallButton(
+                    title: viewModel.isRefreshingAnalysis ? "Running" : "Run",
+                    kind: .prominent,
+                    isEnabled: !(viewModel.isRefreshingAnalysis || viewModel.isAnalysisRunning)
+                ) {
+                    onRunAnalysis()
+                }
             }
+            .padding(.top, 16)
+
+            HStack(spacing: 8) {
+                Text("Updated \(viewModel.lastUpdatedAt?.formatted(date: .omitted, time: .shortened) ?? "Pending")")
+                Text("·")
+                Text("Next \(viewModel.nextScheduledRunText)")
+            }
+            .font(.system(size: 11, weight: .regular))
+            .foregroundColor(.textSecondary)
+            .padding(.top, 8)
         }
     }
-
-    private var previousScore: Int? {
-        let scores = viewModel.holdings.compactMap { position -> Double? in
-            guard let previous = position.previousGrade else { return nil }
-            switch previous {
-            case "A": return 83
-            case "B": return 65
-            case "C": return 45
-            case "D": return 25
-            case "F": return 8
-            default: return nil
-            }
-        }
-        guard !scores.isEmpty else { return nil }
-        return Int((scores.reduce(0, +) / Double(scores.count)).rounded())
-    }
-
 }
 
 private struct DashboardStatStrip: View {
@@ -193,9 +144,9 @@ private struct DashboardStatStrip: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            DashboardSummaryStatCard(label: "At risk", value: "\(viewModel.deterioratingCount)", detail: "of \(viewModel.holdings.count) holdings")
-            DashboardSummaryStatCard(label: "Alerts", value: "\(viewModel.changeAlerts.count)", detail: "recent changes")
-            DashboardSummaryStatCard(label: "Watchlist", value: "\(viewModel.morningFocusItems.count)", detail: "items tracked")
+            DashboardSummaryStatCard(label: "At risk", value: "\(viewModel.deterioratingCount)", detail: "of \(viewModel.holdings.count) holdings", showDivider: true)
+            DashboardSummaryStatCard(label: "Alerts", value: "\(viewModel.changeAlerts.count)", detail: "recent changes", showDivider: true)
+            DashboardSummaryStatCard(label: "Watchlist", value: "\(viewModel.morningFocusItems.count)", detail: "items tracked", showDivider: false)
         }
         .background(Color.surface)
         .overlay(
@@ -210,6 +161,7 @@ private struct DashboardSummaryStatCard: View {
     let label: String
     let value: String
     let detail: String
+    let showDivider: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -230,16 +182,18 @@ private struct DashboardSummaryStatCard: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 14)
         .overlay(alignment: .trailing) {
-            Rectangle()
-                .fill(Color.border)
-                .frame(width: 1)
-                .opacity(label == "Watchlist" ? 0 : 1)
+            if showDivider {
+                Rectangle()
+                    .fill(Color.border)
+                    .frame(width: 1)
+            }
         }
     }
 }
 
 private struct DashboardWhatChangedCard: View {
     @ObservedObject var viewModel: DashboardViewModel
+    let openAlerts: () -> Void
 
     private var entries: [DashboardChangeEntry] {
         var items = viewModel.changeAlerts.prefix(3).map {
@@ -255,8 +209,8 @@ private struct DashboardWhatChangedCard: View {
             items.insert(
                 DashboardChangeEntry(
                     title: "Portfolio",
-                    grade: viewModel.portfolioGrade == "N/A" ? "—" : viewModel.portfolioGrade,
-                    message: "Score \(Int(viewModel.portfolioScore.rounded())) · \(viewModel.portfolioRiskState.displayName)",
+                    grade: viewModel.portfolioGrade,
+                    message: "Score \(viewModel.portfolioScoreText) · \(viewModel.portfolioRiskState?.displayName ?? "Unknown")",
                     time: viewModel.lastUpdatedAt?.relativeTimestamp ?? "Now"
                 ),
                 at: 0
@@ -271,10 +225,12 @@ private struct DashboardWhatChangedCard: View {
             HStack(alignment: .lastTextBaseline) {
                 CX2SectionLabel(text: "What changed · \(entries.count)")
                 Spacer()
-                Button("See all") {}
-                    .buttonStyle(.plain)
-                    .font(.system(size: 13, weight: .regular))
-                    .foregroundColor(.informational)
+                Button(action: openAlerts) {
+                    Text("See all")
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundColor(.informational)
+                }
+                .buttonStyle(.plain)
             }
 
             ForEach(entries) { entry in
@@ -405,205 +361,6 @@ private extension Date {
     }
 }
 
-struct DashboardMastheadCard: View {
-    @ObservedObject var viewModel: DashboardViewModel
-    let onOpenHoldings: () -> Void
-    let onOpenDigest: () -> Void
-    let onOpenAlerts: () -> Void
-    let onRefresh: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-            ClavisEyebrowHeader(eyebrow: "Home", title: "Portfolio triage")
-
-            Text(viewModel.portfolioSummary)
-                .font(ClavisTypography.body)
-                .foregroundColor(.textSecondary)
-
-            HStack(alignment: .top, spacing: ClavisTheme.mediumSpacing) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Risk score")
-                        .font(ClavisTypography.label)
-                        .foregroundColor(.textTertiary)
-
-                    Text("\(Int(viewModel.portfolioScore.rounded()))")
-                        .font(ClavisTypography.portfolioScore)
-                        .foregroundColor(ClavisGradeStyle.riskColor(for: viewModel.portfolioGrade))
-                        .monospacedDigit()
-                }
-
-                Spacer()
-
-                GradeTag(grade: viewModel.portfolioGrade == "N/A" ? "C" : viewModel.portfolioGrade, large: true)
-            }
-
-            HStack(spacing: ClavisTheme.smallSpacing) {
-                DashboardMetaPill(title: "Updated", value: viewModel.lastUpdatedAt?.formatted(date: .abbreviated, time: .shortened) ?? "Pending")
-                DashboardMetaPill(title: "Pressure", value: viewModel.portfolioActionPressure.displayName, accent: ClavisDecisionStyle.tint(for: viewModel.portfolioActionPressure))
-            }
-
-            HStack(spacing: ClavisTheme.smallSpacing) {
-                Button(action: onOpenHoldings) {
-                    Label("Holdings", systemImage: "briefcase.fill")
-                        .font(ClavisTypography.footnoteEmphasis)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-
-                Button(action: onOpenDigest) {
-                    Label("Digest", systemImage: "newspaper.fill")
-                        .font(ClavisTypography.footnoteEmphasis)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-
-                Button(action: onOpenAlerts) {
-                    Label("Alerts", systemImage: "bell.fill")
-                        .font(ClavisTypography.footnoteEmphasis)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-            }
-
-            HStack {
-                Text("Informational only. Not financial advice.")
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.textTertiary)
-                Spacer()
-                Button(action: onRefresh) {
-                    Label("Refresh", systemImage: "arrow.clockwise")
-                        .font(ClavisTypography.footnoteEmphasis)
-                }
-                .buttonStyle(.plain)
-                .foregroundColor(.informational)
-            }
-        }
-        .padding(ClavisTheme.cardPadding)
-        .clavisHeroCardStyle(fill: .surface)
-    }
-}
-
-struct DashboardHeroCard: View {
-    @ObservedObject var viewModel: DashboardViewModel
-
-    private var summaryText: String {
-        viewModel.todayDigest?.summary?.sanitizedDisplayText ?? viewModel.portfolioSummary
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-            HStack(alignment: .top, spacing: ClavisTheme.mediumSpacing) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Portfolio Risk")
-                        .font(ClavisTypography.cardTitle)
-                        .foregroundColor(.textPrimary)
-
-                    Text("\(Int(viewModel.portfolioScore.rounded()))")
-                        .font(ClavisTypography.portfolioScore)
-                        .foregroundColor(ClavisGradeStyle.riskColor(for: viewModel.portfolioGrade))
-                        .monospacedDigit()
-
-                    Text(viewModel.portfolioRiskState.displayName)
-                        .font(ClavisTypography.bodyEmphasis)
-                        .foregroundColor(.textSecondary)
-                }
-
-                Spacer()
-
-                GradeTag(grade: viewModel.portfolioGrade == "N/A" ? "C" : viewModel.portfolioGrade, large: true)
-                    .padding(.top, 6)
-                    .padding(.trailing, 10)
-            }
-
-            Text(summaryText)
-                .font(ClavisTypography.body)
-                .foregroundColor(.textSecondary)
-
-            HStack(spacing: ClavisTheme.smallSpacing) {
-                DashboardMetaPill(
-                    title: "Updated",
-                    value: viewModel.lastUpdatedAt?.formatted(date: .abbreviated, time: .shortened) ?? "Pending"
-                )
-
-                DashboardMetaPill(
-                    title: "Pressure",
-                    value: viewModel.portfolioActionPressure.displayName,
-                    accent: ClavisDecisionStyle.tint(for: viewModel.portfolioActionPressure)
-                )
-            }
-        }
-        .padding(ClavisTheme.cardPadding)
-        .clavisHeroCardStyle(fill: .surface)
-
-        VStack(alignment: .leading, spacing: 2) {
-            if let updatedAt = viewModel.lastUpdatedAt {
-                Text("Score as of \(updatedAt.formatted(date: .abbreviated, time: .shortened))")
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.textTertiary)
-            }
-            Text("Informational only. Not financial advice.")
-                .font(ClavisTypography.footnote)
-                .foregroundColor(.textTertiary)
-        }
-        .padding(.horizontal, ClavisTheme.cardPadding)
-        .padding(.bottom, ClavisTheme.smallSpacing)
-    }
-}
-
-struct DashboardSnapshotCard: View {
-    @ObservedObject var viewModel: DashboardViewModel
-
-    private var leadingInsight: String {
-        if let summary = viewModel.todayDigest?.structuredSections?.overnightMacro?.brief.sanitizedDisplayText,
-           !summary.isEmpty {
-            return summary
-        }
-        return viewModel.morningFocusSummary
-    }
-
-    var body: some View {
-        VStack(alignment: .center, spacing: ClavisTheme.mediumSpacing) {
-            Text("Today at a Glance")
-                .font(ClavisTypography.cardTitle)
-                .foregroundColor(.textPrimary)
-                .frame(maxWidth: .infinity, alignment: .center)
-
-            Text(leadingInsight)
-                .font(ClavisTypography.body)
-                .foregroundColor(.textSecondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: .infinity, alignment: .center)
-
-        }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surface)
-    }
-}
-
-struct DashboardChipRow: View {
-    let title: String
-    let values: [String]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-            Text(title)
-                .font(ClavisTypography.footnoteEmphasis)
-                .foregroundColor(.textTertiary)
-
-            FlowLayout(spacing: 8) {
-                ForEach(values, id: \.self) { value in
-                    Text(value)
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.textPrimary)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .clavisSecondaryCardStyle(fill: .surfaceElevated)
-                }
-            }
-        }
-    }
-}
-
 struct DashboardNeedsAttentionCard: View {
     let items: [DashboardPriorityItem]
 
@@ -669,199 +426,6 @@ struct DashboardAttentionRow: View {
     }
 }
 
-struct SinceLastReviewCard: View {
-    let worseningCount: Int
-    let improvingCount: Int
-    let majorEventCount: Int
-    let alerts: [Alert]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-            Text("Since Last Review")
-                .font(ClavisTypography.cardTitle)
-                .foregroundColor(.textPrimary)
-
-            HStack(spacing: ClavisTheme.smallSpacing) {
-                ReviewMetricTile(value: worseningCount, label: "Worsening", tint: .riskF)
-                ReviewMetricTile(value: improvingCount, label: "Improving", tint: .riskA)
-                ReviewMetricTile(value: majorEventCount, label: "Events", tint: .riskC)
-            }
-
-            if !alerts.isEmpty {
-                VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                    ForEach(alerts.prefix(3)) { alert in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(alertHeadline(alert))
-                                .font(ClavisTypography.footnoteEmphasis)
-                                .foregroundColor(.textPrimary)
-                            Text(alert.message.sanitizedDisplayText)
-                                .font(ClavisTypography.footnote)
-                                .foregroundColor(.textSecondary)
-                                .lineLimit(2)
-                        }
-                        .padding(ClavisTheme.cardPadding)
-                        .clavisSecondaryCardStyle(fill: .surfaceElevated)
-                    }
-                }
-            }
-        }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surface)
-    }
-
-    private func alertHeadline(_ alert: Alert) -> String {
-        if let ticker = alert.positionTicker {
-            return "\(ticker) · \(alert.type.displayName)"
-        }
-        return alert.type.displayName
-    }
-}
-
-struct ReviewMetricTile: View {
-    let value: Int
-    let label: String
-    let tint: Color
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("\(value)")
-                .font(ClavisTypography.dataNumber)
-                .foregroundColor(tint)
-                .monospacedDigit()
-            Text(label)
-                .font(ClavisTypography.footnote)
-                .foregroundColor(.textSecondary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(ClavisTheme.cardPadding)
-        .clavisSecondaryCardStyle(fill: .surfaceElevated)
-    }
-}
-
-struct DashboardPlaybookCard: View {
-    let digest: Digest
-    let openDigest: () -> Void
-    let openAlerts: () -> Void
-
-    private var actions: [String] {
-        Array((digest.structuredSections?.portfolioImpact ?? []).prefix(3))
-    }
-
-    private var watchList: [String] {
-        Array((digest.structuredSections?.watchList ?? []).prefix(2))
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-            HStack {
-                Text("Digest")
-                    .font(ClavisTypography.cardTitle)
-                    .foregroundColor(.textPrimary)
-                Spacer()
-                Button("See All", action: openDigest)
-                    .font(ClavisTypography.footnoteEmphasis)
-                    .foregroundColor(.informational)
-            }
-
-            if !actions.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("What Changed")
-                        .font(ClavisTypography.footnoteEmphasis)
-                        .foregroundColor(.textTertiary)
-
-                    ForEach(Array(actions.enumerated()), id: \.offset) { index, action in
-                        HStack(alignment: .top, spacing: 8) {
-                            Text("\(index + 1)")
-                                .font(ClavisTypography.footnoteEmphasis)
-                                .foregroundColor(.textPrimary)
-                                .frame(width: 18, alignment: .leading)
-
-                            Text(action)
-                                .font(ClavisTypography.body)
-                                .foregroundColor(.textSecondary)
-                        }
-                    }
-                }
-            }
-
-            if !watchList.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Watch List")
-                        .font(ClavisTypography.footnoteEmphasis)
-                        .foregroundColor(.textTertiary)
-
-                    ForEach(watchList, id: \.self) { item in
-                        Text(item)
-                            .font(ClavisTypography.footnote)
-                            .foregroundColor(.textSecondary)
-                    }
-                }
-            }
-
-            if actions.isEmpty && watchList.isEmpty {
-                Text("Open the latest digest for the current portfolio readout.")
-                    .font(ClavisTypography.body)
-                    .foregroundColor(.textSecondary)
-            }
-
-            Button("Open Alerts", action: openAlerts)
-                .font(ClavisTypography.footnoteEmphasis)
-                .foregroundColor(.informational)
-        }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surface)
-    }
-}
-
-struct DashboardMetaPill: View {
-    let title: String
-    let value: String
-    var accent: Color = .textPrimary
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(title)
-                .font(ClavisTypography.label)
-                .foregroundColor(.textTertiary)
-            Text(value)
-                .font(ClavisTypography.footnoteEmphasis)
-                .foregroundColor(accent)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .clavisSecondaryCardStyle(fill: .surfaceElevated)
-    }
-}
-
-struct DigestPreviewCard: View {
-    let digest: Digest?
-    let onTap: () -> Void
-
-    var body: some View {
-        Button(action: onTap) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("TODAY'S DIGEST")
-                    .font(ClavisTypography.label)
-                    .kerning(0.88)
-                    .foregroundColor(.textSecondary)
-
-                Text(previewText)
-                    .font(ClavisTypography.body)
-                    .foregroundColor(.textPrimary)
-                    .lineLimit(3)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .padding(ClavisTheme.cardPadding)
-            .clavisCardStyle(fill: .surface)
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var previewText: String {
-        digest?.summary?.sanitizedDisplayText ?? "Open the latest digest summary."
-    }
-}
-
 struct DashboardLoadingCard: View {
     var body: some View {
         ClavisLoadingCard(title: "Loading dashboard", subtitle: "Fetching holdings and digest data.")
@@ -906,23 +470,3 @@ struct DashboardErrorCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
-
-struct FlowLayout<Content: View>: View {
-    let spacing: CGFloat
-    @ViewBuilder let content: Content
-
-    init(spacing: CGFloat = 8, @ViewBuilder content: () -> Content) {
-        self.spacing = spacing
-        self.content = content()
-    }
-
-    var body: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(spacing: spacing) { content }
-            VStack(alignment: .leading, spacing: spacing) { content }
-        }
-    }
-}
-
-// MARK: - Backward compat alias used by other files
-typealias CompactMetricReadout = ReviewMetricTile

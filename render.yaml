@@ -1,5 +1,15 @@
 services:
   - type: web
+    name: clavis-web
+    runtime: static
+    staticPublishPath: ./web
+    pullRequestPreviewsEnabled: false
+    routes:
+      - type: rewrite
+        source: /confirm
+        destination: /confirm.html
+
+  - type: web
     name: clavis-backend
     runtime: docker
     dockerContext: ./backend

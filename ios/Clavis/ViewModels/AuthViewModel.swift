@@ -62,16 +62,22 @@ class AuthViewModel: ObservableObject {
         statusMessage = nil
 
         do {
-            try await authService.signUp(email: email, password: password)
-            isAuthenticated = true
-            hasCompletedOnboarding = false
-            await checkOnboardingStatus()
+            let sessionEstablished = try await authService.signUp(email: email, password: password)
+            if sessionEstablished {
+                isAuthenticated = true
+                hasCompletedOnboarding = false
+                await checkOnboardingStatus()
+            } else {
+                // Supabase requires email confirmation — no session yet.
+                // Don't enter the app; user must verify email then sign in.
+                statusMessage = "Check your email and click the verification link, then sign in."
+            }
         } catch let error as NSError {
             errorMessage = error.localizedDescription
-            print("Sign up error: \(error)")
+            print("[Auth] signUp error: \(error)")
         } catch {
             errorMessage = error.localizedDescription
-            print("Sign up error: \(error)")
+            print("[Auth] signUp error: \(error)")
         }
 
         isLoading = false
@@ -124,5 +130,19 @@ class AuthViewModel: ObservableObject {
 
     func markOnboardingComplete() {
         hasCompletedOnboarding = true
+    }
+
+    // Called when the OS delivers a clavis://auth/callback URL (email confirm or password reset).
+    // Exchanges the PKCE code for a session, then determines where to route the user.
+    func handleAuthDeepLink(url: URL) async {
+        do {
+            try await authService.handleAuthCallback(url: url)
+            print("[Auth] handleAuthDeepLink session established from url=\(url.absoluteString)")
+            isAuthenticated = true
+            await checkOnboardingStatus()
+        } catch {
+            print("[Auth] handleAuthDeepLink failed: \(error)")
+            errorMessage = "Email confirmation failed. Please try signing in directly."
+        }
     }
 }

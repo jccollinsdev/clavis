@@ -4,6 +4,7 @@ import SwiftUI
 @MainActor
 class DashboardViewModel: ObservableObject {
     @Published private(set) var dashboard: DashboardResponse?
+    @Published private(set) var schedulerStatus: SchedulerStatusResponse?
     @Published var isLoading = false
     @Published var isRefreshingAnalysis = false
     @Published var errorMessage: String?
@@ -19,28 +20,20 @@ class DashboardViewModel: ObservableObject {
     var portfolioRiskSnapshot: PortfolioRiskSnapshot? { dashboard?.portfolioRiskSnapshot }
 
     var portfolioGrade: String {
-        if let digestGrade = todayDigest?.overallGrade {
-            return digestGrade
-        }
-        guard !holdings.isEmpty else { return "N/A" }
-        let grades = holdings.compactMap { $0.riskGrade }
-        guard !grades.isEmpty else { return "N/A" }
-        let gradeValues = grades.map { gradeValue($0) }
-        let avg = gradeValues.reduce(0, +) / Double(gradeValues.count)
-        return scoreToGrade(avg)
+        resolvedPortfolioGrade ?? "—"
     }
 
-    var portfolioScore: Double {
-        if let digestScore = todayDigest?.overallScore {
-            return digestScore
-        }
-        let scores = holdings.compactMap { $0.totalScore }
-        guard !scores.isEmpty else { return 0 }
-        return scores.reduce(0, +) / Double(scores.count)
+    var portfolioScore: Double? {
+        resolvedPortfolioScore
     }
 
-    var portfolioRiskState: RiskState {
-        RiskState.from(score: portfolioScore)
+    var portfolioScoreText: String {
+        portfolioScore.map { "\(Int($0.rounded()))" } ?? "Pending"
+    }
+
+    var portfolioRiskState: RiskState? {
+        guard let portfolioScore else { return nil }
+        return RiskState.from(score: portfolioScore)
     }
 
     var portfolioRiskTrend: RiskTrend {
@@ -51,19 +44,22 @@ class DashboardViewModel: ObservableObject {
         return .stable
     }
 
-    var portfolioActionPressure: ActionPressure {
-        ActionPressure.from(score: portfolioScore, trend: portfolioRiskTrend)
+    var portfolioActionPressure: ActionPressure? {
+        guard let portfolioScore else { return nil }
+        return ActionPressure.from(score: portfolioScore, trend: portfolioRiskTrend)
     }
 
     var portfolioSummary: String {
-        let state = portfolioRiskState.displayName.lowercased()
+        guard let state = portfolioRiskState?.displayName.lowercased() else {
+            return "Score unavailable, analysis pending."
+        }
         if let driver = topRiskDriverSummary, portfolioRiskTrend == .increasing {
             return "Portfolio risk is \(state), driven mainly by \(driver)."
         }
         if portfolioRiskTrend == .improving {
             return "Portfolio risk is \(state), with some positions improving."
         }
-        return "Portfolio risk is \(state) and stable."
+        return "Portfolio risk is \(state)."
     }
 
     var improvingCount: Int {
@@ -181,6 +177,9 @@ class DashboardViewModel: ObservableObject {
     }
 
     var nextScheduledRunText: String {
+        if let nextRun = schedulerStatus?.runtimeNextRunAt {
+            return nextRun.formatted(date: .omitted, time: .shortened)
+        }
         let calendar = Calendar.current
         let now = Date()
         var nextComponents = calendar.dateComponents([.year, .month, .day], from: now)
@@ -204,6 +203,20 @@ class DashboardViewModel: ObservableObject {
         return alerts.filter { relevantTypes.contains($0.type) }.prefix(4).map { $0 }
     }
 
+    private var resolvedPortfolioScore: Double? {
+        dashboard?.overallScore
+            ?? todayDigest?.overallScore
+            ?? dashboard?.generatedDigest?.overallScore
+            ?? dashboard?.savedDigest?.overallScore
+    }
+
+    private var resolvedPortfolioGrade: String? {
+        dashboard?.overallGrade
+            ?? todayDigest?.overallGrade
+            ?? dashboard?.generatedDigest?.overallGrade
+            ?? dashboard?.savedDigest?.overallGrade
+    }
+
     var majorEventAlerts: [Alert] {
         let types: Set<AlertType> = [.majorEvent]
         return alerts.filter { types.contains($0.type) }.prefix(4).map { $0 }
@@ -216,8 +229,32 @@ class DashboardViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            let fetched = try await api.fetchDashboard()
+            async let fetchedDashboard = api.fetchDashboard()
+            async let fetchedSchedulerStatus = api.fetchSchedulerStatus()
+            let fetched = try await fetchedDashboard
+            let scheduler = try? await fetchedSchedulerStatus
             dashboard = fetched
+            schedulerStatus = scheduler
+
+#if DEBUG
+            let authUserId = await SupabaseAuthService.shared.getUserId() ?? "nil"
+            let formattedScore: (Double?) -> String = { value in
+                guard let value else { return "nil" }
+                return String(format: "%.1f", value)
+            }
+            let payloadSummary = [
+                "baseURL=\(Config.backendBaseUrl)",
+                "authUserId=\(authUserId)",
+                "topLevelScore=\(formattedScore(fetched.overallScore))",
+                "digestScore=\(formattedScore(fetched.digest?.overallScore))",
+                "savedDigestScore=\(formattedScore(fetched.savedDigest?.overallScore))",
+                "generatedDigestScore=\(formattedScore(fetched.generatedDigest?.overallScore))",
+                "overallGrade=\(fetched.overallGrade ?? "nil")",
+                "scoreSource=\(fetched.scoreSource ?? "nil")",
+                "scoreAsOf=\(fetched.scoreAsOf?.formatted() ?? "nil")",
+            ].joined(separator: " | ")
+            print("[DashboardScorePayload] \(payloadSummary)")
+#endif
 
             switch fetched.analysisRun?.lifecycleStatus {
             case "running", "queued":
@@ -314,14 +351,6 @@ class DashboardViewModel: ObservableObject {
         case "F": return 25
         default: return 50
         }
-    }
-
-    private func scoreToGrade(_ score: Double) -> String {
-        if score >= 75 { return "A" }
-        if score >= 55 { return "B" }
-        if score >= 35 { return "C" }
-        if score >= 15 { return "D" }
-        return "F"
     }
 
     private func attentionRank(for position: Position) -> Int {

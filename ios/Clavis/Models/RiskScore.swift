@@ -23,6 +23,10 @@ struct RiskScore: Identifiable, Codable {
     let coverageNote: String?
     let isProvisional: Bool?
 
+    let scoreSource: String?
+    let scoreAsOf: Date?
+    let scoreVersion: String?
+
     let reasoning: String?
     let mirofishUsed: Bool
     let calculatedAt: Date
@@ -48,6 +52,9 @@ struct RiskScore: Identifiable, Codable {
         case coverageState = "coverage_state"
         case coverageNote = "coverage_note"
         case isProvisional = "is_provisional"
+        case scoreSource = "score_source"
+        case scoreAsOf = "score_as_of"
+        case scoreVersion = "score_version"
         case reasoning
         case mirofishUsed = "mirofish_used"
         case calculatedAt = "calculated_at"
@@ -75,6 +82,9 @@ struct RiskScore: Identifiable, Codable {
         coverageState = try? container.decodeIfPresent(String.self, forKey: .coverageState)
         coverageNote = try? container.decodeIfPresent(String.self, forKey: .coverageNote)
         isProvisional = try? container.decodeIfPresent(Bool.self, forKey: .isProvisional)
+        scoreSource = try? container.decodeIfPresent(String.self, forKey: .scoreSource)
+        scoreAsOf = try? container.decodeIfPresent(Date.self, forKey: .scoreAsOf)
+        scoreVersion = try? container.decodeIfPresent(String.self, forKey: .scoreVersion)
         reasoning = try? container.decodeIfPresent(String.self, forKey: .reasoning)
         mirofishUsed = (try? container.decode(Bool.self, forKey: .mirofishUsed)) ?? false
         calculatedAt = try container.decode(Date.self, forKey: .calculatedAt)

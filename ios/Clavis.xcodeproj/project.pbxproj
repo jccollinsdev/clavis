@@ -18,6 +18,7 @@
 		3EAE8B2B99CE87F9C797C551 /* PositionAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = E435B87D2019D238DB264C8B /* PositionAnalysis.swift */; };
 		43838696AA2414C499640B61 /* SupabaseAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 907D204F5C1EFC6857CFA92B /* SupabaseAuthService.swift */; };
 		4541BC98D2D1F6C144CF8016 /* HoldingsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B47422C72E57F1AD65337925 /* HoldingsListView.swift */; };
+		47F6465272C3A8E4EE32DDA1 /* NetworkStatusMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9027BA75CB22430CF3A61B46 /* NetworkStatusMonitor.swift */; };
 		4C67DB796D30B8B099615B2E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3EF9D33F89ABA37D1B82F8FF /* Assets.xcassets */; };
 		4E2788D874AA22953477EE2A /* PriceChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F46151C0C929856200978D9 /* PriceChartView.swift */; };
 		5325BE30E38E60F995043C32 /* OnboardingContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E39592197B205D7C5872DC4B /* OnboardingContainerView.swift */; };
@@ -48,6 +49,7 @@
 		C3B908BF8D2C24F59E42F8D6 /* PositionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1FCE7F1240CC9D1BB5D9A91 /* PositionDetailView.swift */; };
 		D6CE6DA725D651B0796E0F78 /* AnalysisRun.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11006E9F2139120F0114C419 /* AnalysisRun.swift */; };
 		E9D835436887C65DC61A0B7C /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = A5451017CC31874BF6BE7AAD /* Supabase */; };
+		F0F488E4218A118D1566EB56 /* ClavisCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C8B94F66156A937403DBA44 /* ClavisCopy.swift */; };
 		F93CCEE1F1296B9D0C69B5DE /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5460710645F8A1BFF558CFE /* DashboardView.swift */; };
 		FA0755FB18875171EAD7FFD7 /* TickerDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12E13C8D040E91F932034B3 /* TickerDetailView.swift */; };
 		FF2EFFAFA4C71C004E7BE8F0 /* Alert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87747037B87C524712EB60CE /* Alert.swift */; };
@@ -65,6 +67,7 @@
 		2179397FC5DAEEF86E5A5C71 /* JetBrainsMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Regular.ttf"; sourceTree = "<group>"; };
 		29A809E82D0C86C833E0C7B3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		2D439D2E866ACEF64034DD2D /* AlertsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertsViewModel.swift; sourceTree = "<group>"; };
+		3C8B94F66156A937403DBA44 /* ClavisCopy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClavisCopy.swift; sourceTree = "<group>"; };
 		3EF9D33F89ABA37D1B82F8FF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		417DBD36968B87DE7233E51A /* NewsFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsFeed.swift; sourceTree = "<group>"; };
 		473421A47E2CCB53FC0AEAF7 /* PushNotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationManager.swift; sourceTree = "<group>"; };
@@ -82,6 +85,7 @@
 		865D86FE1054F68F98487739 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		87747037B87C524712EB60CE /* Alert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Alert.swift; sourceTree = "<group>"; };
 		8EB3AB54AAFB8C83DECCA920 /* Inter-Variable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inter-Variable.ttf"; sourceTree = "<group>"; };
+		9027BA75CB22430CF3A61B46 /* NetworkStatusMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkStatusMonitor.swift; sourceTree = "<group>"; };
 		907D204F5C1EFC6857CFA92B /* SupabaseAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseAuthService.swift; sourceTree = "<group>"; };
 		A11A8924CBD4DBD5E9A3884E /* BrokerageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrokerageViewModel.swift; sourceTree = "<group>"; };
 		A1C38C07B0CF0ED9A35F1AC9 /* HoldingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldingsViewModel.swift; sourceTree = "<group>"; };
@@ -318,10 +322,12 @@
 			isa = PBXGroup;
 			children = (
 				B80F8C63EDE5E09B0FB7067F /* ClavisApp.swift */,
+				3C8B94F66156A937403DBA44 /* ClavisCopy.swift */,
 				BE607541546CE04B5295937C /* ClavisDesignSystem.swift */,
 				011115DAEE21B65A0074A27C /* ContentView.swift */,
 				6DE04452D246D5FAAB52974D /* DisplayText.swift */,
 				15B66612E5443B430352FAAB /* MainTabView.swift */,
+				9027BA75CB22430CF3A61B46 /* NetworkStatusMonitor.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -420,6 +426,7 @@
 				AC8980659B3AB2CCC50D1CC8 /* AuthViewModel.swift in Sources */,
 				742AAB5C90C711E72FFB0B34 /* BrokerageViewModel.swift in Sources */,
 				B288C1564FD3A5CA715AEE40 /* ClavisApp.swift in Sources */,
+				F0F488E4218A118D1566EB56 /* ClavisCopy.swift in Sources */,
 				B61BCC248F71D8DB1FB4DCCB /* ClavisDesignSystem.swift in Sources */,
 				8DAD521FBA34344E7E3DE207 /* ContentView.swift in Sources */,
 				7E689AB654B29D40998B2FAA /* Dashboard.swift in Sources */,
@@ -434,6 +441,7 @@
 				1BCA71D523BEDF92D78F7089 /* HoldingsViewModel.swift in Sources */,
 				A07E209B16067F077DE89AB7 /* LoginView.swift in Sources */,
 				9112C7EA91240C472D69C7AC /* MainTabView.swift in Sources */,
+				47F6465272C3A8E4EE32DDA1 /* NetworkStatusMonitor.swift in Sources */,
 				B132E9643F3BA783E542C73C /* NewsFeed.swift in Sources */,
 				A2374B88B846298636A93F5B /* NewsItem.swift in Sources */,
 				5325BE30E38E60F995043C32 /* OnboardingContainerView.swift in Sources */,

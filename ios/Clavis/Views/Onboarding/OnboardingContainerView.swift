@@ -76,19 +76,21 @@ private struct OnboardingProgressHeader: View {
     let totalPages: Int
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 4) {
                 ForEach(0..<totalPages, id: \.self) { index in
                     RoundedRectangle(cornerRadius: 2, style: .continuous)
                         .fill(index < currentPage ? Color.textPrimary : Color.border)
                         .frame(maxWidth: .infinity)
                         .frame(height: 3)
+                        .animation(.easeInOut(duration: 0.25), value: currentPage)
                 }
             }
 
             Text("Step \(currentPage) of \(totalPages)")
-                .font(ClavisTypography.label)
+                .font(.system(size: 12, weight: .medium))
                 .foregroundColor(.textSecondary)
+                .tracking(0.4)
         }
     }
 }
@@ -97,29 +99,23 @@ private struct WelcomeStepView: View {
     @ObservedObject var viewModel: OnboardingViewModel
     @FocusState private var isNameFocused: Bool
 
+    private var isValid: Bool {
+        !viewModel.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Spacer(minLength: 28)
+            Spacer(minLength: 24)
 
             VStack(alignment: .leading, spacing: 24) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(Color.surface)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .stroke(Color.border, lineWidth: 1)
-                        )
-                        .frame(width: 64, height: 64)
-
-                    Text("C")
-                        .font(.system(size: 30, weight: .bold, design: .monospaced))
-                        .foregroundColor(.textPrimary)
-                }
+                ClavisMonogram(size: 64, cornerRadius: 16)
 
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Portfolio risk,\nmeasured.")
+                    Text("Portfolio risk, measured.")
                         .font(.system(size: 30, weight: .bold))
                         .foregroundColor(.textPrimary)
+                        .tracking(-0.4)
+                        .fixedSize(horizontal: false, vertical: true)
 
                     Text("Clavix helps you answer three questions every morning: how risky is my portfolio, what changed, and what should I look at first.")
                         .font(ClavisTypography.body)
@@ -139,10 +135,9 @@ private struct WelcomeStepView: View {
 
             Spacer()
 
-            OnboardingPrimaryButton(title: "Get started") {
+            ClavisPrimaryButton(title: "Get started", isEnabled: isValid) {
                 viewModel.nextPage()
             }
-            .disabled(viewModel.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             .padding(.horizontal, ClavisTheme.screenPadding)
             .padding(.bottom, 36)
         }
@@ -171,39 +166,41 @@ private struct DateOfBirthStepView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
-                DatePicker(
-                    "Date of birth",
-                    selection: $viewModel.dateOfBirth,
-                    in: ...maxAllowedDate,
-                    displayedComponents: .date
-                )
-                .datePickerStyle(.compact)
-                .labelsHidden()
+                HStack {
+                    DatePicker(
+                        "Date of birth",
+                        selection: $viewModel.dateOfBirth,
+                        in: ...maxAllowedDate,
+                        displayedComponents: .date
+                    )
+                    .datePickerStyle(.compact)
+                    .labelsHidden()
+                    .tint(.informational)
 
-                Text(viewModel.dateOfBirth.formatted(date: .abbreviated, time: .omitted))
+                    Spacer()
+                }
+
+                Text("You must be at least 18 years old to use Clavix. We use this only to verify age and store the birth year in your profile.")
                     .font(ClavisTypography.footnote)
                     .foregroundColor(.textSecondary)
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("You must be at least 18 years old to use Clavix. We currently use this only to derive age verification and store the birth year in your profile.")
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .padding(12)
-                .clavisSecondaryCardStyle(fill: .surfaceElevated)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .clavisSecondaryCardStyle(fill: .surfaceElevated)
             }
             .padding(.horizontal, ClavisTheme.screenPadding)
 
             Spacer()
 
             VStack(spacing: 10) {
-                OnboardingPrimaryButton(title: "Continue") {
+                ClavisPrimaryButton(
+                    title: "Continue",
+                    isEnabled: viewModel.isValidDateOfBirth(viewModel.dateOfBirth)
+                ) {
                     viewModel.nextPage()
                 }
-                .disabled(!viewModel.isValidDateOfBirth(viewModel.dateOfBirth))
 
-                OnboardingSecondaryButton(title: "Back") {
+                ClavisSecondaryButton(title: "Back") {
                     viewModel.previousPage()
                 }
             }
@@ -223,6 +220,8 @@ struct RiskAcknowledgmentView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            Spacer(minLength: 24)
+
             VStack(alignment: .leading, spacing: 16) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("One thing before we begin.")
@@ -279,15 +278,15 @@ struct RiskAcknowledgmentView: View {
                 .buttonStyle(.plain)
             }
             .padding(.horizontal, ClavisTheme.screenPadding)
-            .padding(.top, 24)
+
+            Spacer()
 
             VStack(spacing: 10) {
-                OnboardingPrimaryButton(title: "Agree & continue") {
+                ClavisPrimaryButton(title: "Agree & continue", isEnabled: hasAcknowledged) {
                     viewModel.nextPage()
                 }
-                .disabled(!hasAcknowledged)
 
-                OnboardingSecondaryButton(title: "Back") {
+                ClavisSecondaryButton(title: "Back") {
                     viewModel.previousPage()
                 }
             }
@@ -355,11 +354,11 @@ struct OnboardingPreferencesView: View {
             }
 
             VStack(spacing: 10) {
-                OnboardingPrimaryButton(title: "Continue") {
+                ClavisPrimaryButton(title: "Continue") {
                     onContinue()
                 }
 
-                OnboardingSecondaryButton(title: "Back") {
+                ClavisSecondaryButton(title: "Back") {
                     viewModel.previousPage()
                 }
             }
@@ -373,6 +372,14 @@ struct OnboardingBrokerageView: View {
     @ObservedObject var viewModel: OnboardingViewModel
     @ObservedObject var brokerageViewModel: BrokerageViewModel
     let onComplete: () -> Void
+
+    // True when SnapTrade is not set up on the backend — brokerage linking unavailable.
+    private var brokerageUnavailable: Bool {
+        if let status = brokerageViewModel.status {
+            return !status.configured
+        }
+        return false
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -408,6 +415,13 @@ struct OnboardingBrokerageView: View {
                         .foregroundColor(.textSecondary)
                 }
 
+                if brokerageUnavailable {
+                    Text("Brokerage auto-import is not available right now. You can add positions manually and connect a brokerage later in Settings.")
+                        .font(ClavisTypography.footnote)
+                        .foregroundColor(.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
                 if let infoMessage = brokerageViewModel.infoMessage {
                     Text(infoMessage)
                         .font(ClavisTypography.footnote)
@@ -419,6 +433,14 @@ struct OnboardingBrokerageView: View {
                         .font(ClavisTypography.footnote)
                         .foregroundColor(.riskF)
                 }
+
+                // Show completion errors (e.g. acknowledgeOnboarding failure).
+                if let completionError = viewModel.errorMessage {
+                    Text(completionError)
+                        .font(ClavisTypography.footnote)
+                        .foregroundColor(.riskF)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             .padding(.horizontal, ClavisTheme.screenPadding)
 
@@ -426,34 +448,44 @@ struct OnboardingBrokerageView: View {
 
             VStack(spacing: 10) {
                 if brokerageViewModel.isConnected {
-                    OnboardingPrimaryButton(title: viewModel.isCompleting ? "Opening Clavix..." : "Open Clavix") {
+                    ClavisPrimaryButton(
+                        title: viewModel.isCompleting ? "Opening Clavix..." : "Open Clavix",
+                        isLoading: viewModel.isCompleting,
+                        isEnabled: !viewModel.isCompleting
+                    ) {
                         onComplete()
                     }
-                    .disabled(viewModel.isCompleting)
 
-                    OnboardingSecondaryButton(title: brokerageViewModel.isSyncing ? "Syncing..." : "Sync holdings now") {
+                    ClavisSecondaryButton(
+                        title: brokerageViewModel.isSyncing ? "Syncing..." : "Sync holdings now",
+                        isEnabled: !(brokerageViewModel.isSyncing || viewModel.isCompleting)
+                    ) {
                         Task { await brokerageViewModel.syncNow(refreshRemote: true) }
                     }
-                    .disabled(brokerageViewModel.isSyncing || viewModel.isCompleting)
                 } else {
-                    OnboardingPrimaryButton(title: "Connect brokerage") {
-                        Task {
-                            await brokerageViewModel.startConnect(
-                                reconnectConnectionId: brokerageViewModel.primaryConnection?.disabled == true ? brokerageViewModel.primaryConnection?.id : nil
-                            )
+                    // Only show Connect button if brokerage linking is available.
+                    if !brokerageUnavailable {
+                        ClavisPrimaryButton(title: "Connect brokerage") {
+                            Task {
+                                await brokerageViewModel.startConnect(
+                                    reconnectConnectionId: brokerageViewModel.primaryConnection?.disabled == true ? brokerageViewModel.primaryConnection?.id : nil
+                                )
+                            }
                         }
                     }
 
-                    OnboardingSecondaryButton(title: viewModel.isCompleting ? "Opening Clavix..." : "I'll add manually for now") {
+                    ClavisPrimaryButton(
+                        title: viewModel.isCompleting ? "Opening Clavix..." : "Continue without brokerage",
+                        isLoading: viewModel.isCompleting,
+                        isEnabled: !viewModel.isCompleting
+                    ) {
                         onComplete()
                     }
-                    .disabled(viewModel.isCompleting)
                 }
 
-                OnboardingSecondaryButton(title: "Back") {
+                ClavisSecondaryButton(title: "Back", isEnabled: !viewModel.isCompleting) {
                     viewModel.previousPage()
                 }
-                .disabled(viewModel.isCompleting)
             }
             .padding(.horizontal, ClavisTheme.screenPadding)
             .padding(.bottom, 36)
@@ -530,40 +562,6 @@ private struct OnboardingInputField: View {
                 .textContentType(.none)
                 .autocorrectionDisabled()
         }
-    }
-}
-
-private struct OnboardingPrimaryButton: View {
-    let title: String
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 16, weight: .semibold))
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 15)
-                .background(Color.textPrimary)
-                .foregroundColor(.backgroundPrimary)
-                .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous))
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-private struct OnboardingSecondaryButton: View {
-    let title: String
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 15, weight: .regular))
-                .foregroundColor(.textSecondary)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-        }
-        .buttonStyle(.plain)
     }
 }
 

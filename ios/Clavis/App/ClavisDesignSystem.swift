@@ -79,8 +79,8 @@ extension Color {
 
     // MARK: Text
     static let textPrimary   = Color(hex: "#E8ECF0")
-    static let textSecondary = Color(hex: "#7A8799")
-    static let textTertiary  = Color(hex: "#7A8799")   // alias
+    static let textSecondary = Color(hex: "#8A95A6")
+    static let textTertiary  = Color(hex: "#5B6577")
     static let brandCream    = Color(hex: "#E7D8B7")
 
     // MARK: Informational (non-risk blue — never near score displays)
@@ -390,17 +390,18 @@ struct CX2LargeTitle: View {
     var body: some View {
         HStack(alignment: .lastTextBaseline, spacing: 12) {
             Text(title)
-                .font(.system(size: 30, weight: .bold))
+                .font(.system(size: 28, weight: .semibold))
                 .foregroundColor(.textPrimary)
+                .tracking(-0.3)
 
             Spacer(minLength: 12)
 
             trailing
-                .padding(.bottom, 4)
+                .padding(.bottom, 2)
         }
         .padding(.horizontal, 16)
-        .padding(.top, 0)
-        .padding(.bottom, 4)
+        .padding(.top, 4)
+        .padding(.bottom, 6)
     }
 }
 
@@ -519,12 +520,6 @@ struct ClavixGauge: View {
     }
 }
 
-enum ClavisCopy {
-    static let informationalDisclosure = "Clavix is informational only. It is not financial advice."
-    static let riskAcknowledgment = "Clavix is informational only. Risk grades and scores reflect risk signals derived from public data and model outputs. They are not recommendations to buy, sell, or hold any security."
-    static let settingsDisclaimer = "Clavix provides risk intelligence for informational purposes only. Scores reflect model output based on available data and do not constitute investment advice."
-}
-
 private struct GaugeArc: Shape {
     let shapeGrade: String
     let progress: CGFloat
@@ -556,6 +551,142 @@ struct ClavisBrandMark: View {
             .resizable()
             .scaledToFit()
             .accessibilityHidden(true)
+    }
+}
+
+// MARK: - Monogram
+
+/// Brand monogram used on Login and Welcome when the full AppLogo is unnecessary.
+struct ClavisMonogram: View {
+    var size: CGFloat = 64
+    var cornerRadius: CGFloat = 16
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .fill(Color.surface)
+                .overlay(
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .stroke(Color.border, lineWidth: 1)
+                )
+                .frame(width: size, height: size)
+
+            Text("C")
+                .font(.system(size: size * 0.46, weight: .bold, design: .monospaced))
+                .foregroundColor(.brandCream)
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+// MARK: - Primary / Secondary buttons (shared)
+
+struct ClavisPrimaryButton: View {
+    let title: String
+    var isLoading: Bool = false
+    var isEnabled: Bool = true
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous)
+                    .fill(isEnabled ? Color.textPrimary : Color.surfaceElevated)
+                    .frame(height: 50)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous)
+                            .stroke(isEnabled ? Color.clear : Color.border, lineWidth: 1)
+                    )
+
+                if isLoading {
+                    ProgressView()
+                        .tint(.backgroundPrimary)
+                } else {
+                    Text(title)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(isEnabled ? .backgroundPrimary : .textTertiary)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .disabled(!isEnabled || isLoading)
+    }
+}
+
+enum ClavisSmallButtonKind {
+    case neutral
+    case prominent
+}
+
+struct ClavisSmallButton: View {
+    let title: String
+    var systemImage: String? = nil
+    var kind: ClavisSmallButtonKind = .neutral
+    var isEnabled: Bool = true
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 5) {
+                if let systemImage {
+                    Image(systemName: systemImage)
+                        .font(.system(size: 11, weight: .semibold))
+                }
+                Text(title)
+            }
+            .font(.system(size: 12, weight: .medium))
+            .foregroundColor(foreground)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(background)
+            .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous)
+                    .stroke(border, lineWidth: 1)
+            )
+            .opacity(isEnabled ? 1 : 0.5)
+        }
+        .buttonStyle(.plain)
+        .disabled(!isEnabled)
+    }
+
+    private var foreground: Color {
+        switch kind {
+        case .neutral:    return .textPrimary
+        case .prominent:  return .backgroundPrimary
+        }
+    }
+
+    private var background: Color {
+        switch kind {
+        case .neutral:    return Color.surface
+        case .prominent:  return Color.textPrimary
+        }
+    }
+
+    private var border: Color {
+        switch kind {
+        case .neutral:    return Color.border
+        case .prominent:  return Color.clear
+        }
+    }
+}
+
+struct ClavisSecondaryButton: View {
+    let title: String
+    var isEnabled: Bool = true
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(isEnabled ? .textSecondary : .textTertiary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+        }
+        .buttonStyle(.plain)
+        .disabled(!isEnabled)
     }
 }
 
@@ -594,6 +725,45 @@ struct ClavixWordmarkHeader<Accessory: View>: View {
     }
 }
 
+struct ClavixPageHeader<Accessory: View>: View {
+    let title: String
+    let subtitle: String?
+    @ViewBuilder let accessory: Accessory
+
+    init(
+        title: String,
+        subtitle: String? = nil,
+        @ViewBuilder accessory: () -> Accessory = { EmptyView() }
+    ) {
+        self.title = title
+        self.subtitle = subtitle
+        self.accessory = accessory()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ClavixWordmarkHeader(accessory: { accessory })
+
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title)
+                        .font(.system(size: 28, weight: .semibold))
+                        .foregroundColor(.textPrimary)
+                        .tracking(-0.3)
+
+                    if let subtitle, !subtitle.isEmpty {
+                        Text(subtitle)
+                            .font(.system(size: 13, weight: .regular))
+                            .foregroundColor(.textSecondary)
+                    }
+                }
+
+                Spacer(minLength: 12)
+            }
+        }
+    }
+}
+
 // MARK: - Top Bar
 
 struct ClavisTopBar<MenuContent: View>: View {
@@ -627,19 +797,17 @@ struct ClavisTopBar<MenuContent: View>: View {
                     menuContent()
                 } label: {
                     Image(systemName: "line.3.horizontal")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(.textPrimary)
                         .frame(width: 40, height: 40)
-                        .scaleEffect(1.15)
                 }
                 .menuStyle(.borderlessButton)
             }
 
             Text(title)
-                .font(ClavisTypography.brandTitle)
+                .font(.custom("Inter", size: 20).weight(.bold))
                 .foregroundColor(.textPrimary)
                 .kerning(2.1)
-                .scaleEffect(1.15)
         }
     }
 }

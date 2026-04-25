@@ -28,6 +28,8 @@ struct TickerDetailView: View {
                                 .font(.system(size: 12, weight: .semibold))
                             Text("Holdings")
                                 .font(.system(size: 15, weight: .regular))
+                                .lineLimit(1)
+                                .fixedSize(horizontal: true, vertical: false)
                         }
                         .foregroundColor(.informational)
                     }
@@ -66,6 +68,21 @@ struct TickerDetailView: View {
                         previousScore: estimatedPreviousScore(for: detail),
                         rationale: tickerRationale(for: detail)
                     )
+
+                    if let analysisState = detail.analysisState {
+                        TickerAnalysisStateCard(
+                            source: detail.source ?? analysisState.source ?? "shared",
+                            status: analysisState.status,
+                            coverageState: analysisState.coverageState ?? detail.coverageState,
+                            analysisAsOf: analysisState.analysisAsOf ?? detail.freshness.analysisAsOf,
+                            lastNewsRefreshAt: analysisState.lastNewsRefreshAt ?? detail.freshness.lastNewsRefreshAt,
+                            newsRefreshStatus: analysisState.newsRefreshStatus ?? detail.freshness.newsRefreshStatus,
+                            priceAsOf: analysisState.priceAsOf ?? detail.freshness.priceAsOf,
+                            newsAsOf: analysisState.newsAsOf ?? detail.freshness.newsAsOf,
+                            latestAnalysisRun: detail.latestAnalysisRun,
+                            latestRefreshJob: detail.latestRefreshJob
+                        )
+                    }
 
                     TickerPriceCard(
                         price: currency(detail.latestPrice.price),
@@ -110,7 +127,7 @@ struct TickerDetailView: View {
             }
             .padding(.horizontal, ClavisTheme.screenPadding)
             .padding(.top, 0)
-            .padding(.bottom, ClavisTheme.largeSpacing)
+            .padding(.bottom, ClavisTheme.floatingTabHeight + ClavisTheme.floatingTabInset + ClavisTheme.extraLargeSpacing)
         }
         .contentMargins(.top, 0, for: .scrollContent)
         .contentMargins(.bottom, 0, for: .scrollContent)
@@ -138,11 +155,11 @@ struct TickerDetailView: View {
     }
 
     private func displayScore(for detail: TickerDetailResponse) -> Int {
-        Int((detail.currentScore?.displayScore ?? detail.latestRiskSnapshot?.safetyScore ?? detail.position.totalScore ?? 50).rounded())
+        Int((detail.currentScore?.displayScore ?? detail.position.totalScore ?? detail.latestRiskSnapshot?.safetyScore ?? 50).rounded())
     }
 
     private func displayGrade(for detail: TickerDetailResponse) -> String {
-        detail.currentScore?.displayGrade ?? detail.latestRiskSnapshot?.grade ?? detail.position.riskGrade ?? "C"
+        detail.currentScore?.displayGrade ?? detail.position.riskGrade ?? detail.latestRiskSnapshot?.grade ?? "C"
     }
 
     private func estimatedPreviousScore(for detail: TickerDetailResponse) -> Int? {
@@ -211,21 +228,27 @@ struct TickerDetailView: View {
 
     private func riskDimensions(for detail: TickerDetailResponse) -> [TickerRiskDimensionItem]? {
         if let ai = detail.currentScore?.factorBreakdown?.aiDimensions ?? detail.latestRiskSnapshot?.factorBreakdown?.aiDimensions {
-            return [
+            var dimensions = [
                 TickerRiskDimensionItem(title: "News sentiment", value: ai.newsSentiment, accent: .riskA),
                 TickerRiskDimensionItem(title: "Macro exposure", value: ai.macroExposure, accent: .riskB),
-                TickerRiskDimensionItem(title: "Position sizing", value: ai.positionSizing, accent: .riskC),
                 TickerRiskDimensionItem(title: "Volatility trend", value: ai.volatilityTrend, accent: .riskD),
             ]
+            if detail.userContext.isHeld {
+                dimensions.insert(TickerRiskDimensionItem(title: "Position sizing", value: ai.positionSizing, accent: .riskC), at: 2)
+            }
+            return dimensions
         }
 
         guard let score = detail.currentScore else { return nil }
-        return [
+        var dimensions = [
             TickerRiskDimensionItem(title: "News sentiment", value: score.newsSentiment, accent: .riskA),
             TickerRiskDimensionItem(title: "Macro exposure", value: score.macroExposure, accent: .riskB),
-            TickerRiskDimensionItem(title: "Position sizing", value: score.positionSizing, accent: .riskC),
             TickerRiskDimensionItem(title: "Volatility trend", value: score.volatilityTrend, accent: .riskD),
         ]
+        if detail.userContext.isHeld {
+            dimensions.insert(TickerRiskDimensionItem(title: "Position sizing", value: score.positionSizing, accent: .riskC), at: 2)
+        }
+        return dimensions
     }
 
     private func watchItems(for detail: TickerDetailResponse) -> [String] {
@@ -287,7 +310,7 @@ struct TickerDetailView: View {
 
                 HStack(spacing: ClavisTheme.smallSpacing) {
                     metricPill(title: "Price", value: currency(detail.latestPrice.price))
-                    metricPill(title: "Score", value: score(detail.latestRiskSnapshot?.safetyScore))
+                    metricPill(title: "Score", value: score(Double(displayScore(for: detail))))
                     metricPill(title: "Freshness", value: freshnessText(detail.freshness.analysisAsOf))
                 }
 
@@ -520,7 +543,7 @@ private struct TickerHeroCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            HStack(alignment: .top, spacing: 14) {
+            HStack(alignment: .center, spacing: 14) {
                 GradeTag(grade: grade, large: true)
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -568,6 +591,90 @@ private enum TickerChangeDirection {
     case up
     case down
     case flat
+}
+
+private struct TickerAnalysisStateCard: View {
+    let source: String
+    let status: String
+    let coverageState: String?
+    let analysisAsOf: Date?
+    let lastNewsRefreshAt: Date?
+    let newsRefreshStatus: String?
+    let priceAsOf: Date?
+    let newsAsOf: Date?
+    let latestAnalysisRun: AnalysisRun?
+    let latestRefreshJob: TickerRefreshJob?
+
+    var body: some View {
+        HoldingsSectionCard(title: "State", subtitle: "Freshness and job status") {
+            HStack(spacing: 8) {
+                stateChip(text: statusLabel)
+                stateChip(text: source.capitalized)
+                if let coverageState, !coverageState.isEmpty {
+                    stateChip(text: coverageState.capitalized)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(detailLine)
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textSecondary)
+
+                if let lastNewsRefreshAt {
+                    Text("News refreshed \(lastNewsRefreshAt.formatted(date: .abbreviated, time: .shortened))")
+                        .font(ClavisTypography.footnote)
+                        .foregroundColor(.textTertiary)
+                }
+
+                if let runStatus = latestAnalysisRun?.status, !runStatus.isEmpty {
+                    Text("Analysis run: \(runStatus.capitalized)")
+                        .font(ClavisTypography.footnote)
+                        .foregroundColor(.textTertiary)
+                }
+
+                if let refreshStatus = latestRefreshJob?.status, !refreshStatus.isEmpty {
+                    Text("Refresh job: \(refreshStatus.capitalized)")
+                        .font(ClavisTypography.footnote)
+                        .foregroundColor(.textTertiary)
+                }
+
+                if let newsRefreshStatus, !newsRefreshStatus.isEmpty {
+                    Text("News cache: \(newsRefreshStatus.capitalized)")
+                        .font(ClavisTypography.footnote)
+                        .foregroundColor(.textTertiary)
+                }
+            }
+        }
+    }
+
+    private var statusLabel: String {
+        switch status {
+        case "queued": return "Queued"
+        case "running": return "Running"
+        case "failed": return "Failed"
+        case "ready", "fresh": return "Ready"
+        case "thin", "stale": return "Thin"
+        default: return status.capitalized
+        }
+    }
+
+    private var detailLine: String {
+        let analysisText = analysisAsOf?.formatted(date: .abbreviated, time: .shortened) ?? "pending"
+        let priceText = priceAsOf?.formatted(date: .abbreviated, time: .shortened) ?? "pending"
+        let newsText = newsAsOf?.formatted(date: .abbreviated, time: .shortened) ?? "pending"
+        return "Analysis \(analysisText) · Price \(priceText) · News \(newsText)"
+    }
+
+    @ViewBuilder
+    private func stateChip(text: String) -> some View {
+        Text(text)
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundColor(.textPrimary)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Color.surfaceElevated)
+            .clipShape(Capsule())
+    }
 }
 
 private struct TickerPriceCard: View {

@@ -43,7 +43,7 @@ class HoldingsViewModel: ObservableObject {
             if let brokerageStatus = try? await api.fetchBrokerageStatus() {
                 applyBrokerageStatus(brokerageStatus)
                 if shouldAutoSyncBrokerage(brokerageStatus) {
-                    try? await api.syncBrokerage(refreshRemote: false)
+                    _ = try? await api.syncBrokerage(refreshRemote: false)
                     holdings = try await api.fetchHoldings()
                     brokerageLastSyncedAt = Date()
                     lastRefreshedAt = Date()
@@ -77,24 +77,35 @@ class HoldingsViewModel: ObservableObject {
         progressValue = 0.1
 
         do {
-            let createdPosition = try await api.createHolding(
+            let workflow = try await api.createHolding(
                 ticker: ticker.uppercased(),
                 shares: shares,
                 purchasePrice: purchasePrice,
                 archetype: archetype
             )
-            createdPositionId = createdPosition.id
-            insertOrUpdateHolding(createdPosition)
-            progressMessage = "Loading cached ticker snapshot..."
-            progressValue = 0.75
+            if let createdPosition = workflow.position {
+                createdPositionId = createdPosition.id
+                insertOrUpdateHolding(createdPosition)
+            } else {
+                createdPositionId = workflow.holdingId
+            }
+
+            progressMessage = workflowMessage(for: workflow)
+            progressValue = workflowProgressValue(for: workflow.analysisState)
             await loadHoldings(showLoading: false)
-            try? await Task.sleep(nanoseconds: 500_000_000)
-            progressMessage = "Position ready"
-            progressValue = 1.0
-            try? await Task.sleep(nanoseconds: 400_000_000)
-            showProgressSheet = false
-            pendingTicker = nil
-            createdPositionId = nil
+
+            switch workflow.analysisState {
+            case "queued", "running":
+                if let runId = workflow.analysisRunId {
+                    await pollAnalysisRun(runId: runId)
+                } else {
+                    await finishAddWorkflow(after: 1.0)
+                }
+            case "ready", "thin", "failed":
+                await finishAddWorkflow(after: 1.0)
+            default:
+                await finishAddWorkflow(after: 1.0)
+            }
         } catch {
             showProgressSheet = false
             progressValue = 0.0
@@ -104,30 +115,44 @@ class HoldingsViewModel: ObservableObject {
         }
     }
 
-    private func runAnalysisFlow() async {
-        do {
-            let trigger = try await api.triggerAnalysis(positionId: createdPositionId)
-            if trigger.analysisRunId != nil {
-                await transitionToBackground()
-            } else {
-                showProgressSheet = false
-                pendingTicker = nil
-            }
-        } catch is CancellationError {
-            return
-        } catch {
-            showProgressSheet = false
-            progressValue = 0.0
-            pendingTicker = nil
-            errorMessage = "Analysis could not be started."
-            showError = true
+    private func workflowProgressValue(for state: String) -> Float {
+        switch state {
+        case "queued":
+            return 0.2
+        case "running":
+            return 0.45
+        case "ready":
+            return 1.0
+        case "thin":
+            return 0.35
+        case "failed":
+            return 1.0
+        default:
+            return 0.25
         }
     }
 
-    private func transitionToBackground() async {
-        progressMessage = "Analysis running in background..."
-        progressValue = 0.3
-        try? await Task.sleep(nanoseconds: 1_500_000_000)
+    private func workflowMessage(for workflow: APIService.HoldingWorkflowResponse) -> String {
+        switch workflow.analysisState {
+        case "queued":
+            return workflow.coverageNote ?? "Analysis queued."
+        case "running":
+            return workflow.coverageNote ?? "Analysis running."
+        case "ready":
+            return workflow.coverageNote ?? "Position is ready."
+        case "thin":
+            return workflow.coverageNote ?? "Limited data available."
+        case "failed":
+            return workflow.coverageNote ?? "Analysis failed."
+        default:
+            return workflow.coverageNote ?? "Updating position."
+        }
+    }
+
+    private func finishAddWorkflow(after delay: TimeInterval) async {
+        if delay > 0 {
+            try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+        }
         showProgressSheet = false
         pendingTicker = nil
         createdPositionId = nil

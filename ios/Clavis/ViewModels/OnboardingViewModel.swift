@@ -42,16 +42,26 @@ class OnboardingViewModel: ObservableObject {
     func completeOnboarding(completion: @escaping () -> Void) {
         guard !isCompleting else { return }
         isCompleting = true
+        errorMessage = nil
 
         Task {
+            // Best-effort: save profile and preferences but never block completion on them.
+            if !name.isEmpty {
+                do { try await saveProfile() } catch {
+                    print("[Onboarding] saveProfile non-fatal error: \(error)")
+                }
+            }
             do {
-                try await saveProfile()
                 try await api.updatePreferences(
                     digestTime: nil,
                     notificationsEnabled: morningDigestEnabled,
                     summaryLength: nil,
                     weekdayOnly: nil
                 )
+            } catch {
+                print("[Onboarding] updatePreferences non-fatal error: \(error)")
+            }
+            do {
                 try await api.updateAlertPreferences(
                     gradeChanges: alertsGradeChangesEnabled,
                     majorEvents: alertsMajorEventsEnabled,
@@ -61,10 +71,17 @@ class OnboardingViewModel: ObservableObject {
                     quietHoursStart: Date(),
                     quietHoursEnd: Date()
                 )
+            } catch {
+                print("[Onboarding] updateAlertPreferences non-fatal error: \(error)")
+            }
+
+            // Required: mark onboarding complete so the user enters the main app.
+            do {
                 try await api.acknowledgeOnboarding()
                 completion()
             } catch {
-                errorMessage = error.localizedDescription
+                print("[Onboarding] acknowledgeOnboarding failed: \(error)")
+                errorMessage = "Couldn't complete setup — please check your connection and try again."
                 isCompleting = false
             }
         }

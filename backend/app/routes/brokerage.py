@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from pydantic import BaseModel
 
@@ -11,6 +13,7 @@ from ..services.snaptrade import (
 from ..services.supabase import get_supabase
 from ..services.ticker_cache_service import refresh_ticker_snapshot
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -40,11 +43,18 @@ async def brokerage_status(user_id: str = Depends(get_user_id)):
 async def brokerage_connect(
     payload: BrokerageConnectRequest, user_id: str = Depends(get_user_id)
 ):
-    return generate_connection_portal_link(
-        user_id,
-        broker=payload.broker,
-        reconnect=payload.reconnect_connection_id,
-    )
+    logger.info("brokerage_connect user_id=%s broker=%s reconnect=%s", user_id, payload.broker, payload.reconnect_connection_id)
+    try:
+        result = generate_connection_portal_link(
+            user_id,
+            broker=payload.broker,
+            reconnect=payload.reconnect_connection_id,
+        )
+        logger.info("brokerage_connect success user_id=%s", user_id)
+        return result
+    except Exception as exc:
+        logger.warning("brokerage_connect failed user_id=%s error=%s", user_id, exc)
+        raise
 
 
 @router.patch("/settings")
