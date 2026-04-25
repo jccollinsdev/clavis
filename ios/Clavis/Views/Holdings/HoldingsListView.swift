@@ -915,6 +915,7 @@ struct AddPositionSheet: View {
     @State private var archetype: Archetype = .growth
     @State private var showError = false
     @State private var errorMessage = ""
+    @State private var resolveTickerTask: Task<Void, Never>?
 
     private var isFormValid: Bool {
         isTickerSupported && !shares.isEmpty && Double(shares) != nil && !purchasePrice.isEmpty && Double(purchasePrice) != nil
@@ -929,7 +930,8 @@ struct AddPositionSheet: View {
                         .textInputAutocapitalization(.characters)
                         .autocorrectionDisabled()
                         .onChange(of: ticker) { _, newValue in
-                            Task { await resolveTicker(newValue) }
+                            resolveTickerTask?.cancel()
+                            resolveTickerTask = Task { await resolveTicker(newValue) }
                         }
 
                     if isSearchingSuggestions {
@@ -956,8 +958,10 @@ struct AddPositionSheet: View {
 
                             ForEach(Array(tickerSuggestions.prefix(3)), id: \.ticker) { suggestion in
                                 Button {
+                                    resolveTickerTask?.cancel()
                                     ticker = suggestion.ticker
                                     companyName = suggestion.companyName
+                                    tickerSuggestions = []
                                     supportMessage = nil
                                     isTickerSupported = suggestion.isSupported
                                 } label: {
@@ -1048,35 +1052,46 @@ struct AddPositionSheet: View {
             tickerSuggestions = []
             supportMessage = nil
             isTickerSupported = false
+            isSearchingSuggestions = false
             return
         }
 
         isSearchingSuggestions = true
-        defer { isSearchingSuggestions = false }
 
         do {
+            // Debounce: wait before hitting the network, matching the main search behaviour.
+            try await Task.sleep(nanoseconds: 200_000_000)
+            guard !Task.isCancelled else { isSearchingSuggestions = false; return }
+
             let results = try await viewModel.searchTickers(query: trimmed, limit: 10)
-            let supportedResults = results.filter { $0.isSupported }
-            tickerSuggestions = Array(supportedResults.prefix(3))
+            guard !Task.isCancelled else { isSearchingSuggestions = false; return }
+
             let exactMatch = results.first { $0.ticker.caseInsensitiveCompare(trimmed) == .orderedSame }
 
             if let exactMatch, exactMatch.isSupported {
+                // Exact supported match — resolve immediately, no need to show suggestions.
                 companyName = exactMatch.companyName
+                tickerSuggestions = []
                 supportMessage = nil
                 isTickerSupported = true
             } else {
                 companyName = ""
                 isTickerSupported = false
+                tickerSuggestions = Array(results.filter { $0.isSupported }.prefix(3))
                 supportMessage = (results.isEmpty || exactMatch?.isSupported == false)
                     ? "This ticker is not supported yet."
                     : nil
             }
+        } catch is CancellationError {
+            // A newer keystroke cancelled this task — leave state as-is.
         } catch {
             companyName = ""
             tickerSuggestions = []
             supportMessage = "Unable to check ticker support right now."
             isTickerSupported = false
         }
+
+        isSearchingSuggestions = false
     }
 }
 

@@ -174,3 +174,142 @@ def test_compile_portfolio_digest_preserves_real_urgent_items():
 
     assert digest["sections"]["what_matters_today"][0]["urgency"] == "high"
     assert digest["sections"]["what_matters_today"][0]["impacted_positions"] == ["HOOD"]
+
+
+# ---------------------------------------------------------------------------
+# Ticker search correctness tests (regression for AMD/NVDA autocomplete bug)
+# ---------------------------------------------------------------------------
+
+def _make_universe():
+    """Minimal S&P 500 subset covering the regression cases."""
+    return [
+        {
+            "ticker": "AMD",
+            "company_name": "Advanced Micro Devices",
+            "exchange": "NASDAQ",
+            "sector": "Technology",
+            "industry": "Semiconductors",
+            "index_membership": "SP500",
+            "is_active": True,
+            "priority_rank": 7,
+        },
+        {
+            "ticker": "NVDA",
+            "company_name": "Nvidia",
+            "exchange": "NASDAQ",
+            "sector": "Technology",
+            "industry": "Semiconductors",
+            "index_membership": "SP500",
+            "is_active": True,
+            "priority_rank": 345,
+        },
+        {
+            "ticker": "AAPL",
+            "company_name": "Apple Inc.",
+            "exchange": "NASDAQ",
+            "sector": "Technology",
+            "industry": "Consumer Electronics",
+            "index_membership": "SP500",
+            "is_active": True,
+            "priority_rank": 39,
+        },
+        {
+            "ticker": "AMZN",
+            "company_name": "Amazon.com Inc.",
+            "exchange": "NASDAQ",
+            "sector": "Consumer Discretionary",
+            "industry": "Internet Retail",
+            "index_membership": "SP500",
+            "is_active": True,
+            "priority_rank": 50,
+        },
+    ]
+
+
+def _patched_search(monkeypatch, universe):
+    supabase = _FakeSupabase(universe)
+    monkeypatch.setattr(
+        "app.services.ticker_cache_service.ensure_sp500_universe_seeded",
+        lambda _: None,
+    )
+    monkeypatch.setattr(
+        "app.services.ticker_cache_service.get_metadata_map",
+        lambda _sb, _tickers: {},
+    )
+    monkeypatch.setattr(
+        "app.services.ticker_cache_service.get_latest_risk_snapshot_map",
+        lambda _sb, _tickers: {},
+    )
+    return supabase
+
+
+def test_search_amd_returns_amd(monkeypatch):
+    """AMD must appear when searching 'AMD'."""
+    supabase = _patched_search(monkeypatch, _make_universe())
+    results = search_supported_tickers(supabase, "AMD", limit=10)
+    tickers = [r["ticker"] for r in results]
+    assert "AMD" in tickers
+    assert results[0]["ticker"] == "AMD"  # exact match is first
+    assert results[0]["is_supported"] is True
+
+
+def test_search_nvda_returns_nvda(monkeypatch):
+    """NVDA must appear when searching 'NVDA'."""
+    supabase = _patched_search(monkeypatch, _make_universe())
+    results = search_supported_tickers(supabase, "NVDA", limit=10)
+    tickers = [r["ticker"] for r in results]
+    assert "NVDA" in tickers
+    assert results[0]["ticker"] == "NVDA"
+    assert results[0]["is_supported"] is True
+
+
+def test_search_is_case_insensitive(monkeypatch):
+    """Lowercase query 'amd' must find AMD."""
+    supabase = _patched_search(monkeypatch, _make_universe())
+    results = search_supported_tickers(supabase, "amd", limit=10)
+    assert any(r["ticker"] == "AMD" for r in results)
+
+
+def test_search_by_company_name(monkeypatch):
+    """Searching by company name fragment must find the ticker."""
+    supabase = _patched_search(monkeypatch, _make_universe())
+    results = search_supported_tickers(supabase, "advanced micro", limit=10)
+    assert any(r["ticker"] == "AMD" for r in results)
+
+    results2 = search_supported_tickers(supabase, "nvidia", limit=10)
+    assert any(r["ticker"] == "NVDA" for r in results2)
+
+
+def test_search_all_results_have_is_supported_true(monkeypatch):
+    """Every result from search must carry is_supported=True."""
+    supabase = _patched_search(monkeypatch, _make_universe())
+    results = search_supported_tickers(supabase, "a", limit=20)
+    assert results  # non-empty
+    for r in results:
+        assert r["is_supported"] is True
+
+
+def test_search_empty_query_returns_all(monkeypatch):
+    """Empty query returns all active tickers (up to limit)."""
+    supabase = _patched_search(monkeypatch, _make_universe())
+    results = search_supported_tickers(supabase, "", limit=20)
+    assert len(results) == len(_make_universe())
+
+
+def test_search_exact_match_ranks_first_over_prefix(monkeypatch):
+    """Exact ticker match must outrank prefix match in results."""
+    universe = _make_universe() + [
+        {
+            "ticker": "AMDA",
+            "company_name": "Amedra Corp",
+            "exchange": "NASDAQ",
+            "sector": "Healthcare",
+            "industry": "Biotechnology",
+            "index_membership": "SP500",
+            "is_active": True,
+            "priority_rank": 1,  # higher priority_rank than AMD
+        }
+    ]
+    supabase = _patched_search(monkeypatch, universe)
+    results = search_supported_tickers(supabase, "AMD", limit=10)
+    assert results[0]["ticker"] == "AMD"
