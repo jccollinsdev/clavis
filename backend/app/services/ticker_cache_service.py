@@ -1477,9 +1477,7 @@ def refresh_ticker_snapshot(
 
     shared_news_rows = (
         supabase.table("news_items")
-        .select(
-            "title, summary, body, source, url, significance, published_at, processed_at, event_hash"
-        )
+        .select("title, body, source, url, significance, published_at, processed_at, event_hash")
         .eq("ticker", ticker)
         .order("processed_at", desc=True)
         .limit(50)

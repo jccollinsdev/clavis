@@ -2,6 +2,8 @@ import sys
 import types
 import importlib
 
+import pytest
+
 _fake_supabase_module = types.ModuleType("supabase")
 _fake_supabase_module.create_client = lambda *args, **kwargs: None
 _fake_supabase_module.Client = object
@@ -159,3 +161,80 @@ def test_cleanup_old_news_items_clears_ticker_news_cache():
     assert supabase.rows["ticker_news_cache"] == [
         {"processed_at": "2026-04-23T00:00:00+00:00"}
     ]
+
+
+def test_refresh_ticker_snapshot_omits_missing_news_summary_column(monkeypatch):
+    ticker_cache_service = importlib.import_module("app.services.ticker_cache_service")
+
+    class _StopAfterNewsSelect(Exception):
+        pass
+
+    class _SnapshotFakeResult:
+        def __init__(self, data):
+            self.data = data
+
+    class _SnapshotFakeQuery:
+        def __init__(self, table_name):
+            self.table_name = table_name
+            self.select_args = None
+
+        def select(self, *args, **kwargs):
+            self.select_args = args
+            if self.table_name == "news_items":
+                raise _StopAfterNewsSelect()
+            return self
+
+        def eq(self, *_args, **_kwargs):
+            return self
+
+        def in_(self, *_args, **_kwargs):
+            return self
+
+        def order(self, *_args, **_kwargs):
+            return self
+
+        def limit(self, *_args, **_kwargs):
+            return self
+
+        def ilike(self, *_args, **_kwargs):
+            return self
+
+        def insert(self, *_args, **_kwargs):
+            return self
+
+        def delete(self, *_args, **_kwargs):
+            return self
+
+        def execute(self):
+            return _SnapshotFakeResult([])
+
+    class _SnapshotFakeSupabase:
+        def __init__(self):
+            self.queries = []
+
+        def table(self, table_name):
+            self.queries.append(table_name)
+            return _SnapshotFakeQuery(table_name)
+
+    supabase = _SnapshotFakeSupabase()
+
+    monkeypatch.setattr(
+        ticker_cache_service,
+        "get_supported_ticker",
+        lambda _supabase, _ticker: {"ticker": "HOOD"},
+    )
+    monkeypatch.setattr(
+        ticker_cache_service,
+        "ensure_ticker_in_universe",
+        lambda _supabase, _ticker: {"ticker": "HOOD"},
+    )
+
+    with pytest.raises(_StopAfterNewsSelect):
+        ticker_cache_service.refresh_ticker_snapshot(
+            supabase,
+            ticker="HOOD",
+            job_type="manual",
+            requested_by_user_id=None,
+        )
+
+    assert "news_items" in supabase.queries
