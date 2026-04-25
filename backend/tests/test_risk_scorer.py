@@ -116,7 +116,8 @@ def test_score_position_synthesizes_reasoning_when_llm_returns_blank(monkeypatch
     )
 
     assert result["reasoning"]
-    assert "Coverage is limited" in result["reasoning"]
+    assert not result["reasoning"].startswith("Coverage is limited")
+    assert "Company-specific news" in result["reasoning"]
     assert result["coverage_state"] == "provisional"
     assert result["is_provisional"] is True
 
@@ -135,7 +136,7 @@ def test_build_risk_score_response_surfaces_coverage_context():
         coverage_context={
             "source_count": 0,
             "coverage_state": "provisional",
-            "coverage_note": "Coverage was limited, so this score leans mostly on ticker metadata and cached context.",
+            "coverage_note": "Confidence is low because the score leans mostly on ticker metadata and cached context.",
             "is_provisional": True,
         },
     )
@@ -144,6 +145,7 @@ def test_build_risk_score_response_surfaces_coverage_context():
     assert response["is_provisional"] is True
     assert response["source_count"] == 0
     assert response["reasoning"]
+    assert "Macro/sector exposure" in response["reasoning"]
 
 
 def test_build_risk_score_response_uses_latest_position_score_without_snapshot():

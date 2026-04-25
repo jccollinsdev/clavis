@@ -31,9 +31,12 @@ def _normalize_result(payload: dict | None) -> dict | None:
         "impact_horizon": payload.get("impact_horizon") or "near_term",
         "risk_direction": payload.get("risk_direction") or "neutral",
         "confidence": float(payload.get("confidence") or 0.6),
-        "scenario_summary": payload.get("scenario_summary") or "Major event analysis completed.",
+        "scenario_summary": payload.get("scenario_summary")
+        or "Major event analysis completed.",
         "key_implications": payload.get("key_implications") or [],
-        "recommended_followups": payload.get("followup_notes") or payload.get("recommended_followups") or [],
+        "recommended_followups": payload.get("followup_notes")
+        or payload.get("recommended_followups")
+        or [],
         "provider": "minimax",
     }
 
@@ -42,10 +45,12 @@ def _provisional_result(news_item: dict) -> dict:
     title = news_item.get("title", "Major event")
     evidence_quality = news_item.get("evidence_quality", "title_only")
     return {
-        "analysis_text": f"{title} looks material enough to monitor closely, but the impact is still provisional until follow-up details confirm the scale.",
+        "analysis_text": f"{title} is worth monitoring, but the impact is still provisional because the evidence is limited. Known fact: the headline exists; unknown: whether follow-up details confirm the scale or change the risk read.",
         "impact_horizon": "near_term",
         "risk_direction": "neutral",
-        "confidence": 0.3 if evidence_quality in {"title_only", "headline_summary"} else 0.45,
+        "confidence": 0.3
+        if evidence_quality in {"title_only", "headline_summary"}
+        else 0.45,
         "scenario_summary": "Material headline detected — durable impact depends on follow-through.",
         "key_implications": [
             "Watch for management detail, filing support, or market reaction that confirms the event's importance."
@@ -96,7 +101,9 @@ Position context:
     }
 
 
-async def analyze_major_events_batch(news_items: list[dict], position_context: dict) -> list[dict]:
+async def analyze_major_events_batch(
+    news_items: list[dict], position_context: dict
+) -> list[dict]:
     """Analyze multiple major events for a specific position in one call."""
     if not news_items:
         return []
@@ -106,7 +113,9 @@ async def analyze_major_events_batch(news_items: list[dict], position_context: d
         title = item.get("title", "")[:300]
         summary = item.get("summary", "")[:500]
         body = item.get("body", "")[:800]
-        events_text.append(f"[{i}] Title: {title}\n    Summary: {summary}\n    Body: {body}")
+        events_text.append(
+            f"[{i}] Title: {title}\n    Summary: {summary}\n    Body: {body}"
+        )
 
     ticker = position_context.get("ticker", "")
     shares = position_context.get("shares", 0)
@@ -143,7 +152,11 @@ Each object has: analysis_text, impact_horizon, risk_direction, confidence, scen
     if isinstance(parsed, list) and len(parsed) == len(news_items):
         for p in parsed:
             normalized = _normalize_result(p)
-            results.append(normalized if normalized else _provisional_result(news_items[len(results)]))
+            results.append(
+                normalized
+                if normalized
+                else _provisional_result(news_items[len(results)])
+            )
     else:
         results = [_provisional_result(item) for item in news_items]
 
@@ -189,7 +202,9 @@ Each object has: analysis_text, impact_horizon, risk_direction, confidence, scen
     if isinstance(parsed, list) and len(parsed) == len(news_items):
         for i, payload in enumerate(parsed):
             normalized = _normalize_result(payload)
-            results.append(normalized if normalized else _provisional_result(news_items[i]))
+            results.append(
+                normalized if normalized else _provisional_result(news_items[i])
+            )
         return results
 
     return [_provisional_result(item) for item in news_items]

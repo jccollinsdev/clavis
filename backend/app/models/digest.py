@@ -8,6 +8,9 @@ class DigestBase(BaseModel):
     grade_summary: Optional[dict] = None
     overall_grade: Optional[str] = None
     overall_score: Optional[float] = None
+    score_source: Optional[str] = None
+    score_as_of: Optional[str] = None
+    score_version: Optional[str] = None
     structured_sections: Optional[dict] = None
     summary: Optional[str] = None
 

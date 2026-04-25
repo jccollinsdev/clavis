@@ -391,6 +391,48 @@ def _parse_time_window_hours(hours: int) -> str:
     return threshold.isoformat()
 
 
+def _parse_hhmm(value: str | None) -> tuple[int, int] | None:
+    if not value:
+        return None
+    parts = str(value).split(":")
+    if len(parts) < 2:
+        return None
+    try:
+        hour = int(parts[0])
+        minute = int(parts[1])
+    except (TypeError, ValueError):
+        return None
+    if hour not in range(24) or minute not in range(60):
+        return None
+    return hour, minute
+
+
+def _quiet_hours_active(
+    now_utc: datetime,
+    *,
+    enabled: bool,
+    start: str | None,
+    end: str | None,
+) -> bool:
+    if not enabled:
+        return False
+
+    parsed_start = _parse_hhmm(start)
+    parsed_end = _parse_hhmm(end)
+    if not parsed_start or not parsed_end:
+        return False
+
+    current_minutes = now_utc.astimezone(timezone.utc).hour * 60 + now_utc.astimezone(
+        timezone.utc
+    ).minute
+    start_minutes = parsed_start[0] * 60 + parsed_start[1]
+    end_minutes = parsed_end[0] * 60 + parsed_end[1]
+
+    if start_minutes <= end_minutes:
+        return start_minutes <= current_minutes < end_minutes
+    return current_minutes >= start_minutes or current_minutes < end_minutes
+
+
 def _is_retryable_supabase_error(exc: Exception) -> bool:
     if isinstance(
         exc,
@@ -973,6 +1015,33 @@ def _store_relevant_news_items(
                 ).execute()
             except Exception:
                 continue
+
+    from ..services.ticker_cache_service import sync_ticker_news_cache
+
+    for ticker in sorted(
+        {
+            str(ticker or "").strip().upper()
+            for article in relevant_articles
+            for ticker in (
+                article.get("relevance", {}).get("affected_tickers", [])
+                or [article.get("ticker")]
+            )
+            if str(ticker or "").strip()
+        }
+    ):
+        cache_articles = []
+        for article in relevant_articles:
+            affected_tickers = article.get("relevance", {}).get(
+                "affected_tickers", []
+            ) or [article.get("ticker")]
+            normalized = {
+                str(item or "").strip().upper()
+                for item in affected_tickers
+                if str(item or "").strip()
+            }
+            if ticker in normalized:
+                cache_articles.append(article)
+        sync_ticker_news_cache(supabase, ticker=ticker, news_rows=cache_articles)
 
 
 async def _load_ticker_metadata_map(
@@ -2110,7 +2179,9 @@ async def execute_analysis_run(
 
         prefs = (
             supabase.table("user_preferences")
-            .select("apns_token, notifications_enabled, summary_length, weekday_only")
+            .select(
+                "apns_token, notifications_enabled, summary_length, weekday_only, quiet_hours_enabled, quiet_hours_start, quiet_hours_end"
+            )
             .eq("user_id", user_id)
             .limit(1)
             .execute()
@@ -2122,6 +2193,21 @@ async def execute_analysis_run(
             (prefs[0].get("summary_length") or "standard") if prefs else "standard"
         )
         weekday_only = bool(prefs and prefs[0].get("weekday_only"))
+        quiet_hours_enabled = bool(prefs and prefs[0].get("quiet_hours_enabled"))
+        quiet_hours_start = prefs[0].get("quiet_hours_start") if prefs else None
+        quiet_hours_end = prefs[0].get("quiet_hours_end") if prefs else None
+
+        def _can_send_push_notifications() -> bool:
+            return bool(
+                notifications_enabled
+                and apns_token
+                and not _quiet_hours_active(
+                    datetime.now(timezone.utc),
+                    enabled=quiet_hours_enabled,
+                    start=quiet_hours_start,
+                    end=quiet_hours_end,
+                )
+            )
 
         _set_analysis_stage(
             supabase,
@@ -2517,7 +2603,7 @@ async def execute_analysis_run(
                     },
                     dedupe_event_hash=event_hash,
                 )
-                if created and notifications_enabled and apns_token:
+                if created and push_notifications_allowed:
                     await notify_major_event(
                         user_id, apns_token, ticker, article.get("title", "")
                     )
@@ -2920,7 +3006,7 @@ async def execute_analysis_run(
                         },
                     }
                     supabase.table("alerts").insert(alert_payload).execute()
-                    if notifications_enabled and apns_token:
+                    if _can_send_push_notifications():
                         await notify_grade_change(
                             user_id,
                             apns_token,
@@ -3101,7 +3187,7 @@ async def execute_analysis_run(
                         },
                     },
                 )
-                if created and notifications_enabled and apns_token:
+                if created and _can_send_push_notifications():
                     await notify_portfolio_grade_change(
                         user_id,
                         apns_token,
@@ -3215,7 +3301,7 @@ async def execute_analysis_run(
                 dedupe_hours=4,
             )
 
-            if notifications_enabled and apns_token:
+            if _can_send_push_notifications():
                 await notify_digest(user_id, apns_token, digest["content"])
 
         _set_analysis_stage(
@@ -3237,7 +3323,7 @@ async def execute_analysis_run(
             supabase.table("positions").update({"analysis_started_at": None}).eq(
                 "id", target_position_id
             ).execute()
-        if target_position_id and notifications_enabled and apns_token:
+        if target_position_id and _can_send_push_notifications():
             position_ticker = tickers[0] if tickers else None
             position_grade = (
                 position_payloads[0].get("grade") if position_payloads else None
@@ -3810,6 +3896,20 @@ def get_scheduler_status_for_user(user_id: str) -> dict:
     job = scheduler.get_job(_job_id_for_user(user_id))
 
     pref = prefs[0] if prefs else {}
+    last_run_status = state.get("last_run_status") if state else None
+    last_run_at = state.get("last_run_at") if state else None
+    last_success_at = (
+        last_run_at if last_run_status in {"completed", "success"} else None
+    )
+    last_failure_at = (
+        last_run_at
+        if last_run_status
+        and last_run_status not in {"completed", "success", "running"}
+        else None
+    )
+    next_run_at = _serialize_datetime(
+        job.next_run_time if job else state.get("next_run_at") if state else None
+    )
     return {
         "user_id": user_id,
         "digest_time": pref.get(
@@ -3820,7 +3920,10 @@ def get_scheduler_status_for_user(user_id: str) -> dict:
             state.get("notifications_enabled") if state else False,
         ),
         "runtime_job_present": job is not None,
-        "runtime_next_run_at": _serialize_datetime(job.next_run_time if job else None),
+        "runtime_next_run_at": next_run_at,
+        "last_success_at": last_success_at,
+        "last_failure_at": last_failure_at,
+        "last_run_status": last_run_status,
         "persisted_state": state,
     }
 
@@ -3851,6 +3954,60 @@ def get_sp500_cache_status(limit: int = 10) -> dict:
     )
     snapshot_tickers = {row["ticker"] for row in latest_snapshots}
     completed_jobs = [row for row in latest_jobs if row.get("status") == "completed"]
+    job_state = {
+        "daily": {
+            "present": scheduler.get_job(SP500_DAILY_JOB_ID) is not None,
+            "next_run_at": _serialize_datetime(
+                scheduler.get_job(SP500_DAILY_JOB_ID).next_run_time
+                if scheduler.get_job(SP500_DAILY_JOB_ID)
+                else None
+            ),
+            "last_success_at": next(
+                (
+                    row.get("completed_at")
+                    for row in latest_jobs
+                    if row.get("job_type") == "daily_refresh"
+                    and row.get("status") == "completed"
+                ),
+                None,
+            ),
+            "last_failure_at": next(
+                (
+                    row.get("completed_at")
+                    for row in latest_jobs
+                    if row.get("job_type") == "daily_refresh"
+                    and row.get("status") == "failed"
+                ),
+                None,
+            ),
+        },
+        "backfill": {
+            "present": scheduler.get_job(SP500_BACKFILL_JOB_ID) is not None,
+            "next_run_at": _serialize_datetime(
+                scheduler.get_job(SP500_BACKFILL_JOB_ID).next_run_time
+                if scheduler.get_job(SP500_BACKFILL_JOB_ID)
+                else None
+            ),
+            "last_success_at": next(
+                (
+                    row.get("completed_at")
+                    for row in latest_jobs
+                    if row.get("job_type") == "backfill"
+                    and row.get("status") == "completed"
+                ),
+                None,
+            ),
+            "last_failure_at": next(
+                (
+                    row.get("completed_at")
+                    for row in latest_jobs
+                    if row.get("job_type") == "backfill"
+                    and row.get("status") == "failed"
+                ),
+                None,
+            ),
+        },
+    }
 
     return {
         "universe_size": len(universe),
@@ -3870,6 +4027,7 @@ def get_sp500_cache_status(limit: int = 10) -> dict:
         "recent_jobs": latest_jobs[:limit],
         "recent_snapshots": latest_snapshots[:limit],
         "completed_job_count_sample": len(completed_jobs),
+        "job_state": job_state,
     }
 
 
@@ -4791,7 +4949,9 @@ def _cleanup_old_news_items() -> None:
     from ..services.supabase import get_supabase
 
     cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
-    get_supabase().table("news_items").delete().lt("processed_at", cutoff).execute()
+    supabase = get_supabase()
+    supabase.table("news_items").delete().lt("processed_at", cutoff).execute()
+    supabase.table("ticker_news_cache").delete().lt("processed_at", cutoff).execute()
 
 
 def _schedule_news_cleanup() -> None:

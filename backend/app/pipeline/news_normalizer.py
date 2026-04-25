@@ -40,6 +40,8 @@ def _evidence_quality(title: str, body: str, summary: str, *, raw_body: Any) -> 
         return "full_body"
     if body_words >= 60:
         return "partial_body"
+    if body_words >= 12:
+        return "headline_summary"
     if clean_summary and len(clean_summary.split()) >= 12:
         return "headline_summary"
     return "title_only"

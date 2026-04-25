@@ -112,14 +112,14 @@ async def build_position_report(
         ticker = position.get("ticker", "This holding")
         return sanitize_public_analysis_text(
             {
-                "summary": f"Insufficient evidence was available to produce a substantive event-driven analysis for {ticker} in this cycle.",
-                "long_report": f"Coverage for {ticker} was either absent, unresolved, or too thin to support a grounded event read in this run. Treat the current view as provisional and based mostly on existing position context rather than newly confirmed catalysts.",
-                "methodology": "Low-evidence fallback based on position metadata and the absence of usable event coverage for this cycle.",
+                "summary": f"Known facts are limited for {ticker}, so the current read leans on existing position context and whatever confirmed signals are available.",
+                "long_report": f"Known facts for {ticker} are limited in this cycle, but the current setup still points to a provisional read rather than a blank one. The report should be treated as low-confidence, with the main unknown being whether any new company-specific catalyst, filing, or macro follow-through will change the setup. Preserve the known position context and update it once fuller event coverage arrives.",
+                "methodology": "Low-confidence fallback based on position metadata, existing context, and the absence of usable event coverage for this cycle.",
                 "top_risks": [
-                    "Evidence quality was too limited to validate new company-specific catalysts."
+                    "New company-specific catalysts have not yet been confirmed in this cycle."
                 ],
                 "watch_items": [
-                    "Recheck for resolved company or sector coverage before treating the absence of event analysis as a clean signal."
+                    "Recheck for resolved company or sector coverage before treating the current read as settled."
                 ],
             }
         )

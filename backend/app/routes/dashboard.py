@@ -116,6 +116,25 @@ def _clean_risk_driver(driver: dict) -> dict:
     }
 
 
+def _portfolio_score_fields(digest: dict | None) -> dict[str, object | None]:
+    if not digest:
+        return {
+            "overall_score": None,
+            "overall_grade": None,
+            "score_source": None,
+            "score_as_of": None,
+            "score_version": None,
+        }
+
+    return {
+        "overall_score": digest.get("overall_score"),
+        "overall_grade": digest.get("overall_grade"),
+        "score_source": "digest",
+        "score_as_of": digest.get("generated_at"),
+        "score_version": digest.get("analysis_run_id"),
+    }
+
+
 @router.get("")
 async def get_dashboard(
     response: Response,
@@ -168,6 +187,7 @@ async def get_dashboard(
         snapshot = None
 
     digest, analysis_run = _latest_digest_and_run(supabase, user_id)
+    portfolio_score_fields = _portfolio_score_fields(digest)
 
     return {
         "digest": digest,
@@ -177,5 +197,6 @@ async def get_dashboard(
         "positions": positions,
         "alerts": alerts,
         "portfolio_risk_snapshot": snapshot,
+        **portfolio_score_fields,
         "message": "ok",
     }

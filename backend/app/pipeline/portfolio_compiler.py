@@ -68,6 +68,7 @@ Digest structure for content field:
 - Each position entry should be 1-3 short sentences.
 - **Overnight Macro** should be brief if no significant macro happened; don't pad
 - **What Matters Today** should be specific: earnings, data releases, Fed speakers, etc.
+- If nothing is urgent, include one low-urgency **What Matters Today** item that says there is no immediate portfolio-level risk driver today and names the holdings to monitor.
 - **Watchlist Alerts** should only include watchlist names with real new information, and each line should be plain English.
 - **Monitoring Notes** should be a short checklist with ticker-specific observations, not generic portfolio filler.
 - If a holding is fine, say "no material change" in plain English and name the ticker.
@@ -448,11 +449,19 @@ def _position_impacts_text(macro_context: dict | None) -> str:
 
 def _what_matters_text(macro_context: dict | None) -> str:
     if not macro_context:
-        return ""
+        return (
+            "What Matters Today:\n- No immediate portfolio-level risk driver found today. "
+            "Monitor the highest-urgency holdings for ticker-specific news, earnings, "
+            "filings, or macro shocks."
+        )
 
     matters = macro_context.get("what_matters_today") or []
     if not matters:
-        return ""
+        return (
+            "What Matters Today:\n- No immediate portfolio-level risk driver found today. "
+            "Monitor the highest-urgency holdings for ticker-specific news, earnings, "
+            "filings, or macro shocks."
+        )
 
     lines = ["What Matters Today:"]
     for item in matters[:6]:
@@ -462,6 +471,34 @@ def _what_matters_text(macro_context: dict | None) -> str:
         impacted_text = ", ".join(impacted_positions) if impacted_positions else "none"
         lines.append(f"- {catalyst} | impacted: {impacted_text} | urgency: {urgency}")
     return "\n".join(lines)
+
+
+def _fallback_what_matters_today(position_data: list[dict]) -> list[dict]:
+    ranked_positions = sorted(position_data, key=_position_urgency, reverse=True)
+    if not ranked_positions:
+        return []
+
+    lead = ranked_positions[0]
+    lead_ticker = _normalize_ticker(lead.get("ticker")) or "the portfolio"
+    primary_watch = _short_watch_item(lead).lower()
+    if primary_watch in {"no urgent change.", ""}:
+        primary_watch = "company-specific news"
+
+    impacted_positions = [
+        _normalize_ticker(position.get("ticker"))
+        for position in ranked_positions[:3]
+        if _normalize_ticker(position.get("ticker"))
+    ]
+    return [
+        {
+            "catalyst": (
+                f"No immediate portfolio-level risk driver found today. Monitor {lead_ticker} "
+                f"for {primary_watch} and keep the rest of the book on watch for earnings, filings, or macro shocks."
+            ),
+            "impacted_positions": impacted_positions,
+            "urgency": "low",
+        }
+    ]
 
 
 def _watchlist_alerts_text(watchlist_alerts: list[str] | None) -> str:
@@ -534,6 +571,7 @@ def _fallback_portfolio_digest(
         for position in ranked_positions
     ]
     fallback_advice = _build_portfolio_advice(ranked_positions, fallback_impacts)
+    fallback_what_matters = _fallback_what_matters_today(ranked_positions)
 
     opening = (
         f"Today is {date_context['day']}, {date_context['date_text']}. {date_context['trading_note']} Your portfolio opens the day at grade {overall_grade}."
@@ -604,6 +642,7 @@ def _fallback_portfolio_digest(
         sector_overview_block,
         position_impacts_block,
         "**Portfolio Impact**\n- The highest-urgency holding is the main current change driver.",
+        _what_matters_text({"what_matters_today": fallback_what_matters}),
     ]
     if watchlist_alerts_block:
         content_parts.append(watchlist_alerts_block)
@@ -632,7 +671,7 @@ def _fallback_portfolio_digest(
             "sector_overview": _fallback_sector_overview(position_data),
             "position_impacts": fallback_impacts,
             "portfolio_impact": ["Focus on the highest-urgency holding first."],
-            "what_matters_today": [],
+            "what_matters_today": fallback_what_matters,
             "watchlist_alerts": fallback_watchlist_alerts,
             "major_events": [
                 f"{position['ticker']}: {_grade_change_text(position)}"
@@ -739,6 +778,7 @@ Important instruction:
 - Use the overnight macro section to set context before diving into positions.
 - Use the sector overview to show which groups are driving the tape for this portfolio.
 - Use "what_matters_today" for forward-looking items (earnings, data releases, Fed speakers).
+- If there is no real urgent driver, return a single low-urgency item that explicitly says there is no immediate portfolio-level risk driver today and points to the main holdings to monitor.
 - Use "watchlist_alerts" only for watchlist names that have real news or risk changes.
 - Base watchlist items on the article evidence already captured on each company, not generic market language.
 - Preserve structured watch_items, top_risks, and dimension_breakdown data on each position when available.
@@ -800,6 +840,35 @@ Positions:
     if not isinstance(monitoring_notes, list):
         monitoring_notes = fallback["sections"]["portfolio_advice"]
     monitoring_notes = _sanitize_portfolio_advice(monitoring_notes)
+    what_matters_today = (
+        sections.get("what_matters_today")
+        or fallback["sections"].get("what_matters_today")
+        or []
+    )
+    if not isinstance(what_matters_today, list) or not what_matters_today:
+        what_matters_today = fallback_what_matters
+    else:
+        normalized_what_matters = []
+        for item in what_matters_today:
+            if not isinstance(item, dict):
+                continue
+            catalyst = str(item.get("catalyst") or "").strip()
+            if not catalyst:
+                continue
+            impacted_positions = [
+                _normalize_ticker(position)
+                for position in item.get("impacted_positions") or []
+                if _normalize_ticker(position)
+            ]
+            normalized_what_matters.append(
+                {
+                    "catalyst": catalyst,
+                    "impacted_positions": impacted_positions,
+                    "urgency": str(item.get("urgency") or "medium").strip().lower()
+                    or "medium",
+                }
+            )
+        what_matters_today = normalized_what_matters or fallback_what_matters
     return {
         "content": parsed.get("content")
         or parsed.get("overall_summary")
@@ -823,9 +892,7 @@ Positions:
             or [],
             "major_events": sections.get("major_events")
             or fallback["sections"]["major_events"],
-            "what_matters_today": sections.get("what_matters_today")
-            or fallback["sections"].get("what_matters_today")
-            or [],
+            "what_matters_today": what_matters_today,
             "watchlist_alerts": normalized_watchlist_alerts,
             "watch_list": normalized_watch_list,
             "monitoring_notes": monitoring_notes,

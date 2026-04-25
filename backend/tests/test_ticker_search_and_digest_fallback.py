@@ -143,3 +143,34 @@ def test_compile_portfolio_digest_falls_back_to_structured_sector_and_position_f
         "news_sentiment": "Weak",
         "volatility_trend": "High",
     }
+    assert digest["sections"]["what_matters_today"]
+    assert digest["sections"]["what_matters_today"][0]["urgency"] == "low"
+    assert "No immediate portfolio-level risk driver found today" in digest["content"]
+
+
+def test_compile_portfolio_digest_preserves_real_urgent_items():
+    positions = [
+        {
+            "ticker": "HOOD",
+            "sector": "Financials",
+            "grade": "B",
+            "previous_grade": "B",
+            "total_score": 71,
+            "summary": "No material change.",
+            "watch_items": ["Rates watch"],
+            "top_risks": ["Macro watch"],
+            "dimension_breakdown": {"macro_exposure": "Sensitive"},
+            "shares": 10,
+            "confidence": 0.8,
+            "structural_base_score": 45,
+        }
+    ]
+
+    with patch(
+        "app.pipeline.portfolio_compiler.chatcompletion_text",
+        return_value='{"content": "digest content", "overall_summary": "digest summary", "sections": {"overnight_macro": {"headlines": ["headline"], "themes": ["theme"], "brief": "Macro brief."}, "sector_overview": [{"sector": "Financials", "brief": "Sector brief."}], "position_impacts": [{"ticker": "HOOD", "impact_summary": "Impact"}], "portfolio_impact": ["Concentration risk elevated."], "what_matters_today": [{"catalyst": "Earnings release could move HOOD after hours.", "impacted_positions": ["HOOD"], "urgency": "high"}], "watchlist_alerts": ["HOOD alert"], "major_events": ["HOOD event"], "watch_list": ["HOOD watch"], "monitoring_notes": ["Note"], "portfolio_advice": ["Note"]}}',
+    ):
+        digest = asyncio.run(compile_portfolio_digest(positions, "B"))
+
+    assert digest["sections"]["what_matters_today"][0]["urgency"] == "high"
+    assert digest["sections"]["what_matters_today"][0]["impacted_positions"] == ["HOOD"]

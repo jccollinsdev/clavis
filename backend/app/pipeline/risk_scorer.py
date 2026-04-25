@@ -95,10 +95,10 @@ def _coverage_state_for_position(position_data: dict) -> tuple[str, int, int, in
 
     if source_count == 0 or summary.startswith("insufficient evidence"):
         coverage_state = "provisional"
-        coverage_note = "Coverage was limited, so this score leans mostly on ticker metadata and cached context."
+        coverage_note = "Confidence is low because the score leans mostly on ticker metadata and cached context."
     elif source_count <= 2:
         coverage_state = "thin"
-        coverage_note = f"Only {source_count} analyzed event(s) were available, so the score should be treated as coverage-limited."
+        coverage_note = f"Low-confidence coverage: only {source_count} analyzed event(s) were available."
     else:
         coverage_state = "substantive"
         coverage_note = f"{source_count} analyzed event(s) supported this score."
@@ -119,25 +119,90 @@ def _synthesized_reasoning(
     source_count: int,
     coverage_note: str,
     llm_used: bool,
+    total_score: float | None = None,
 ) -> str:
-    if coverage_state == "provisional":
-        prefix = f"Coverage is limited for {ticker}, so this is a provisional score grounded mostly in ticker metadata and cached context."
-    elif coverage_state == "thin":
-        prefix = f"Coverage is thin for {ticker}, so the score leans on {source_count} analyzed event(s) and cached context."
-    else:
-        prefix = f"{ticker} is grounded in {source_count} analyzed event(s) and cached context."
+    def _dimension_phrase(key: str, label: str) -> str:
+        value = clamp_score(scores.get(key), 50)
+        if value >= 65:
+            effect = "supports a safer read"
+        elif value <= 35:
+            effect = "adds risk"
+        else:
+            effect = "is broadly neutral"
+        return f"{label} ({value}) {effect}"
+
+    def _primary_horizon() -> str:
+        volatility = clamp_score(scores.get("volatility_trend"), 50)
+        news = clamp_score(scores.get("news_sentiment"), 50)
+        macro = clamp_score(scores.get("macro_exposure"), 50)
+        sizing = clamp_score(scores.get("position_sizing"), 50)
+        if volatility <= 40 or news <= 40:
+            return "The immediate risk is the main concern."
+        if macro <= 45 or sizing <= 45:
+            return "This is more of a monitor-only risk than an immediate shock."
+        return "The risk is mostly background unless new evidence changes the setup."
+
+    parts = [
+        f"{ticker}: "
+        + "; ".join(
+            [
+                _dimension_phrase("news_sentiment", "Company-specific news"),
+                _dimension_phrase("macro_exposure", "Macro/sector exposure"),
+                _dimension_phrase("position_sizing", "Portfolio construction"),
+                _dimension_phrase("volatility_trend", "Near-term volatility"),
+            ]
+        )
+        + "."
+    ]
+    parts.append(_primary_horizon())
+
+    if total_score is not None:
+        parts.append(
+            f"Those inputs land the score at {int(round(total_score))}/100, which matches the final grade."
+        )
+
+    if coverage_note:
+        parts.append(coverage_note)
 
     if llm_used:
-        prefix = f"{prefix} The model did not provide a usable written rationale, so this summary was synthesized from the final dimension scores."
+        parts.append(
+            "This summary was assembled from the final dimension scores."
+        )
 
-    detail_note = coverage_note if coverage_state == "substantive" else ""
-    detail_note = f"{detail_note} " if detail_note else ""
+    return " ".join(part for part in parts if part).strip()
 
-    return (
-        f"{prefix} {detail_note}"
-        f"News={scores.get('news_sentiment', 50)}, Macro={scores.get('macro_exposure', 50)}, "
-        f"Size={scores.get('position_sizing', 50)}, Volatility={scores.get('volatility_trend', 50)}."
-    )
+
+def _article_evidence_brief(position_data: dict, limit: int = 4) -> str:
+    evidence_rows = list(position_data.get("article_evidence") or [])
+    if not evidence_rows:
+        evidence_rows = []
+        for event in list(position_data.get("event_analyses") or []):
+            evidence_rows.append(
+                {
+                    "title": event.get("title"),
+                    "source": event.get("source"),
+                    "published_at": event.get("published_at"),
+                    "evidence_quality": event.get("evidence_quality"),
+                    "excerpt": event.get("article_excerpt") or event.get("summary") or "",
+                }
+            )
+
+    lines: list[str] = []
+    for row in evidence_rows[:limit]:
+        title = str(row.get("title") or "").strip()
+        source = str(row.get("source") or "").strip()
+        published_at = str(row.get("published_at") or "").strip()[:19]
+        evidence_quality = str(row.get("evidence_quality") or "").strip()
+        excerpt = str(row.get("excerpt") or row.get("summary") or "").strip()
+        if excerpt:
+            excerpt = excerpt[:180]
+        parts = [part for part in [title, source, published_at, evidence_quality] if part]
+        if excerpt:
+            parts.append(excerpt)
+        if parts:
+            lines.append(" | ".join(parts))
+
+    return "\n".join(lines)
 
 
 def _parse_batch_scores(raw_text: str, tickers: list[str]) -> dict[str, dict]:
@@ -363,9 +428,14 @@ def _deterministic_dimension_scores(
     )
     grade = _apply_grade_hysteresis(total, position_data.get("previous_grade"))
 
-    reasoning = (
-        f"Deterministic score built from cached event analysis, macro context, and ticker metadata. "
-        + f"News={news_sentiment}, Macro={macro_exposure}, Size={position_sizing}, Volatility={volatility_trend}."
+    reasoning = _synthesized_reasoning(
+        str(position_data.get("ticker") or "this position"),
+        normalized_scores,
+        coverage_state,
+        source_count,
+        coverage_note,
+        llm_used=False,
+        total_score=total,
     )
     if position_data.get("previous_grade") and grade != score_to_grade(weighted):
         reasoning = (
@@ -416,6 +486,10 @@ def _prefer_llm_scoring(position_data: dict) -> bool:
 
 
 def _llm_score_prompt(position_data: dict) -> str:
+    article_evidence = _article_evidence_brief(position_data)
+    evidence_block = (
+        f"\n\nSelected article evidence:\n{article_evidence}" if article_evidence else ""
+    )
     return SYSTEM_PROMPT.format(
         ticker=position_data.get("ticker", ""),
         shares=position_data.get("shares", 0),
@@ -423,7 +497,7 @@ def _llm_score_prompt(position_data: dict) -> str:
         position_value=round(_safe_float(position_data.get("position_value"), 0.0), 2),
         labels=", ".join(position_data.get("inferred_labels", []) or []),
         summary=position_data.get("summary", ""),
-        long_report=position_data.get("long_report", ""),
+        long_report=(position_data.get("long_report", "") or "") + evidence_block,
     )
 
 
@@ -562,16 +636,6 @@ async def score_position(
         minor_event_count,
         coverage_note,
     ) = _coverage_state_for_position(position_data)
-    reasoning = (scores.get("reasoning") or "").strip()
-    if not reasoning:
-        reasoning = _synthesized_reasoning(
-            str(position_data.get("ticker") or "this position"),
-            normalized_scores,
-            coverage_state,
-            source_count,
-            coverage_note,
-            llm_used=True,
-        )
 
     weighted = calculate_weighted_score(normalized_scores)
     total = round(
@@ -583,6 +647,17 @@ async def score_position(
     )
     grade = _apply_grade_hysteresis(total, position_report.get("previous_grade"))
     dimension_rationale = scores.get("dimension_rationale") or {}
+    reasoning = (scores.get("reasoning") or "").strip()
+    if not reasoning:
+        reasoning = _synthesized_reasoning(
+            str(position_data.get("ticker") or "this position"),
+            normalized_scores,
+            coverage_state,
+            source_count,
+            coverage_note,
+            llm_used=True,
+            total_score=total,
+        )
 
     if position_report.get("previous_grade") and grade != score_to_grade(weighted):
         if reasoning:
@@ -599,7 +674,7 @@ async def score_position(
         "grade": grade,
         "reasoning": reasoning,
         "grade_reason": reasoning,
-        "evidence_summary": position_data.get("summary", ""),
+        "evidence_summary": scores.get("evidence_summary") or position_data.get("summary", ""),
         "dimension_rationale": dimension_rationale,
         "source_count": source_count,
         "major_event_count": major_event_count,
@@ -689,7 +764,7 @@ def score_position_structural(
         coverage_note = "No recent event coverage was available, so this structural score is provisional."
     elif source_count <= 2:
         coverage_state = "thin"
-        coverage_note = f"Only {source_count} recent event(s) were available, so this structural score is coverage-limited."
+        coverage_note = f"Low-confidence coverage: only {source_count} recent event(s) were available."
     else:
         coverage_state = "substantive"
         coverage_note = (
@@ -786,6 +861,11 @@ async def score_positions_batch(
     for chunk_start in range(0, len(sparse_positions), llm_chunk_size):
         chunk = sparse_positions[chunk_start : chunk_start + llm_chunk_size]
         tickers = [position.get("ticker", "") for _, position in chunk]
+        evidence_texts = []
+        for i, (_, position) in enumerate(chunk):
+            evidence = _article_evidence_brief(position, limit=3)
+            if evidence:
+                evidence_texts.append(f"Position {i + 1} article evidence:\n{evidence}")
         positions_text = "\n".join(
             f"""Position {i + 1}:
 - Ticker: {position.get("ticker", "")}
@@ -798,9 +878,10 @@ async def score_positions_batch(
 - Long report excerpt: {position.get("long_report", "")[:300]}"""
             for i, (_, position) in enumerate(chunk)
         )
+        evidence_block = "\n\n".join(evidence_texts)
         score_example = ", ".join(
             (
-                f'"{ticker}": {{"news_sentiment": 50, "macro_exposure": 50, "position_sizing": 50, "volatility_trend": 50, "grade": "C"}}'
+                f'"{ticker}": {{"news_sentiment": 50, "macro_exposure": 50, "position_sizing": 50, "volatility_trend": 50, "grade": "C", "reasoning": "...", "dimension_rationale": {{"news_sentiment": "...", "macro_exposure": "...", "position_sizing": "...", "volatility_trend": "..."}}, "evidence_summary": "..."}}'
             )
             for ticker in tickers
         )
@@ -809,6 +890,8 @@ async def score_positions_batch(
 Use a single scale where 0 means penny-stock-like / very risky and 100 means treasury-like / very safe. Higher scores always mean lower risk.
 
 {positions_text}
+
+{evidence_block if evidence_block else ""}
 
 Return EXACTLY this JSON format (no markdown, no explanation, no thinking):
 {{"scores": {{{score_example}}}}}
@@ -824,6 +907,7 @@ Return EXACTLY this JSON format (no markdown, no explanation, no thinking):
         - Do not return 50 across all four dimensions unless the evidence is genuinely absent.
         - If the evidence is directional, move the relevant dimensions away from 50.
         - Use the position value and portfolio weight context in the prompt when estimating position sizing.
+        - Include a short reasoning string, per-dimension rationale, and a one-line evidence summary for each ticker when possible.
 
 Respond with ONLY the JSON object. Start with {{ and end with }}."""
 
@@ -933,7 +1017,7 @@ Respond with ONLY the JSON object. Start with {{ and end with }}."""
                 "grade": grade,
                 "reasoning": reasoning,
                 "grade_reason": reasoning,
-                "evidence_summary": position.get("summary", ""),
+                "evidence_summary": raw_scores.get("evidence_summary") or position.get("summary", ""),
                 "dimension_rationale": raw_scores.get("dimension_rationale") or {},
                 "source_count": source_count,
                 "major_event_count": major_event_count,

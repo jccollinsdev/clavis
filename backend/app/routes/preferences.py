@@ -105,7 +105,11 @@ async def update_preferences(preferences: PreferencesUpdate, request: Request):
                 {"user_id": user_id, **data}
             ).execute()
 
-    if preferences.digest_time is not None or preferences.weekday_only is not None:
+    if (
+        preferences.digest_time is not None
+        or preferences.weekday_only is not None
+        or preferences.notifications_enabled is not None
+    ):
         from ..pipeline.scheduler import reschedule_user_digest
 
         await reschedule_user_digest(user_id)

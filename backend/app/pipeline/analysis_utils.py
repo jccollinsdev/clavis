@@ -21,10 +21,15 @@ _PUBLIC_ANALYSIS_REPLACEMENTS: list[tuple[str, str]] = [
     (r"\btitle_only\b", "headline-only"),
     (r"\bheadline_summary\b", "headline summary"),
     (r"\bevidence quality\b", "coverage depth"),
-    (r"\blow-evidence\b", "thin coverage"),
-    (r"\bcurrent evidence is still incomplete\b", "coverage is still thin"),
-    (r"\bevidence is still incomplete\b", "coverage is still thin"),
+    (r"\blow-evidence\b", "low-confidence coverage"),
+    (r"\bcurrent evidence is still incomplete\b", "limited coverage remains"),
+    (r"\bevidence is still incomplete\b", "limited coverage remains"),
     (r"\barticle evidence\b", "article coverage"),
+    (
+        r"\bthe model did not provide a usable written rationale, so this summary was synthesized from the final dimension scores\b",
+        "this summary was assembled from the final dimension scores",
+    ),
+    (r"\bfallback synthesis\b", "summary assembled"),
 ]
 
 

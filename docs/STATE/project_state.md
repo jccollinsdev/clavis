@@ -1,25 +1,14 @@
 ---
 project: Clavis
 version: 1
-last_updated: 2026-04-23
+last_updated: 2026-04-25
 roadmap: docs/STATUS/roadmap.md
 status: active
-current_phase: "Phase 1 - Security And Production Hardening"
+current_phase: "Phase 5 - Digest Parity and Architecture Cleanup"
 current_focus:
-  - Apply the provided Clavix HTML handoff to the iOS app shell and core screens, keeping the existing auth, onboarding, holdings, digest, alerts, settings, news, and ticker-detail flows intact while tightening screenshot-level parity
-  - Work through the structural audit items that are now shippable in code: cooldowns/rate limits, account export/delete UI, local JWT verification fallback, and shared disclaimer copy
-  - Execute a 7-day launch sprint: day 1 harden launch scope, repo drift, debug gating, and app-wide polish; day 3 clear the Apple Developer account blocker; final 2 days implement RevenueCat/payments; use the remaining days for QA, legal/trust, notifications, and release prep
-  - Make day 1 visibly convincing by clicking through the whole app and fixing the highest-friction bugs in onboarding, settings, ticker detail, news, alerts, and digest so the current app can be shown to family before purchase approval
-  - Prioritize the latest full-app QA findings for day 1: remove the non-essential News surface, fix stale digest freshness and empty sector/watch messaging, clarify or remove ambiguous refresh actions, improve holdings search/watchlist flow, and add visible Clavix branding to the main shell
-  - Deep debug the missing risk-dimension card on held stock detail and keep the ticker-detail score path honest when the shared snapshot is missing
-  - Diagnose the remaining UI+backend issues and turn them into an ordered build plan before making the next code pass
-  - Reconcile repo-to-production drift in Supabase schema/migrations and deploy config so a fresh environment can be recreated from the repo and production deploy checks match the actual stack
-  - Gate or remove production debug and test surfaces, and reduce or more aggressively test service-role-driven user flows before launch
-  - After repo drift and debug gating are done, polish onboarding and settings, then run a full button-by-button QA pass across the app
-  - Decide the launch monetization path, then implement RevenueCat and subscription enforcement in the final 2 days if paid v1 remains the chosen route
-  - Keep coverage-quality messaging and ticker-detail score honesty stable while the launch-hardening pass continues
-  - Validate the SnapTrade backend env vars and brokerage routes on the DigitalOcean VPS against a real supported brokerage, or explicitly defer the brokerage flow from the launch path if approval/setup is not ready
-  - Keep the S&P backfill, nightly holdings refresh, and structural refresh automation reliable on the VPS after the recent scheduler fixes
+  - Verify and preserve the preference lifecycle so digest timing, summary length, weekday-only behavior, and notification toggles stay aligned across iOS, API, scheduler state, and digest generation
+  - Keep `ticker_news_cache` fresh on snapshot refresh skips and surface `analysis_state`, `news_refresh_status`, and `last_news_refresh_at` consistently
+  - Keep quiet-hours notification timing enforced in the scheduler without changing digest generation or scoring behavior
 blockers:
   gate_0:
     - Paid Apple Developer account
@@ -33,6 +22,26 @@ blockers:
     - SnapTrade is wired locally and the simulator now works against `http://127.0.0.1:8000`, but the VPS backend still needs the SnapTrade client ID / consumer key configured before the production brokerage flow can work
     - App shell/UI migration is functionally complete, but final spacing polish and screenshot-level parity checks are still needed before release polish is considered done
 recent_completions:
+  - Added backend enforcement for quiet-hours notification timing in the scheduler, so digest/analysis APNs pushes now honor the stored quiet-hours window while leaving digest content and scoring untouched, and covered the overnight-window helper with regression tests
+  - Audited the digest and notification preference lifecycle end to end, fixed the scheduler resync so `notifications_enabled` now re-registers digest jobs correctly, removed the cross-user `summary_length` fallback in force-refresh digest generation, and added regression tests for rescheduling, weekend skipping, user-scoped summary length, and digest token budgeting
+  - Hardened the new digest and ticker-cache read paths so summary-length lookup falls back cleanly, sector-context synthesis tolerates sparse placeholder inputs, and ticker detail no longer throws when a default watchlist has to be synthesized on a read-only fake backend
+  - Re-ran the touched backend slice after those fixes and confirmed all 27 relevant tests pass in the local `uv` environment with dummy Supabase/MiniMax settings
+  - Added score-selection fallbacks on iOS so Home now prefers any valid digest score, logs a sanitized score payload in DEBUG, and shows "Pending" plus an explicit reason instead of a silent dash when no score is available
+  - Reworked the backend risk-score synthesis and digest compiler so low-coverage reads stay factual, confidence is separated from the main rationale, and the digest now emits a useful low-urgency "no immediate portfolio-level risk driver" item when nothing urgent exists
+  - Added backend tests covering thin-coverage rationale output, urgent-item behavior, and digest/dashboard score provenance, then verified the backend suite passes in the container and the iOS simulator build still succeeds
+  - Unified manual digest force-refresh with the scheduled digest compiler inputs so portfolio risk, macro context, sector context, summary length, and analysis-run linkage now flow through the same backend path
+  - Verified the updated digest payload still builds cleanly in the iPhone 17 Simulator after the score/provenance contract changes
+  - Moved portfolio grade generation fully into the backend dashboard response, removed the last iOS `scoreToGrade` fallback, and taught the dashboard hero/change feed to show an honest unknown state when the backend does not provide a portfolio score
+  - Tightened the display-score contract so ticker detail now prefers `position.total_score` and `position.risk_grade` ahead of shared snapshot fallbacks, and dashboard portfolio grade now derives from backend numeric scores instead of local grade averaging when the digest is absent
+  - Fixed the ticker-detail bundle freshness contract by defining the missing `last_news_refresh_at` value before it is serialized, so the new analysis-state payload and freshness fields return cleanly instead of crashing on read
+  - Added a shared-news cache writer and freshness tracking so analysis runs and shared refresh can populate `ticker_news_cache`, ticker detail/holdings can surface `news_as_of`, `last_news_refresh_at`, and refresh status, and old cache rows are cleaned up with retention
+  - Completed the backend-owned add-holding workflow so `POST /holdings` now ensures ticker support, refreshes shared ticker data, enqueues the user analysis run, and returns a workflow/status object, then aligned ticker-detail state labels with holdings so both surfaces speak the same queued/running/ready/failed/thin vocabulary
+  - Exposed explicit provenance and job-state fields through ticker detail and scheduler status responses, including analysis_state, latest_analysis_run, latest_refresh_job, coverage_state, and freshness timestamps, then wired the iOS ticker detail and dashboard to consume the new state cleanly
+  - Connected the add-position flow to trigger backend analysis runs, surfaced top-3 supported ticker suggestions and unsupported ticker messaging in the search/add flows, routed alerts through the existing tab/deep-link structure, and hid position-sizing metrics on search-only ticker detail views
+  - Applied the missing production Supabase migrations for `analysis_runs.target_tickers`, `user_preferences.last_manual_refresh_at`, `user_preferences.last_analysis_request_at`, `alerts.change_reason`, and `alerts.change_details`, and confirmed the live schema now matches the local migration set for those fields
+  - Reconfirmed the iOS app is configured to use `https://clavis.andoverdigital.com` as its backend and rebuilt/relaunched the app successfully in the iPhone 17 Simulator
+  - Switched the iOS backend target in the shared Xcode config from the local dev URL to the production VPS hostname so the simulator and app builds now point at `https://clavis.andoverdigital.com` instead of `http://127.0.0.1:8000`
+  - Verified the latest iOS UI polish pass against the working tree, caught two compile regressions introduced during the cleanup (duplicate `NetworkStatusMonitor` / `OfflineStatusBanner` definitions and a duplicate `ClavisCopy` type), consolidated the shared definitions, then rebuilt and relaunched the app successfully in the iPhone 17 Simulator
   - Reworked the iOS presentation layer around the provided Clavix HTML handoff: updated the shared dark tokens, restyled login/onboarding plus the Home, Holdings, Digest, Alerts, Settings, News, Article, and ticker-detail shells to match the new layout direction, preserved the existing data/view-model flows underneath, and rebuilt the app successfully for the iPhone 17 Simulator
   - Restored the typography to the actual pre-change git baseline instead of the earlier approximation: reverted `ClavisTypography` label/row/body/card/footnote/metric/grade sizes, restored the gauge caption size, and returned the tab-bar labels to the original 10pt sizing before relaunching the iOS Simulator
   - Restored the original text sizing baseline after the smaller-font experiment, including the shared header/body styles and the bottom tab-bar labels, and relaunched the iOS Simulator to apply it
