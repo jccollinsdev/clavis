@@ -491,6 +491,227 @@ def build_position_analysis_from_snapshot(
     )
 
 
+_LEGACY_DIMENSION_MATH_MARKERS = (
+    "adds risk at ",
+    "supports a safer read at ",
+    "is broadly neutral at ",
+    "Those inputs land the score at ",
+    "Company-specific news (",
+    "Macro/sector exposure (",
+    "Near-term volatility (",
+    "Portfolio construction (",
+    "This summary was assembled from the final dimension scores",
+    "Low-confidence coverage: only",
+    "analyzed event(s) were available",
+    "analyzed event(s) supported this score",
+)
+
+
+def _is_legacy_dimension_math(text: str) -> bool:
+    return any(marker in text for marker in _LEGACY_DIMENSION_MATH_MARKERS)
+
+
+_GENERIC_FALLBACK_MARKERS = (
+    "We're still building a full picture for this ticker.",
+    "Risk is based on",
+    "Risk reflects recent news coverage and sector conditions.",
+    "The score reflects underlying fundamentals and sector context",
+)
+
+
+def _is_generic_fallback_reasoning(text: str) -> bool:
+    """Detect our own generic fallback template text (not article-specific)."""
+    return any(marker in text for marker in _GENERIC_FALLBACK_MARKERS)
+
+
+def _normalize_headline(title: str) -> str:
+    """Normalize a headline for dedup: lowercase, strip source suffixes, remove punctuation."""
+    import re
+
+    t = (title or "").lower().strip()
+    # Strip trailing source attribution: " - Reuters", " | CNBC", " — Bloomberg"
+    t = re.sub(r"\s*[-|—]\s*[A-Za-z][\w\s.,&'-]{1,40}$", "", t).strip()
+    # Remove all non-alphanumeric chars except spaces
+    t = re.sub(r"[^a-z0-9\s]", "", t).strip()
+    # Collapse whitespace
+    return re.sub(r"\s+", " ", t)
+
+
+def _dedup_event_analyses(events: list[dict]) -> list[dict]:
+    """
+    Deduplicate event_analyses rows.
+    Priority: highest confidence first, then most recent.
+    Dedup key: event_hash, then normalized headline.
+    """
+    sorted_events = sorted(
+        events,
+        key=lambda e: (
+            float(e.get("confidence") or 0),
+            e.get("created_at") or "",
+        ),
+        reverse=True,
+    )
+    seen_hashes: set[str] = set()
+    seen_titles: set[str] = set()
+    result: list[dict] = []
+    for event in sorted_events:
+        h = (event.get("event_hash") or "").strip()
+        norm = _normalize_headline(event.get("title") or "")
+        if h and h in seen_hashes:
+            continue
+        if norm and norm in seen_titles:
+            continue
+        if h:
+            seen_hashes.add(h)
+        if norm:
+            seen_titles.add(norm)
+        result.append(event)
+    return result
+
+
+def _build_article_aware_reasoning(
+    events: list[dict],
+    current_score: dict | None,
+    ticker: str,
+) -> str | None:
+    """
+    Build investor-facing rationale using actual event analyses.
+    Covers: overall tone, downside signals, supportive signals, macro context, watch item.
+    Returns None if there are no events to build from.
+    """
+    if not events:
+        return None
+
+    score = current_score or {}
+    source_count = int(score.get("source_count") or len(events))
+    macro_score = int(score.get("macro_exposure") or 50)
+    coverage_state = score.get("coverage_state") or "substantive"
+
+    worsening = [
+        e for e in events if (e.get("risk_direction") or "").lower() == "worsening"
+    ]
+    improving = [
+        e for e in events if (e.get("risk_direction") or "").lower() == "improving"
+    ]
+
+    # Overall tone
+    if len(worsening) > 0 and len(improving) == 0:
+        tone = "broadly cautious"
+    elif len(improving) > 0 and len(worsening) == 0:
+        tone = "broadly positive"
+    elif len(worsening) > len(improving):
+        tone = "mixed, leaning cautious"
+    elif len(improving) > len(worsening):
+        tone = "mixed, leaning positive"
+    else:
+        tone = "mixed"
+
+    word = "source" if source_count == 1 else "sources"
+    lines: list[str] = [f"Recent coverage across {source_count} {word} is {tone}."]
+
+    def _title_clip(event: dict) -> str:
+        title = (event.get("title") or ticker).strip()
+        for sep in (" - ", " | ", " — ", ": "):
+            if sep in title:
+                title = title.split(sep)[0].strip()
+        return title[:80]  # guard against very long titles
+
+    def _best_detail(event: dict) -> str:
+        implications = event.get("key_implications") or []
+        if implications and implications[0]:
+            return str(implications[0]).strip()
+        return (event.get("scenario_summary") or "").strip()
+
+    def _sentence_case(text: str) -> str:
+        if not text:
+            return text
+        return text[0].lower() + text[1:]
+
+    # Downside signals
+    if worsening:
+        parts = []
+        for e in worsening[:2]:
+            detail = _best_detail(e)
+            clip = _title_clip(e)
+            if detail:
+                parts.append(f"{clip}: {_sentence_case(detail).rstrip('.')}")
+        if parts:
+            lines.append("Downside signals: " + "; ".join(parts) + ".")
+
+    # Supportive signals
+    if improving:
+        parts = []
+        for e in improving[:2]:
+            detail = _best_detail(e)
+            clip = _title_clip(e)
+            if detail:
+                parts.append(f"{clip}: {_sentence_case(detail).rstrip('.')}")
+        if parts:
+            lines.append("On the positive side: " + "; ".join(parts) + ".")
+
+    # Macro context
+    if macro_score <= 35:
+        lines.append(
+            "Macro and sector conditions are elevated risk — that weighs on the overall score."
+        )
+    elif macro_score >= 65:
+        lines.append("Macro and sector conditions are broadly supportive.")
+
+    # Watch item: second implication from the most significant worsening or improving event
+    watch_text: str | None = None
+    candidates = worsening + improving
+    for e in candidates:
+        implications = e.get("key_implications") or []
+        if len(implications) > 1 and implications[1]:
+            watch_text = str(implications[1]).strip()
+            break
+    if watch_text:
+        lines.append(f"Watch: {watch_text.rstrip('.')}.")
+
+    # Coverage caveat
+    if coverage_state == "provisional":
+        lines.append(
+            "Score is based mostly on fundamentals — more recent news will sharpen this read."
+        )
+    elif coverage_state == "thin":
+        lines.append(
+            "Coverage is still building; watch for new earnings or analyst updates."
+        )
+
+    return " ".join(lines)
+
+
+def _investor_coverage_note(coverage_state: str, source_count: Any) -> str:
+    sc = int(source_count or 0)
+    word = "source" if sc == 1 else "sources"
+    if coverage_state == "provisional":
+        return "Score based on fundamentals — limited recent news available."
+    if coverage_state == "thin":
+        return f"Limited coverage: {sc} recent {word} reviewed."
+    return f"{sc} recent {word} reviewed."
+
+
+def _investor_fallback_reasoning(coverage_state: str, source_count: Any) -> str:
+    sc = int(source_count or 0)
+    word = "source" if sc == 1 else "sources"
+    if coverage_state == "provisional":
+        return (
+            "We're still building a full picture for this ticker. "
+            "The score reflects underlying fundamentals and sector context — "
+            "it will sharpen as we collect more recent news."
+        )
+    if coverage_state == "thin":
+        return (
+            f"Risk is based on {sc} recent {word} plus ticker fundamentals. "
+            "Coverage is limited right now — watch for earnings updates, "
+            "analyst notes, or macro shifts that could move the score."
+        )
+    return (
+        "Risk reflects recent news coverage and sector conditions. "
+        "Monitor for changes in company guidance, macro data, or portfolio concentration."
+    )
+
+
 def build_risk_score_response(
     snapshot: dict[str, Any] | None,
     *,
@@ -558,13 +779,7 @@ def build_risk_score_response(
     coverage_note = (
         fallback.get("coverage_note")
         or coverage_context.get("coverage_note")
-        or (
-            "Confidence is low because this score leans mostly on ticker metadata and cached context."
-            if coverage_state == "provisional"
-            else f"Low-confidence coverage: only {source_count} analyzed event(s) were available."
-            if coverage_state == "thin"
-            else f"{source_count} analyzed event(s) supported this score."
-        )
+        or _investor_coverage_note(coverage_state, source_count)
     )
     is_provisional = bool(
         fallback.get("is_provisional")
@@ -572,48 +787,10 @@ def build_risk_score_response(
         or coverage_state != "substantive"
     )
     reasoning = fallback.get("reasoning") or snapshot.get("reasoning")
+    if reasoning and _is_legacy_dimension_math(reasoning):
+        reasoning = None
     if not reasoning:
-
-        def _band(value: Any) -> str:
-            try:
-                score = int(round(float(value)))
-            except (TypeError, ValueError):
-                score = 50
-            if score >= 65:
-                return f"supports a safer read at {score}"
-            if score <= 35:
-                return f"adds risk at {score}"
-            return f"is broadly neutral at {score}"
-
-        news = fallback.get("news_sentiment") or ai_dims.get("news_sentiment")
-        macro = fallback.get("macro_exposure") or ai_dims.get("macro_exposure")
-        size_value = (
-            fallback.get("position_sizing") if include_position_sizing else None
-        )
-        if size_value is None:
-            size_value = ai_dims.get("position_sizing")
-        volatility = fallback.get("volatility_trend") or ai_dims.get("volatility_trend")
-        total_score = (
-            fallback.get("total_score")
-            or fallback.get("safety_score")
-            or snapshot.get("safety_score")
-        )
-
-        parts = [
-            f"Company-specific news {_band(news)}.",
-            f"Macro/sector exposure {_band(macro)}.",
-            f"Portfolio construction {_band(size_value)}."
-            if include_position_sizing
-            else "Portfolio construction is hidden.",
-            f"Near-term volatility {_band(volatility)}.",
-        ]
-        if total_score is not None:
-            parts.append(
-                f"Those inputs land the score at {int(round(float(total_score)))}/100."
-            )
-        if coverage_note:
-            parts.append(coverage_note)
-        reasoning = " ".join(parts)
+        reasoning = _investor_fallback_reasoning(coverage_state, source_count)
     return sanitize_public_analysis_text(
         {
             "id": snapshot.get("id"),
@@ -1326,16 +1503,43 @@ def get_ticker_detail_bundle(supabase, user_id: str, ticker: str) -> dict[str, A
             .select("*")
             .in_("position_id", holding_ids)
             .order("created_at", desc=True)
-            .limit(10)
+            .limit(20)  # fetch extra so dedup has room to work
             .execute()
         )
-        latest_event_analyses = event_rows.data or []
+        # Dedup by event_hash then normalized headline; prefer highest-confidence rows
+        latest_event_analyses = _dedup_event_analyses(event_rows.data or [])
+        # Cap displayed events to source_count so the count matches the risk rationale
+        sc = int((current_score or {}).get("source_count") or 0)
+        if sc and len(latest_event_analyses) > sc:
+            latest_event_analyses = latest_event_analyses[:sc]
     else:
+        # Only show news articles that were in the cache when the snapshot was scored,
+        # so the displayed list aligns with the source_count in the risk rationale.
+        snapshot_as_of = (snapshot or {}).get("analysis_as_of")
+        if snapshot_as_of:
+            display_news_rows = [
+                row
+                for row in (news_result.data or [])
+                if (row.get("processed_at") or "") <= snapshot_as_of
+            ]
+        else:
+            display_news_rows = news_result.data or []
         latest_event_analyses = _build_event_analyses_from_news_rows(
-            news_result.data or [],
+            display_news_rows,
             ticker=ticker,
             position_id=position["id"],
         )
+
+    # Replace generic/fallback reasoning with article-specific text when we have events.
+    # This gives users a specific, article-grounded explanation rather than template prose.
+    if latest_event_analyses and current_score:
+        existing_reasoning = current_score.get("reasoning") or ""
+        if not existing_reasoning or _is_generic_fallback_reasoning(existing_reasoning):
+            article_reasoning = _build_article_aware_reasoning(
+                latest_event_analyses, current_score, ticker
+            )
+            if article_reasoning:
+                current_score["reasoning"] = article_reasoning
 
     alerts_result = (
         supabase.table("alerts")
