@@ -599,6 +599,8 @@ def _build_article_aware_reasoning(
         tone = "broadly cautious"
     elif len(improving) > 0 and len(worsening) == 0:
         tone = "broadly positive"
+    elif len(worsening) == 0 and len(improving) == 0:
+        tone = "broadly neutral"
     elif len(worsening) > len(improving):
         tone = "mixed, leaning cautious"
     elif len(improving) > len(worsening):
