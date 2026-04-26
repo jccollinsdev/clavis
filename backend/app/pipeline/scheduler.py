@@ -2603,7 +2603,7 @@ async def execute_analysis_run(
                     },
                     dedupe_event_hash=event_hash,
                 )
-                if created and push_notifications_allowed:
+                if created and _can_send_push_notifications():
                     await notify_major_event(
                         user_id, apns_token, ticker, article.get("title", "")
                     )
