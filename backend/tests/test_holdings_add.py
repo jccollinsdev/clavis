@@ -236,3 +236,30 @@ def test_create_holding_rejects_unsupported_ticker():
             assert "shared ticker cache" in exc.detail
         else:
             raise AssertionError("expected HTTPException")
+
+
+def test_analysis_state_from_context_substantive_does_not_crash():
+    """Regression: timedelta was not imported, causing NameError when
+    _analysis_state_from_context reached the 'snapshot and coverage_state == substantive'
+    branch, which crashed create_holding with HTTP 500 for any well-analysed ticker."""
+    from app.services.ticker_cache_service import _analysis_state_from_context
+    from datetime import datetime, timezone, timedelta
+
+    recent_dt = (datetime.now(timezone.utc) - timedelta(hours=6)).isoformat()
+    snapshot = {
+        "grade": "B",
+        "safety_score": 72.0,
+        "source_count": 10,
+        "analysis_as_of": recent_dt,
+    }
+    result = _analysis_state_from_context(
+        snapshot=snapshot,
+        latest_position_analysis=None,
+        latest_analysis_run=None,
+        latest_refresh_job=None,
+        metadata=None,
+        current_score={"coverage_state": "substantive", "coverage_note": "Good coverage."},
+        latest_news_row={"processed_at": recent_dt},
+    )
+    assert result["status"] in {"ready", "stale", "queued", "running", "thin", "failed"}
+    assert "coverage_state" in result
