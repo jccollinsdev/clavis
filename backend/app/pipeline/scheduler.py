@@ -12,8 +12,11 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
 
+from .analysis_utils import utcnow_iso
+
 ET = ZoneInfo("America/New_York")
 
+logger = logging.getLogger(__name__)
 scheduler = AsyncIOScheduler(timezone=ET)
 active_runs: dict[str, asyncio.Task] = {}
 active_sp500_backfills: dict[str, asyncio.Task] = {}
