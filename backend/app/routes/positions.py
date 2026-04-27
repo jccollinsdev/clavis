@@ -9,6 +9,9 @@ from fastapi import (
 from ..services.supabase import get_supabase
 from ..services.alert_payloads import enrich_alert_rows
 from ..services.ticker_cache_service import (
+    _build_article_aware_reasoning,
+    _dedup_event_analyses,
+    _is_generic_fallback_reasoning,
     _get_latest_position_score_for_ids,
     build_position_analysis_from_snapshot,
     build_risk_score_response,
@@ -148,6 +151,17 @@ async def get_position_detail(
             coverage_context=current_analysis,
         )
     )
+
+    # Replace generic/fallback reasoning with article-specific text when we have events
+    deduped_events = _dedup_event_analyses(event_result.data or [])
+    if deduped_events and score_response:
+        existing = score_response.get("reasoning") or ""
+        if not existing or _is_generic_fallback_reasoning(existing):
+            article = _build_article_aware_reasoning(
+                deduped_events, score_response, position["ticker"]
+            )
+            if article:
+                score_response["reasoning"] = article
     recent_news = []
     for row in news_result.data or []:
         recent_news.append(
