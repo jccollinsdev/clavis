@@ -154,6 +154,10 @@ async def get_position_detail(
 
     # Replace generic/fallback reasoning with article-specific text when we have events
     deduped_events = _dedup_event_analyses(event_result.data or [])
+    # Cap displayed events to source_count so the count matches the risk rationale
+    sc = int((score_response or {}).get("source_count") or 0)
+    if sc and len(deduped_events) > sc:
+        deduped_events = deduped_events[:sc]
     if deduped_events and score_response:
         existing = score_response.get("reasoning") or ""
         if not existing or _is_generic_fallback_reasoning(existing):
@@ -191,7 +195,7 @@ async def get_position_detail(
             "dimension_breakdown": snapshot.get("dimension_rationale")
             if snapshot
             else None,
-            "latest_event_analyses": event_result.data,
+            "latest_event_analyses": deduped_events,
             "recent_news": recent_news,
             "recent_alerts": enrich_alert_rows(alerts_result.data),
         }
