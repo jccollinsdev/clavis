@@ -205,7 +205,7 @@ def _user_detail(supabase, user_id: str) -> dict | None:
 def _user_positions(supabase, user_id: str) -> list[dict]:
     rows = (
         supabase.table("positions")
-        .select("id, ticker, shares, cost_basis, current_price, archetype, created_at, updated_at")
+        .select("id, ticker, shares, current_price, archetype, created_at, updated_at")
         .eq("user_id", user_id)
         .order("created_at", desc=True)
         .execute()
@@ -218,7 +218,6 @@ def _user_positions(supabase, user_id: str) -> list[dict]:
             "id": row.get("id"),
             "ticker": row.get("ticker"),
             "shares": row.get("shares"),
-            "cost_basis": row.get("cost_basis"),
             "current_price": row.get("current_price"),
             "archetype": row.get("archetype"),
             "created_at": row.get("created_at"),
@@ -898,7 +897,7 @@ ADMIN_HTML = """
           <div id="user-detail-info" class="row" style="margin-bottom:12px;"></div>
           <div class="section-title" style="margin:12px 0 8px;">Positions</div>
           <table>
-            <thead><tr><th>Ticker</th><th>Shares</th><th>Cost basis</th><th>Current</th><th>Archetype</th></tr></thead>
+            <thead><tr><th>Ticker</th><th>Shares</th><th>Current</th><th>Archetype</th></tr></thead>
             <tbody id="user-positions-table"></tbody>
           </table>
           <div class="section-title" style="margin:12px 0 8px;">Watchlist</div>
@@ -1173,11 +1172,10 @@ ADMIN_HTML = """
           <tr>
             <td><strong>${escapeHtml(p.ticker || '')}</strong></td>
             <td>${escapeHtml(p.shares ?? '')}</td>
-            <td>${escapeHtml(p.cost_basis ?? '')}</td>
             <td>${escapeHtml(p.current_price ?? '')}</td>
             <td><span class="status">${escapeHtml(p.archetype || 'n/a')}</span></td>
           </tr>
-        `).join('') || '<tr><td colspan="5" class="subtle">No positions</td></tr>';
+        `).join('') || '<tr><td colspan="4" class="subtle">No positions</td></tr>';
         document.getElementById('user-watchlist').textContent = (watchlist.watchlist || []).map(w => w.ticker).join(', ') || 'Empty';
         document.getElementById('user-runs-table').innerHTML = (runs.runs || []).slice(0, 10).map(r => `
           <tr>
