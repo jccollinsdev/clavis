@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     enable_public_docs: bool = False
     enable_debug_surfaces: bool = False
     admin_password: str = ""
-    admin_session_secret: str = ""
+    admin_session_secret: str = ""  # Required if admin_password is set. Generate: python -c "import secrets; print(secrets.token_hex(32))"
     minimax_base_url: str = "https://api.minimax.io/v1"
     finnhub_api_key: str = ""
     apns_key_id: str = ""
