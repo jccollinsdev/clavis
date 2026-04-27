@@ -3926,6 +3926,7 @@ def get_scheduler_status_for_user(user_id: str) -> dict:
 
 def get_sp500_cache_status(limit: int = 10) -> dict:
     from ..services.supabase import get_supabase
+    from ..services.ticker_cache_service import ensure_sp500_universe_seeded
 
     supabase = get_supabase()
     ensure_sp500_universe_seeded(supabase)
