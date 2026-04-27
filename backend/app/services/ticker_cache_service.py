@@ -529,6 +529,9 @@ _GENERIC_FALLBACK_MARKERS = (
     "analyzed event(s) with",
     "analyzed event(s) supported",
     "Low-confidence coverage: only",
+    "limited recent coverage",
+    "thesis defaults to structural factors",
+    "thesis rests on structural and macro factors",
 )
 
 
