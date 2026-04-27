@@ -15,6 +15,7 @@ from apscheduler.triggers.date import DateTrigger
 from .analysis_utils import utcnow_iso
 from .news_normalizer import normalize_news_batch
 from ..services.backfill_artifacts import record_stage
+from ..services.ticker_cache_service import ensure_sp500_universe_seeded, list_active_sp500_tickers
 
 ET = ZoneInfo("America/New_York")
 
@@ -3928,7 +3929,6 @@ def get_scheduler_status_for_user(user_id: str) -> dict:
 
 def get_sp500_cache_status(limit: int = 10) -> dict:
     from ..services.supabase import get_supabase
-    from ..services.ticker_cache_service import ensure_sp500_universe_seeded, list_active_sp500_tickers
 
     supabase = get_supabase()
     ensure_sp500_universe_seeded(supabase)
