@@ -6,13 +6,13 @@ from .analysis_utils import (
 )
 
 
-SYSTEM_PROMPT = """You write a long-form portfolio risk report for one stock position.
+SYSTEM_PROMPT = """You are an equity risk analyst writing a research note for a self-directed investor. Your job is to synthesize what the evidence means, not catalog what articles exist.
 
 Return strict JSON with this shape:
 {{
-  "summary": "2-3 sentence executive summary",
-  "long_report": "4-8 sentence detailed report",
-  "methodology": "brief explanation of the evidence and framework used",
+  "summary": "2-3 sentence thesis-first summary: state the dominant risk force, acknowledge counter-evidence briefly, and identify what would change the thesis",
+  "long_report": "4-8 sentence detailed report that develops the thesis with specific evidence, resolves contradictions rather than listing them, and closes with what could materially shift the read",
+  "methodology": "brief explanation of the evidence used",
   "top_risks": ["risk 1", "risk 2", "risk 3"],
   "watch_items": ["watch item 1", "watch item 2"],
   "thesis_verifier": [
@@ -24,13 +24,18 @@ Return strict JSON with this shape:
   ]
 }}
 
-Anchor the report in the supplied event evidence. Mention both near-term and longer-term implications when relevant.
-Use plain English for the public-facing report. Do not mention internal evidence labels, body-depth terms, or implementation jargon such as full_body, title_only, or headline_summary.
+Writing rules:
+1. Lead with the dominant narrative — what is the most important force acting on this position? Do not start by describing what articles exist or what the coverage says.
+2. If positive and negative evidence compete, resolve the tension: explain which force matters more and why. Do not just list both sides and leave it to the reader.
+3. If strong headlines coexist with structural risk (e.g., earnings beat but valuation is stretched, revenue growth but macro headwinds), explain why the structural factor can outweigh the headline.
+4. Close with what would change the thesis — a specific catalyst, resolution, or development, not a generic "watch for developments."
+5. Write like concise equity research — direct, specific, grounded. Not a news summary, not a process description.
+
+Forbidden: internal evidence labels (full_body, title_only, headline_summary), scoring methodology references, "the model", "recent event flow is [stance]", "N relevant items in this cycle", implementation jargon.
 
 CRITICAL - Macro as Risk Context:
 - For thesis_verifier, assess whether any macro context confirms, challenges, or is neutral to this position's risk profile
 - If the position has no clear setup, use "neutral" for thesis_impact
-- Macro should describe whether it confirms, challenges, or is neutral to the risk profile.
 - Only include thesis_verifier entries for macro events that actually relate to this position's sector/theme
 - If no relevant macro context exists, omit thesis_verifier array entirely (do not include empty array)
 """
@@ -64,20 +69,21 @@ def _fallback_position_report(
         event.get("title", "recent coverage") for event in event_analyses[:3]
     ]
 
-    stance = "mixed but monitorable"
+    stance = "mixed — no single force clearly dominates"
     if worsening_count > improving_count:
-        stance = "skewing negative"
+        stance = "downside pressure is the primary concern"
     elif improving_count > worsening_count:
-        stance = "constructive but still worth monitoring"
+        stance = "constructive but still subject to reversal"
 
     summary = (
-        f"{ticker} is currently framed as {labels_text}. "
-        f"Recent event flow is {stance}, with {len(event_analyses)} relevant items in this cycle."
+        f"{ticker}'s current risk profile leans {labels_text}. "
+        f"The dominant read is {stance}, based on {len(event_analyses)} tracked developments."
     )
     long_report = (
-        f"{summary} The most relevant developments were {', '.join(event_titles)}. "
-        f"{ticker} logged {len(major_events)} major events and {len(event_analyses) - len(major_events)} minor events in this run. "
-        f"The current assessment is derived from event-level analysis text, scenario summaries, and direction-of-risk tags across the news set."
+        f"{ticker} is classified as {labels_text}. "
+        f"The most relevant developments were {', '.join(event_titles)}. "
+        f"{worsening_count} item(s) flagged downside pressure and {improving_count} pointed to improvement. "
+        f"This assessment is provisional — a single new filing, earnings surprise, or regulatory update could shift the read materially."
     )
     top_risks = [
         event.get("scenario_summary") or event.get("title", "Recent catalyst risk")
@@ -92,7 +98,7 @@ def _fallback_position_report(
     return {
         "summary": summary,
         "long_report": long_report,
-        "methodology": "Fallback synthesis from structured event analyses, inferred labels, and direction-of-risk signals.",
+        "methodology": "Summary assembled from event-level analysis. LLM synthesis was unavailable for this position.",
         "top_risks": top_risks
         or ["A single new article or filing could materially change the risk read."],
         "watch_items": watch_items
@@ -112,11 +118,11 @@ async def build_position_report(
         ticker = position.get("ticker", "This holding")
         return sanitize_public_analysis_text(
             {
-                "summary": f"Known facts are limited for {ticker}, so the current read leans on existing position context and whatever confirmed signals are available.",
-                "long_report": f"Known facts for {ticker} are limited in this cycle, but the current setup still points to a provisional read rather than a blank one. The report should be treated as low-confidence, with the main unknown being whether any new company-specific catalyst, filing, or macro follow-through will change the setup. Preserve the known position context and update it once fuller event coverage arrives.",
-                "methodology": "Low-confidence fallback based on position metadata, existing context, and the absence of usable event coverage for this cycle.",
+                "summary": f"There is not enough recent news to form a confident risk thesis for {ticker}. The current read relies on existing position context and structural factors.",
+                "long_report": f"Event coverage for {ticker} is thin in this cycle, so the dominant risk thesis defaults to structural and macro factors rather than company-specific catalysts. This is a low-confidence read — any new company-specific development (earnings, guidance, regulatory action) could shift the picture meaningfully. Treat this as provisional until fuller coverage arrives.",
+                "methodology": "Low-confidence assessment based on position metadata and structural context. No usable event coverage for this cycle.",
                 "top_risks": [
-                    "New company-specific catalysts have not yet been confirmed in this cycle."
+                    "No confirmed company-specific catalyst in this cycle."
                 ],
                 "watch_items": [
                     "Recheck for resolved company or sector coverage before treating the current read as settled."
@@ -213,23 +219,29 @@ Event analyses:
     )
 
 
-BATCH_REPORT_PROMPT = """You write long-form investment risk reports for multiple stock positions.
+BATCH_REPORT_PROMPT = """You write concise equity risk research notes for multiple stock positions.
 
-Use plain English for public-facing output. Do not mention internal evidence labels, body-depth terms, or implementation jargon such as full_body, title_only, or headline_summary.
+Write like an analyst briefing a portfolio manager — direct, specific, thesis-driven. Do not catalog articles; synthesize what they mean.
 
 Return a JSON array with one object per position in order.
 Each object has:
-- "summary": "2-3 sentence executive summary"
-- "long_report": "4-8 sentence detailed report"
-- "methodology": "brief explanation of the evidence and framework used"
+- "summary": "2-3 sentence thesis-first summary: dominant risk force, counter-evidence acknowledged, what changes the thesis"
+- "long_report": "4-8 sentence detailed report that develops the thesis, resolves contradictions with evidence, and closes with what could shift the read"
+- "methodology": "brief explanation of the evidence used"
 - "top_risks": ["risk 1", "risk 2", "risk 3"]
 - "watch_items": ["watch item 1", "watch item 2"]
 - "thesis_verifier": [{{"macro_event": "...", "thesis_impact": "confirms|challenges|neutral", "reasoning": "..."}}]
 
+Writing rules:
+1. Lead with the dominant narrative, not with what coverage exists.
+2. If positive and negative evidence compete, resolve which matters more and why. Do not list both sides.
+3. Close with what would change the thesis — specific, not generic.
+
+Forbidden: internal evidence labels (full_body, title_only, headline_summary), scoring methodology references, "recent event flow is [stance]", "N relevant items", implementation jargon.
+
 CRITICAL - Macro as Risk Context:
 - For thesis_verifier, assess whether any macro context confirms, challenges, or is neutral to each position's risk profile
 - If a position has no clear setup, use "neutral" for thesis_impact
-- Macro should describe whether it confirms, challenges, or is neutral to the risk profile.
 - Only include thesis_verifier entries for macro events that actually relate to each position's sector/theme
 - If no relevant macro context exists for a position, omit thesis_verifier array for that position
 

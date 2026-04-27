@@ -116,8 +116,9 @@ def test_score_position_synthesizes_reasoning_when_llm_returns_blank(monkeypatch
     )
 
     assert result["reasoning"]
-    assert not result["reasoning"].startswith("Coverage is limited")
-    assert "Company-specific news" in result["reasoning"]
+    # Rationale must be investor-facing, not dimension-math
+    assert "Company-specific news (" not in result["reasoning"]
+    assert "adds risk at" not in result["reasoning"]
     assert result["coverage_state"] == "provisional"
     assert result["is_provisional"] is True
 
@@ -145,7 +146,9 @@ def test_build_risk_score_response_surfaces_coverage_context():
     assert response["is_provisional"] is True
     assert response["source_count"] == 0
     assert response["reasoning"]
-    assert "Macro/sector exposure" in response["reasoning"]
+    # Rationale must be investor-facing, not dimension-math
+    assert "Macro/sector exposure (" not in response["reasoning"]
+    assert "adds risk at" not in response["reasoning"]
 
 
 def test_build_risk_score_response_uses_latest_position_score_without_snapshot():

@@ -1,7 +1,7 @@
 from ..services.minimax import chatcompletion_text
 from .analysis_utils import extract_json_list, extract_json_object
 
-SYSTEM_PROMPT = """You are a portfolio risk analysis AI. Given a news item and a stock position, describe the potential impact on the position.
+SYSTEM_PROMPT = """You are a portfolio risk analyst. Given a news item and a stock position, state the primary risk implication — not just what happened, but what it means for the position.
 
 Position context:
 - Ticker: {ticker}
@@ -12,20 +12,21 @@ Position context:
 - News summary: {summary}
 - News body: {body}
 
-Analysis should consider:
-1. How does this news affect the company's fundamentals?
-2. How does it interact with the holding's style/theme exposure?
-3. What is the likely short-term and long-term impact?
+Analysis rules:
+1. State the primary risk implication first — does this help, hurt, or leave unchanged the position's risk profile?
+2. If the news has both positive and negative angles, state which effect is primary and why.
+3. Be specific: explain how the development connects to the company's fundamentals, competitive position, or valuation — not just that "it could have an impact."
+4. If evidence_quality is title_only or headline_summary, do not pretend you read a full article. Lower confidence and state that the read is provisional.
 
-If evidence_quality is title_only or headline_summary, do not pretend you read a full article. Lower confidence and state that the read is provisional.
+Forbidden: internal evidence labels, body-depth terms, or implementation jargon such as full_body, title_only, or headline_summary.
 
 Return strict JSON:
 {{
-  "analysis_text": "2-4 sentence analysis",
+  "analysis_text": "2-4 sentence analysis that states the primary implication, not just a description of what happened",
   "impact_horizon": "immediate|near_term|long_term",
   "risk_direction": "improving|neutral|worsening",
   "confidence": 0.0-1.0,
-  "scenario_summary": "one sentence",
+  "scenario_summary": "one sentence stating the primary implication",
   "key_implications": ["...", "..."],
   "followup_notes": ["...", "..."]
 }}"""
@@ -41,26 +42,26 @@ def _fallback_minor_event_analysis(news_item: dict, position: dict) -> dict:
     trimmed = (
         combined[:280]
         if combined
-        else "Recent coverage did not include enough detail for a richer AI summary."
+        else "Recent coverage did not include enough detail for a confident read."
     )
     evidence_note = (
-        "This read is provisional because it is based on limited headline-level evidence."
+        f"The read on {ticker} is provisional — headline-level evidence only, so the risk implication may change with fuller reporting."
         if evidence_quality in {"title_only", "headline_summary"}
-        else "This read uses the extracted article body and should still be validated against follow-on reporting."
+        else f"The read uses extracted article content but still requires validation against follow-on reporting for {ticker}."
     )
     return {
-        "analysis_text": f"{trimmed} {evidence_note} For {ticker}, this appears to be a monitorable development rather than a clear risk break absent stronger confirming evidence.",
+        "analysis_text": f"{trimmed} {evidence_note}",
         "impact_horizon": "near_term",
         "risk_direction": "neutral",
         "confidence": 0.3
         if evidence_quality in {"title_only", "headline_summary"}
         else 0.45,
-        "scenario_summary": f"{ticker} faces a moderate change in context rather than a confirmed major catalyst from this {evidence_quality} event.",
+        "scenario_summary": f"Insufficient depth to confirm a directional risk impact for {ticker} from this {'headline-only' if evidence_quality in {'title_only', 'headline_summary'} else 'article'} event.",
         "key_implications": [
-            f"Track whether follow-on reporting changes the significance of '{title}'."
+            f"Determine whether '{title[:60]}' has confirming detail or follow-through before adjusting the risk thesis."
         ],
         "followup_notes": [
-            "Track whether earnings, guidance, regulatory, or management updates materially change the risk profile."
+            "Look for management commentary, regulatory filings, or additional reporting that changes the fundamental read-through."
         ],
     }
 
@@ -74,26 +75,26 @@ def _fallback_shared_minor_event_analysis(news_item: dict) -> dict:
     trimmed = (
         combined[:280]
         if combined
-        else "Recent coverage did not include enough detail for a richer AI summary."
+        else "Recent coverage did not include enough detail for a confident read."
     )
     evidence_note = (
-        "This is a low-confidence title-led inference because the underlying article evidence is thin."
+        "Low-confidence read — headline evidence only, so the risk implication may shift with fuller reporting."
         if evidence_quality in {"title_only", "headline_summary"}
-        else "This read uses the extracted article body and remains subject to follow-on confirmation."
+        else "The read uses extracted article content but still requires follow-on confirmation."
     )
     return {
-        "analysis_text": f"{trimmed} {evidence_note} This looks like a monitorable development rather than a confirmed risk-changing catalyst without stronger follow-through.",
+        "analysis_text": f"{trimmed} {evidence_note}",
         "impact_horizon": "near_term",
         "risk_direction": "neutral",
         "confidence": 0.3
         if evidence_quality in {"title_only", "headline_summary"}
         else 0.45,
-        "scenario_summary": f"The event changes context more than it changes fundamentals at this {evidence_quality} stage.",
+        "scenario_summary": f"The event shifts context more than fundamentals at this {'headline-only' if evidence_quality in {'title_only', 'headline_summary'} else 'article'} stage — confirmation is needed before assigning directional weight.",
         "key_implications": [
-            f"Track whether follow-on reporting changes the significance of '{title}'."
+            f"Determine whether '{title[:60]}' has confirming detail before treating it as a risk driver."
         ],
         "recommended_followups": [
-            "Watch for management commentary, earnings, regulatory filings, or additional reporting that changes the fundamental read-through."
+            "Look for management commentary, earnings, regulatory filings, or additional reporting that changes the fundamental read-through."
         ],
     }
 
@@ -133,7 +134,7 @@ async def analyze_minor_event(
     }
 
 
-MINOR_EVENTS_BATCH_PROMPT = """You are a portfolio risk analysis AI. Given multiple news items and a stock position, describe the potential impact of each news item on the position.
+MINOR_EVENTS_BATCH_PROMPT = """You are a portfolio risk analyst. Given multiple news items and a stock position, state the primary risk implication of each — not just what happened, but what it means.
 
 Position context:
 - Ticker: {ticker}
@@ -143,12 +144,14 @@ Position context:
 News items to analyze:
 {news_items}
 
+For each news item, state the primary risk implication first. If a news item has both positive and negative angles, resolve which is primary. Be specific about how the development connects to fundamentals or valuation.
+
 For each news item above, return a JSON object with:
-- "analysis_text": "2-4 sentence analysis"
+- "analysis_text": "2-4 sentence analysis stating the primary implication, not just describing what happened"
 - "impact_horizon": "immediate|near_term|long_term"
 - "risk_direction": "improving|neutral|worsening"
 - "confidence": 0.0-1.0
-- "scenario_summary": "one sentence"
+- "scenario_summary": "one sentence stating the primary implication"
 - "key_implications": ["...", "..."]
 - "followup_notes": ["...", "..."]
 
@@ -157,17 +160,17 @@ Return a JSON array with one object per news item in order."""
 
 GENERIC_MINOR_EVENTS_BATCH_PROMPT = """You are a portfolio risk analyst.
 
-Given multiple news items, produce a reusable base analysis for each event without assuming a specific holder.
+Given multiple news items, produce a reusable base analysis for each event without assuming a specific holder. For each event, state the primary risk implication — what it means for the company's risk profile, not just what happened.
 
 News items to analyze:
 {news_items}
 
 For each news item above, return a JSON object with:
-- "analysis_text": "2-4 sentence analysis"
+- "analysis_text": "2-4 sentence analysis stating the primary implication"
 - "impact_horizon": "immediate|near_term|long_term"
 - "risk_direction": "improving|neutral|worsening"
 - "confidence": 0.0-1.0
-- "scenario_summary": "one sentence"
+- "scenario_summary": "one sentence stating the primary implication"
 - "key_implications": ["...", "..."]
 - "followup_notes": ["...", "..."]
 

@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+import logging
+from datetime import datetime, timedelta, timezone
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
 
 from ..services.supabase import get_supabase
 from ..services.ticker_cache_service import (
@@ -7,6 +10,10 @@ from ..services.ticker_cache_service import (
     refresh_ticker_snapshot,
     search_supported_tickers,
 )
+
+logger = logging.getLogger(__name__)
+
+_STALE_SNAPSHOT_THRESHOLD_HOURS = 6
 
 router = APIRouter()
 
@@ -46,11 +53,54 @@ async def search_tickers(
     return {"results": results, "message": "ok"}
 
 
+def _snapshot_is_stale(result: dict) -> bool:
+    """Return True when the news cache has grown meaningfully since the snapshot was scored."""
+    freshness = result.get("freshness") or {}
+    analysis_as_of_str = freshness.get("analysis_as_of")
+    last_news_at_str = freshness.get("last_news_refresh_at")
+    if not analysis_as_of_str or not last_news_at_str:
+        return False
+    try:
+        analysis_dt = datetime.fromisoformat(
+            str(analysis_as_of_str).replace("Z", "+00:00")
+        )
+        news_dt = datetime.fromisoformat(
+            str(last_news_at_str).replace("Z", "+00:00")
+        )
+    except (ValueError, TypeError):
+        return False
+    return news_dt - analysis_dt > timedelta(hours=_STALE_SNAPSHOT_THRESHOLD_HOURS)
+
+
+def _safe_refresh_snapshot(supabase, ticker: str) -> None:
+    try:
+        refresh_ticker_snapshot(
+            supabase,
+            ticker=ticker,
+            job_type="daily",
+        )
+        logger.info("Background snapshot refresh queued for %s", ticker)
+    except Exception:
+        logger.warning("Background snapshot refresh failed for %s", ticker, exc_info=True)
+
+
 @router.get("/{ticker}")
-async def get_ticker_detail(ticker: str, user_id: str = Depends(get_user_id)):
+async def get_ticker_detail(
+    ticker: str,
+    background_tasks: BackgroundTasks,
+    user_id: str = Depends(get_user_id),
+):
     supabase = get_supabase()
     try:
-        return get_ticker_detail_bundle(supabase, user_id, ticker)
+        result = get_ticker_detail_bundle(supabase, user_id, ticker)
+        if _snapshot_is_stale(result):
+            logger.info(
+                "Ticker %s snapshot is stale (news newer than analysis_as_of by >%dh) — scheduling refresh",
+                ticker,
+                _STALE_SNAPSHOT_THRESHOLD_HOURS,
+            )
+            background_tasks.add_task(_safe_refresh_snapshot, supabase, ticker)
+        return result
     except HTTPException:
         raise
     except Exception as exc:

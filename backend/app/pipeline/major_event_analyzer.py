@@ -5,15 +5,17 @@ from .analysis_utils import safe_json_loads, extract_json_list
 logger = logging.getLogger(__name__)
 
 
-MAJOR_EVENT_SYSTEM_PROMPT = """You are a major-event portfolio risk analyst.
+MAJOR_EVENT_SYSTEM_PROMPT = """You are a senior equity risk analyst evaluating a significant market event.
+
+Your job is to state the primary risk implication — not just describe what happened, but explain what it means for a holder of this position. If the event has both positive and negative angles, resolve which effect is primary and why.
 
 Return strict JSON:
 {
-  "analysis_text": "3-6 sentence analysis",
+  "analysis_text": "3-6 sentence analysis that leads with the primary implication, resolves competing forces, and states what would confirm or negate the risk",
   "impact_horizon": "immediate|near_term|long_term",
   "risk_direction": "improving|neutral|worsening",
   "confidence": 0.0-1.0,
-  "scenario_summary": "one sentence",
+  "scenario_summary": "one sentence stating the primary risk implication",
   "key_implications": ["...", "..."],
   "followup_notes": ["...", "..."]
 }
@@ -45,18 +47,18 @@ def _provisional_result(news_item: dict) -> dict:
     title = news_item.get("title", "Major event")
     evidence_quality = news_item.get("evidence_quality", "title_only")
     return {
-        "analysis_text": f"{title} is worth monitoring, but the impact is still provisional because the evidence is limited. Known fact: the headline exists; unknown: whether follow-up details confirm the scale or change the risk read.",
+        "analysis_text": f"{title} has the potential to shift the risk profile, but the depth of evidence is insufficient to confirm the scale or direction of impact. The headline exists, but whether follow-through confirms or reverses the initial read remains unknown.",
         "impact_horizon": "near_term",
         "risk_direction": "neutral",
         "confidence": 0.3
         if evidence_quality in {"title_only", "headline_summary"}
         else 0.45,
-        "scenario_summary": "Material headline detected — durable impact depends on follow-through.",
+        "scenario_summary": "Material headline detected — the durable risk impact depends on confirming detail that is not yet available.",
         "key_implications": [
-            "Watch for management detail, filing support, or market reaction that confirms the event's importance."
+            "Confirm whether subsequent reporting, filings, or market reaction validate or reverse the headline's risk implication."
         ],
         "recommended_followups": [
-            "Check subsequent company commentary, regulatory disclosures, and earnings implications."
+            "Check for company commentary, regulatory disclosures, and earnings context that would resolve the uncertainty."
         ],
         "provider": "minimax",
     }
@@ -178,7 +180,7 @@ async def analyze_major_events_shared_batch(news_items: list[dict]) -> list[dict
             f"[{i}] Evidence quality: {evidence_quality}\n    Title: {title}\n    Summary: {summary}\n    Body: {body}"
         )
 
-    prompt = f"""For each event below, analyze the potential fundamental and valuation impact without assuming a specific holder.
+    prompt = f"""For each event below, analyze the primary risk implication for a holder — not just what happened, but what it means. If an event has competing positive and negative angles, resolve which is primary.
 
 If evidence quality is title_only or headline_summary, do not act as if you read a full article. Lower confidence and describe the read as provisional.
 

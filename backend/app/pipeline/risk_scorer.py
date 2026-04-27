@@ -12,9 +12,9 @@ from .structural_scorer import (
     get_daily_move_cap,
 )
 
-SYSTEM_PROMPT = """You are a risk scoring AI for individual stock positions. Given the position context, recent news analysis, and optional MiroFish swarm report, score this position across 4 dimensions (0-100) and determine a grade.
+SYSTEM_PROMPT = """You are a portfolio risk analyst writing for a self-directed investor. Given the position context and event evidence below, score this position across 4 dimensions and write a thesis-driven risk rationale.
 
-Use a single scale where 0 means penny-stock-like / very risky and 100 means treasury-like / very safe. Higher scores always mean lower risk.
+Scale: 0 = penny-stock-like / very risky. 100 = treasury-like / very safe. Higher = lower risk.
 
 Position:
 - Ticker: {ticker}
@@ -26,15 +26,28 @@ Position:
 Long-form position report: {long_report}
 
 Scoring criteria:
-1. news_sentiment (0-100): Positive / supportive news moves toward 100, negative / dangerous news moves toward 0. Use 50 only when the news is truly balanced.
-2. macro_exposure (0-100): Less macro-sensitive / more treasury-like moves toward 100. More macro-sensitive / more speculative moves toward 0.
-3. position_sizing (0-100): Appropriately sized, prudent risk for the holding moves toward 100. Oversized or speculative exposure moves toward 0.
-4. volatility_trend (0-100): Falling volatility / stable trend moves toward 100. Rising volatility / unstable behavior moves toward 0.
+1. news_sentiment (0-100): Positive/supportive news → high. Negative/dangerous news → low. 50 only when truly balanced.
+2. macro_exposure (0-100): Less macro-sensitive / more treasury-like → high. More macro-sensitive / more speculative → low.
+3. position_sizing (0-100): Appropriately sized, prudent exposure → high. Oversized or speculative → low.
+4. volatility_trend (0-100): Falling volatility / stable trend → high. Rising volatility / unstable → low.
 
-Use plain English only. Do not mention internal evidence labels, body-depth terms, or implementation jargon such as full_body, title_only, or headline_summary. Avoid returning 50 for every dimension unless the evidence is genuinely neutral.
+How to write "reasoning" — this is the investor-facing rationale:
+1. Lead with the dominant risk force: what is the single most important factor acting on this position right now?
+2. If positive and negative forces compete (e.g., strong earnings but regulatory overhang), explain which resolves higher and why. Do not just list both sides — resolve the tension.
+3. If positive news coexists with a weak overall score, explain that structural or macro factors outweigh the positive headline. If negative news is offset by strong fundamentals, say so.
+4. Close with what would materially change the thesis (e.g., a catalyst resolution, an earnings miss, a regulatory decision).
+5. Write like a concise equity research note — direct, specific, grounded in the evidence provided. Not a score explanation.
+
+How to write "dimension_rationale" — one sentence per dimension explaining what is happening, not what the score number is:
+- news_sentiment: what the news means for the position (not "the score is 60")
+- macro_exposure: how macro conditions interact with this position's profile
+- position_sizing: whether the position size is appropriate and why
+- volatility_trend: what is driving volatility behavior
+
+Forbidden language: dimension scores, "the model", "the score reflects", "based on the dimension", "coverage across N sources", internal evidence labels (full_body, title_only, headline_summary), implementation jargon. Avoid returning 50 for every dimension unless the evidence is genuinely neutral.
 
 Respond in this exact JSON format (no markdown, no explanation):
-{{"news_sentiment": 0-100, "macro_exposure": 0-100, "position_sizing": 0-100, "volatility_trend": 0-100, "grade": "A|B|C|D|F", "reasoning": "plain English explanation of the scores and grade", "dimension_rationale": {{"news_sentiment": "...", "macro_exposure": "...", "position_sizing": "...", "volatility_trend": "..."}}}}"""
+{{"news_sentiment": 0-100, "macro_exposure": 0-100, "position_sizing": 0-100, "volatility_trend": 0-100, "grade": "A|B|C|D|F", "reasoning": "thesis-driven rationale per rules above", "dimension_rationale": {{"news_sentiment": "...", "macro_exposure": "...", "position_sizing": "...", "volatility_trend": "..."}}}}"""
 
 DIMENSION_KEYS = [
     "news_sentiment",
@@ -95,13 +108,15 @@ def _coverage_state_for_position(position_data: dict) -> tuple[str, int, int, in
 
     if source_count == 0 or summary.startswith("insufficient evidence"):
         coverage_state = "provisional"
-        coverage_note = "Confidence is low because the score leans mostly on ticker metadata and cached context."
+        coverage_note = "Score based on fundamentals — limited recent news available."
     elif source_count <= 2:
         coverage_state = "thin"
-        coverage_note = f"Low-confidence coverage: only {source_count} analyzed event(s) were available."
+        word = "source" if source_count == 1 else "sources"
+        coverage_note = f"Limited coverage: {source_count} recent {word} reviewed."
     else:
         coverage_state = "substantive"
-        coverage_note = f"{source_count} analyzed event(s) supported this score."
+        word = "source" if source_count == 1 else "sources"
+        coverage_note = f"{source_count} recent {word} reviewed."
 
     return (
         coverage_state,
@@ -121,55 +136,62 @@ def _synthesized_reasoning(
     llm_used: bool,
     total_score: float | None = None,
 ) -> str:
-    def _dimension_phrase(key: str, label: str) -> str:
-        value = clamp_score(scores.get(key), 50)
-        if value >= 65:
-            effect = "supports a safer read"
-        elif value <= 35:
-            effect = "adds risk"
-        else:
-            effect = "is broadly neutral"
-        return f"{label} ({value}) {effect}"
+    news_v = clamp_score(scores.get("news_sentiment"), 50)
+    macro_v = clamp_score(scores.get("macro_exposure"), 50)
+    vol_v = clamp_score(scores.get("volatility_trend"), 50)
+    sizing_v = clamp_score(scores.get("position_sizing"), 50)
 
-    def _primary_horizon() -> str:
-        volatility = clamp_score(scores.get("volatility_trend"), 50)
-        news = clamp_score(scores.get("news_sentiment"), 50)
-        macro = clamp_score(scores.get("macro_exposure"), 50)
-        sizing = clamp_score(scores.get("position_sizing"), 50)
-        if volatility <= 40 or news <= 40:
-            return "The immediate risk is the main concern."
-        if macro <= 45 or sizing <= 45:
-            return "This is more of a monitor-only risk than an immediate shock."
-        return "The risk is mostly background unless new evidence changes the setup."
+    # Build thesis: what matters most
+    if news_v <= 35:
+        thesis = f"Negative company-specific news is the main risk for {ticker}."
+    elif news_v >= 65:
+        thesis = f"Company news is supportive for {ticker}."
+    elif macro_v <= 35:
+        thesis = f"Macro and sector headwinds are the dominant concern for {ticker}, overshadowing mixed company news."
+    elif sizing_v <= 40:
+        thesis = f"Position size amplifies downside risk for {ticker} regardless of mixed signals."
+    elif vol_v <= 40:
+        thesis = f"Elevated volatility is the primary risk for {ticker}."
+    elif news_v <= 45:
+        thesis = f"Company news leans cautious for {ticker}."
+    elif news_v >= 55:
+        thesis = f"Company news leans constructive for {ticker}."
+    else:
+        thesis = f"Risk factors for {ticker} are relatively balanced — no single force dominates."
 
-    parts = [
-        f"{ticker}: "
-        + "; ".join(
-            [
-                _dimension_phrase("news_sentiment", "Company-specific news"),
-                _dimension_phrase("macro_exposure", "Macro/sector exposure"),
-                _dimension_phrase("position_sizing", "Portfolio construction"),
-                _dimension_phrase("volatility_trend", "Near-term volatility"),
-            ]
-        )
-        + "."
-    ]
-    parts.append(_primary_horizon())
+    # Add secondary context if it matters
+    context_parts: list[str] = []
+    if macro_v <= 35 and news_v > 35:
+        context_parts.append("Macro headwinds add pressure.")
+    elif macro_v >= 65:
+        context_parts.append("Macro conditions are supportive.")
+    if sizing_v <= 40 and news_v > 35:
+        context_parts.append("Concentration risk amplifies the downside.")
+    if vol_v <= 40 and news_v > 35:
+        context_parts.append("Volatility is elevated.")
+    elif vol_v >= 65 and news_v < 65:
+        context_parts.append("Volatility is contained.")
 
-    if total_score is not None:
-        parts.append(
-            f"Those inputs land the score at {int(round(total_score))}/100, which matches the final grade."
-        )
+    # Horizon
+    if vol_v <= 40 or news_v <= 40:
+        horizon = "Near-term risk is the primary focus."
+    elif macro_v <= 45 or sizing_v <= 45:
+        horizon = "Risks are manageable near-term but worth monitoring."
+    else:
+        horizon = "Risk is broadly contained unless new developments emerge."
 
-    if coverage_note:
-        parts.append(coverage_note)
+    result = thesis
+    if context_parts:
+        result = f"{thesis} {' '.join(context_parts)} {horizon}"
+    else:
+        result = f"{thesis} {horizon}"
 
-    if llm_used:
-        parts.append(
-            "This summary was assembled from the final dimension scores."
-        )
+    if coverage_state == "provisional":
+        result += " This read is provisional — fuller coverage will sharpen it."
+    elif coverage_state == "thin":
+        result += " Coverage is thin; one new development could shift the picture."
 
-    return " ".join(part for part in parts if part).strip()
+    return result
 
 
 def _article_evidence_brief(position_data: dict, limit: int = 4) -> str:
@@ -314,19 +336,19 @@ def _macro_adjustment_from_context(position_data: dict) -> tuple[float, str]:
     )
     if macro_relevance == "challenges":
         score -= 18
-        rationale_parts.append("overnight macro backdrop challenges the holding")
+        rationale_parts.append("overnight macro conditions are working against this position")
     elif macro_relevance == "confirms":
         score += 10
-        rationale_parts.append("overnight macro backdrop is supportive")
+        rationale_parts.append("overnight macro backdrop supports the position's risk profile")
     else:
-        rationale_parts.append("no clear overnight macro change was detected")
+        rationale_parts.append("no clear overnight macro shift detected")
 
     if "rate_sensitive" in labels:
         score -= 6
-        rationale_parts.append("labels show rate sensitivity")
+        rationale_parts.append("rate sensitivity adds cyclical exposure")
     if "defensive" in labels:
         score += 5
-        rationale_parts.append("defensive labeling offsets some macro risk")
+        rationale_parts.append("defensive characteristics cushion macro risk")
 
     sector = str(ticker_metadata.get("sector") or "").strip().lower()
     if sector in {"financials", "energy", "real estate", "realestate"}:
@@ -379,9 +401,9 @@ def _deterministic_dimension_scores(
 
     news_sentiment = clamp_score(round(50 + news_delta), 50)
     news_rationale = (
-        f"Derived from {len(event_analyses)} analyzed event(s) with {worsening_major} major worsening and {improving_major} major improving catalyst(s)."
+        f"News sentiment is driven down by {worsening_major} major negative development(s) and supported by {improving_major} positive one(s)."
         if event_analyses
-        else "No strong event evidence was available, so the score stays near neutral."
+        else "No recent news with a clear directional signal — the read defaults to neutral pending new coverage."
     )
 
     macro_exposure, macro_rationale = _macro_adjustment_from_context(position_data)
@@ -394,7 +416,12 @@ def _deterministic_dimension_scores(
     volatility_trend -= worsening_major * 5
     volatility_trend += improving_major * 3
     volatility_trend = clamp_score(round(volatility_trend), 50)
-    volatility_rationale = f"Uses beta {ticker_metadata.get('beta') or 'n/a'} and volatility proxy {ticker_metadata.get('volatility_proxy') or 'n/a'} with recent event pressure layered in."
+    if beta and volatility_proxy:
+        volatility_rationale = f"Beta of {ticker_metadata.get('beta')} and elevated volatility proxy drive near-term price instability, compounded by {worsening_major} negative event(s)."
+    elif worsening_major:
+        volatility_rationale = f"Recent negative developments add upward pressure to near-term volatility."
+    else:
+        volatility_rationale = "Volatility is within normal range for this profile — no major event-driven instability detected."
 
     sizing_score = 82.0
     if portfolio_weight >= 0.2:
@@ -410,7 +437,12 @@ def _deterministic_dimension_scores(
     if portfolio_weight <= 0.01 and shares > 0:
         sizing_score += 2
     position_sizing = clamp_score(round(sizing_score), 50)
-    sizing_rationale = f"Estimated portfolio weight is {portfolio_weight:.1%}; higher weights and weaker risk signals reduce the sizing score."
+    if portfolio_weight >= 0.2:
+        sizing_rationale = f"Concentration risk is elevated — this position represents {portfolio_weight:.0%} of portfolio value, amplifying downside from any adverse development."
+    elif portfolio_weight >= 0.1:
+        sizing_rationale = f"This position is a meaningful allocation at {portfolio_weight:.0%} of portfolio value, leaving moderate exposure to company-specific risk."
+    else:
+        sizing_rationale = f"Position sizing is manageable at {portfolio_weight:.0%} of portfolio — company-specific risk is not amplified by concentration."
 
     normalized_scores = {
         "news_sentiment": news_sentiment,
@@ -887,7 +919,7 @@ async def score_positions_batch(
         )
         prompt = f"""Score each position across 4 dimensions (0-100) and assign a grade.
 
-Use a single scale where 0 means penny-stock-like / very risky and 100 means treasury-like / very safe. Higher scores always mean lower risk.
+Scale: 0 = penny-stock-like / very risky, 100 = treasury-like / very safe. Higher = lower risk.
 
 {positions_text}
 
@@ -903,11 +935,26 @@ Return EXACTLY this JSON format (no markdown, no explanation, no thinking):
         - volatility_trend: falling volatility / stable trend=high (70-100), rising volatility / unstable behavior=low (0-40)
         - Grade A=80+, B=65-79, C=50-64, D=35-49, F=<35
 
+        How to write "reasoning" — thesis-driven rationale for each position:
+        1. Lead with the dominant risk force acting on this position right now.
+        2. If positive and negative forces compete, resolve which matters more and why. Do not just list both sides.
+        3. If positive news coexists with a weak score, explain that structural or macro factors outweigh the headline. If negative news is offset by strong fundamentals, say so.
+        4. Close with what would materially change the thesis.
+        5. Write like a concise equity research note — not a score explanation, not a process description.
+
+        How to write "dimension_rationale" — one sentence per dimension about what is happening, not what the score number is:
+        - news_sentiment: what the news means (not "the score is 60")
+        - macro_exposure: how macro conditions interact with the position's profile
+        - position_sizing: whether the size is appropriate and why
+        - volatility_trend: what is driving volatility behavior
+
         Important:
         - Do not return 50 across all four dimensions unless the evidence is genuinely absent.
         - If the evidence is directional, move the relevant dimensions away from 50.
-        - Use the position value and portfolio weight context in the prompt when estimating position sizing.
-        - Include a short reasoning string, per-dimension rationale, and a one-line evidence summary for each ticker when possible.
+        - Use the position value and portfolio weight context when estimating position sizing.
+        - Include a thesis-driven reasoning string, per-dimension rationale about what is happening, and a one-line evidence summary for each ticker.
+
+        Forbidden: dimension scores in rationale, "the model", "the score reflects", "based on the dimension", "coverage across N sources", internal evidence labels (full_body, title_only, headline_summary).
 
 Respond with ONLY the JSON object. Start with {{ and end with }}."""
 

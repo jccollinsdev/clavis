@@ -516,6 +516,19 @@ _GENERIC_FALLBACK_MARKERS = (
     "Risk is based on",
     "Risk reflects recent news coverage and sector conditions.",
     "The score reflects underlying fundamentals and sector context",
+    "recent news is low risk",
+    "recent news is elevated risk",
+    "recent news is moderate",
+    "near-term volatility is elevated risk",
+    "near-term volatility is low risk",
+    "near-term volatility is moderate",
+    "macro and sector conditions are elevated risk",
+    "macro and sector conditions are low risk",
+    "macro and sector conditions are moderate",
+    "Grade held at ",
+    "analyzed event(s) with",
+    "analyzed event(s) supported",
+    "Low-confidence coverage: only",
 )
 
 
@@ -575,15 +588,16 @@ def _build_article_aware_reasoning(
     ticker: str,
 ) -> str | None:
     """
-    Build investor-facing rationale using actual event analyses.
-    Covers: overall tone, downside signals, supportive signals, macro context, watch item.
+    Build thesis-driven rationale using actual event analyses.
+    Leads with the dominant risk force, resolves contradictions,
+    and closes with what would change the thesis.
     Returns None if there are no events to build from.
     """
     if not events:
         return None
 
     score = current_score or {}
-    source_count = int(score.get("source_count") or len(events))
+    news_score = int(score.get("news_sentiment") or 50)
     macro_score = int(score.get("macro_exposure") or 50)
     coverage_state = score.get("coverage_state") or "substantive"
 
@@ -593,124 +607,263 @@ def _build_article_aware_reasoning(
     improving = [
         e for e in events if (e.get("risk_direction") or "").lower() == "improving"
     ]
-
-    # Overall tone
-    if len(worsening) > 0 and len(improving) == 0:
-        tone = "broadly cautious"
-    elif len(improving) > 0 and len(worsening) == 0:
-        tone = "broadly positive"
-    elif len(worsening) == 0 and len(improving) == 0:
-        tone = "broadly neutral"
-    elif len(worsening) > len(improving):
-        tone = "mixed, leaning cautious"
-    elif len(improving) > len(worsening):
-        tone = "mixed, leaning positive"
-    else:
-        tone = "mixed"
-
-    word = "source" if source_count == 1 else "sources"
-    lines: list[str] = [f"Recent coverage across {source_count} {word} is {tone}."]
-
-    def _title_clip(event: dict) -> str:
-        title = (event.get("title") or ticker).strip()
-        for sep in (" - ", " | ", " — ", ": "):
-            if sep in title:
-                title = title.split(sep)[0].strip()
-        return title[:80]  # guard against very long titles
-
-    def _best_detail(event: dict) -> str:
-        implications = event.get("key_implications") or []
-        if implications and implications[0]:
-            return str(implications[0]).strip()
-        return (event.get("scenario_summary") or "").strip()
+    neutral_events = [
+        e for e in events if (e.get("risk_direction") or "").lower() == "neutral"
+    ]
 
     def _sentence_case(text: str) -> str:
+        """Lowercase only the first character, preserving proper nouns and ticker symbols."""
         if not text:
             return text
-        return text[0].lower() + text[1:]
+        return text[0].lower() + text[1:] if text[0].isupper() else text
 
-    # Downside signals
-    if worsening:
-        parts = []
-        for e in worsening[:2]:
-            detail = _best_detail(e)
-            clip = _title_clip(e)
-            if detail:
-                parts.append(f"{clip}: {_sentence_case(detail).rstrip('.')}")
-        if parts:
-            lines.append("Downside signals: " + "; ".join(parts) + ".")
+    def _shorten(text: str) -> str:
+        """Take the first clause from a sentence, cutting only at true clause boundaries."""
+        s = text.strip()
+        # Only split on sentence-level boundaries, not on 'but' which loses key qualifiers
+        for sep in (". ", "; "):
+            if sep in s:
+                candidate = s.split(sep)[0].strip()
+                if len(candidate) >= 10:
+                    s = candidate
+                    break
+        # If still long, try comma (but only if first clause is substantial)
+        if len(s) > 80 and ", " in s:
+            candidate = s.split(", ")[0].strip()
+            if len(candidate) >= 15:
+                s = candidate
+        return s.rstrip(".").strip()
 
-    # Supportive signals
-    if improving:
-        parts = []
-        for e in improving[:2]:
-            detail = _best_detail(e)
-            clip = _title_clip(e)
-            if detail:
-                parts.append(f"{clip}: {_sentence_case(detail).rstrip('.')}")
-        if parts:
-            lines.append("On the positive side: " + "; ".join(parts) + ".")
+    def _gist(event: dict) -> str:
+        """Short analytic gist — prefer the most concise key_implication."""
+        implications = event.get("key_implications") or []
+        # Collect all shortenable candidates, pick the shortest
+        candidates = []
+        for imp in implications[:3]:
+            s = _shorten(str(imp).strip())
+            if len(s) >= 10:
+                candidates.append(s)
+        # Prefer the shortest — shorter ones are more concept-like
+        if candidates:
+            candidates.sort(key=len)
+            return candidates[0]
+        # Fall back to scenario_summary
+        summary = _shorten(event.get("scenario_summary") or "")
+        return summary if len(summary) >= 10 else summary
 
-    # Macro context
+    def _concept(event: dict) -> str | None:
+        """Extract a short noun-phrase concept from implications.
+        For uses like 'A shift in [X]' — strips verb phrases to get the core concept.
+        Prefers the shortest noun phrase across all implications."""
+        implications = event.get("key_implications") or []
+        candidates = []
+        for imp in implications[:3]:
+            s = _shorten(str(imp).strip())
+            # Try to extract the subject noun phrase before conjunctions and verb patterns
+            phrase = None
+            for verb_sep in (" but ", " could ", " may ", " might ", " will ", " can ", " supports ", " boosts ", " drives ", " is ", " are "):
+                if verb_sep in s.lower():
+                    idx = s.lower().index(verb_sep)
+                    candidate = s[:idx].strip()
+                    if 10 <= len(candidate) <= 50:
+                        phrase = candidate
+                        break
+            if phrase:
+                candidates.append(phrase)
+            elif len(s) <= 50:
+                candidates.append(s)
+        if candidates:
+            candidates.sort(key=len)
+            return candidates[0]
+        return None
+
+    def _headline(event: dict) -> str:
+        """Extract a short, clean headline label — stripped of sources and ticker prefixes."""
+        import re
+        title = (event.get("title") or ticker).strip()
+        # Strip trailing source attribution: ' - Seeking Alpha', ' - CNBC', etc.
+        for sep in (" — ", " - ", " | "):
+            if sep in title:
+                parts = title.split(sep)
+                last = parts[-1].strip()
+                if len(last.split()) <= 3 and len(last) < 30:
+                    title = sep.join(parts[:-1]).strip()
+                else:
+                    title = title.replace(sep, ": ", 1)
+                break
+        # Strip leading source prefix: 'AMD: ', 'Advanced Micro Devices Inc. (AMD): '
+        if ": " in title:
+            after = title.split(": ", 1)[-1].strip()
+            before = title.split(": ", 1)[0].strip()
+            if len(before) < 30 or "(" in before:
+                title = after
+        # Strip trailing ticker parenthetical like '(NASDAQ:AMD)'
+        title = re.sub(r"\s*\([A-Z]+:[A-Z]+\)\s*$", "", title).strip()
+        # Strip leading company full name like 'NVIDIA Corporation (NVDA) '
+        # or 'Advanced Micro Devices Inc. (AMD) '
+        title = re.sub(r"^[A-Za-z\s]+(?:Inc\.|Corp\.|Corporation)\s*\([A-Z]{1,5}\)\s*", "", title).strip()
+        return title[:60]
+
+    has_major_worsening = any(
+        str(e.get("significance") or "").lower() == "major" for e in worsening
+    )
+    has_major_improving = any(
+        str(e.get("significance") or "").lower() == "major" for e in improving
+    )
+
+    thesis_parts: list[str] = []
+    caveat_parts: list[str] = []
+
+    # --- Paragraph 1: dominant thesis ---
+    # Editorial principle: gist (analytic insight) drives the thesis, 
+    # headlines are only used as short labels when contrasting two forces.
+    if worsening and not improving:
+        w = worsening[0]
+        gist = _gist(w)
+        if gist:
+            thesis_parts.append(f"{ticker} faces pressure — {gist}.")
+        else:
+            headline = _headline(w)
+            thesis_parts.append(f"{headline} raises risk for {ticker}.")
+        if len(worsening) > 1:
+            extras = [_gist(e) for e in worsening[1:3] if _gist(e)]
+            if extras:
+                thesis_parts.append(f"Also weighing: {'; '.join(extras)}.")
+
+    elif improving and not worsening:
+        best = improving[0]
+        gist = _gist(best)
+        if gist:
+            thesis_parts.append(f"{ticker} benefits from positive momentum — {gist}.")
+        else:
+            headline = _headline(best)
+            thesis_parts.append(f"{headline} is a positive for {ticker}.")
+        if len(improving) > 1:
+            extras = [_gist(e) for e in improving[1:3] if _gist(e)]
+            if extras:
+                thesis_parts.append(f"Also favorable: {'; '.join(extras)}.")
+
+    elif worsening and improving:
+        w_top = worsening[0]
+        b_top = improving[0]
+        w_gist = _gist(w_top)
+        b_gist = _gist(b_top)
+        w_head = _headline(w_top)
+        b_head = _headline(b_top)
+
+        if has_major_worsening and not has_major_improving:
+            if w_gist:
+                thesis_parts.append(f"{ticker}'s main risk is {_sentence_case(w_gist)}.")
+                if b_gist:
+                    thesis_parts.append(f"Positive signals — {_sentence_case(b_gist)} — don't offset this.")
+                else:
+                    thesis_parts.append(f"Positive signals from {b_head} don't offset this.")
+            else:
+                thesis_parts.append(f"{w_head} outweighs {b_head} for {ticker}.")
+
+        elif has_major_improving and not has_major_worsening:
+            if b_gist:
+                thesis_parts.append(f"{_sentence_case(b_gist)} drives the thesis for {ticker}.")
+                if w_gist:
+                    thesis_parts.append(f"Pressure from {_sentence_case(w_gist)} is secondary.")
+                else:
+                    thesis_parts.append(f"Pressure from {w_head} is secondary.")
+            else:
+                thesis_parts.append(f"{b_head} outweighs {w_head} for {ticker}.")
+
+        elif news_score <= 42:
+            if w_gist:
+                thesis_parts.append(f"Downside dominates for {ticker} — {_sentence_case(w_gist)} outweighs the positive read.")
+            else:
+                thesis_parts.append(f"Downside from {w_head} outweighs {b_head} for {ticker}.")
+
+        elif news_score >= 58:
+            if b_gist:
+                thesis_parts.append(f"{_sentence_case(b_gist)} leads the thesis for {ticker}. Pressure is secondary.")
+            else:
+                thesis_parts.append(f"Momentum from {b_head} outweighs {w_head} for {ticker}.")
+
+        else:
+            # Balanced — present both forces as sentences
+            parts = []
+            if w_gist:
+                parts.append(f"on one side, {_sentence_case(w_gist)}")
+            else:
+                parts.append(f"on one side, {w_head}")
+            if b_gist:
+                parts.append(f"on the other, {_sentence_case(b_gist)}")
+            else:
+                parts.append(f"on the other, {b_head}")
+            thesis_parts.append(f"{ticker} is pulled {parts[0]}, {parts[1]} — neither force dominates yet.")
+
+    else:
+        if neutral_events:
+            gist = _gist(neutral_events[0])
+            if gist:
+                thesis_parts.append(f"Recent coverage for {ticker} — {gist} — doesn't shift the thesis.")
+            else:
+                thesis_parts.append(f"Recent coverage for {ticker} lacks a clear catalyst.")
+
+    # --- Paragraph 2: context + what changes the thesis ---
     if macro_score <= 35:
-        lines.append(
-            "Macro and sector conditions are elevated risk — that weighs on the overall score."
-        )
+        caveat_parts.append("Macro headwinds add pressure.")
     elif macro_score >= 65:
-        lines.append("Macro and sector conditions are broadly supportive.")
+        caveat_parts.append("Macro conditions are supportive.")
 
-    # Watch item: second implication from the most significant worsening or improving event
+    # What would change the thesis — extract a short noun-phrase concept
+    watch_candidates = worsening + improving
     watch_text: str | None = None
-    candidates = worsening + improving
-    for e in candidates:
-        implications = e.get("key_implications") or []
-        if len(implications) > 1 and implications[1]:
-            watch_text = str(implications[1]).strip()
+    for e in watch_candidates:
+        wc = _concept(e)
+        if wc:
+            watch_text = wc
             break
+
     if watch_text:
-        lines.append(f"Watch: {watch_text.rstrip('.')}.")
+        wt_lower = watch_text[0].lower() + watch_text[1:] if watch_text and watch_text[0].isupper() and not watch_text[:3].isupper() else watch_text
+        caveat_parts.append(f"A shift in {wt_lower} would change this read.")
+    elif coverage_state == "substantive":
+        caveat_parts.append("New developments would shift this read.")
 
-    # Coverage caveat
     if coverage_state == "provisional":
-        lines.append(
-            "Score is based mostly on fundamentals — more recent news will sharpen this read."
-        )
+        caveat_parts.append("Provisional — fundamentals dominate until fuller coverage arrives.")
     elif coverage_state == "thin":
-        lines.append(
-            "Coverage is still building; watch for new earnings or analyst updates."
-        )
+        caveat_parts.append("Thin coverage — one new development could shift the picture.")
 
-    return " ".join(lines)
+    # Assemble: thesis paragraph + caveat paragraph
+    thesis = " ".join(thesis_parts)
+    caveat = " ".join(caveat_parts)
+    if thesis and caveat:
+        return f"{thesis} {caveat}"
+    return thesis or caveat or None
 
 
 def _investor_coverage_note(coverage_state: str, source_count: Any) -> str:
     sc = int(source_count or 0)
     word = "source" if sc == 1 else "sources"
     if coverage_state == "provisional":
-        return "Score based on fundamentals — limited recent news available."
+        return "Provisional — based on fundamentals pending fuller coverage."
     if coverage_state == "thin":
-        return f"Limited coverage: {sc} recent {word} reviewed."
-    return f"{sc} recent {word} reviewed."
+        return f"Thin coverage ({sc} {word}); more news would sharpen the read."
+    return f"{sc} {word} reviewed."
 
 
 def _investor_fallback_reasoning(coverage_state: str, source_count: Any) -> str:
-    sc = int(source_count or 0)
-    word = "source" if sc == 1 else "sources"
     if coverage_state == "provisional":
         return (
-            "We're still building a full picture for this ticker. "
-            "The score reflects underlying fundamentals and sector context — "
-            "it will sharpen as we collect more recent news."
+            "This ticker has limited recent coverage — the read leans on fundamentals "
+            "and sector context until fuller news sharpens the thesis."
         )
     if coverage_state == "thin":
+        sc = int(source_count or 0)
+        word = "source" if sc == 1 else "sources"
         return (
-            f"Risk is based on {sc} recent {word} plus ticker fundamentals. "
-            "Coverage is limited right now — watch for earnings updates, "
-            "analyst notes, or macro shifts that could move the score."
+            f"Only {sc} {word} reviewed — the thesis defaults to structural factors. "
+            f"One new earnings report, guidance update, or macro shift could change the picture."
         )
     return (
-        "Risk reflects recent news coverage and sector conditions. "
-        "Monitor for changes in company guidance, macro data, or portfolio concentration."
+        "The thesis rests on structural and macro factors right now — "
+        "new company-specific news would be needed to shift it."
     )
 
 

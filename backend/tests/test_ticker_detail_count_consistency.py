@@ -513,23 +513,26 @@ def test_article_aware_reasoning_contains_no_generic_fallback():
     assert text is not None
     assert "We're still building a full picture" not in text
     assert "Risk reflects recent news coverage and sector conditions" not in text
+    assert "Recent coverage across" not in text
+    assert "Downside signals:" not in text
+    assert "On the positive side:" not in text
 
 
-def test_article_aware_reasoning_references_source_count():
+def test_article_aware_reasoning_is_thesis_driven():
     text = _build_article_aware_reasoning(_MOCK_EVENTS_MIXED, _MOCK_SCORE_AMD, "AMD")
-    assert "3 sources" in text
+    assert text is not None
+    # Should lead with a thesis statement — dominant force, conflict resolution, or stable
+    has_thesis_lead = any(kw in text.lower() for kw in ["main risk", "dominant", "pressure from", "supports", "faces pressure", "split", "doesn't materially shift", "lacks a clear"])
+    assert has_thesis_lead, f"Missing thesis lead in: {text}"
+    # Should mention macro context when low
+    assert "headwind" in text.lower() or "tailwind" in text.lower() or "macro" in text.lower()
 
 
-def test_article_aware_reasoning_contains_downside_and_upside():
+def test_article_aware_reasoning_contains_risk_direction():
     text = _build_article_aware_reasoning(_MOCK_EVENTS_MIXED, _MOCK_SCORE_AMD, "AMD")
-    assert "Downside" in text or "downside" in text
-    assert "positive" in text.lower() or "supportive" in text.lower()
-
-
-def test_article_aware_reasoning_macro_elevated_when_low_score():
-    text = _build_article_aware_reasoning(_MOCK_EVENTS_MIXED, _MOCK_SCORE_AMD, "AMD")
-    # macro_exposure=32 → should mention elevated risk
-    assert "elevated risk" in text
+    # Should reference the dominant risk direction — worsening/improving/downside/concern
+    has_direction = any(kw in text.lower() for kw in ["concern", "risk driver", "pressure", "benefit", "improving", "outweighs", "competing"])
+    assert has_direction, f"Missing risk direction in: {text}"
 
 
 def test_article_aware_reasoning_no_dimension_math():

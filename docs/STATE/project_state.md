@@ -1,14 +1,15 @@
 ---
 project: Clavis
 version: 1
-last_updated: 2026-04-25
+last_updated: 2026-04-26
 roadmap: docs/STATUS/roadmap.md
 status: active
-current_phase: "Phase 5 - Digest Parity and Architecture Cleanup"
+current_phase: "Phase 1 - Security And Production Hardening"
 current_focus:
-  - Verify and preserve the preference lifecycle so digest timing, summary length, weekday-only behavior, and notification toggles stay aligned across iOS, API, scheduler state, and digest generation
-  - Keep `ticker_news_cache` fresh on snapshot refresh skips and surface `analysis_state`, `news_refresh_status`, and `last_news_refresh_at` consistently
-  - Keep quiet-hours notification timing enforced in the scheduler without changing digest generation or scoring behavior
+  - Complete Phase 1 / P0 iOS trust polish so the app feels TestFlight-ready: remove backend/internal copy, clean user-facing errors, confirm sign out, and source the About version from the bundle
+  - Keep production secrets rotated, removed from tracked files, and purged from git history
+  - Keep VPS hardening intact: UFW on, localhost-only backend bind, fail2ban active, and root SSH disabled
+  - Verify Supabase rotation stability, iOS auth behavior, and launch-safe backend access after the secret updates
 blockers:
   gate_0:
     - Paid Apple Developer account
@@ -18,10 +19,14 @@ blockers:
     - SnapTrade developer application and approval
     - SnapTrade sandbox + brokerage sync setup once launch timing justifies it
   technical:
+    - Git history has now been rewritten to remove `backend/.env`; old clones and cached copies of the leaked Supabase values still need to be treated as compromised until collaborators refresh history
+    - The Supabase rotation has been completed and the backend/iOS config must stay aligned with the newly issued values
     - APNs is still not configured on the VPS because the production `apns.p8` key is not present yet
     - SnapTrade is wired locally and the simulator now works against `http://127.0.0.1:8000`, but the VPS backend still needs the SnapTrade client ID / consumer key configured before the production brokerage flow can work
     - App shell/UI migration is functionally complete, but final spacing polish and screenshot-level parity checks are still needed before release polish is considered done
 recent_completions:
+  - Completed the Phase 1 / P0 iOS trust-polish pass from `docs/ui_audit.md`: removed exposed backend/vendor copy from onboarding/settings/holdings/ticker detail, mapped raw backend statuses and errors to user-facing language through `ClavisCopy`, replaced the dashboard `Pending` score fallback, renamed the digest refresh CTA for Morning Digest terminology, added a sign-out confirmation alert, and sourced the About version row from the app bundle before rebuilding successfully for the iPhone 17 Simulator
+  - Rotated the exposed Supabase JWT secret plus regenerated anon/service-role keys, updated the VPS backend `.env`, rebuilt the iOS Supabase anon key config, verified backend `/health` both locally and through Cloudflare Tunnel, and purged `backend/.env` from git history with `git-filter-repo`
   - Resolved the production cache-refresh blocker discovered during VPS smoke checks by removing the stale `news_items.summary` select from the shared ticker refresh path, then added a regression test that fails if the missing column is requested again
   - Added backend enforcement for quiet-hours notification timing in the scheduler, so digest/analysis APNs pushes now honor the stored quiet-hours window while leaving digest content and scoring untouched, and covered the overnight-window helper with regression tests
   - Audited the digest and notification preference lifecycle end to end, fixed the scheduler resync so `notifications_enabled` now re-registers digest jobs correctly, removed the cross-user `summary_length` fallback in force-refresh digest generation, and added regression tests for rescheduling, weekend skipping, user-scoped summary length, and digest token budgeting
