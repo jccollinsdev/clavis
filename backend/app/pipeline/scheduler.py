@@ -6,45 +6,15 @@ from collections import Counter
 from itertools import zip_longest
 from datetime import datetime, timedelta, timezone
 from dateutil.parser import isoparse
+from zoneinfo import ZoneInfo
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
 
-from .analysis_utils import utcnow_iso, clamp_score
-from .news_normalizer import normalize_news_batch, _evidence_quality
-from .portfolio_compiler import compile_portfolio_digest
-from .position_classifier import classify_position
-from .relevance import (
-    classify_relevance,
-    _is_low_value_article as is_low_value_relevance_article,
-)
-from .risk_scorer import score_position, score_to_grade, score_position_structural
-from .portfolio_risk import calculate_portfolio_risk_score
-from .structural_scorer import calculate_structural_base_score, get_daily_move_cap
-from ..services.ticker_metadata import (
-    refresh_all_positions_metadata,
-    upsert_ticker_metadata,
-)
-from ..services.backfill_artifacts import (
-    begin_artifact_session,
-    end_artifact_session,
-    get_run_artifact_dir,
-    record_position_artifact,
-    record_stage,
-    write_named_json,
-)
-from ..services.article_scraper import enrich_articles_content
-from ..services.ticker_cache_service import (
-    ensure_sp500_universe_seeded,
-    list_active_sp500_tickers,
-    get_latest_risk_snapshot_history_map,
-    refresh_ticker_snapshot,
-)
+ET = ZoneInfo("America/New_York")
 
-logger = logging.getLogger(__name__)
-
-scheduler = AsyncIOScheduler()
+scheduler = AsyncIOScheduler(timezone=ET)
 active_runs: dict[str, asyncio.Task] = {}
 active_sp500_backfills: dict[str, asyncio.Task] = {}
 PROCESS_STARTED_AT = datetime.now(timezone.utc)
@@ -528,6 +498,25 @@ def _serialize_datetime(value) -> str | None:
     return str(value)
 
 
+def _fmt_both_tz(value) -> dict | None:
+    """Format a datetime as both ET and UTC ISO strings."""
+    if value is None:
+        return None
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value)
+        except (ValueError, TypeError):
+            return {"et": value, "utc": value}
+    if isinstance(value, datetime):
+        if value.tzinfo is None:
+            value = value.replace(tzinfo=timezone.utc)
+        return {
+            "et": value.astimezone(ET).isoformat(),
+            "utc": value.astimezone(timezone.utc).isoformat(),
+        }
+    return {"et": str(value), "utc": str(value)}
+
+
 def _parse_digest_time(digest_time: str | None) -> tuple[str, int, int]:
     normalized = digest_time or DEFAULT_DIGEST_TIME
     try:
@@ -802,7 +791,7 @@ def _sync_user_job(
 
     scheduler.add_job(
         trigger_structural_refresh,
-        CronTrigger(hour=6, minute=30),
+        CronTrigger(hour=6, minute=30, timezone=ET),
         id=structural_job_id,
         args=[user_id],
         misfire_grace_time=7200,
@@ -821,7 +810,7 @@ def _sync_user_job(
 
     scheduler.add_job(
         trigger_scheduled_digest,
-        CronTrigger(hour=hour, minute=minute),
+        CronTrigger(hour=hour, minute=minute, timezone=ET),
         id=job_id,
         args=[user_id],
         misfire_grace_time=3600,
@@ -3910,6 +3899,9 @@ def get_scheduler_status_for_user(user_id: str) -> dict:
     next_run_at = _serialize_datetime(
         job.next_run_time if job else state.get("next_run_at") if state else None
     )
+    next_run_at_raw = (
+        job.next_run_time if job else state.get("next_run_at") if state else None
+    )
     return {
         "user_id": user_id,
         "digest_time": pref.get(
@@ -3921,6 +3913,7 @@ def get_scheduler_status_for_user(user_id: str) -> dict:
         ),
         "runtime_job_present": job is not None,
         "runtime_next_run_at": next_run_at,
+        "runtime_next_run_at_et": _fmt_both_tz(next_run_at_raw),
         "last_success_at": last_success_at,
         "last_failure_at": last_failure_at,
         "last_run_status": last_run_status,
@@ -3957,7 +3950,7 @@ def get_sp500_cache_status(limit: int = 10) -> dict:
     job_state = {
         "daily": {
             "present": scheduler.get_job(SP500_DAILY_JOB_ID) is not None,
-            "next_run_at": _serialize_datetime(
+            "next_run_at": _fmt_both_tz(
                 scheduler.get_job(SP500_DAILY_JOB_ID).next_run_time
                 if scheduler.get_job(SP500_DAILY_JOB_ID)
                 else None
@@ -3983,7 +3976,7 @@ def get_sp500_cache_status(limit: int = 10) -> dict:
         },
         "backfill": {
             "present": scheduler.get_job(SP500_BACKFILL_JOB_ID) is not None,
-            "next_run_at": _serialize_datetime(
+            "next_run_at": _fmt_both_tz(
                 scheduler.get_job(SP500_BACKFILL_JOB_ID).next_run_time
                 if scheduler.get_job(SP500_BACKFILL_JOB_ID)
                 else None
@@ -4013,13 +4006,13 @@ def get_sp500_cache_status(limit: int = 10) -> dict:
         "universe_size": len(universe),
         "coverage_count": len(snapshot_tickers),
         "daily_job_present": scheduler.get_job(SP500_DAILY_JOB_ID) is not None,
-        "daily_next_run_at": _serialize_datetime(
+        "daily_next_run_at": _fmt_both_tz(
             scheduler.get_job(SP500_DAILY_JOB_ID).next_run_time
             if scheduler.get_job(SP500_DAILY_JOB_ID)
             else None
         ),
         "backfill_job_present": scheduler.get_job(SP500_BACKFILL_JOB_ID) is not None,
-        "backfill_next_run_at": _serialize_datetime(
+        "backfill_next_run_at": _fmt_both_tz(
             scheduler.get_job(SP500_BACKFILL_JOB_ID).next_run_time
             if scheduler.get_job(SP500_BACKFILL_JOB_ID)
             else None
@@ -4891,16 +4884,16 @@ def _schedule_holdings_daily_ai_refresh() -> None:
         scheduler.remove_job(HOLDINGS_DAILY_AI_JOB_ID)
     scheduler.add_job(
         run_user_holdings_daily_ai_refresh,
-        trigger=CronTrigger(hour=2, minute=0),
+        trigger=CronTrigger(hour=7, minute=0, timezone=ET),
         id=HOLDINGS_DAILY_AI_JOB_ID,
         replace_existing=True,
         misfire_grace_time=3600,
     )
 
 
-def _next_2am_utc(reference: datetime | None = None) -> datetime:
-    current_time = reference or datetime.now(timezone.utc)
-    run_time = current_time.replace(hour=2, minute=0, second=0, microsecond=0)
+def _next_et_backfill_time(reference: datetime | None = None) -> datetime:
+    current_time = reference or datetime.now(ET)
+    run_time = current_time.replace(hour=7, minute=30, second=0, microsecond=0)
     if run_time <= current_time:
         run_time += timedelta(days=1)
     return run_time
@@ -4921,12 +4914,12 @@ async def _run_scheduled_sp500_backfill() -> None:
         )
 
 
-def _schedule_sp500_backfill_once() -> None:
+def _schedule_sp500_backfill() -> None:
     if scheduler.get_job(SP500_BACKFILL_JOB_ID):
         scheduler.remove_job(SP500_BACKFILL_JOB_ID)
     scheduler.add_job(
         _run_scheduled_sp500_backfill,
-        trigger=DateTrigger(run_date=_next_2am_utc()),
+        trigger=CronTrigger(hour=7, minute=30, timezone=ET),
         id=SP500_BACKFILL_JOB_ID,
         replace_existing=True,
         misfire_grace_time=6 * 3600,
@@ -4938,7 +4931,7 @@ def _schedule_sp500_daily_refresh() -> None:
         scheduler.remove_job(SP500_DAILY_JOB_ID)
     scheduler.add_job(
         refresh_sp500_cache,
-        trigger=CronTrigger(hour=3, minute=0),
+        trigger=CronTrigger(hour=8, minute=0, timezone=ET),
         id=SP500_DAILY_JOB_ID,
         replace_existing=True,
         kwargs={"job_type": "daily"},
@@ -4959,7 +4952,7 @@ def _schedule_news_cleanup() -> None:
         scheduler.remove_job(NEWS_CLEANUP_JOB_ID)
     scheduler.add_job(
         _cleanup_old_news_items,
-        trigger=CronTrigger(hour=3, minute=30),
+        trigger=CronTrigger(hour=8, minute=30, timezone=ET),
         id=NEWS_CLEANUP_JOB_ID,
         replace_existing=True,
     )
@@ -4975,7 +4968,7 @@ def start_scheduler():
     if not scheduler.running:
         scheduler.start()
 
-    _schedule_sp500_backfill_once()
+    _schedule_sp500_backfill()
     _schedule_sp500_daily_refresh()
     _schedule_holdings_daily_ai_refresh()
     _schedule_news_cleanup()

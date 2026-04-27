@@ -699,13 +699,19 @@ ADMIN_HTML = """
       }).join('');
     }
 
+    function fmtTz(obj) {
+      if (!obj) return 'N/A';
+      if (typeof obj === 'string') return obj;
+      return obj.et ? `${obj.et} (ET) / ${obj.utc} (UTC)` : String(obj);
+    }
     function renderSystem(data) {
       const scheduler = data.scheduler_status || {};
       const sp500 = data.sp500_cache || {};
       const rows = [
-        ['Scheduler', scheduler.runtime_job_present ? 'running' : 'idle', scheduler.runtime_next_run_at || 'No runtime job'],
-        ['Digest time', scheduler.digest_time || 'unset', scheduler.notifications_enabled ? 'notifications enabled' : 'notifications disabled'],
-        ['S&P job', sp500.daily_job_present ? 'scheduled' : 'missing', sp500.daily_next_run_at || 'No daily job'],
+        ['Scheduler', scheduler.runtime_job_present ? 'running' : 'idle', fmtTz(scheduler.runtime_next_run_at_et || scheduler.runtime_next_run_at)],
+        ['Digest time (ET)', scheduler.digest_time || 'unset', scheduler.notifications_enabled ? 'notifications enabled' : 'notifications disabled'],
+        ['S&P daily job', sp500.daily_job_present ? 'scheduled' : 'missing', fmtTz(sp500.daily_next_run_at)],
+        ['Backfill job', sp500.backfill_job_present ? 'scheduled' : 'missing', fmtTz(sp500.backfill_next_run_at)],
         ['Backfill queue', sp500.recent_jobs && sp500.recent_jobs.length ? sp500.recent_jobs[0].status : 'empty', sp500.recent_jobs && sp500.recent_jobs[0] ? `${sp500.recent_jobs[0].ticker || 'n/a'} · ${sp500.recent_jobs[0].job_type || 'job'}` : 'No recent jobs'],
       ];
       document.getElementById('scheduler-summary').textContent = `Generated ${data.generated_at || ''}`;
