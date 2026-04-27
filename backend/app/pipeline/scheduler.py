@@ -13,6 +13,8 @@ from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
 
 from .analysis_utils import utcnow_iso
+from .news_normalizer import normalize_news_batch
+from ..services.backfill_artifacts import record_stage
 
 ET = ZoneInfo("America/New_York")
 
