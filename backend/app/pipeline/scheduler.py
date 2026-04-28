@@ -2322,6 +2322,13 @@ async def execute_analysis_run(
             for idx, significance in enumerate(sig_batch_results):
                 article = all_articles_to_classify[idx]
                 event_hash = article.get("event_hash", "")
+                if not isinstance(significance, dict):
+                    significance = {
+                        "significance": "minor",
+                        "event_type": "other",
+                        "why_it_matters": "Classification parse fallback.",
+                        "confidence": 0.3,
+                    }
                 significance_cache[event_hash] = significance
                 _store_analysis_cache(
                     supabase,
