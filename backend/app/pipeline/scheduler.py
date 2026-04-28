@@ -14,7 +14,7 @@ from apscheduler.triggers.date import DateTrigger
 
 from .analysis_utils import utcnow_iso, clamp_score
 from .news_normalizer import normalize_news_batch
-from ..services.backfill_artifacts import record_stage, get_run_artifact_dir, begin_artifact_session, write_named_json, end_artifact_session
+from ..services.backfill_artifacts import record_stage, get_run_artifact_dir, begin_artifact_session, write_named_json, end_artifact_session, record_position_artifact
 from ..services.ticker_cache_service import ensure_sp500_universe_seeded, list_active_sp500_tickers
 
 ET = ZoneInfo("America/New_York")
@@ -1687,6 +1687,7 @@ async def execute_analysis_run(
     from ..services.article_scraper import enrich_articles_content
     from .portfolio_risk import calculate_portfolio_risk_score
     from .portfolio_compiler import compile_portfolio_digest
+    from ..services.ticker_cache_service import get_latest_risk_snapshot_history_map
     from ..services.supabase import get_supabase
     from .finnhub_news import fetch_market_news
     from .notifier import (
