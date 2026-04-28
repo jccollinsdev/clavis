@@ -12,7 +12,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
 
-from .analysis_utils import utcnow_iso
+from .analysis_utils import utcnow_iso, clamp_score
 from .news_normalizer import normalize_news_batch
 from ..services.backfill_artifacts import record_stage, get_run_artifact_dir, begin_artifact_session, write_named_json, end_artifact_session
 from ..services.ticker_cache_service import ensure_sp500_universe_seeded, list_active_sp500_tickers
@@ -59,7 +59,22 @@ MAJOR_PRIORITY_KEYWORDS = (
 
 
 def _is_junk_article(article: dict) -> tuple[bool, str]:
-    return is_low_value_relevance_article(article)
+    text = f"{article.get('title', '')} {article.get('summary', '')}".lower()
+    low_value_markers = (
+        "stock price",
+        "quote & chart",
+        "price, quote & chart",
+        "stock underperforms",
+        "underperforms friday when compared to competitors",
+    )
+    for marker in low_value_markers:
+        if marker in text:
+            return True, f"low_value_marker: {marker}"
+    relevance = article.get("relevance") or {}
+    event_type = str(relevance.get("event_type") or "").lower()
+    if event_type in ("noise", "spam", "ad"):
+        return True, f"irrelevant_event_type: {event_type}"
+    return False, ""
 
 
 def _dedupe_articles(articles: list[dict]) -> list[dict]:
@@ -694,6 +709,7 @@ async def _enrich_company_articles_with_cache(
     supabase,
     articles: list[dict],
 ) -> list[dict]:
+    from ..services.article_scraper import enrich_articles_content
     if not articles:
         return []
 
@@ -1379,6 +1395,7 @@ async def _finalize_partial_run(
     analysis_run_id: str,
     error_message: str,
 ) -> bool:
+    from .portfolio_compiler import compile_portfolio_digest
     position_payloads = _load_completed_position_payloads(
         supabase, user_id, analysis_run_id
     )
@@ -1667,6 +1684,9 @@ async def execute_analysis_run(
     artifact_label: str | None = None,
     shared_news_payload: dict | None = None,
 ):
+    from ..services.article_scraper import enrich_articles_content
+    from .portfolio_risk import calculate_portfolio_risk_score
+    from .portfolio_compiler import compile_portfolio_digest
     from ..services.supabase import get_supabase
     from .finnhub_news import fetch_market_news
     from .notifier import (
