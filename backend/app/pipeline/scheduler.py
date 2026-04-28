@@ -4463,10 +4463,35 @@ async def run_sp500_full_ai_analysis_fast(
 
     failed_refresh: list[dict] = []
     successful = [p["ticker"] for p in system_positions]
-    shared_news_payload = await _build_shared_news_payload(
-        successful,
-        await _load_ticker_metadata_map(supabase, successful),
+    print(f"[SP500] Building shared news payload for {len(successful)} tickers...")
+    _update_backfill_progress(
+        f"Building shared news payload for {len(successful)} tickers...",
+        positions_processed=0,
     )
+    try:
+        shared_news_payload = await asyncio.wait_for(
+            _build_shared_news_payload(
+                successful,
+                await _load_ticker_metadata_map(supabase, successful),
+            ),
+            timeout=600,
+        )
+    except asyncio.TimeoutError:
+        logger.error("SP500 _build_shared_news_payload timed out after 600s")
+        print("[SP500] _build_shared_news_payload timed out after 600s")
+        shared_news_payload = {
+            "macro_articles": [],
+            "cnbc_sector_articles": [],
+            "google_sector_articles": [],
+            "sector_articles": [],
+            "company_articles": [],
+            "market_articles": [],
+            "sector_names": [],
+            "sector_context": {},
+            "raw_articles": [],
+            "normalized_articles": [],
+        }
+    print(f"[SP500] Shared news payload built: macro={len(shared_news_payload.get('macro_articles', []))} company={len(shared_news_payload.get('company_articles', []))} market={len(shared_news_payload.get('market_articles', []))} sector={len(shared_news_payload.get('sector_articles', []))}")
     _update_backfill_progress(
         f"Shared news cache built for {len(successful)} tickers.",
         positions_processed=0,
