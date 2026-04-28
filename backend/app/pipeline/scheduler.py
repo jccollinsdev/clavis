@@ -1687,6 +1687,7 @@ async def execute_analysis_run(
     from ..services.article_scraper import enrich_articles_content
     from .portfolio_risk import calculate_portfolio_risk_score
     from .portfolio_compiler import compile_portfolio_digest
+    from .risk_scorer import score_position_structural
     from ..services.ticker_cache_service import get_latest_risk_snapshot_history_map
     from ..services.supabase import get_supabase
     from .finnhub_news import fetch_market_news
