@@ -14,7 +14,7 @@ from apscheduler.triggers.date import DateTrigger
 
 from .analysis_utils import utcnow_iso
 from .news_normalizer import normalize_news_batch
-from ..services.backfill_artifacts import record_stage
+from ..services.backfill_artifacts import record_stage, get_run_artifact_dir, begin_artifact_session
 from ..services.ticker_cache_service import ensure_sp500_universe_seeded, list_active_sp500_tickers
 
 ET = ZoneInfo("America/New_York")
