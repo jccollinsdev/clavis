@@ -1298,7 +1298,7 @@ ADMIN_HTML = """
     document.getElementById('run-backfill').addEventListener('click', () => {
       const limit = document.getElementById('backfill-limit').value || '25';
       if (!confirm(`Run S&P backfill (limit ${limit})?`)) return;
-      runAction('Starting S&P backfill', `/admin/api/actions/sp500/backfill?limit=${encodeURIComponent(limit)}&batch_size=10`);
+      runAction('Starting S&P backfill', `/admin/api/actions/sp500/backfill?limit=${encodeURIComponent(limit)}&batch_size=10&skip_structural=true`);
     });
 
     document.getElementById('structural-refresh').addEventListener('click', () => {

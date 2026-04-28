@@ -3673,6 +3673,7 @@ async def enqueue_sp500_backfill_run(
     limit: int | None = None,
     job_type: str = "backfill",
     batch_size: int = 10,
+    skip_structural: bool = False,
 ) -> dict:
     from ..services.supabase import get_supabase
 
@@ -3724,6 +3725,7 @@ async def enqueue_sp500_backfill_run(
             limit=limit,
             job_type=job_type,
             batch_size=batch_size,
+            skip_structural=skip_structural,
         )
     )
     task.add_done_callback(
