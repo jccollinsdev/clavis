@@ -502,16 +502,18 @@ async def api_backfill_sp500(
     request: Request,
     limit: int | None = Query(default=None, ge=1, le=500),
     batch_size: int = Query(default=10, ge=1, le=25),
+    skip_structural: bool = Query(default=False),
     user_id: str = Depends(require_admin_session),
 ):
     _verify_csrf(request)
-    _log_admin_action(request, "sp500_backfill", target=f"limit={limit}")
+    _log_admin_action(request, "sp500_backfill", target=f"limit={limit},skip_structural={skip_structural}")
     return JSONResponse(
         await enqueue_sp500_backfill_run(
             requested_by_user_id=SYSTEM_SP500_USER_ID,
             limit=limit,
             job_type="backfill",
             batch_size=batch_size,
+            skip_structural=skip_structural,
         )
     )
 

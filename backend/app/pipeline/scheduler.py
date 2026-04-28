@@ -3573,6 +3573,10 @@ async def _execute_sp500_backfill_run(
     from ..services.supabase import get_supabase
 
     supabase = get_supabase()
+    logger.info(
+        "SP500 backfill starting run_id=%s job_type=%s batch_size=%s skip_structural=%s limit=%s",
+        analysis_run_id, job_type, batch_size, skip_structural, limit,
+    )
     try:
         _set_analysis_stage(
             supabase,
@@ -3728,6 +3732,8 @@ async def enqueue_sp500_backfill_run(
         )
     )
     active_sp500_backfills[run["id"]] = task
+    logger.info("SP500 backfill task created: run_id=%s task_id=%s", run["id"], task.get_name())
+    print(f"[SP500] Backfill task created: run_id={run['id']} task_name={task.get_name()}")
     return {
         "status": "queued",
         "user_id": SYSTEM_SP500_USER_ID,
@@ -4352,6 +4358,11 @@ async def run_sp500_full_ai_analysis_fast(
     from ..services.supabase import get_supabase
 
     supabase = get_supabase()
+    logger.info(
+        "SP500 fast analysis starting: tickers_override=%s limit=%s skip_structural=%s batch_size=%s backfill_run_id=%s",
+        tickers_override is not None, limit, skip_structural, batch_size, backfill_run_id,
+    )
+    print(f"[SP500] run_sp500_full_ai_analysis_fast starting, skip_structural={skip_structural}, batch_size={batch_size}, backfill_run_id={backfill_run_id}")
 
     def _update_backfill_progress(message: str, **extra_fields) -> None:
         if not backfill_run_id:
