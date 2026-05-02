@@ -57,7 +57,7 @@ struct TickerDetailView: View {
             await reloadAll()
         }
         .sheet(isPresented: $showFullSummary) {
-            if let summary = detail?.currentAnalysis?.summary, !summary.isEmpty {
+            if let summary = detail?.currentAnalysis?.longReport ?? detail?.currentAnalysis?.summary, !summary.isEmpty {
                 TDSummarySheet(ticker: ticker, summary: summary)
             }
         }
@@ -105,11 +105,6 @@ struct TickerDetailView: View {
             .frame(height: 54)
             .padding(.horizontal, ClavisTheme.screenPadding)
 
-            if let detail {
-                miniStrip(detail)
-                    .padding(.horizontal, ClavisTheme.screenPadding)
-                    .padding(.bottom, 10)
-            }
         }
         .background(
             Color.backgroundPrimary.opacity(0.9)
@@ -123,39 +118,13 @@ struct TickerDetailView: View {
         }
     }
 
-    private func miniStrip(_ detail: TickerDetailResponse) -> some View {
-        let grade = displayGrade(for: detail)
-        let score = displayScore(for: detail)
-        let trend = detail.position.riskTrend
-
-        return HStack(spacing: 6) {
-            Text(grade)
-                .font(ClavisTypography.footnoteEmphasis)
-                .foregroundColor(ClavisGradeStyle.gradeBandText(for: grade))
-
-            Circle().fill(Color.textTertiary).frame(width: 3, height: 3)
-
-            Text("\(score)")
-                .font(ClavisTypography.footnoteEmphasis)
-                .foregroundColor(.textSecondary)
-
-            if let trend {
-                Circle().fill(Color.textTertiary).frame(width: 3, height: 3)
-                Text(trend.displayName)
-                    .font(ClavisTypography.footnoteEmphasis)
-                    .foregroundColor(trendColor(trend))
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .center)
-    }
-
     // MARK: - Content Sections
 
     @ViewBuilder
     private func detailContent(_ detail: TickerDetailResponse) -> some View {
         heroCard(detail)
 
-        if let summary = detail.currentAnalysis?.summary,
+        if let summary = detail.currentAnalysis?.longReport ?? detail.currentAnalysis?.summary,
            !summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             executiveSummaryCard(summary)
         }
@@ -361,7 +330,7 @@ struct TickerDetailView: View {
             .padding(.top, 4)
 
             HStack(spacing: 0) {
-                ForEach([1, 7, 30, 90, 365], id: \.self) { days in
+                ForEach([7, 30, 90, 365], id: \.self) { days in
                     Button(action: {
                         selectedDays = days
                         Task { await loadPriceHistory(days: days) }

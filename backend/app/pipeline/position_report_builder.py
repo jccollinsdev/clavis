@@ -65,6 +65,45 @@ _DRIVER_THEME_RULES: list[tuple[str, tuple[str, ...]]] = [
 
 _DRIVER_THEME_PRIORITY = {theme: idx for idx, (theme, _keywords) in enumerate(_DRIVER_THEME_RULES)}
 
+_THEME_DRIVER_TITLES: dict[tuple[str, str], str] = {
+    ("regulatory_risk", "negative"): "Regulatory and legal exposure is rising",
+    ("regulatory_risk", "positive"): "Regulatory overhang is clearing",
+    ("regulatory_risk", "neutral"): "Regulatory situation remains uncertain",
+    ("earnings_risk", "negative"): "Earnings risk is elevated",
+    ("earnings_risk", "positive"): "Earnings trajectory is improving",
+    ("earnings_risk", "neutral"): "Earnings trajectory is uncertain",
+    ("margin_risk", "negative"): "Margin pressure is increasing",
+    ("margin_risk", "positive"): "Margin recovery is under way",
+    ("margin_risk", "neutral"): "Margin outlook remains uncertain",
+    ("growth_risk", "negative"): "Growth momentum is slowing",
+    ("growth_risk", "positive"): "Growth momentum is accelerating",
+    ("growth_risk", "neutral"): "Growth trajectory is uncertain",
+    ("macro_risk", "negative"): "Macro headwinds are weighing on the outlook",
+    ("macro_risk", "positive"): "Macro tailwinds support the thesis",
+    ("macro_risk", "neutral"): "Macro environment remains in flux",
+    ("leverage_risk", "negative"): "Debt load and leverage risk are concerns",
+    ("leverage_risk", "positive"): "Balance sheet is improving",
+    ("leverage_risk", "neutral"): "Leverage position is stable",
+    ("liquidity_risk", "negative"): "Liquidity runway is tightening",
+    ("liquidity_risk", "positive"): "Cash position is strengthening",
+    ("liquidity_risk", "neutral"): "Liquidity position is adequate",
+    ("technical_risk", "negative"): "Technical structure is breaking down",
+    ("technical_risk", "positive"): "Technical setup is constructive",
+    ("technical_risk", "neutral"): "Technical picture is neutral",
+    ("execution_risk", "negative"): "Execution risk is elevated",
+    ("execution_risk", "positive"): "Execution momentum is improving",
+    ("execution_risk", "neutral"): "Execution results are inconsistent",
+    ("valuation_risk", "negative"): "Valuation is stretched relative to fundamentals",
+    ("valuation_risk", "positive"): "Valuation has de-risked materially",
+    ("valuation_risk", "neutral"): "Valuation is in line with peers",
+    ("competitive_risk", "negative"): "Competitive pressure is intensifying",
+    ("competitive_risk", "positive"): "Competitive position is strengthening",
+    ("competitive_risk", "neutral"): "Competitive dynamics are stable",
+    ("revenue_risk", "negative"): "Revenue growth is decelerating",
+    ("revenue_risk", "positive"): "Revenue growth is accelerating",
+    ("revenue_risk", "neutral"): "Revenue trajectory is uncertain",
+}
+
 _NEGATIVE_DIRECTION_MARKERS = (
     "downgrade",
     "miss",
@@ -426,7 +465,10 @@ def _build_driver_cards(
     cards_with_meta: list[tuple[dict[str, Any], dict[str, Any]]] = []
     for (theme, direction), group in groups.items():
         group.sort(key=_candidate_sort_key, reverse=True)
-        title = _truncate(group[0]["title"], 80)
+        title = _THEME_DRIVER_TITLES.get(
+            (theme, direction or "neutral"),
+            _THEME_DRIVER_TITLES.get((theme, "neutral"), _truncate(group[0]["title"], 80)),
+        )
         summary = _truncate(_first_non_empty(*(item["summary"] for item in group)), 180)
         if not title or not summary:
             continue
