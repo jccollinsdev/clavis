@@ -104,6 +104,9 @@ struct EventAnalysis: Identifiable, Codable {
     let eventHash: String?
     let title: String
     let summary: String?
+    let whatHappened: String?
+    let tldr: String?
+    let whatItMeans: String?
     let source: String?
     let sourceURL: String?
     let publishedAt: Date?
@@ -125,6 +128,9 @@ struct EventAnalysis: Identifiable, Codable {
         case eventHash = "event_hash"
         case title
         case summary
+        case whatHappened = "what_happened"
+        case tldr
+        case whatItMeans = "what_it_means"
         case source
         case sourceURL = "source_url"
         case publishedAt = "published_at"
@@ -147,7 +153,21 @@ struct EventAnalysis: Identifiable, Codable {
         positionId = try container.decodeIfPresent(String.self, forKey: .positionId)
         eventHash = try container.decodeIfPresent(String.self, forKey: .eventHash)
         title = try container.decodeIfPresent(String.self, forKey: .title) ?? ""
-        summary = try container.decodeIfPresent(String.self, forKey: .summary)
+        let summaryValue = try container.decodeIfPresent(String.self, forKey: .summary)
+        let longAnalysisValue = try container.decodeIfPresent(String.self, forKey: .longAnalysis)
+        let scenarioSummaryValue = try container.decodeIfPresent(String.self, forKey: .scenarioSummary)
+        summary = summaryValue
+        whatHappened = try container.decodeIfPresent(String.self, forKey: .whatHappened) ?? summaryValue ?? title
+        tldr = try container.decodeIfPresent(String.self, forKey: .tldr)
+            ?? longAnalysisValue
+            ?? scenarioSummaryValue
+            ?? summaryValue
+            ?? title
+        whatItMeans = try container.decodeIfPresent(String.self, forKey: .whatItMeans)
+            ?? scenarioSummaryValue
+            ?? longAnalysisValue
+            ?? summaryValue
+            ?? title
         source = try container.decodeIfPresent(String.self, forKey: .source)
         sourceURL = try container.decodeIfPresent(String.self, forKey: .sourceURL)
         if let publishedAtString = try container.decodeIfPresent(String.self, forKey: .publishedAt) {

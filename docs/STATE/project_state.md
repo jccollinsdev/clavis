@@ -1,9 +1,9 @@
 ---
 project: Clavis
 version: 1
-last_updated: 2026-05-03T1555Z
+last_updated: 2026-05-03T1700Z
 status: active
-current_phase: "P1 — Data Pipeline Fixes (Driver Titles)"
+current_phase: "P2 — Shared Ticker Intelligence And Evidence Quality"
 current_focus:
   - DONE: Phase 1 driver title fix implemented in `position_report_builder._build_driver_cards()`; titles now come from theme+direction generation only, never raw RSS headlines, and summaries now prefer risk-mechanism descriptions over evidence snippets
   - DONE: Added Phase 1 generator hardening for missing driver-card timestamps after HOOD rerun exposed a `max(None, None)` crash path during card ranking
@@ -13,8 +13,8 @@ current_focus:
   - DONE: Hardened valuation classification so stretched/overvalued language beats positive source sentiment, and blocked headline-like summaries that still mention source names or ticker-parenthetical strings
   - DONE: Added GOOG-specific summary selection so blog landing pages are rejected in favor of richer all-time-high / blowout-earnings evidence sentences
   - DONE: Added HOOD-specific summary selection so crypto-revenue-collapse evidence wins over Investopedia-style headlines
-  - NEXT: Commit Phase 1, deploy backend to VPS, and validate the public API payloads for AMD/HOOD/GOOG
   - DONE: Commit 1bf7e70 deployed to VPS
+  - NEXT: Normalize event-analysis payloads to the explicit `what_happened` / `tldr` / `what_it_means` contract and validate AMD/HOOD ticker detail
   - DONE: Global sticky headers on ALL screens (Dashboard, Holdings, Digest, Alerts, Settings, TickerDetail) using .safeAreaInset + frosted glass background
   - DONE: Hero cleanup — removed updated X ago, sector tags, metadata footer; kept Grade, Ticker (brand gold), Company name, Trend, Score
   - DONE: Executive Summary simplified to TL;DR + Bullish Tailwinds + Bearish Headwinds + What Would Change Rating only

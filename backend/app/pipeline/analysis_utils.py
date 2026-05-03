@@ -590,9 +590,18 @@ def _pick_generic_drivers(grade: str, scores: Optional[Dict] = None) -> List[str
     else:
         drivers = _GENERIC_DRIVERS["fundamentals"][:1]
     if scores:
-        news = int(scores.get("news_sentiment", 50))
-        volatility = int(scores.get("volatility_trend", 50))
-        macro = int(scores.get("macro_exposure", 50))
+        def _score_value(key: str, default: int = 50) -> int:
+            value = scores.get(key)
+            if value is None:
+                return default
+            try:
+                return int(value)
+            except (TypeError, ValueError):
+                return default
+
+        news = _score_value("news_sentiment")
+        volatility = _score_value("volatility_trend")
+        macro = _score_value("macro_exposure")
         if news < 35:
             drivers[0] = _GENERIC_DRIVERS["news"][0]
         elif news > 65:

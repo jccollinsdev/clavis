@@ -201,6 +201,85 @@ def test_get_ticker_detail_bundle_exposes_analysis_state(monkeypatch):
     assert result["freshness"]["news_refresh_status"] == "completed"
 
 
+def test_get_ticker_detail_bundle_normalizes_explicit_event_analysis_fields(monkeypatch):
+    monkeypatch.setattr(
+        "app.services.ticker_cache_service.ensure_sp500_universe_seeded",
+        lambda _supabase: None,
+    )
+    supabase = _FakeSupabase(
+        {
+            "ticker_universe": [
+                {
+                    "ticker": "AMD",
+                    "company_name": "Advanced Micro Devices",
+                    "exchange": "NASDAQ",
+                    "sector": "Technology",
+                    "industry": "Semiconductors",
+                    "is_active": True,
+                }
+            ],
+            "ticker_metadata": [
+                {
+                    "ticker": "AMD",
+                    "company_name": "Advanced Micro Devices",
+                    "price": 155.0,
+                    "price_as_of": "2026-04-24T00:00:00+00:00",
+                    "last_price_source": "finnhub",
+                }
+            ],
+            "ticker_risk_snapshots": [
+                {
+                    "id": "snap-1",
+                    "ticker": "AMD",
+                    "grade": "C",
+                    "safety_score": 55,
+                    "analysis_as_of": "2026-04-24T01:00:00+00:00",
+                    "coverage_state": "substantive",
+                    "news_summary": "Coverage is substantive.",
+                    "reasoning": "Coverage is substantive.",
+                    "dimension_rationale": {},
+                }
+            ],
+            "ticker_news_cache": [
+                {
+                    "ticker": "AMD",
+                    "headline": "AMD supply deal offsets shortage risk",
+                    "summary": "AMD signed a new supply agreement that expands access to wafers.",
+                    "source": "Reuters",
+                    "url": "https://example.com/article",
+                    "sentiment": "positive",
+                    "published_at": "2026-04-24T02:00:00+00:00",
+                    "processed_at": "2026-04-24T00:05:00+00:00",
+                }
+            ],
+            "positions": [],
+            "risk_scores": [],
+            "position_analyses": [],
+            "analysis_runs": [],
+            "ticker_refresh_jobs": [],
+            "alerts": [],
+            "watchlists": [
+                {
+                    "id": "watchlist-1",
+                    "user_id": "user-1",
+                    "name": "Watchlist",
+                    "is_default": True,
+                }
+            ],
+            "watchlist_items": [],
+        }
+    )
+
+    result = ticker_cache_service.get_ticker_detail_bundle(supabase, "user-1", "AMD")
+
+    event = result["latest_event_analyses"][0]
+    assert event["what_happened"] == "AMD signed a new supply agreement that expands access to wafers."
+    assert len(event["tldr"].split()) <= 18
+    assert event["what_happened"] != event["tldr"]
+    assert event["what_happened"] != event["what_it_means"]
+    assert event["tldr"] != event["what_it_means"]
+
+
 def test_get_ticker_detail_bundle_backfills_legacy_driver_cards(monkeypatch):
     monkeypatch.setattr(
         "app.services.ticker_cache_service.ensure_sp500_universe_seeded",

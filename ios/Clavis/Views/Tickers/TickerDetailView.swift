@@ -655,7 +655,7 @@ struct TickerDetailView: View {
         for ev in detail.latestEventAnalyses {
             guard !seen.contains(ev.id) else { continue }
             seen.insert(ev.id)
-            let summary = ev.scenarioSummary ?? ev.summary ?? ""
+            let summary = ev.tldr ?? ev.whatHappened ?? ev.summary ?? ""
             let category = ev.eventType
                 .map { $0.replacingOccurrences(of: "_", with: " ").capitalized } ?? "Event"
             result.append(TDEvidItem(
@@ -1268,13 +1268,13 @@ struct TickerEventAnalysisDetailView: View {
                 .padding(ClavisTheme.cardPadding)
                 .clavisCardStyle(fill: .surface)
 
-                if let s = event.summary?.trimmingCharacters(in: .whitespacesAndNewlines), !s.isEmpty {
+                if let s = event.whatHappened?.trimmingCharacters(in: .whitespacesAndNewlines), !s.isEmpty {
                     TDAnalysisDetailSection(title: "What happened", text: s)
                 }
-                if let l = event.longAnalysis?.trimmingCharacters(in: .whitespacesAndNewlines), !l.isEmpty {
+                if let l = event.tldr?.trimmingCharacters(in: .whitespacesAndNewlines), !l.isEmpty {
                     TDAnalysisDetailSection(title: "TL;DR", text: l)
                 }
-                if let sc = event.scenarioSummary?.trimmingCharacters(in: .whitespacesAndNewlines), !sc.isEmpty {
+                if let sc = event.whatItMeans?.trimmingCharacters(in: .whitespacesAndNewlines), !sc.isEmpty {
                     TDAnalysisDetailSection(title: "What it means", text: sc)
                 }
                 if let impl = event.keyImplications, !impl.isEmpty {

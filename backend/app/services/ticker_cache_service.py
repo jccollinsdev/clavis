@@ -838,6 +838,64 @@ def _normalize_headline(title: str) -> str:
     return re.sub(r"\s+", " ", t)
 
 
+def _truncate_words(text: str, limit: int = 18) -> str:
+    words = [part for part in (text or "").split() if part]
+    if not words:
+        return ""
+    if len(words) <= limit:
+        return " ".join(words)
+    return " ".join(words[:limit]) + "..."
+
+
+def _event_direction_phrase(direction: str | None) -> str:
+    normalized = (direction or "").strip().lower()
+    if normalized in {"worsening", "negative", "down", "bearish"}:
+        return "Risk looks worse"
+    if normalized in {"improving", "positive", "up", "bullish"}:
+        return "Risk looks better"
+    return "Risk looks mixed"
+
+
+def _normalize_event_analysis_payload(
+    event: dict[str, Any], *, ticker: str | None = None
+) -> dict[str, Any]:
+    normalized = dict(event)
+
+    title = sanitize_text_field(event.get("title"), fallback="") or (ticker or "Recent event")
+    summary = sanitize_text_field(event.get("summary"), fallback="")
+    analysis_text = sanitize_text_field(event.get("analysis_text"), fallback="")
+    long_analysis = sanitize_text_field(event.get("long_analysis"), fallback="")
+    scenario_summary = sanitize_text_field(event.get("scenario_summary"), fallback="")
+    explicit_happened = sanitize_text_field(event.get("what_happened"), fallback="")
+    explicit_tldr = sanitize_text_field(event.get("tldr"), fallback="")
+    explicit_means = sanitize_text_field(event.get("what_it_means"), fallback="")
+    risk_direction = sanitize_text_field(event.get("risk_direction"), fallback="")
+
+    what_happened = explicit_happened or summary or analysis_text or title
+    if not what_happened:
+        what_happened = title
+
+    tldr = explicit_tldr or ""
+    if tldr:
+        tldr = _truncate_words(tldr, 18)
+    else:
+        tldr = _truncate_words(f"{_event_direction_phrase(risk_direction)} after {title}.", 18)
+    if not tldr or tldr in {what_happened, explicit_means}:
+        tldr = _truncate_words(f"{_event_direction_phrase(risk_direction)} after {title}.", 18)
+
+    what_it_means = explicit_means or scenario_summary or long_analysis or analysis_text
+    if not what_it_means:
+        what_it_means = f"{_event_direction_phrase(risk_direction)} because {what_happened}."
+    if what_it_means in {what_happened, tldr}:
+        base = summary or analysis_text or title
+        what_it_means = f"{_event_direction_phrase(risk_direction)} because {base}."
+
+    normalized["what_happened"] = what_happened
+    normalized["tldr"] = tldr
+    normalized["what_it_means"] = what_it_means
+    return normalized
+
+
 def _dedup_event_analyses(events: list[dict]) -> list[dict]:
     """
     Deduplicate event_analyses rows.
@@ -2097,6 +2155,11 @@ def get_ticker_detail_bundle(
             position_id=position["id"],
         )
 
+    latest_event_analyses = [
+        _normalize_event_analysis_payload(event, ticker=ticker)
+        for event in latest_event_analyses
+    ]
+
     if latest_event_analyses and current_score:
         article_reasoning = _canonical_public_rationale(
             ticker=ticker,
@@ -2132,6 +2195,13 @@ def get_ticker_detail_bundle(
         alerts_result.data or [],
         coverage_state=coverage_state,
     )
+
+    if current_score and current_analysis:
+        analysis_summary = _clean_public_rationale_text(current_analysis.get("summary"))
+        reasoning = current_score.get("reasoning") or ""
+        if analysis_summary and analysis_summary not in reasoning:
+            current_score["reasoning"] = f"{reasoning} {analysis_summary}".strip()
+
     watchlist = get_or_create_default_watchlist(supabase, user_id)
     watchlist_items = (
         supabase.table("watchlist_items")
