@@ -124,6 +124,27 @@ def test_build_driver_cards_prefers_specific_summary_over_generic_primary_note()
     assert summary == "Higher freight and labor costs are compressing gross margin in the quarter."
 
 
+def test_build_driver_cards_classifies_stretched_valuation_as_negative():
+    cards, state, source = _build_driver_cards(
+        {"ticker": "AMD", "status": "ready"},
+        news_items=[
+            {
+                "headline": "AMD: Strong AI Tailwinds, But Valuation Is Getting Ahead Of Reality (NASDAQ:AMD) - Seeking Alpha",
+                "summary": "AMD: Strong AI Tailwinds, But Valuation Is Getting Ahead Of Reality (NASDAQ:AMD) Seeking Alpha",
+                "source": "Seeking Alpha",
+                "sentiment": "positive",
+            }
+        ],
+    )
+
+    assert state == "ready"
+    assert source == "generated"
+    assert len(cards) == 1
+    assert cards[0]["title"] == "Valuation is stretched relative to fundamentals"
+    assert "Seeking Alpha" not in cards[0]["summary"]
+    assert cards[0]["summary"] == "The current multiple prices in near-perfect execution; any earnings miss or guidance cut would cause outsized multiple compression."
+
+
 def test_build_driver_cards_handles_missing_timestamps():
     cards, state, _source = _build_driver_cards(
         {"ticker": "HOOD", "status": "ready"},

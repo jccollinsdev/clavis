@@ -1,7 +1,7 @@
 ---
 project: Clavis
 version: 1
-last_updated: 2026-05-03T1506Z
+last_updated: 2026-05-03T1543Z
 status: active
 current_phase: "P1 — Data Pipeline Fixes (Driver Titles)"
 current_focus:
@@ -10,6 +10,7 @@ current_focus:
   - DONE: Re-ran held-position analyses for AMD, HOOD, and GOOG through the normal `/trigger-analysis` pipeline to regenerate stored `position_analyses.driver_cards` with the Phase 1 logic
   - DONE: Tightened `_generate_driver_summary()` so specific evidence summaries win over static fallback text, and added a regression that proves generic primary notes do not block a specific secondary summary
   - DONE: Validated the current live backend container payloads for AMD, HOOD, and GOOG as the pre-deploy baseline
+  - DONE: Hardened valuation classification so stretched/overvalued language beats positive source sentiment, and blocked headline-like summaries that still mention source names or ticker-parenthetical strings
   - NEXT: Commit Phase 1, deploy backend to VPS, and validate the public API payloads for AMD/HOOD/GOOG
   - DONE: Commit 1bf7e70 deployed to VPS
   - DONE: Global sticky headers on ALL screens (Dashboard, Holdings, Digest, Alerts, Settings, TickerDetail) using .safeAreaInset + frosted glass background

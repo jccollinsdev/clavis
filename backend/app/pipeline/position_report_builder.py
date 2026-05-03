@@ -186,6 +186,14 @@ _NEGATIVE_DIRECTION_MARKERS = (
     "competition",
     "worsen",
     "decline",
+    "getting ahead of reality",
+    "stretched",
+    "overvalued",
+    "expensive",
+    "too rich",
+    "premium to peers",
+    "pricing in",
+    "multiple compression",
 )
 
 _POSITIVE_DIRECTION_MARKERS = (
@@ -386,6 +394,11 @@ def _is_specific_driver_summary(summary: str, title: str | None = None) -> bool:
         return False
     if _looks_like_rss_headline(cleaned_summary):
         return False
+    lowered = cleaned_summary.lower()
+    if re.search(r"\((?:nasdaq|nyse|amex):[a-z0-9.-]+\)", lowered):
+        return False
+    if any(marker in lowered for marker in ("reuters", "seeking alpha", "yahoo finance", "barron's", "investing.com", "marketwatch", "stock titan", "quiver quantitative", "cnbc", "fortune")):
+        return False
     if _is_generic_driver_text(cleaned_summary):
         return False
     return True
@@ -525,9 +538,9 @@ def _candidate_from_news(article: dict[str, Any]) -> dict[str, Any] | None:
         return None
     sentiment = _clean_text(article.get("sentiment")).lower()
     direction = _direction_for_text(text)
-    if sentiment in {"positive", "bullish"}:
+    if sentiment in {"positive", "bullish"} and direction != "negative":
         direction = "positive"
-    elif sentiment in {"negative", "bearish"}:
+    elif sentiment in {"negative", "bearish"} and direction != "positive":
         direction = "negative"
     return {
         "id": _clean_text(article.get("id")),
