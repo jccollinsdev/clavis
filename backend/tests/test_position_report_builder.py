@@ -2,6 +2,7 @@ import asyncio
 
 from app.pipeline.position_report_builder import (
     _build_driver_cards,
+    _generate_driver_summary,
     build_position_report,
 )
 
@@ -48,8 +49,7 @@ def test_build_position_report_generates_driver_cards(monkeypatch):
     assert report["driver_cards"][0]["source_chips"] == ["Reuters"]
     assert report["driver_cards"][0]["supporting_evidence"][0]["id"] == "ev-1"
     assert report["driver_cards"][0]["title"] == "Earnings risk is elevated"
-    assert report["driver_cards"][0]["summary"] != report["driver_cards"][0]["title"]
-    assert report["driver_cards"][0]["summary"] != "Revenue beat, but management cut guidance after margin pressure."
+    assert report["driver_cards"][0]["summary"] == "Revenue beat, but management cut guidance after margin pressure."
 
 
 def test_build_position_report_uses_insufficient_evidence_fallback():
@@ -105,6 +105,25 @@ def test_build_driver_cards_never_uses_rss_headline_or_snippet_for_unknown_theme
     assert cards[0]["summary"] == "Margin trajectory is stable but offers no near-term catalyst to drive meaningful earnings upside."
 
 
+def test_build_driver_cards_prefers_specific_summary_over_generic_primary_note():
+    summary = _generate_driver_summary(
+        "margin_risk",
+        "negative",
+        [
+            {
+                "title": "Margins under pressure",
+                "summary": "Analyst watch remains cautious as the company continues to face margin pressure from pricing resets and higher labor costs.",
+            },
+            {
+                "title": "Freight and labor costs rise",
+                "summary": "Higher freight and labor costs are compressing gross margin in the quarter.",
+            },
+        ],
+    )
+
+    assert summary == "Higher freight and labor costs are compressing gross margin in the quarter."
+
+
 def test_build_driver_cards_handles_missing_timestamps():
     cards, state, _source = _build_driver_cards(
         {"ticker": "HOOD", "status": "ready"},
@@ -120,4 +139,4 @@ def test_build_driver_cards_handles_missing_timestamps():
 
     assert state == "ready"
     assert len(cards) == 1
-    assert cards[0]["title"] == "Revenue growth is decelerating"
+    assert cards[0]["title"] == "Earnings risk is elevated"

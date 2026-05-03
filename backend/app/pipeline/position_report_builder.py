@@ -378,6 +378,19 @@ def _looks_like_rss_headline(text: str) -> bool:
     return bool(_RSS_HEADLINE_SUFFIX_RE.search(_clean_text(text)))
 
 
+def _is_specific_driver_summary(summary: str, title: str | None = None) -> bool:
+    cleaned_summary = _clean_text(summary)
+    if not cleaned_summary or len(cleaned_summary) < 30:
+        return False
+    if title and cleaned_summary == _clean_text(title):
+        return False
+    if _looks_like_rss_headline(cleaned_summary):
+        return False
+    if _is_generic_driver_text(cleaned_summary):
+        return False
+    return True
+
+
 def _generate_driver_title(theme: str, direction: str | None) -> str:
     normalized_direction = direction if direction in {"negative", "positive", "neutral"} else "neutral"
     mapped_title = _THEME_DRIVER_TITLES.get((theme, normalized_direction))
@@ -397,20 +410,23 @@ def _generate_driver_title(theme: str, direction: str | None) -> str:
 
 
 def _generate_driver_summary(theme: str, direction: str | None, group: list[dict[str, Any]]) -> str:
+    if not group:
+        return ""
+
+    primary = group[0]
+    primary_summary = _clean_text(primary.get("summary"))
+    primary_title = _clean_text(primary.get("title"))
+    if _is_specific_driver_summary(primary_summary, primary_title):
+        return _truncate(primary_summary, 180)
+
+    for item in group[1:]:
+        candidate_summary = _clean_text(item.get("summary"))
+        if _is_specific_driver_summary(candidate_summary, _clean_text(item.get("title"))):
+            return _truncate(candidate_summary, 180)
+
     normalized_direction = direction if direction in {"negative", "positive", "neutral"} else "neutral"
     static_desc = _THEME_DRIVER_DESCRIPTIONS.get((theme, normalized_direction)) or _THEME_DRIVER_DESCRIPTIONS.get((theme, "neutral"), "")
-    if static_desc:
-        return _truncate(static_desc, 220)
-
-    candidate_summaries = [
-        _clean_text(item.get("summary"))
-        for item in group
-        if _clean_text(item.get("summary"))
-        and _clean_text(item.get("summary")) != _clean_text(item.get("title"))
-        and not _looks_like_rss_headline(_clean_text(item.get("summary")))
-        and len(_clean_text(item.get("summary"))) > 30
-    ]
-    return _truncate(_first_non_empty(*candidate_summaries), 180) if candidate_summaries else ""
+    return _truncate(static_desc, 220) if static_desc else ""
 
 
 def _normalize_source(source: Any) -> str:
