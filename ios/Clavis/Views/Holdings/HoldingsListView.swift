@@ -795,13 +795,15 @@ struct PositionCardRow: View {
                         HStack(spacing: 8) {
                             Text(position.ticker)
                                 .font(.system(size: 15, weight: .semibold))
-                                .foregroundColor(.textPrimary)
+                                .foregroundColor(Color(hex: "#F0C76C"))
 
-                            Text(position.archetype.displayName)
-                                .font(ClavisTypography.footnote)
-                                .foregroundColor(.textSecondary)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.85)
+                            if let companyName = position.companyName, !companyName.isEmpty {
+                                Text(companyName)
+                                    .font(ClavisTypography.footnote)
+                                    .foregroundColor(.textSecondary)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.85)
+                            }
 
                             if position.isBrokerageSynced {
                                 Text("Synced")
@@ -820,13 +822,6 @@ struct PositionCardRow: View {
                             .lineLimit(2)
                             .fixedSize(horizontal: false, vertical: true)
 
-                        HStack(spacing: 6) {
-                            if let evidence = position.evidenceStrength {
-                                EvidenceDots(evidence: evidence, grade: grade)
-                            }
-                            ScoreSourceChip(source: position.scoreSource)
-                            FreshnessChip(date: position.scoreAsOf ?? position.analysisAsOf)
-                        }
                     }
 
                     Spacer(minLength: 12)

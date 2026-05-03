@@ -51,6 +51,8 @@ class Position(PositionBase):
     price_as_of: Optional[datetime] = None
     news_as_of: Optional[datetime] = None
     source: Optional[str] = None
+    company_name: Optional[str] = None
+    latest_event_analyses: Optional[list[dict[str, Any]]] = None
     created_at: datetime
     updated_at: datetime
 

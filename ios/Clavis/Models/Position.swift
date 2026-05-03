@@ -39,6 +39,8 @@ struct Position: Identifiable, Codable, Hashable {
     var priceAsOf: Date?
     var newsAsOf: Date?
     var source: String?
+    var companyName: String?
+    var latestEventAnalyses: [EventAnalysis]?
     var analysisStartedAt: Date?
 
     var riskState: RiskState? {
@@ -130,6 +132,8 @@ struct Position: Identifiable, Codable, Hashable {
         case priceAsOf = "price_as_of"
         case newsAsOf = "news_as_of"
         case source
+        case companyName = "company_name"
+        case latestEventAnalyses = "latest_event_analyses"
         case analysisStartedAt = "analysis_started_at"
     }
 
@@ -173,6 +177,8 @@ struct Position: Identifiable, Codable, Hashable {
         priceAsOf = try container.decodeIfPresent(Date.self, forKey: .priceAsOf)
         newsAsOf = try container.decodeIfPresent(Date.self, forKey: .newsAsOf)
         source = try container.decodeIfPresent(String.self, forKey: .source)
+        companyName = try container.decodeIfPresent(String.self, forKey: .companyName)
+        latestEventAnalyses = try container.decodeIfPresent([EventAnalysis].self, forKey: .latestEventAnalyses)
         analysisStartedAt = try container.decodeIfPresent(Date.self, forKey: .analysisStartedAt)
     }
 }

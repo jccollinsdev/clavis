@@ -11,7 +11,7 @@ from uuid import uuid4
 from fastapi import HTTPException
 
 from ..pipeline.risk_scorer import score_position_structural
-from ..pipeline.analysis_utils import score_to_grade, grade_direction, sanitize_rationale, sanitize_public_analysis_text, format_rationale, evidence_strength, sanitize_text_field
+from ..pipeline.analysis_utils import score_to_grade, grade_direction, sanitize_rationale, sanitize_public_analysis_text, format_rationale, evidence_strength, sanitize_text_field, normalize_event_analysis_payload
 from ..pipeline.position_report_builder import _build_driver_cards
 from .alert_payloads import enrich_alert_rows
 from .ticker_metadata import upsert_ticker_metadata
@@ -326,6 +326,23 @@ def enrich_positions_with_ticker_cache(
     refresh_job_map = get_latest_refresh_job_map(supabase, tickers)
     news_cache_map = get_latest_news_cache_map(supabase, tickers)
 
+    position_ids = [p.get("id", "") for p in positions if p.get("id")]
+    event_map: dict[str, list[dict[str, Any]]] = {}
+    if position_ids:
+        event_result = (
+            supabase.table("event_analyses")
+            .select("*")
+            .in_("position_id", position_ids)
+            .order("created_at", desc=True)
+            .execute()
+        )
+        for row in event_result.data or []:
+            pid = row["position_id"]
+            if pid not in event_map:
+                event_map[pid] = []
+            if len(event_map[pid]) < 3:
+                event_map[pid].append(row)
+
     for position in positions:
         ticker = (position.get("ticker") or "").upper()
         metadata = metadata_map.get(ticker, {})
@@ -395,6 +412,16 @@ def enrich_positions_with_ticker_cache(
         position["news_as_of"] = analysis_state.get("news_as_of")
         position["news_refresh_status"] = analysis_state.get("news_refresh_status")
         position["source"] = analysis_state.get("source")
+        position["company_name"] = metadata.get("company_name")
+
+        raw_events = event_map.get(position.get("id"), [])
+        if raw_events:
+            position["latest_event_analyses"] = [
+                normalize_event_analysis_payload(e, ticker=ticker)
+                for e in raw_events
+            ]
+        else:
+            position["latest_event_analyses"] = None
 
     return positions
 
@@ -836,64 +863,6 @@ def _normalize_headline(title: str) -> str:
     t = re.sub(r"[^a-z0-9\s]", "", t).strip()
     # Collapse whitespace
     return re.sub(r"\s+", " ", t)
-
-
-def _truncate_words(text: str, limit: int = 18) -> str:
-    words = [part for part in (text or "").split() if part]
-    if not words:
-        return ""
-    if len(words) <= limit:
-        return " ".join(words)
-    return " ".join(words[:limit]) + "..."
-
-
-def _event_direction_phrase(direction: str | None) -> str:
-    normalized = (direction or "").strip().lower()
-    if normalized in {"worsening", "negative", "down", "bearish"}:
-        return "Risk looks worse"
-    if normalized in {"improving", "positive", "up", "bullish"}:
-        return "Risk looks better"
-    return "Risk looks mixed"
-
-
-def _normalize_event_analysis_payload(
-    event: dict[str, Any], *, ticker: str | None = None
-) -> dict[str, Any]:
-    normalized = dict(event)
-
-    title = sanitize_text_field(event.get("title"), fallback="") or (ticker or "Recent event")
-    summary = sanitize_text_field(event.get("summary"), fallback="")
-    analysis_text = sanitize_text_field(event.get("analysis_text"), fallback="")
-    long_analysis = sanitize_text_field(event.get("long_analysis"), fallback="")
-    scenario_summary = sanitize_text_field(event.get("scenario_summary"), fallback="")
-    explicit_happened = sanitize_text_field(event.get("what_happened"), fallback="")
-    explicit_tldr = sanitize_text_field(event.get("tldr"), fallback="")
-    explicit_means = sanitize_text_field(event.get("what_it_means"), fallback="")
-    risk_direction = sanitize_text_field(event.get("risk_direction"), fallback="")
-
-    what_happened = explicit_happened or summary or analysis_text or title
-    if not what_happened:
-        what_happened = title
-
-    tldr = explicit_tldr or ""
-    if tldr:
-        tldr = _truncate_words(tldr, 18)
-    else:
-        tldr = _truncate_words(f"{_event_direction_phrase(risk_direction)} after {title}.", 18)
-    if not tldr or tldr in {what_happened, explicit_means}:
-        tldr = _truncate_words(f"{_event_direction_phrase(risk_direction)} after {title}.", 18)
-
-    what_it_means = explicit_means or scenario_summary or long_analysis or analysis_text
-    if not what_it_means:
-        what_it_means = f"{_event_direction_phrase(risk_direction)} because {what_happened}."
-    if what_it_means in {what_happened, tldr}:
-        base = summary or analysis_text or title
-        what_it_means = f"{_event_direction_phrase(risk_direction)} because {base}."
-
-    normalized["what_happened"] = what_happened
-    normalized["tldr"] = tldr
-    normalized["what_it_means"] = what_it_means
-    return normalized
 
 
 def _dedup_event_analyses(events: list[dict]) -> list[dict]:
@@ -2156,7 +2125,7 @@ def get_ticker_detail_bundle(
         )
 
     latest_event_analyses = [
-        _normalize_event_analysis_payload(event, ticker=ticker)
+        normalize_event_analysis_payload(event, ticker=ticker)
         for event in latest_event_analyses
     ]
 

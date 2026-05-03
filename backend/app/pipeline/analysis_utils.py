@@ -694,3 +694,61 @@ def sanitize_rationale(text: str) -> str:
     if len(cleaned) < 10:
         return ""
     return cleaned
+
+
+def _truncate_words(text: str, limit: int = 18) -> str:
+    words = [part for part in (text or "").split() if part]
+    if not words:
+        return ""
+    if len(words) <= limit:
+        return " ".join(words)
+    return " ".join(words[:limit]) + "..."
+
+
+def _event_direction_phrase(direction: str | None) -> str:
+    normalized = (direction or "").strip().lower()
+    if normalized in {"worsening", "negative", "down", "bearish"}:
+        return "Risk looks worse"
+    if normalized in {"improving", "positive", "up", "bullish"}:
+        return "Risk looks better"
+    return "Risk looks mixed"
+
+
+def normalize_event_analysis_payload(
+    event: dict[str, Any], *, ticker: str | None = None
+) -> dict[str, Any]:
+    normalized = dict(event)
+
+    title = sanitize_text_field(event.get("title"), fallback="") or (ticker or "Recent event")
+    summary = sanitize_text_field(event.get("summary"), fallback="")
+    analysis_text = sanitize_text_field(event.get("analysis_text"), fallback="")
+    long_analysis = sanitize_text_field(event.get("long_analysis"), fallback="")
+    scenario_summary = sanitize_text_field(event.get("scenario_summary"), fallback="")
+    explicit_happened = sanitize_text_field(event.get("what_happened"), fallback="")
+    explicit_tldr = sanitize_text_field(event.get("tldr"), fallback="")
+    explicit_means = sanitize_text_field(event.get("what_it_means"), fallback="")
+    risk_direction = sanitize_text_field(event.get("risk_direction"), fallback="")
+
+    what_happened = explicit_happened or summary or analysis_text or title
+    if not what_happened:
+        what_happened = title
+
+    tldr = explicit_tldr or ""
+    if tldr:
+        tldr = _truncate_words(tldr, 18)
+    else:
+        tldr = _truncate_words(f"{_event_direction_phrase(risk_direction)} after {title}.", 18)
+    if not tldr or tldr in {what_happened, explicit_means}:
+        tldr = _truncate_words(f"{_event_direction_phrase(risk_direction)} after {title}.", 18)
+
+    what_it_means = explicit_means or scenario_summary or long_analysis or analysis_text
+    if not what_it_means:
+        what_it_means = f"{_event_direction_phrase(risk_direction)} because {what_happened}."
+    if what_it_means in {what_happened, tldr}:
+        base = summary or analysis_text or title
+        what_it_means = f"{_event_direction_phrase(risk_direction)} because {base}."
+
+    normalized["what_happened"] = what_happened
+    normalized["tldr"] = tldr
+    normalized["what_it_means"] = what_it_means
+    return normalized

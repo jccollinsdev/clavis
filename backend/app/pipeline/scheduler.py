@@ -13,7 +13,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
 
-from .analysis_utils import utcnow_iso, clamp_score, score_to_grade, sanitize_text_field
+from .analysis_utils import utcnow_iso, clamp_score, score_to_grade, sanitize_text_field, normalize_event_analysis_payload
 from .news_normalizer import normalize_news_batch, _evidence_quality
 from ..services.backfill_artifacts import record_stage, get_run_artifact_dir, begin_artifact_session, write_named_json, end_artifact_session, record_position_artifact
 from ..services.ticker_cache_service import ensure_sp500_universe_seeded, list_active_sp500_tickers
@@ -2575,6 +2575,10 @@ async def execute_analysis_run(
                     "recommended_followups": [sanitize_text_field(fu, fallback="") or fu
                                               for fu in (result.get("recommended_followups", []) if result else [])],
                 }
+                normalized = normalize_event_analysis_payload(event_record, ticker=ticker)
+                event_record["what_happened"] = normalized["what_happened"]
+                event_record["tldr"] = normalized["tldr"]
+                event_record["what_it_means"] = normalized["what_it_means"]
                 event_analyses.append(event_record)
                 supabase.table("event_analyses").insert(event_record).execute()
 
@@ -2625,6 +2629,10 @@ async def execute_analysis_run(
                     "recommended_followups": [sanitize_text_field(fu, fallback="") or fu
                                               for fu in (result.get("recommended_followups", []) if result else [])],
                 }
+                normalized = normalize_event_analysis_payload(event_record, ticker=ticker)
+                event_record["what_happened"] = normalized["what_happened"]
+                event_record["tldr"] = normalized["tldr"]
+                event_record["what_it_means"] = normalized["what_it_means"]
                 event_analyses.append(event_record)
                 supabase.table("event_analyses").insert(event_record).execute()
 
