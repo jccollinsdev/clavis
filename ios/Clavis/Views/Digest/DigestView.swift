@@ -21,10 +21,6 @@ struct DigestView: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    DigestTopHeader(
-                        onOpenHoldings: { selectedTab = 1 }
-                    )
-
                     if NetworkStatusMonitor.shared.isOffline {
                         OfflineStatusBanner()
                     }
@@ -70,6 +66,9 @@ struct DigestView: View {
                 .padding(.top, 0)
                 .padding(.bottom, ClavisTheme.floatingTabHeight + ClavisTheme.floatingTabInset + ClavisTheme.extraLargeSpacing)
             }
+            .safeAreaInset(edge: .top, spacing: 0) {
+                DigestTopHeader(onOpenHoldings: { selectedTab = 1 })
+            }
             .contentMargins(.top, 0, for: .scrollContent)
             .contentMargins(.bottom, 0, for: .scrollContent)
             .refreshable {
@@ -109,6 +108,19 @@ private struct DigestTopHeader: View {
                     .frame(width: 32, height: 32)
             }
             .buttonStyle(.plain)
+        }
+        .padding(.horizontal, ClavisTheme.screenPadding)
+        .padding(.top, 8)
+        .padding(.bottom, 6)
+        .background(
+            Color.backgroundPrimary.opacity(0.9)
+                .background(.ultraThinMaterial)
+                .ignoresSafeArea(edges: .top)
+        )
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(Color.border.opacity(0.5))
+                .frame(height: 0.5)
         }
     }
 }

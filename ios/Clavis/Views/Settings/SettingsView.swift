@@ -11,8 +11,6 @@ struct SettingsView: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    ClavixPageHeader(title: "Settings")
-
                     if NetworkStatusMonitor.shared.isOffline {
                         OfflineStatusBanner()
                     }
@@ -46,6 +44,22 @@ struct SettingsView: View {
                 .padding(.horizontal, ClavisTheme.screenPadding)
                 .padding(.top, 0)
                 .padding(.bottom, ClavisTheme.largeSpacing)
+            }
+            .safeAreaInset(edge: .top, spacing: 0) {
+                ClavixPageHeader(title: "Settings")
+                    .padding(.horizontal, ClavisTheme.screenPadding)
+                    .padding(.top, 8)
+                    .padding(.bottom, 6)
+                    .background(
+                        Color.backgroundPrimary.opacity(0.9)
+                            .background(.ultraThinMaterial)
+                            .ignoresSafeArea(edges: .top)
+                    )
+                    .overlay(alignment: .bottom) {
+                        Rectangle()
+                            .fill(Color.border.opacity(0.5))
+                            .frame(height: 0.5)
+                    }
             }
             .contentMargins(.top, 0, for: .scrollContent)
             .contentMargins(.bottom, 0, for: .scrollContent)

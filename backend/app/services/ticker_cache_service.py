@@ -1298,17 +1298,30 @@ def build_risk_score_response(
             "calculated_at": fallback.get("calculated_at")
             or snapshot.get("analysis_as_of"),
             "total_score": total_score_val,
-            "news_sentiment": fallback.get("news_sentiment")
-            or ai_dims.get("news_sentiment"),
-            "macro_exposure": fallback.get("macro_exposure")
-            or ai_dims.get("macro_exposure"),
+            "news_sentiment": (
+                fallback.get("news_sentiment")
+                if fallback.get("news_sentiment") is not None
+                else ai_dims.get("news_sentiment")
+            ),
+            "macro_exposure": (
+                fallback.get("macro_exposure")
+                if fallback.get("macro_exposure") is not None
+                else ai_dims.get("macro_exposure")
+            ),
             "position_sizing": (
-                fallback.get("position_sizing") or ai_dims.get("position_sizing")
-            )
-            if include_position_sizing
-            else None,
-            "volatility_trend": fallback.get("volatility_trend")
-            or ai_dims.get("volatility_trend"),
+                (
+                    fallback.get("position_sizing")
+                    if fallback.get("position_sizing") is not None
+                    else ai_dims.get("position_sizing")
+                )
+                if include_position_sizing
+                else None
+            ),
+            "volatility_trend": (
+                fallback.get("volatility_trend")
+                if fallback.get("volatility_trend") is not None
+                else ai_dims.get("volatility_trend")
+            ),
             "source_count": source_count,
             "major_event_count": major_event_count,
             "minor_event_count": minor_event_count,

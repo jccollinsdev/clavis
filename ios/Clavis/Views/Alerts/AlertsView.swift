@@ -10,8 +10,6 @@ struct AlertsView: View {
         NavigationStack {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    AlertsTopHeader()
-
                     if NetworkStatusMonitor.shared.isOffline {
                         OfflineStatusBanner()
                     }
@@ -40,6 +38,9 @@ struct AlertsView: View {
                 .padding(.horizontal, ClavisTheme.screenPadding)
                 .padding(.top, 0)
                 .padding(.bottom, ClavisTheme.largeSpacing)
+            }
+            .safeAreaInset(edge: .top, spacing: 0) {
+                AlertsTopHeader()
             }
             .contentMargins(.top, 0, for: .scrollContent)
             .contentMargins(.bottom, 0, for: .scrollContent)
@@ -101,6 +102,19 @@ struct AlertsView: View {
 private struct AlertsTopHeader: View {
     var body: some View {
         ClavixPageHeader(title: "Alerts", subtitle: "Last 24h")
+            .padding(.horizontal, ClavisTheme.screenPadding)
+            .padding(.top, 8)
+            .padding(.bottom, 6)
+            .background(
+                Color.backgroundPrimary.opacity(0.9)
+                    .background(.ultraThinMaterial)
+                    .ignoresSafeArea(edges: .top)
+            )
+            .overlay(alignment: .bottom) {
+                Rectangle()
+                    .fill(Color.border.opacity(0.5))
+                    .frame(height: 0.5)
+            }
     }
 }
 

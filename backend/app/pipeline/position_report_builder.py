@@ -326,7 +326,6 @@ def _select_summary_text(candidate: dict[str, Any]) -> str:
         candidate.get("summary"),
         (candidate.get("key_implications") or [None])[0] if isinstance(candidate.get("key_implications"), list) and candidate.get("key_implications") else None,
         candidate.get("long_analysis"),
-        candidate.get("title"),
     )
 
 
@@ -376,12 +375,12 @@ def _candidate_from_event(event: dict[str, Any]) -> dict[str, Any] | None:
 
 def _candidate_from_news(article: dict[str, Any]) -> dict[str, Any] | None:
     title = _first_non_empty(article.get("headline"), article.get("title"))
-    summary = _first_non_empty(article.get("summary"), title)
-    text = f"{title} {summary}"
+    summary = _first_non_empty(article.get("summary"))
+    text = f"{title} {summary or title}"
     theme = _theme_for_text(text)
     if not theme:
         return None
-    if not title or not summary or _is_generic_driver_text(title) or _is_generic_driver_text(summary):
+    if not title or _is_generic_driver_text(title) or (summary and _is_generic_driver_text(summary)):
         return None
     sentiment = _clean_text(article.get("sentiment")).lower()
     direction = _direction_for_text(text)
@@ -550,7 +549,13 @@ def _build_driver_cards(
             if static_desc:
                 summary = static_desc
             else:
-                summary = _truncate(_first_non_empty(*(item["summary"] for item in group)), 180)
+                candidate_summaries = [
+                    item["summary"] for item in group
+                    if item.get("summary")
+                    and item["summary"] != item.get("title")
+                    and len(item["summary"]) > 30
+                ]
+                summary = _truncate(_first_non_empty(*candidate_summaries), 180) if candidate_summaries else ""
         if not title or not summary:
             continue
         # For AI summaries (>= 80 chars), skip the generic check — real scenario

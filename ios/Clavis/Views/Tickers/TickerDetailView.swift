@@ -74,9 +74,7 @@ struct TickerDetailView: View {
             if let analysis = detail?.currentAnalysis {
                 TDExecSummarySheet(
                     ticker: ticker,
-                    analysis: analysis,
-                    sector: detail?.profile.sector,
-                    industry: detail?.profile.industry
+                    analysis: analysis
                 )
             }
         }
@@ -110,7 +108,7 @@ struct TickerDetailView: View {
                 VStack(spacing: 3) {
                     Text(ticker)
                         .font(ClavisTypography.inter(17, weight: .bold))
-                        .foregroundColor(.textPrimary)
+                        .foregroundColor(Color(hex: "#F3D58C"))
                     if let company = detail?.profile.companyName, !company.isEmpty {
                         Text(company)
                             .font(ClavisTypography.footnote)
@@ -196,6 +194,17 @@ struct TickerDetailView: View {
                     gradeTile(grade)
 
                     VStack(alignment: .leading, spacing: 14) {
+                        Text(ticker)
+                            .font(.system(size: 22, weight: .bold, design: .monospaced))
+                            .foregroundColor(Color(hex: "#F3D58C"))
+
+                        if let company = detail.profile.companyName, !company.isEmpty {
+                            Text(company)
+                                .font(ClavisTypography.footnote)
+                                .foregroundColor(.textSecondary)
+                                .lineLimit(1)
+                        }
+
                         if let trend {
                             HStack(spacing: 6) {
                                 Text(trendArrow(trend))
@@ -224,41 +233,6 @@ struct TickerDetailView: View {
                 }
                 .padding(.horizontal, 17)
                 .padding(.vertical, 18)
-
-                Divider().overlay(Color.border)
-
-                HStack {
-                    HStack(spacing: 7) {
-                        Image(systemName: "clock")
-                            .font(.system(size: 11))
-                            .foregroundColor(.textTertiary)
-                        Text(updatedText(detail))
-                            .font(ClavisTypography.footnote)
-                            .foregroundColor(.textSecondary)
-                    }
-
-                    Spacer()
-
-                    Rectangle()
-                        .fill(Color.border)
-                        .frame(width: 1, height: 16)
-
-                    Spacer()
-
-                    if let sector = detail.profile.sector ?? detail.profile.industry {
-                        HStack(spacing: 7) {
-                            Image(systemName: "building.2")
-                                .font(.system(size: 11))
-                                .foregroundColor(.textTertiary)
-                            Text(sector)
-                                .font(ClavisTypography.footnote)
-                                .foregroundColor(.textSecondary)
-                                .lineLimit(1)
-                        }
-                    }
-                }
-                .padding(.horizontal, 17)
-                .padding(.vertical, 13)
             }
         }
     }
@@ -1048,8 +1022,6 @@ private struct TDSparkline: View {
 private struct TDExecSummarySheet: View {
     let ticker: String
     let analysis: PositionAnalysis
-    let sector: String?
-    let industry: String?
     @Environment(\.dismiss) private var dismiss
 
     private var positiveCards: [DriverCard] {
@@ -1073,9 +1045,6 @@ private struct TDExecSummarySheet: View {
                     if let tldr = analysis.summary, !tldr.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         execSection(label: "TL;DR", body: tldr)
                     }
-                    if let s = sector, let i = industry, !s.isEmpty || !i.isEmpty {
-                        execSection(label: "What the Company Does", body: [s, i].filter { !$0.isEmpty }.joined(separator: " · "))
-                    }
                     if !tailwinds.isEmpty {
                         execBullets(label: "Bullish Tailwinds", items: tailwinds)
                     }
@@ -1084,9 +1053,6 @@ private struct TDExecSummarySheet: View {
                     }
                     if let watchItems = analysis.watchItems, !watchItems.isEmpty {
                         execBullets(label: "What Would Change the Rating", items: watchItems)
-                    }
-                    if let report = analysis.longReport, !report.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        execSection(label: "Detailed Analysis", body: report)
                     }
                 }
                 .padding(ClavisTheme.screenPadding)

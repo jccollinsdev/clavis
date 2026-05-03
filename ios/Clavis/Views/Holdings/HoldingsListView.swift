@@ -59,19 +59,6 @@ struct HoldingsListView: View {
         NavigationStack(path: $navigationPath) {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    HoldingsTopHeader(
-                        onAddPosition: { viewModel.showAddSheet = true },
-                        onRefresh: { Task { await viewModel.refreshHoldings() } },
-                        isRefreshing: viewModel.isRefreshing,
-                        isOffline: NetworkStatusMonitor.shared.isOffline,
-                        lastRefreshedAt: viewModel.lastRefreshedAt,
-                        brokerageLastSyncedAt: viewModel.brokerageLastSyncedAt
-                    )
-
-                    HoldingsSearchBar(
-                        query: $searchQuery
-                    )
-
                     if NetworkStatusMonitor.shared.isOffline {
                         OfflineStatusBanner()
                     }
@@ -194,6 +181,19 @@ struct HoldingsListView: View {
                 .padding(.horizontal, ClavisTheme.screenPadding)
                 .padding(.top, 0)
                 .padding(.bottom, ClavisTheme.floatingTabHeight + ClavisTheme.floatingTabInset + ClavisTheme.extraLargeSpacing)
+            }
+            .safeAreaInset(edge: .top, spacing: 0) {
+                VStack(spacing: 0) {
+                    HoldingsTopHeader(
+                        onAddPosition: { viewModel.showAddSheet = true },
+                        onRefresh: { Task { await viewModel.refreshHoldings() } },
+                        isRefreshing: viewModel.isRefreshing,
+                        isOffline: NetworkStatusMonitor.shared.isOffline,
+                        lastRefreshedAt: viewModel.lastRefreshedAt,
+                        brokerageLastSyncedAt: viewModel.brokerageLastSyncedAt
+                    )
+                    HoldingsSearchBar(query: $searchQuery)
+                }
             }
             .contentMargins(.top, 0, for: .scrollContent)
             .contentMargins(.bottom, 0, for: .scrollContent)
@@ -530,6 +530,19 @@ private struct HoldingsTopHeader: View {
                 .disabled(isRefreshing || isOffline)
                 .accessibilityLabel(isRefreshing ? "Refreshing holdings" : "Refresh holdings")
             }
+        }
+        .padding(.horizontal, ClavisTheme.screenPadding)
+        .padding(.top, 8)
+        .padding(.bottom, 6)
+        .background(
+            Color.backgroundPrimary.opacity(0.9)
+                .background(.ultraThinMaterial)
+                .ignoresSafeArea(edges: .top)
+        )
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(Color.border.opacity(0.5))
+                .frame(height: 0.5)
         }
     }
 

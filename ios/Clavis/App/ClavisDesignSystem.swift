@@ -833,6 +833,33 @@ struct ClavixPageHeader<Accessory: View>: View {
             }
         }
     }
+
+    var stickyHeader: some View {
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 10) {
+                ClavixWordmarkHeader(accessory: { accessory })
+
+                Text(title)
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundColor(.textPrimary)
+                    .tracking(-0.3)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, ClavisTheme.screenPadding)
+            .padding(.top, 8)
+            .padding(.bottom, 6)
+        }
+        .background(
+            Color.backgroundPrimary.opacity(0.9)
+                .background(.ultraThinMaterial)
+                .ignoresSafeArea(edges: .top)
+        )
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(Color.border.opacity(0.5))
+                .frame(height: 0.5)
+        }
+    }
 }
 
 // MARK: - Top Bar

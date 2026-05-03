@@ -4240,14 +4240,26 @@ def _sync_ai_scores_to_ticker_snapshots_sync(
     factor_breakdown = {
         **factor_breakdown,
         "ai_dimensions": {
-            "news_sentiment": stored_ai_dims.get("news_sentiment")
-            or ai_score.get("news_sentiment"),
-            "macro_exposure": stored_ai_dims.get("macro_exposure")
-            or ai_score.get("macro_exposure"),
-            "position_sizing": stored_ai_dims.get("position_sizing")
-            or ai_score.get("position_sizing"),
-            "volatility_trend": stored_ai_dims.get("volatility_trend")
-            or ai_score.get("volatility_trend"),
+            "news_sentiment": (
+                stored_ai_dims.get("news_sentiment")
+                if stored_ai_dims.get("news_sentiment") is not None
+                else ai_score.get("news_sentiment")
+            ),
+            "macro_exposure": (
+                stored_ai_dims.get("macro_exposure")
+                if stored_ai_dims.get("macro_exposure") is not None
+                else ai_score.get("macro_exposure")
+            ),
+            "position_sizing": (
+                stored_ai_dims.get("position_sizing")
+                if stored_ai_dims.get("position_sizing") is not None
+                else ai_score.get("position_sizing")
+            ),
+            "volatility_trend": (
+                stored_ai_dims.get("volatility_trend")
+                if stored_ai_dims.get("volatility_trend") is not None
+                else ai_score.get("volatility_trend")
+            ),
         },
     }
     llm_scoring_used = ai_score.get("llm_scoring_used")
