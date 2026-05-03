@@ -397,7 +397,7 @@ def _is_specific_driver_summary(summary: str, title: str | None = None) -> bool:
     lowered = cleaned_summary.lower()
     if re.search(r"\((?:nasdaq|nyse|amex):[a-z0-9.-]+\)", lowered):
         return False
-    if any(marker in lowered for marker in ("reuters", "seeking alpha", "yahoo finance", "barron's", "investing.com", "marketwatch", "stock titan", "quiver quantitative", "cnbc", "fortune", "blog.google")):
+    if any(marker in lowered for marker in ("reuters", "seeking alpha", "yahoo finance", "yahoo! finance", "yahoo! finance canada", "barron's", "investing.com", "marketwatch", "stock titan", "quiver quantitative", "investopedia", "cnbc", "fortune", "blog.google")):
         return False
     if _is_generic_driver_text(cleaned_summary):
         return False

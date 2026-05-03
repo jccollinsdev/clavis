@@ -184,6 +184,32 @@ def test_build_driver_cards_prefers_richer_goog_evidence_over_blog_landing_page(
     assert "blog.google" not in cards[0]["summary"].lower()
 
 
+def test_build_driver_cards_prefers_crypto_revenue_summary_over_headline():
+    cards, state, source = _build_driver_cards(
+        {"ticker": "HOOD", "status": "ready"},
+        event_analyses=[
+            {
+                "id": "ev-1",
+                "title": "Robinhood Stock Sinks as Earnings Hit by Plunge in Crypto Revenue - Investopedia",
+                "summary": "Robinhood Stock Sinks as Earnings Hit by Plunge in Crypto Revenue Investopedia",
+                "scenario_summary": "A crypto-driven revenue collapse is the primary culprit behind Robinhood's earnings miss, confirming the stock's sensitivity to crypto market conditions and raising near-term earnings risk.",
+                "long_analysis": "A crypto-driven revenue collapse is the primary culprit behind Robinhood's earnings miss, confirming the stock's sensitivity to crypto market conditions and raising near-term earnings risk.",
+                "source": "Investopedia",
+                "published_at": "2026-05-03T12:00:00+00:00",
+                "confidence": 0.9,
+                "significance": "major",
+                "risk_direction": "negative",
+            }
+        ],
+    )
+
+    assert state == "ready"
+    assert source == "generated"
+    assert len(cards) == 1
+    assert "crypto-driven revenue collapse" in cards[0]["summary"].lower()
+    assert "investopedia" not in cards[0]["summary"].lower()
+
+
 def test_build_driver_cards_handles_missing_timestamps():
     cards, state, _source = _build_driver_cards(
         {"ticker": "HOOD", "status": "ready"},

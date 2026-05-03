@@ -1,7 +1,7 @@
 ---
 project: Clavis
 version: 1
-last_updated: 2026-05-03T1552Z
+last_updated: 2026-05-03T1555Z
 status: active
 current_phase: "P1 — Data Pipeline Fixes (Driver Titles)"
 current_focus:
@@ -12,6 +12,7 @@ current_focus:
   - DONE: Validated the current live backend container payloads for AMD, HOOD, and GOOG as the pre-deploy baseline
   - DONE: Hardened valuation classification so stretched/overvalued language beats positive source sentiment, and blocked headline-like summaries that still mention source names or ticker-parenthetical strings
   - DONE: Added GOOG-specific summary selection so blog landing pages are rejected in favor of richer all-time-high / blowout-earnings evidence sentences
+  - DONE: Added HOOD-specific summary selection so crypto-revenue-collapse evidence wins over Investopedia-style headlines
   - NEXT: Commit Phase 1, deploy backend to VPS, and validate the public API payloads for AMD/HOOD/GOOG
   - DONE: Commit 1bf7e70 deployed to VPS
   - DONE: Global sticky headers on ALL screens (Dashboard, Holdings, Digest, Alerts, Settings, TickerDetail) using .safeAreaInset + frosted glass background
