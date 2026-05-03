@@ -36,6 +36,12 @@ xcodegen generate
 xcodebuild -scheme Clavis -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17' build
 ```
 
+## VPS Access
+- **SSH:** `ssh -i ~/.ssh/clavix_vps_ed25519 clavix-backend@134.122.114.241`
+- **Deploy:** `cd /opt/clavis && git pull origin main && docker compose up -d --build --remove-orphans`
+- **Logs:** `docker logs clavis-backend-1`
+- **Health:** `curl -fsS https://clavis.andoverdigital.com/health`
+
 ## Cloudflare Tunnel (PERSISTENT)
 ```bash
 cloudflared tunnel run clavis-prod

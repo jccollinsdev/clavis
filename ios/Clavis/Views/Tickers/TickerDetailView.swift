@@ -72,7 +72,12 @@ struct TickerDetailView: View {
         }
         .sheet(isPresented: $showFullSummary) {
             if let analysis = detail?.currentAnalysis {
-                TDExecSummarySheet(ticker: ticker, analysis: analysis)
+                TDExecSummarySheet(
+                    ticker: ticker,
+                    analysis: analysis,
+                    sector: detail?.profile.sector,
+                    industry: detail?.profile.industry
+                )
             }
         }
         .sheet(item: $selectedEvidItem) { item in
@@ -951,10 +956,11 @@ struct TickerDetailView: View {
         do {
             if isInWatchlist {
                 _ = try await APIService.shared.removeFromWatchlist(ticker: ticker)
+                await loadDetail()
             } else {
                 _ = try await APIService.shared.addToWatchlist(ticker: ticker)
+                dismiss()
             }
-            await loadDetail()
         } catch {
             errorMessage = ClavisCopy.Errors.watchlistUpdate(error)
         }
@@ -1042,6 +1048,8 @@ private struct TDSparkline: View {
 private struct TDExecSummarySheet: View {
     let ticker: String
     let analysis: PositionAnalysis
+    let sector: String?
+    let industry: String?
     @Environment(\.dismiss) private var dismiss
 
     private var positiveCards: [DriverCard] {
@@ -1065,17 +1073,20 @@ private struct TDExecSummarySheet: View {
                     if let tldr = analysis.summary, !tldr.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         execSection(label: "TL;DR", body: tldr)
                     }
-                    if !headwinds.isEmpty {
-                        execBullets(label: "Bearish Headwinds", items: headwinds)
+                    if let s = sector, let i = industry, !s.isEmpty || !i.isEmpty {
+                        execSection(label: "What the Company Does", body: [s, i].filter { !$0.isEmpty }.joined(separator: " · "))
                     }
                     if !tailwinds.isEmpty {
                         execBullets(label: "Bullish Tailwinds", items: tailwinds)
+                    }
+                    if !headwinds.isEmpty {
+                        execBullets(label: "Bearish Headwinds", items: headwinds)
                     }
                     if let watchItems = analysis.watchItems, !watchItems.isEmpty {
                         execBullets(label: "What Would Change the Rating", items: watchItems)
                     }
                     if let report = analysis.longReport, !report.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        execSection(label: "Full Analysis", body: report)
+                        execSection(label: "Detailed Analysis", body: report)
                     }
                 }
                 .padding(ClavisTheme.screenPadding)
@@ -1295,7 +1306,7 @@ struct TickerEventAnalysisDetailView: View {
                     TDAnalysisDetailSection(title: "What happened", text: s)
                 }
                 if let l = event.longAnalysis?.trimmingCharacters(in: .whitespacesAndNewlines), !l.isEmpty {
-                    TDAnalysisDetailSection(title: "Analysis", text: l)
+                    TDAnalysisDetailSection(title: "TL;DR", text: l)
                 }
                 if let sc = event.scenarioSummary?.trimmingCharacters(in: .whitespacesAndNewlines), !sc.isEmpty {
                     TDAnalysisDetailSection(title: "What it means", text: sc)

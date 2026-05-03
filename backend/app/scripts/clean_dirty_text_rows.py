@@ -119,7 +119,7 @@ def clean_table(supabase, table: str, text_columns: list[str], dirty_rows: list[
 TEXT_COLUMNS = {
     "event_analyses": ["title", "summary", "long_analysis", "scenario_summary", "source"],
     "ticker_news_cache": ["headline", "summary", "source"],
-    "news_items": ["title", "summary", "source"],
+    "news_items": ["title", "source"],
 }
 
 

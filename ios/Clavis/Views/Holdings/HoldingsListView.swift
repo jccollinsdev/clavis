@@ -105,9 +105,17 @@ struct HoldingsListView: View {
 
                         if !viewModel.watchlistItems.isEmpty {
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Watchlist · \(viewModel.watchlistItems.count)")
-                                    .font(ClavisTypography.label)
-                                    .foregroundColor(.textSecondary)
+                                HStack(spacing: 10) {
+                                    Text("Watchlist")
+                                        .font(ClavisTypography.inter(16, weight: .heavy))
+                                        .foregroundColor(.textPrimary)
+                                    Text("\(viewModel.watchlistItems.count)")
+                                        .font(ClavisTypography.inter(13, weight: .semibold))
+                                        .foregroundColor(.textSecondary)
+                                        .frame(width: 24, height: 24)
+                                        .background(Color.surfaceElevated)
+                                        .clipShape(Circle())
+                                }
 
                                 PrototypeHoldingsSection {
                                     ForEach(Array(viewModel.watchlistItems.enumerated()), id: \.element.id) { index, item in
@@ -129,9 +137,17 @@ struct HoldingsListView: View {
 
                         if !needsReviewPositions.isEmpty {
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Downgraded · \(needsReviewPositions.count)")
-                                    .font(ClavisTypography.label)
-                                    .foregroundColor(.textSecondary)
+                                HStack(spacing: 10) {
+                                    Text("Needs Attention")
+                                        .font(ClavisTypography.inter(16, weight: .heavy))
+                                        .foregroundColor(.textPrimary)
+                                    Text("\(needsReviewPositions.count)")
+                                        .font(ClavisTypography.inter(13, weight: .semibold))
+                                        .foregroundColor(.riskD)
+                                        .frame(width: 24, height: 24)
+                                        .background(Color.riskD.opacity(0.12))
+                                        .clipShape(Circle())
+                                }
 
                                 VStack(alignment: .leading, spacing: 0) {
                                     PrototypeHoldingsSection {
@@ -155,9 +171,17 @@ struct HoldingsListView: View {
                         }
 
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("All holdings · \(sortedHoldings.count)")
-                                .font(ClavisTypography.label)
-                                .foregroundColor(.textSecondary)
+                            HStack(spacing: 10) {
+                                Text("All Holdings")
+                                    .font(ClavisTypography.inter(16, weight: .heavy))
+                                    .foregroundColor(.textPrimary)
+                                Text("\(sortedHoldings.count)")
+                                    .font(ClavisTypography.inter(13, weight: .semibold))
+                                    .foregroundColor(.textSecondary)
+                                    .frame(width: 24, height: 24)
+                                    .background(Color.surfaceElevated)
+                                    .clipShape(Circle())
+                            }
 
                             PrototypeHoldingsSection {
                                 ForEach(Array(sortedHoldings.enumerated()), id: \.element.id) { index, position in
@@ -207,6 +231,8 @@ struct HoldingsListView: View {
                 viewModel.showError = false
                 if viewModel.holdings.isEmpty && !viewModel.isLoading {
                     Task { await viewModel.loadHoldings() }
+                } else if !viewModel.isLoading {
+                    Task { await viewModel.refreshWatchlist() }
                 }
             }
             .onChange(of: deepLinkTicker) { _, newValue in
@@ -576,50 +602,60 @@ struct HoldingsControlCard: View {
     let onRefresh: () -> Void
 
     var body: some View {
-        ClavisStandardCard(fill: .surface) {
-            VStack(alignment: .leading, spacing: 10) {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(HoldingFilter.allCases, id: \.self) { filter in
-                            controlPill(title: filter.rawValue, isSelected: selectedFilter == filter) {
-                                selectedFilter = filter
-                            }
-                        }
-                    }
-                }
-
+        VStack(spacing: 14) {
+            ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
-                    Spacer()
-
-                    Menu {
-                        ForEach(HoldingSort.allCases, id: \.self) { sort in
-                            Button(sort.rawValue) {
-                                selectedSort = sort
-                            }
-                        }
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text("Sort")
-                                .font(.system(size: 12, weight: .regular))
-                                .foregroundColor(.textSecondary)
-                            Text(selectedSort.rawValue)
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.textPrimary)
-                            Image(systemName: "chevron.down")
-                                .font(.system(size: 10, weight: .semibold))
-                                .foregroundColor(.textPrimary)
+                    ForEach(HoldingFilter.allCases, id: \.self) { filter in
+                        controlPill(title: filter.rawValue, isSelected: selectedFilter == filter) {
+                            selectedFilter = filter
                         }
                     }
-
-                    Button(action: onRefresh) {
-                        Text(isRefreshing ? "Refreshing" : "Refresh")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.textPrimary)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(isRefreshing)
                 }
             }
+
+            HStack(spacing: 8) {
+                Menu {
+                    ForEach(HoldingSort.allCases, id: \.self) { sort in
+                        Button(sort.rawValue) {
+                            selectedSort = sort
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("Sort:")
+                            .font(.system(size: 13, weight: .regular))
+                            .foregroundColor(Color(hex: "#9DA5B4"))
+                        Text(selectedSort.rawValue)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.textPrimary)
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(.textPrimary)
+                    }
+                }
+
+                Spacer()
+
+                Button(action: onRefresh) {
+                    HStack(spacing: 6) {
+                        Image(systemName: isRefreshing ? "hourglass" : "arrow.clockwise")
+                            .font(.system(size: 12, weight: .semibold))
+                        Text(isRefreshing ? "Refreshing" : "Refresh")
+                            .font(.system(size: 13, weight: .bold))
+                    }
+                    .foregroundColor(Color(hex: "#F0C76C"))
+                }
+                .buttonStyle(.plain)
+                .disabled(isRefreshing)
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 12)
+            .background(Color(hex: "#0D1119").opacity(0.62))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Color(hex: "#242934").opacity(0.5), lineWidth: 1)
+            )
         }
     }
 
@@ -628,15 +664,15 @@ struct HoldingsControlCard: View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
-                .foregroundColor(isSelected ? .backgroundPrimary : .textSecondary)
-                .padding(.horizontal, 12)
+                .foregroundColor(isSelected ? Color(hex: "#121313") : Color(hex: "#B6BDCA"))
+                .padding(.horizontal, 16)
                 .padding(.vertical, 7)
-                .background(isSelected ? Color.textPrimary : Color.clear)
+                .background(isSelected ? LinearGradient(colors: [Color(hex: "#FFE8A8"), Color(hex: "#EABF57")], startPoint: .topLeading, endPoint: .bottomTrailing) : LinearGradient(colors: [Color.surfaceElevated.opacity(0.02), Color.surfaceElevated.opacity(0.02)], startPoint: .top, endPoint: .bottom))
+                .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous)
-                        .stroke(isSelected ? Color.textPrimary : Color.border, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 11, style: .continuous)
+                        .stroke(isSelected ? Color.clear : Color(hex: "#242934").opacity(0.5), lineWidth: 1)
                 )
-                .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous))
         }
         .buttonStyle(.plain)
     }

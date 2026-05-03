@@ -66,6 +66,15 @@ class HoldingsViewModel: ObservableObject {
         await loadHoldings(showLoading: false)
     }
 
+    func refreshWatchlist() async {
+        do {
+            let watchlists = try await api.fetchWatchlists()
+            watchlistItems = watchlists.first?.items ?? []
+        } catch {
+            // Silent — watchlist refresh failure shouldn't block UI
+        }
+    }
+
     func addHolding(ticker: String, shares: Double, purchasePrice: Double, archetype: Archetype) async {
         errorMessage = nil
         showError = false
