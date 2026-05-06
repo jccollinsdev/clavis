@@ -1616,20 +1616,7 @@ def _clean_public_event_list(value: Any) -> list[str]:
 
 def _public_event_tags(row: dict[str, Any]) -> list[str]:
     tags = _clean_public_event_list(row.get("tags"))
-    if tags:
-        return tags[:5]
-
-    for candidate in (row.get("event_type"), row.get("significance")):
-        text = sanitize_text_field(candidate, fallback="").strip()
-        if text and text not in tags:
-            tags.append(text)
-
-    if not tags:
-        source = sanitize_text_field(row.get("source"), fallback="").strip()
-        if source:
-            tags.append(source)
-
-    return tags[:5]
+    return tags[:5] if tags else []
 
 
 def build_public_event_news_item(
@@ -2199,6 +2186,14 @@ def _build_virtual_position(
 def _build_event_analyses_from_news_rows(
     news_rows: list[dict[str, Any]], *, ticker: str, position_id: str
 ) -> list[dict[str, Any]]:
+    """Build lightweight event-like records from raw ticker_news_cache rows.
+
+    These are NOT canonical event analyses — they are raw news cache records
+    surfaced as event-shaped objects when no analyzed event_analyses rows exist.
+    Analyzed fields (what_happened, tldr, what_it_means, key_implications,
+    recommended_followups) are always empty — never fabricated from raw fields.
+    Provenance is explicitly 'ticker_news_cache_raw'.
+    """
     events: list[dict[str, Any]] = []
     for row in news_rows[:10]:
         sentiment = (row.get("sentiment") or "neutral").lower()
@@ -2212,10 +2207,9 @@ def _build_event_analyses_from_news_rows(
             significance = "minor"
             risk_direction = "neutral"
 
-        summary = row.get("summary") or row.get("headline") or ""
         clean_title = sanitize_text_field(row.get("headline") or ticker,
                                            fallback=row.get("headline") or ticker)
-        clean_summary = sanitize_text_field(summary, fallback=summary)
+        clean_summary = sanitize_text_field(row.get("summary") or "", fallback="")
         events.append(
             {
                 "id": row.get("id") or str(uuid4()),
@@ -2229,20 +2223,18 @@ def _build_event_analyses_from_news_rows(
                 "published_at": row.get("published_at"),
                 "event_type": row.get("event_type") or "news",
                 "significance": significance,
-                "analysis_source": "ticker_cache",
-                "long_analysis": clean_summary,
-                "what_happened": sanitize_text_field(row.get("what_happened"), fallback=""),
-                "tldr": sanitize_text_field(row.get("tldr"), fallback=""),
-                "what_it_means": sanitize_text_field(row.get("what_it_means"), fallback=""),
-                "confidence": 0.45,
+                "analysis_source": "ticker_news_cache_raw",
+                "long_analysis": None,
+                "what_happened": "",
+                "tldr": "",
+                "what_it_means": "",
+                "confidence": None,
                 "impact_horizon": "near_term",
                 "risk_direction": risk_direction,
-                "scenario_summary": sanitize_text_field(row.get("scenario_summary"), fallback=""),
-                "key_implications": row.get("key_implications") or [],
-                "recommended_followups": row.get("follow_up_notes")
-                or row.get("recommended_followups")
-                or [],
-                "tags": row.get("tags") or [],
+                "scenario_summary": None,
+                "key_implications": [],
+                "recommended_followups": [],
+                "tags": [],
             }
         )
     return events
@@ -3178,7 +3170,12 @@ def get_default_watchlist_detail(supabase, user_id: str) -> dict[str, Any]:
             "shared_analysis": shared_summary,
             "portfolio_overlay": portfolio_overlay,
         }
-        if news_cache_rows_map.get(ticker):
+        if shared_event_rows:
+            enriched["latest_event_analyses"] = build_public_event_news_items(
+                shared_event_rows,
+                ticker=ticker,
+            )
+        elif news_cache_rows_map.get(ticker):
             enriched["latest_event_analyses"] = build_public_event_news_items(
                 news_cache_rows_map[ticker],
                 ticker=ticker,
