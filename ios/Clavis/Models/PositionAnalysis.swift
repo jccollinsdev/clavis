@@ -156,21 +156,10 @@ struct EventAnalysis: Identifiable, Codable, Hashable {
         positionId = try container.decodeIfPresent(String.self, forKey: .positionId)
         eventHash = try container.decodeIfPresent(String.self, forKey: .eventHash)
         title = try container.decodeIfPresent(String.self, forKey: .title) ?? ""
-        let summaryValue = try container.decodeIfPresent(String.self, forKey: .summary)
-        let longAnalysisValue = try container.decodeIfPresent(String.self, forKey: .longAnalysis)
-        let scenarioSummaryValue = try container.decodeIfPresent(String.self, forKey: .scenarioSummary)
-        summary = summaryValue
-        whatHappened = try container.decodeIfPresent(String.self, forKey: .whatHappened) ?? summaryValue ?? title
+        summary = try container.decodeIfPresent(String.self, forKey: .summary)
+        whatHappened = try container.decodeIfPresent(String.self, forKey: .whatHappened)
         tldr = try container.decodeIfPresent(String.self, forKey: .tldr)
-            ?? longAnalysisValue
-            ?? scenarioSummaryValue
-            ?? summaryValue
-            ?? title
         whatItMeans = try container.decodeIfPresent(String.self, forKey: .whatItMeans)
-            ?? scenarioSummaryValue
-            ?? longAnalysisValue
-            ?? summaryValue
-            ?? title
         source = try container.decodeIfPresent(String.self, forKey: .source)
         sourceURL = try container.decodeIfPresent(String.self, forKey: .sourceURL)
         if let publishedAtString = try container.decodeIfPresent(String.self, forKey: .publishedAt) {
