@@ -2094,7 +2094,7 @@ def build_risk_score_response(
         {
             "id": snapshot.get("id"),
             "position_id": position_id,
-            "score_source": "user" if fallback else "shared",
+            "score_source": "shared" if snapshot else ("user" if fallback else None),
             "score_as_of": fallback.get("calculated_at")
             or snapshot.get("analysis_as_of"),
             "score_version": fallback.get("analysis_run_id")
@@ -2964,7 +2964,6 @@ def refresh_ticker_snapshot(
             .select("id, methodology_version, grade, safety_score")
             .eq("ticker", ticker)
             .eq("snapshot_date", date.today().isoformat())
-            .eq("snapshot_type", job_type)
             .limit(10)
             .execute()
             .data

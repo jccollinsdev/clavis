@@ -131,14 +131,15 @@ def _portfolio_score_fields(digest: dict | None) -> dict[str, object | None]:
 
     overall_score = digest.get("overall_score")
     overall_grade = digest.get("overall_grade") or (score_to_grade(overall_score) if overall_score is not None else None)
+    score_source = digest.get("score_source") or "digest"
     return {
         "overall_score": overall_score,
         "overall_grade": overall_grade,
         "grade_direction": None,
         "score_delta": None,
-        "score_source": "digest",
-        "score_as_of": digest.get("generated_at"),
-        "score_version": digest.get("analysis_run_id"),
+        "score_source": score_source,
+        "score_as_of": digest.get("score_as_of") or digest.get("generated_at"),
+        "score_version": digest.get("score_version") or digest.get("analysis_run_id"),
     }
 
 
