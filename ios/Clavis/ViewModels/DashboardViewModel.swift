@@ -68,7 +68,7 @@ class DashboardViewModel: ObservableObject {
 
     var improvingCount: Int {
         holdings.filter { position in
-            guard let current = position.riskGrade,
+            guard let current = position.resolvedRiskGrade,
                   let previous = position.previousGrade else {
                 return false
             }
@@ -78,7 +78,7 @@ class DashboardViewModel: ObservableObject {
 
     var deterioratingCount: Int {
         holdings.filter { position in
-            guard let current = position.riskGrade,
+            guard let current = position.resolvedRiskGrade,
                   let previous = position.previousGrade else {
                 return false
             }
@@ -94,7 +94,7 @@ class DashboardViewModel: ObservableObject {
         if let generatedAt = todayDigest?.generatedAt {
             return generatedAt
         }
-        return holdings.compactMap(\.lastAnalyzedAt).max()
+        return holdings.compactMap(\.resolvedScoreAsOf).max()
     }
 
     var analysisStatusText: String? {
@@ -115,7 +115,7 @@ class DashboardViewModel: ObservableObject {
 
     var needsAttentionPositions: [Position] {
         holdings
-            .filter { $0.riskGrade == "D" || $0.riskGrade == "F" || $0.riskTrend == .worsening }
+            .filter { $0.resolvedRiskGrade == "D" || $0.resolvedRiskGrade == "F" || $0.riskTrend == .worsening }
             .sorted { attentionRank(for: $0) < attentionRank(for: $1) }
             .prefix(3)
             .map { $0 }
@@ -347,8 +347,8 @@ class DashboardViewModel: ObservableObject {
     }
 
     private func attentionRank(for position: Position) -> Int {
-        if position.riskGrade == "F" { return 0 }
-        if position.riskGrade == "D" { return 1 }
+        if position.resolvedRiskGrade == "F" { return 0 }
+        if position.resolvedRiskGrade == "D" { return 1 }
         if position.riskTrend == .worsening { return 2 }
         return 3
     }
@@ -358,7 +358,7 @@ class DashboardViewModel: ObservableObject {
             return tickerAlert.message.sanitizedDisplayText
         }
 
-        if position.riskGrade == "F" || position.riskGrade == "D" {
+        if position.resolvedRiskGrade == "F" || position.resolvedRiskGrade == "D" {
             return "Low-grade holding."
         }
 
@@ -366,7 +366,7 @@ class DashboardViewModel: ObservableObject {
             return "Risk trend is worsening."
         }
 
-        if let summary = position.summary?.sanitizedDisplayText, !summary.isEmpty {
+        if let summary = position.resolvedSummary?.sanitizedDisplayText, !summary.isEmpty {
             return firstSentence(summary)
         }
 
@@ -377,7 +377,7 @@ class DashboardViewModel: ObservableObject {
         if let first = riskDriverHighlights.first {
             return first.lowercased()
         }
-        if let atRisk = holdings.first(where: { $0.riskGrade == "D" || $0.riskGrade == "F" }) {
+        if let atRisk = holdings.first(where: { $0.resolvedRiskGrade == "D" || $0.resolvedRiskGrade == "F" }) {
             return atRisk.ticker
         }
         return nil

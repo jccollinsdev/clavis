@@ -1,18 +1,5 @@
 import SwiftUI
 
-// MARK: - Evidence Item Model
-
-private struct TDEvidItem: Identifiable {
-    let id: String
-    let title: String
-    let summary: String
-    let source: String
-    let category: String
-    let url: String?
-    let publishedAt: Date?
-    let eventAnalysis: EventAnalysis?
-}
-
 // MARK: - Main View
 
 struct TickerDetailView: View {
@@ -30,7 +17,7 @@ struct TickerDetailView: View {
     @State private var selectedDays: Int = 30
     @State private var hasLoaded = false
     @State private var showFullSummary = false
-    @State private var selectedEvidItem: TDEvidItem?
+    @State private var selectedEvent: EventAnalysis?
 
     init(ticker: String, positionId: String? = nil) {
         self.ticker = ticker
@@ -78,12 +65,8 @@ struct TickerDetailView: View {
                 )
             }
         }
-        .sheet(item: $selectedEvidItem) { item in
-            if let ev = item.eventAnalysis {
-                TickerEventAnalysisDetailView(event: ev)
-            } else {
-                TDEvidDetailSheet(item: item)
-            }
+        .sheet(item: $selectedEvent) { event in
+            TickerEventAnalysisDetailView(event: event)
         }
     }
 
@@ -261,7 +244,7 @@ struct TickerDetailView: View {
     // MARK: - Executive Summary Card
 
     private func executiveSummaryCard(_ analysis: PositionAnalysis) -> some View {
-        let teaser = (analysis.summary ?? analysis.longReport ?? "")
+        let teaser = (detail?.sharedAnalysis?.executiveSummary ?? analysis.summary ?? analysis.longReport ?? "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         guard !teaser.isEmpty else { return AnyView(EmptyView()) }
         return AnyView(
@@ -478,29 +461,27 @@ struct TickerDetailView: View {
     private func riskDimensions(for detail: TickerDetailResponse) -> [TDDimItem]? {
         var news: Double?
         var macro: Double?
-        var sizing: Double?
         var vol: Double?
 
-        if let ai = detail.currentScore?.factorBreakdown?.aiDimensions
+        if let shared = detail.sharedAnalysis?.riskDimensions {
+            news = shared.newsSentiment
+            macro = shared.macroExposure
+            vol = shared.volatilityTrend
+        } else if let ai = detail.currentScore?.factorBreakdown?.aiDimensions
             ?? detail.latestRiskSnapshot?.factorBreakdown?.aiDimensions {
             news = ai.newsSentiment; macro = ai.macroExposure
-            sizing = ai.positionSizing; vol = ai.volatilityTrend
+            vol = ai.volatilityTrend
         } else if let sc = detail.currentScore {
-            news = sc.newsSentiment; macro = sc.macroExposure
-            sizing = sc.positionSizing; vol = sc.volatilityTrend
+            news = sc.newsSentiment; macro = sc.macroExposure; vol = sc.volatilityTrend
         }
 
         guard news != nil || macro != nil || vol != nil else { return nil }
 
-        var dims: [TDDimItem] = [
+        return [
             TDDimItem(title: "News risk signals", value: news),
             TDDimItem(title: "Macro exposure", value: macro),
+            TDDimItem(title: "Volatility trend", value: vol),
         ]
-        if detail.userContext.isHeld {
-            dims.append(TDDimItem(title: "Position sizing", value: sizing))
-        }
-        dims.append(TDDimItem(title: "Volatility trend", value: vol))
-        return dims
     }
 
     private func riskDimensionsList(_ dims: [TDDimItem]) -> some View {
@@ -647,69 +628,11 @@ struct TickerDetailView: View {
 
     // MARK: - Supporting Evidence
 
-    private func flatEvidence(from detail: TickerDetailResponse) -> [TDEvidItem] {
-        var seen = Set<String>()
-        var result: [TDEvidItem] = []
-
-        // Primary: latest event analyses (richest data — has AI scenario summaries)
-        for ev in detail.latestEventAnalyses {
-            guard !seen.contains(ev.id) else { continue }
-            seen.insert(ev.id)
-            let summary = ev.tldr ?? ev.whatHappened ?? ev.summary ?? ""
-            let category = ev.eventType
-                .map { $0.replacingOccurrences(of: "_", with: " ").capitalized } ?? "Event"
-            result.append(TDEvidItem(
-                id: ev.id,
-                title: ev.title,
-                summary: summary,
-                source: ev.source ?? "",
-                category: category,
-                url: ev.sourceURL,
-                publishedAt: ev.publishedAt,
-                eventAnalysis: ev
-            ))
-            if result.count >= 5 { break }
-        }
-
-        // Supplement: driver card supporting evidence not already shown
-        let cards = detail.currentAnalysis?.driverCards ?? []
-        for card in cards where result.count < 5 {
-            for item in card.supportingEvidence where result.count < 5 {
-                guard !seen.contains(item.id) else { continue }
-                seen.insert(item.id)
-                result.append(TDEvidItem(
-                    id: item.id,
-                    title: item.title,
-                    summary: item.summary,
-                    source: item.source,
-                    category: card.theme.displayName + " risk",
-                    url: item.url,
-                    publishedAt: item.publishedAt,
-                    eventAnalysis: nil
-                ))
-            }
-        }
-
-        // Fallback: recent news
-        for item in detail.recentNews where result.count < 5 {
-            guard !seen.contains(item.id) else { continue }
-            seen.insert(item.id)
-            result.append(TDEvidItem(
-                id: item.id,
-                title: item.title,
-                summary: item.summary ?? "",
-                source: item.source ?? "",
-                category: "News",
-                url: item.url,
-                publishedAt: item.publishedAt,
-                eventAnalysis: nil
-            ))
-        }
-
-        return result
+    private func flatEvidence(from detail: TickerDetailResponse) -> [EventAnalysis] {
+        Array(detail.latestEventAnalyses.prefix(5))
     }
 
-    private func eventAnalysisSection(_ items: [TDEvidItem]) -> some View {
+    private func eventAnalysisSection(_ items: [EventAnalysis]) -> some View {
         ClavisStandardCard(fill: .surface, padding: 0) {
             VStack(alignment: .leading, spacing: 0) {
                 HStack(alignment: .bottom) {
@@ -729,68 +652,50 @@ struct TickerDetailView: View {
                 ForEach(items) { item in
                     Divider().overlay(Color.border.opacity(0.6))
                     eventAnalysisRow(item)
+                        .contentShape(Rectangle())
+                        .onTapGesture { selectedEvent = item }
                 }
             }
         }
     }
 
-    private func eventAnalysisRow(_ item: TDEvidItem) -> some View {
-        Button(action: { selectedEvidItem = item }) {
-            HStack(alignment: .center, spacing: 12) {
-                VStack(alignment: .leading, spacing: 7) {
-                    if !item.title.isEmpty {
-                        Text(item.title)
-                            .font(ClavisTypography.inter(15, weight: .semibold))
-                            .foregroundColor(.textPrimary)
-                            .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    if !item.summary.isEmpty {
-                        Text(item.summary)
-                            .font(ClavisTypography.inter(13, weight: .regular))
-                            .foregroundColor(.textSecondary)
-                            .lineSpacing(2)
-                            .lineLimit(3)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
+    private func eventAnalysisRow(_ item: EventAnalysis) -> some View {
+        HStack(alignment: .center, spacing: 0) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(item.title)
+                    .font(ClavisTypography.inter(15, weight: .semibold))
+                    .foregroundColor(.textPrimary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if let tags = item.keyImplications, !tags.isEmpty {
                     HStack(spacing: 6) {
-                        if !item.source.isEmpty {
-                            Text(item.source)
-                                .font(ClavisTypography.inter(11, weight: .regular))
-                                .foregroundColor(.textTertiary)
-                                .padding(.horizontal, 7)
-                                .padding(.vertical, 3)
-                                .background(Color.white.opacity(0.05))
-                                .clipShape(Capsule())
-                        }
-                        if !item.category.isEmpty {
-                            Text(item.category)
-                                .font(ClavisTypography.inter(11, weight: .regular))
-                                .foregroundColor(.textTertiary)
-                                .padding(.horizontal, 7)
-                                .padding(.vertical, 3)
-                                .background(Color.white.opacity(0.05))
-                                .clipShape(Capsule())
-                        }
-                        if let date = item.publishedAt {
-                            Text(date.formatted(.dateTime.month(.abbreviated).day().year()))
-                                .font(ClavisTypography.inter(11, weight: .regular))
-                                .foregroundColor(Color(hex: "#5a6470"))
+                        ForEach(Array(tags.prefix(3)), id: \.self) { tag in
+                            Text(tag)
+                                .font(.system(size: 11))
+                                .foregroundColor(Color(hex: "#aab3c2"))
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 5)
                         }
                     }
                 }
 
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(.textTertiary)
-                    .frame(minWidth: 12)
+                if let date = item.publishedAt {
+                    Text(date.formatted(date: .abbreviated, time: .omitted))
+                        .font(ClavisTypography.inter(11, weight: .regular))
+                        .foregroundColor(Color(hex: "#5a6470"))
+                }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
+
+            Spacer(minLength: 8)
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.textTertiary)
+                .padding(.trailing, 4)
         }
-        .buttonStyle(.plain)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
     }
 
     // MARK: - Helpers
@@ -798,11 +703,11 @@ struct TickerDetailView: View {
     private var isInWatchlist: Bool { detail?.userContext.isInWatchlist ?? false }
 
     private func displayScore(for detail: TickerDetailResponse) -> Int {
-        Int((detail.currentScore?.displayScore ?? detail.position.totalScore ?? 50).rounded())
+        Int((detail.sharedAnalysis?.summary.displayScore ?? detail.currentScore?.displayScore ?? detail.position.resolvedTotalScore ?? 50).rounded())
     }
 
     private func displayGrade(for detail: TickerDetailResponse) -> String {
-        detail.currentScore?.displayGrade ?? detail.position.riskGrade ?? "—"
+        detail.sharedAnalysis?.summary.displayGrade ?? detail.currentScore?.displayGrade ?? detail.position.resolvedRiskGrade ?? "—"
     }
 
     private func priceChangePercent(for detail: TickerDetailResponse) -> Double? {
@@ -849,7 +754,7 @@ struct TickerDetailView: View {
     }
 
     private func updatedText(_ detail: TickerDetailResponse) -> String {
-        let date = detail.currentScore?.scoreAsOf ?? detail.freshness.analysisAsOf
+        let date = detail.sharedAnalysis?.summary.freshness.scoreAsOf ?? detail.currentScore?.scoreAsOf ?? detail.freshness.analysisAsOf
         guard let date else { return "Updated recently" }
         let diff = max(0, Date().timeIntervalSince(date))
         if diff < 3600 { return "Updated \(Int(diff / 60))m ago" }
@@ -1035,7 +940,8 @@ private struct TDExecSummarySheet: View {
         return negativeCards.map(\.title)
     }
     private var tailwinds: [String] {
-        positiveCards.map(\.title)
+        if let t = analysis.topTailwinds, !t.isEmpty { return t }
+        return positiveCards.map(\.title)
     }
 
     var body: some View {
@@ -1115,76 +1021,6 @@ private struct TDExecSummarySheet: View {
     }
 }
 
-// MARK: - Evidence Detail Sheet (for non-EventAnalysis items)
-
-private struct TDEvidDetailSheet: View {
-    let item: TDEvidItem
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        if !item.title.isEmpty {
-                            Text(item.title)
-                                .font(ClavisTypography.h2)
-                                .foregroundColor(.textPrimary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        HStack {
-                            if !item.source.isEmpty {
-                                Text(item.source)
-                                    .font(ClavisTypography.footnote)
-                                    .foregroundColor(.textSecondary)
-                            }
-                            Spacer()
-                            if let date = item.publishedAt {
-                                Text(date.formatted(date: .abbreviated, time: .omitted))
-                                    .font(ClavisTypography.footnote)
-                                    .foregroundColor(.textSecondary)
-                            }
-                        }
-                    }
-                    .padding(ClavisTheme.cardPadding)
-                    .clavisCardStyle(fill: .surface)
-
-                    if !item.summary.isEmpty {
-                        TDAnalysisDetailSection(title: "What this means", text: item.summary)
-                    }
-
-                    if let urlStr = item.url, let url = URL(string: urlStr) {
-                        Link(destination: url) {
-                            HStack {
-                                Text("Open Source")
-                                    .font(ClavisTypography.bodyEmphasis)
-                                    .foregroundColor(.informational)
-                                Spacer()
-                                Image(systemName: "arrow.up.right")
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundColor(.informational)
-                            }
-                        }
-                        .padding(ClavisTheme.cardPadding)
-                        .clavisCardStyle(fill: .surfaceElevated)
-                    }
-                }
-                .padding(ClavisTheme.screenPadding)
-                .padding(.bottom, ClavisTheme.largeSpacing)
-            }
-            .background(ClavisAtmosphereBackground())
-            .navigationTitle(item.category.isEmpty ? "Event" : item.category)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
-                        .foregroundColor(.informational)
-                }
-            }
-        }
-    }
-}
-
 // MARK: - Preserved for Event Detail Navigation
 
 private struct TDAnalysisDetailSection: View {
@@ -1235,75 +1071,71 @@ struct TickerEventAnalysisDetailView: View {
     let event: EventAnalysis
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                HStack {
-                    Button(action: { dismiss() }) {
-                        Text("Close")
-                            .font(ClavisTypography.footnoteEmphasis)
-                            .foregroundColor(.informational)
-                    }
-                    .buttonStyle(.plain)
-                    Spacer()
-                }
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(event.title)
-                        .font(ClavisTypography.h2)
-                        .foregroundColor(.textPrimary)
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    HStack {
-                        if let source = event.source {
-                            Text(source)
-                                .font(ClavisTypography.footnote)
-                                .foregroundColor(.textSecondary)
-                        }
-                        Spacer()
-                        Text(event.publishedAt?.formatted(date: .abbreviated, time: .shortened) ?? "")
-                            .font(ClavisTypography.footnote)
-                            .foregroundColor(.textSecondary)
-                    }
-                }
-                .padding(ClavisTheme.cardPadding)
-                .clavisCardStyle(fill: .surface)
-
-                if let s = event.whatHappened?.trimmingCharacters(in: .whitespacesAndNewlines), !s.isEmpty {
-                    TDAnalysisDetailSection(title: "What happened", text: s)
-                }
-                if let l = event.tldr?.trimmingCharacters(in: .whitespacesAndNewlines), !l.isEmpty {
-                    TDAnalysisDetailSection(title: "TL;DR", text: l)
-                }
-                if let sc = event.whatItMeans?.trimmingCharacters(in: .whitespacesAndNewlines), !sc.isEmpty {
-                    TDAnalysisDetailSection(title: "What it means", text: sc)
-                }
-                if let impl = event.keyImplications, !impl.isEmpty {
-                    TDAnalysisListSection(title: "Key implications", items: impl)
-                }
-                if let fu = event.recommendedFollowups, !fu.isEmpty {
-                    TDAnalysisListSection(title: "Follow-up notes", items: fu)
-                }
-                if let urlStr = event.sourceURL, let url = URL(string: urlStr) {
-                    Link(destination: url) {
-                        HStack {
-                            Text("Open Source")
-                                .font(ClavisTypography.bodyEmphasis)
-                                .foregroundColor(.informational)
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(event.title)
+                            .font(ClavisTypography.h2)
+                            .foregroundColor(.textPrimary)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        HStack(alignment: .firstTextBaseline) {
+                            if let source = event.source, !source.isEmpty {
+                                Text(source)
+                                    .font(ClavisTypography.footnote)
+                                    .foregroundColor(.textSecondary)
+                            }
                             Spacer()
-                            Image(systemName: "arrow.up.right")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundColor(.informational)
+                            if let date = event.publishedAt {
+                                Text(date.formatted(date: .abbreviated, time: .shortened))
+                                    .font(ClavisTypography.footnote)
+                                    .foregroundColor(.textSecondary)
+                            }
                         }
                     }
                     .padding(ClavisTheme.cardPadding)
-                    .clavisCardStyle(fill: .surfaceElevated)
+                    .clavisCardStyle(fill: .surface)
+
+                    if let tldr = event.tldr?.trimmingCharacters(in: .whitespacesAndNewlines), !tldr.isEmpty {
+                        TDAnalysisDetailSection(title: "TLDR", text: tldr)
+                    }
+                    if let whatItMeans = event.whatItMeans?.trimmingCharacters(in: .whitespacesAndNewlines), !whatItMeans.isEmpty {
+                        TDAnalysisDetailSection(title: "What It Means", text: whatItMeans)
+                    }
+                    if let keyImplications = event.keyImplications, !keyImplications.isEmpty {
+                        TDAnalysisListSection(title: "Key Implications", items: keyImplications)
+                    }
+                    if let urlStr = event.sourceURL, let url = URL(string: urlStr) {
+                        Link(destination: url) {
+                            HStack {
+                                Text("Source Article Link")
+                                    .font(ClavisTypography.bodyEmphasis)
+                                    .foregroundColor(.informational)
+                                Spacer()
+                                Image(systemName: "arrow.up.right")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(.informational)
+                            }
+                        }
+                        .padding(ClavisTheme.cardPadding)
+                        .clavisCardStyle(fill: .surfaceElevated)
+                    }
+                    if let followUpNotes = event.recommendedFollowups, !followUpNotes.isEmpty {
+                        TDAnalysisListSection(title: "Follow-Up Notes", items: followUpNotes)
+                    }
+                }
+                .padding(.horizontal, ClavisTheme.screenPadding)
+                .padding(.vertical, ClavisTheme.largeSpacing)
+                .padding(.bottom, ClavisTheme.largeSpacing)
+            }
+            .background(ClavisAtmosphereBackground())
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                        .foregroundColor(.informational)
                 }
             }
-            .padding(.horizontal, ClavisTheme.screenPadding)
-            .padding(.vertical, ClavisTheme.largeSpacing)
-            .padding(.bottom, ClavisTheme.largeSpacing)
         }
-        .background(ClavisAtmosphereBackground())
-        .toolbar(.hidden, for: .navigationBar)
     }
 }

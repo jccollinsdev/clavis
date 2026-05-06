@@ -48,7 +48,7 @@ struct HoldingsListView: View {
     }
 
     private var riskyCount: Int {
-        viewModel.holdings.filter { $0.riskGrade == "D" || $0.riskGrade == "F" }.count
+        viewModel.holdings.filter { $0.resolvedRiskGrade == "D" || $0.resolvedRiskGrade == "F" }.count
     }
 
     private var improvingCount: Int {
@@ -304,7 +304,7 @@ struct HoldingsListView: View {
 
     private func searchRank(for result: TickerSearchResult, query: String) -> (priority: Int, secondary: Int) {
         let ticker = result.ticker.uppercased()
-        let company = result.companyName.uppercased()
+        let company = (result.resolvedCompanyName ?? "").uppercased()
 
         if ticker == query { return (0, 0) }
         if ticker.hasPrefix(query) { return (1, 0) }
@@ -335,7 +335,7 @@ struct HoldingsListView: View {
 
     private var needsReviewPositions: [Position] {
         sortedHoldings.filter {
-            $0.riskGrade == "D" || $0.riskGrade == "F" || $0.riskTrend == .worsening
+            $0.resolvedRiskGrade == "D" || $0.resolvedRiskGrade == "F" || $0.riskTrend == .worsening
         }
     }
 
@@ -463,14 +463,14 @@ private struct HoldingsTickerSearchResultRow: View {
                         Text(result.ticker)
                             .font(ClavisTypography.bodyEmphasis)
                             .foregroundColor(.textPrimary)
-                        GradeBadge(grade: result.grade ?? "—", size: .compact)
+                        GradeBadge(grade: result.resolvedGrade ?? "—", size: .compact)
                     }
 
-                    Text(result.companyName)
+                    Text(result.resolvedCompanyName ?? "")
                         .font(ClavisTypography.footnote)
                         .foregroundColor(.textSecondary)
 
-                    if let summary = result.summary, !summary.isEmpty {
+                    if let summary = result.resolvedSummary, !summary.isEmpty {
                         Text(summary.sanitizedDisplayText)
                             .font(ClavisTypography.footnote)
                             .foregroundColor(.textTertiary)
@@ -751,35 +751,35 @@ struct PositionCardRow: View {
     let onOpenDetail: () -> Void
 
     private var grade: String {
-        position.riskGrade ?? "—"
+        position.resolvedRiskGrade ?? "—"
     }
 
     private var scoreText: String {
-        if let score = position.totalScore {
+        if let score = position.resolvedTotalScore {
             return "\(Int(score.rounded()))"
         }
         return "--"
     }
 
     private var subtitleText: String {
-        if let state = position.analysisState {
+        if let state = position.resolvedAnalysisState {
             switch state {
             case "queued", "running":
-                return position.coverageNote ?? "Updating this holding now."
+                return position.resolvedCoverageNote ?? "Updating this holding now."
             case "failed":
-                return position.coverageNote ?? "Analysis incomplete. Showing the latest available data."
+                return position.resolvedCoverageNote ?? "Analysis incomplete. Showing the latest available data."
             case "stale":
-                return position.coverageNote ?? "Refreshing with newer market data."
+                return position.resolvedCoverageNote ?? "Refreshing with newer market data."
             case "thin":
-                return position.coverageNote ?? "Limited recent data available."
+                return position.resolvedCoverageNote ?? "Limited recent data available."
             default:
                 break
             }
         }
-        if let summary = position.summary?.sanitizedDisplayText, !summary.isEmpty {
+        if let summary = position.resolvedSummary?.sanitizedDisplayText, !summary.isEmpty {
             return Self.previewSummary(summary)
         }
-        if position.analysisStartedAt != nil && position.riskGrade == nil {
+        if position.analysisStartedAt != nil && position.resolvedRiskGrade == nil {
             return "Updating this holding now. Scores will appear shortly."
         }
         return "Analysis pending."
@@ -797,7 +797,7 @@ struct PositionCardRow: View {
                                 .font(.system(size: 15, weight: .semibold))
                                 .foregroundColor(Color(hex: "#F0C76C"))
 
-                            if let companyName = position.companyName, !companyName.isEmpty {
+                            if let companyName = position.resolvedCompanyName, !companyName.isEmpty {
                                 Text(companyName)
                                     .font(ClavisTypography.footnote)
                                     .foregroundColor(.textSecondary)
@@ -945,7 +945,7 @@ struct AddPositionSheet: View {
                                 Button {
                                     resolveTickerTask?.cancel()
                                     ticker = suggestion.ticker
-                                    companyName = suggestion.companyName
+                                    companyName = suggestion.resolvedCompanyName ?? ""
                                     tickerSuggestions = []
                                     supportMessage = nil
                                     isTickerSupported = suggestion.isSupported
@@ -955,14 +955,14 @@ struct AddPositionSheet: View {
                                             Text(suggestion.ticker)
                                                 .font(ClavisTypography.bodyEmphasis)
                                                 .foregroundColor(.textPrimary)
-                                            Text(suggestion.companyName)
+                                            Text(suggestion.resolvedCompanyName ?? "")
                                                 .font(ClavisTypography.footnote)
                                                 .foregroundColor(.textSecondary)
                                         }
 
                                         Spacer()
 
-                                        GradeBadge(grade: suggestion.grade ?? "—", size: .compact)
+                                        GradeBadge(grade: suggestion.resolvedGrade ?? "—", size: .compact)
                                     }
                                     .padding(.vertical, 8)
                                 }
@@ -1055,7 +1055,7 @@ struct AddPositionSheet: View {
 
             if let exactMatch, exactMatch.isSupported {
                 // Exact supported match — resolve immediately, no need to show suggestions.
-                companyName = exactMatch.companyName
+                companyName = exactMatch.resolvedCompanyName ?? ""
                 tickerSuggestions = []
                 supportMessage = nil
                 isTickerSupported = true
@@ -1214,14 +1214,14 @@ struct WatchlistCardRow: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(alignment: .center, spacing: 12) {
-                GradeBadge(grade: item.grade ?? "—")
+                GradeBadge(grade: item.resolvedGrade ?? "—")
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(item.ticker)
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(.textPrimary)
 
-                    Text(item.companyName ?? "Tracked symbol")
+                    Text(item.resolvedCompanyName ?? "Tracked symbol")
                         .font(ClavisTypography.footnote)
                         .foregroundColor(.textSecondary)
                         .lineLimit(2)
@@ -1229,7 +1229,7 @@ struct WatchlistCardRow: View {
 
                 Spacer(minLength: 12)
 
-                Text(item.safetyScore.map { "\(Int($0.rounded()))" } ?? "--")
+                Text(item.resolvedSafetyScore.map { "\(Int($0.rounded()))" } ?? "--")
                     .font(.system(size: 15, weight: .semibold, design: .monospaced))
                     .foregroundColor(.textPrimary)
                     .monospacedDigit()

@@ -208,11 +208,11 @@ enum HoldingFilter: String, CaseIterable {
         case .all:
             return true
         case .critical:
-            return position.riskGrade == "F"
+            return position.resolvedRiskGrade == "F"
         case .risky:
-            return position.riskGrade == "D"
+            return position.resolvedRiskGrade == "D"
         case .elevated:
-            return position.riskGrade == "C"
+            return position.resolvedRiskGrade == "C"
         case .improving:
             return gradeImproved(position)
         case .majorEvent:
@@ -221,7 +221,7 @@ enum HoldingFilter: String, CaseIterable {
     }
 
     private func gradeImproved(_ position: Position) -> Bool {
-        guard let current = position.riskGrade,
+        guard let current = position.resolvedRiskGrade,
               let previous = position.previousGrade else { return false }
         return Grade.ordinalValue(for: current) > Grade.ordinalValue(for: previous)
     }
@@ -235,7 +235,7 @@ enum HoldingSort: String, CaseIterable {
     func sort(_ positions: [Position]) -> [Position] {
         switch self {
         case .grade:
-            return positions.sorted { ($0.totalScore ?? 50) < ($1.totalScore ?? 50) }
+            return positions.sorted { ($0.resolvedTotalScore ?? 50) < ($1.resolvedTotalScore ?? 50) }
         case .ticker:
             return positions.sorted { $0.ticker < $1.ticker }
         case .value:
@@ -244,7 +244,7 @@ enum HoldingSort: String, CaseIterable {
     }
 
     private func positionValue(_ position: Position) -> Double {
-        let price = position.currentPrice ?? position.purchasePrice
+        let price = position.resolvedCurrentPrice ?? position.purchasePrice
         return position.shares * price
     }
 }

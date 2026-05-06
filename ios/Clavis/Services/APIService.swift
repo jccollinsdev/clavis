@@ -686,6 +686,8 @@ struct TickerSearchResult: Identifiable, Codable, Hashable {
     let analysisAsOf: Date?
     let summary: String?
     let isSupported: Bool
+    let sharedAnalysis: SharedTickerAnalysisSummary?
+    let portfolioOverlay: PortfolioOverlay?
 
     var id: String { ticker }
 
@@ -702,6 +704,28 @@ struct TickerSearchResult: Identifiable, Codable, Hashable {
         case analysisAsOf = "analysis_as_of"
         case summary
         case isSupported = "is_supported"
+        case sharedAnalysis = "shared_analysis"
+        case portfolioOverlay = "portfolio_overlay"
+    }
+
+    var resolvedGrade: String? {
+        sharedAnalysis?.currentGrade ?? grade
+    }
+
+    var resolvedSafetyScore: Double? {
+        sharedAnalysis?.currentScore ?? safetyScore
+    }
+
+    var resolvedSummary: String? {
+        sharedAnalysis?.gradeRationale ?? summary
+    }
+
+    var resolvedAnalysisAsOf: Date? {
+        sharedAnalysis?.freshness.analysisAsOf ?? analysisAsOf
+    }
+
+    var resolvedCompanyName: String? {
+        sharedAnalysis?.companyName ?? companyName
     }
 }
 
@@ -725,6 +749,8 @@ struct TickerDetailResponse: Codable {
     let recentAlerts: [Alert]
     let freshness: TickerFreshness
     let userContext: TickerUserContext
+    let sharedAnalysis: SharedTickerAnalysisDetail?
+    let portfolioOverlay: PortfolioOverlay?
 
     enum CodingKeys: String, CodingKey {
         case ticker
@@ -746,6 +772,8 @@ struct TickerDetailResponse: Codable {
         case recentAlerts = "recent_alerts"
         case freshness
         case userContext = "user_context"
+        case sharedAnalysis = "shared_analysis"
+        case portfolioOverlay = "portfolio_overlay"
     }
 
     init(from decoder: Decoder) throws {
@@ -769,6 +797,8 @@ struct TickerDetailResponse: Codable {
         recentAlerts = (try? container.decode([Alert].self, forKey: .recentAlerts)) ?? []
         freshness = try container.decode(TickerFreshness.self, forKey: .freshness)
         userContext = try container.decode(TickerUserContext.self, forKey: .userContext)
+        sharedAnalysis = try? container.decodeIfPresent(SharedTickerAnalysisDetail.self, forKey: .sharedAnalysis)
+        portfolioOverlay = try? container.decodeIfPresent(PortfolioOverlay.self, forKey: .portfolioOverlay)
     }
 }
 
@@ -967,6 +997,9 @@ struct WatchlistItem: Identifiable, Codable {
     let safetyScore: Double?
     let analysisAsOf: Date?
     let summary: String?
+    let sharedAnalysis: SharedTickerAnalysisSummary?
+    let portfolioOverlay: PortfolioOverlay?
+    let latestEventAnalyses: [EventAnalysis]?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -978,6 +1011,29 @@ struct WatchlistItem: Identifiable, Codable {
         case safetyScore = "safety_score"
         case analysisAsOf = "analysis_as_of"
         case summary
+        case sharedAnalysis = "shared_analysis"
+        case portfolioOverlay = "portfolio_overlay"
+        case latestEventAnalyses = "latest_event_analyses"
+    }
+
+    var resolvedGrade: String? {
+        sharedAnalysis?.currentGrade ?? grade
+    }
+
+    var resolvedSafetyScore: Double? {
+        sharedAnalysis?.currentScore ?? safetyScore
+    }
+
+    var resolvedSummary: String? {
+        sharedAnalysis?.gradeRationale ?? summary
+    }
+
+    var resolvedAnalysisAsOf: Date? {
+        sharedAnalysis?.freshness.analysisAsOf ?? analysisAsOf
+    }
+
+    var resolvedCompanyName: String? {
+        sharedAnalysis?.companyName ?? companyName
     }
 }
 

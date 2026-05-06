@@ -42,9 +42,47 @@ struct Position: Identifiable, Codable, Hashable {
     var companyName: String?
     var latestEventAnalyses: [EventAnalysis]?
     var analysisStartedAt: Date?
+    var sharedAnalysis: SharedTickerAnalysisSummary?
+    var portfolioOverlay: PortfolioOverlay?
+
+    var resolvedRiskGrade: String? {
+        sharedAnalysis?.currentGrade ?? riskGrade
+    }
+
+    var resolvedTotalScore: Double? {
+        sharedAnalysis?.currentScore ?? totalScore
+    }
+
+    var resolvedSummary: String? {
+        sharedAnalysis?.gradeRationale ?? summary
+    }
+
+    var resolvedAnalysisState: String? {
+        sharedAnalysis?.freshness.status ?? analysisState
+    }
+
+    var resolvedCoverageState: String? {
+        sharedAnalysis?.freshness.coverageState ?? coverageState
+    }
+
+    var resolvedCoverageNote: String? {
+        sharedAnalysis?.freshness.coverageNote ?? coverageNote
+    }
+
+    var resolvedScoreAsOf: Date? {
+        sharedAnalysis?.freshness.scoreAsOf ?? scoreAsOf ?? lastAnalyzedAt
+    }
+
+    var resolvedCurrentPrice: Double? {
+        portfolioOverlay?.currentPrice ?? currentPrice
+    }
+
+    var resolvedCompanyName: String? {
+        sharedAnalysis?.companyName ?? companyName
+    }
 
     var riskState: RiskState? {
-        guard let score = totalScore else { return nil }
+        guard let score = resolvedTotalScore else { return nil }
         return RiskState.from(score: score)
     }
 
@@ -57,7 +95,7 @@ struct Position: Identifiable, Codable, Hashable {
         case "flat":
             return .stable
         default:
-            if let current = riskGrade, let previous = previousGrade {
+            if let current = resolvedRiskGrade, let previous = previousGrade {
                 if Grade.ordinalValue(for: current) > Grade.ordinalValue(for: previous) {
                     return .improving
                 } else if Grade.ordinalValue(for: current) < Grade.ordinalValue(for: previous) {
@@ -69,23 +107,23 @@ struct Position: Identifiable, Codable, Hashable {
     }
 
     var actionPressure: ActionPressure? {
-        guard let score = totalScore else { return nil }
+        guard let score = resolvedTotalScore else { return nil }
         let trend = riskTrend ?? .stable
         return ActionPressure.from(score: score, trend: trend)
     }
 
     var currentValue: Double? {
-        guard let price = currentPrice else { return nil }
+        guard let price = resolvedCurrentPrice else { return nil }
         return shares * price
     }
 
     var unrealizedPL: Double? {
-        guard let current = currentPrice else { return nil }
+        guard let current = resolvedCurrentPrice else { return nil }
         return (current - purchasePrice) * shares
     }
 
     var unrealizedPLPercent: Double? {
-        guard let current = currentPrice, purchasePrice > 0 else { return nil }
+        guard let current = resolvedCurrentPrice, purchasePrice > 0 else { return nil }
         return ((current - purchasePrice) / purchasePrice) * 100
     }
 
@@ -135,6 +173,8 @@ struct Position: Identifiable, Codable, Hashable {
         case companyName = "company_name"
         case latestEventAnalyses = "latest_event_analyses"
         case analysisStartedAt = "analysis_started_at"
+        case sharedAnalysis = "shared_analysis"
+        case portfolioOverlay = "portfolio_overlay"
     }
 
     init(from decoder: Decoder) throws {
@@ -180,6 +220,8 @@ struct Position: Identifiable, Codable, Hashable {
         companyName = try container.decodeIfPresent(String.self, forKey: .companyName)
         latestEventAnalyses = try container.decodeIfPresent([EventAnalysis].self, forKey: .latestEventAnalyses)
         analysisStartedAt = try container.decodeIfPresent(Date.self, forKey: .analysisStartedAt)
+        sharedAnalysis = try container.decodeIfPresent(SharedTickerAnalysisSummary.self, forKey: .sharedAnalysis)
+        portfolioOverlay = try container.decodeIfPresent(PortfolioOverlay.self, forKey: .portfolioOverlay)
     }
 }
 

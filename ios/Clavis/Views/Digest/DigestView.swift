@@ -205,7 +205,7 @@ private struct DigestPrototypePositionImpactsSection: View {
     }
 
     private func grade(for ticker: String) -> String {
-        holdings.first(where: { $0.ticker == ticker })?.riskGrade ?? digest.overallGrade ?? "C"
+        holdings.first(where: { $0.ticker == ticker })?.resolvedRiskGrade ?? digest.overallGrade ?? "C"
     }
 }
 

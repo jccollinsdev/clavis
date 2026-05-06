@@ -37,6 +37,7 @@ struct PositionAnalysis: Codable {
     let longReport: String?
     let methodology: String?
     let topRisks: [String]?
+    let topTailwinds: [String]?
     let watchItems: [String]?
     let topNews: [String]?
     let driverCardsState: DriverCardsState?
@@ -59,6 +60,7 @@ struct PositionAnalysis: Codable {
         case longReport = "long_report"
         case methodology
         case topRisks = "top_risks"
+        case topTailwinds = "top_tailwinds"
         case watchItems = "watch_items"
         case topNews = "top_news"
         case driverCardsState = "driver_cards_state"
@@ -83,6 +85,7 @@ struct PositionAnalysis: Codable {
         longReport = try container.decodeIfPresent(String.self, forKey: .longReport)
         methodology = try container.decodeIfPresent(String.self, forKey: .methodology)
         topRisks = try container.decodeIfPresent([String].self, forKey: .topRisks)
+        topTailwinds = try container.decodeIfPresent([String].self, forKey: .topTailwinds)
         watchItems = try container.decodeIfPresent([String].self, forKey: .watchItems)
         topNews = try container.decodeIfPresent([String].self, forKey: .topNews)
         driverCardsState = try? container.decodeIfPresent(DriverCardsState.self, forKey: .driverCardsState)

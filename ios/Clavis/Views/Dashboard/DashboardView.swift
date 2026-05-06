@@ -373,7 +373,7 @@ struct DashboardAttentionRow: View {
     let item: DashboardPriorityItem
 
     private var scoreText: String {
-        if let score = item.position.totalScore {
+        if let score = item.position.resolvedTotalScore {
             return "\(Int(score.rounded()))"
         }
         return "--"
@@ -396,7 +396,7 @@ struct DashboardAttentionRow: View {
                 Spacer(minLength: 12)
 
                 VStack(alignment: .trailing, spacing: 4) {
-                    GradeBadge(grade: item.position.riskGrade ?? "C", size: .compact)
+                    GradeBadge(grade: item.position.resolvedRiskGrade ?? "C", size: .compact)
 
                     if let trend = item.position.riskTrend {
                         RiskDirectionLabel(trend: trend)
@@ -409,7 +409,7 @@ struct DashboardAttentionRow: View {
                 }
             }
 
-            RiskBar(score: item.position.totalScore ?? 50, grade: item.position.riskGrade ?? "C")
+            RiskBar(score: item.position.resolvedTotalScore ?? 50, grade: item.position.resolvedRiskGrade ?? "C")
                 .frame(height: 4)
         }
         .padding(ClavisTheme.cardPadding)

@@ -12,6 +12,7 @@
 		1BCA71D523BEDF92D78F7089 /* HoldingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C38C07B0CF0ED9A35F1AC9 /* HoldingsViewModel.swift */; };
 		1D9280D845895C4B75AC1C71 /* JetBrainsMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2179397FC5DAEEF86E5A5C71 /* JetBrainsMono-Regular.ttf */; };
 		1F29992CC73FA2AF8A5053C7 /* DigestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 109D64880EF83D2FC224A3F4 /* DigestView.swift */; };
+		260312ED46C93D4855AA49AF /* SharedTickerAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32583580F21DC84D7740A433 /* SharedTickerAnalysis.swift */; };
 		2968C7B9D5B0CD322BFC6BA5 /* AlertsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8722709AAABD33C139625D0 /* AlertsView.swift */; };
 		2D0A2D28435796BB5DF7C2ED /* PushNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 473421A47E2CCB53FC0AEAF7 /* PushNotificationManager.swift */; };
 		2E5B0458654B424B86CC9561 /* DisplayText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DE04452D246D5FAAB52974D /* DisplayText.swift */; };
@@ -70,6 +71,7 @@
 		2179397FC5DAEEF86E5A5C71 /* JetBrainsMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Regular.ttf"; sourceTree = "<group>"; };
 		29A809E82D0C86C833E0C7B3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		2D439D2E866ACEF64034DD2D /* AlertsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertsViewModel.swift; sourceTree = "<group>"; };
+		32583580F21DC84D7740A433 /* SharedTickerAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedTickerAnalysis.swift; sourceTree = "<group>"; };
 		33F42FE9D494BEF219ED81FD /* TickerDriverCardsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TickerDriverCardsSection.swift; sourceTree = "<group>"; };
 		3C8B94F66156A937403DBA44 /* ClavisCopy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClavisCopy.swift; sourceTree = "<group>"; };
 		3EF9D33F89ABA37D1B82F8FF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -283,6 +285,7 @@
 				C13D5D4E31318BDF9E836901 /* PricePoint.swift */,
 				C30AAE01DC38DF049E30EA36 /* RiskEnums.swift */,
 				E839D4A9335DA9418736C503 /* RiskScore.swift */,
+				32583580F21DC84D7740A433 /* SharedTickerAnalysis.swift */,
 				661F4F5923CFE0B8A301B005 /* UserPreferences.swift */,
 			);
 			path = Models;
@@ -478,6 +481,7 @@
 				59E27730391F02665109EBB6 /* SafariView.swift in Sources */,
 				B9DD10F0D12C47D0C61BEF8D /* SettingsView.swift in Sources */,
 				8FA2D2834E7E84E515B83A7F /* SettingsViewModel.swift in Sources */,
+				260312ED46C93D4855AA49AF /* SharedTickerAnalysis.swift in Sources */,
 				43838696AA2414C499640B61 /* SupabaseAuthService.swift in Sources */,
 				FA0755FB18875171EAD7FFD7 /* TickerDetailView.swift in Sources */,
 				C8D02AC324342D1EFF715A53 /* TickerDriverCardsSection.swift in Sources */,
