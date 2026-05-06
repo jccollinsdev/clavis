@@ -1,11 +1,11 @@
 ---
 project: Clavis
 version: 1
-last_updated: 2026-05-06T1153Z
+last_updated: 2026-05-06T1732Z
 status: active
-current_phase: "P6 — Event/News/Risk-Driver Model Cleanup (COMPLETE)"
+current_phase: "P7A — Shared Ticker Event Architecture Design (COMPLETE)"
 current_focus:
-  - DONE: Phase 6 — audited 20+ event/news/driver pipelines and 8 endpoints; stopped fabrication in _build_event_analyses_from_news_rows (raw ticker_news_cache rows no longer fabricate what_happened/tldr/what_it_means/key_implications); stopped fabrication in _public_event_tags (no longer derives tags from event_type/significance/source); fixed watchlist to prefer canonical event_analyses over raw news cache; stopped iOS EventAnalysis decoder from cascading fallback fabrication (whatHappened/tldr/whatItMeans stay nil when API omits them); added 20 focused tests (now 121 total, all pass); iOS Simulator build succeeds; prepared SQL data quality package (read-only, not applied)
+  - DONE: Phase 7A — audited event_analyses schema, constraints, indexes, 6 write paths, 4 read paths; designed shared_ticker_events canonical table with UNIQUE(ticker, event_hash) constraint, nullable FK back-reference from event_analyses; chose Option B (new table + legacy keep) as safest architecture; defined read-path changes (shared events → ticker detail/holdings/watchlist/dashboard/digest) and write-path changes (scheduler writes shared first, positions reference shared IDs); prepared schema SQL, backfill mapping queries, and rollback plan; added 24 tests in test_shared_event_architecture.py (100 total tests pass); no production changes applied
   - DONE: Phase 4 iOS compatibility field burn-down: added `resolvedCompanyName` accessors to `TickerSearchResult` and `WatchlistItem`, replaced all 6 remaining direct legacy `companyName` accesses in `HoldingsListView` (search ranking, search results, suggestion rows, exact-match resolution, watchlist rows) with canonical-resolved equivalents, regenerated XcodeGen, and the iOS Simulator build passed
   - DONE: Phase 3 iOS contract cleanup completed: added Swift DTOs for nested `shared_analysis` / `portfolio_overlay`, updated holdings/search/watchlist/ticker-detail/dashboard consumers to prefer canonical shared ticker analysis fields ahead of flattened compatibility fields, regenerated XcodeGen, and the iOS Simulator build passed
   - DONE: Phase 2 endpoint alignment completed for shared ticker analysis reads: added canonical `build_shared_ticker_analysis_summary()` / `build_shared_ticker_analysis_detail()` / `build_portfolio_overlay()` builders plus compatibility projections, then aligned holdings, watchlist, search, ticker detail, position detail, dashboard, and digest reads around the shared contract while preserving flattened iOS fields for one release
