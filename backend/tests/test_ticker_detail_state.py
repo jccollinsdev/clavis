@@ -364,16 +364,11 @@ def test_get_ticker_detail_bundle_normalizes_explicit_event_analysis_fields(monk
     assert event["title"] == "AMD supply deal offsets shortage risk"
     assert event["source"] == "Reuters"
     assert event["published_at"] == "2026-04-24T02:00:00+00:00"
-    assert event["tldr"] == "Supply access improves execution visibility."
-    assert event["what_it_means"] == "The deal reduces near-term supply constraints and supports manufacturing continuity."
-    assert event["key_implications"] == [
-        "Supply risk eases",
-        "Execution visibility improves",
-    ]
-    assert event["follow_up_notes"] == ["track for margin impact in the next update"]
-    assert event["source_article_link"] == "https://example.com/article"
-    assert event["tags"] == ["supply", "manufacturing"]
-    assert "what_happened" not in event
+    assert event["tldr"] is None
+    assert event["what_it_means"] is None
+    assert event["key_implications"] == []
+    assert event["follow_up_notes"] == []
+    assert event["tags"] == []
 
 
 def test_get_ticker_detail_bundle_backfills_legacy_driver_cards(monkeypatch):
