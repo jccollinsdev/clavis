@@ -396,7 +396,7 @@ struct DashboardAttentionRow: View {
                 Spacer(minLength: 12)
 
                 VStack(alignment: .trailing, spacing: 4) {
-                    GradeBadge(grade: item.position.resolvedRiskGrade ?? "C", size: .compact)
+                    GradeBadge(grade: item.position.resolvedRiskGrade ?? "—", size: .compact)
 
                     if let trend = item.position.riskTrend {
                         RiskDirectionLabel(trend: trend)
@@ -409,7 +409,7 @@ struct DashboardAttentionRow: View {
                 }
             }
 
-            RiskBar(score: item.position.resolvedTotalScore ?? 50, grade: item.position.resolvedRiskGrade ?? "C")
+            RiskBar(score: item.position.resolvedTotalScore ?? 50, grade: item.position.resolvedRiskGrade ?? "—")
                 .frame(height: 4)
         }
         .padding(ClavisTheme.cardPadding)
