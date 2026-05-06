@@ -228,7 +228,7 @@ private struct DashboardWhatChangedCard: View {
             DashboardChangeEntry(
                 title: $0.positionTicker ?? $0.type.displayName,
                 grade: $0.newGrade ?? $0.previousGrade ?? "C",
-                message: $0.message.sanitizedDisplayText,
+                message: $0.message.sanitizedDisplayText.isEmpty ? "Change detected" : $0.message.sanitizedDisplayText,
                 time: $0.createdAt.relativeTimestamp
             )
         }

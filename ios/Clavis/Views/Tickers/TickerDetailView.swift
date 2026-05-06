@@ -753,15 +753,6 @@ struct TickerDetailView: View {
         }
     }
 
-    private func updatedText(_ detail: TickerDetailResponse) -> String {
-        let date = detail.sharedAnalysis?.summary.freshness.scoreAsOf ?? detail.currentScore?.scoreAsOf ?? detail.freshness.analysisAsOf
-        guard let date else { return "Updated recently" }
-        let diff = max(0, Date().timeIntervalSince(date))
-        if diff < 3600 { return "Updated \(Int(diff / 60))m ago" }
-        if diff < 86400 { return "Updated \(Int(diff / 3600))h ago" }
-        return "Updated \(Int(diff / 86400))d ago"
-    }
-
     private func labelForDays(_ days: Int) -> String {
         switch days {
         case 1: return "1D"
@@ -878,7 +869,9 @@ private struct TDSparkline: View {
                     Path { path in
                         path.move(to: CGPoint(x: pts[0].x, y: geo.size.height))
                         for p in pts { path.addLine(to: p) }
-                        path.addLine(to: CGPoint(x: pts.last!.x, y: geo.size.height))
+                        if let last = pts.last {
+                            path.addLine(to: CGPoint(x: last.x, y: geo.size.height))
+                        }
                         path.closeSubpath()
                     }
                     .fill(
@@ -1121,8 +1114,8 @@ struct TickerEventAnalysisDetailView: View {
                         .padding(ClavisTheme.cardPadding)
                         .clavisCardStyle(fill: .surfaceElevated)
                     }
-                    if let followUpNotes = event.recommendedFollowups, !followUpNotes.isEmpty {
-                        TDAnalysisListSection(title: "Follow-Up Notes", items: followUpNotes)
+                    if let notes = event.recommendedFollowups, !notes.isEmpty {
+                        TDAnalysisListSection(title: "Follow-Up Notes", items: notes)
                     }
                 }
                 .padding(.horizontal, ClavisTheme.screenPadding)

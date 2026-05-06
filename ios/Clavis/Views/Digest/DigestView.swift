@@ -223,39 +223,6 @@ private struct DigestPrototypeListCard<Content: View>: View {
     }
 }
 
-private struct DigestWhatToTrackSection: View {
-    let digest: Digest
-
-    private var items: [String] {
-        let trackItems = digest.structuredSections?.watchList ?? []
-        if !trackItems.isEmpty {
-            return Array(trackItems.prefix(3))
-        }
-        return Array((digest.structuredSections?.portfolioImpact ?? []).prefix(3))
-    }
-
-    var body: some View {
-        if !items.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("What to track")
-                    .font(ClavisTypography.label)
-                    .foregroundColor(.textSecondary)
-
-                ClavisStandardCard(fill: .surface) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        ForEach(items, id: \.self) { item in
-                            Text(item.sanitizedDisplayText)
-                                .font(ClavisTypography.body)
-                                .foregroundColor(.textSecondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-}
 
 struct DigestHeroCard: View {
     let digest: Digest?
@@ -299,8 +266,8 @@ struct DigestHeroCard: View {
                 }
             }
         }
-        if let warnings = digest?.structuredSections?.watchlistAlerts, !warnings.isEmpty {
-            drivers.append(warnings.first!.sanitizedDisplayText)
+        if let warnings = digest?.structuredSections?.watchlistAlerts, let first = warnings.first {
+            drivers.append(first.sanitizedDisplayText)
         }
         return Array(drivers.prefix(2))
     }
@@ -379,12 +346,19 @@ struct DigestMacroSectionView: View {
 
     var body: some View {
         if let macro {
+            let cleanBrief = macro.brief.sanitizedDisplayText
             VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
                 CX2SectionLabel(text: "Overnight macro")
 
-                Text(macro.brief.sanitizedDisplayText)
-                    .font(ClavisTypography.body)
-                    .foregroundColor(.textSecondary)
+                if cleanBrief.isEmpty {
+                    Text("No macro commentary available")
+                        .font(ClavisTypography.body)
+                        .foregroundColor(.textTertiary)
+                } else {
+                    Text(cleanBrief)
+                        .font(ClavisTypography.body)
+                        .foregroundColor(.textSecondary)
+                }
 
                 if !macro.themes.isEmpty {
                     Text(macro.themes.map { $0.humanizedTitleCasedDisplayText }.joined(separator: " • "))
