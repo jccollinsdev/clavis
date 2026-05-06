@@ -76,17 +76,6 @@ DIMENSION_KEYS = [
     "volatility_trend",
 ]
 
-GRADE_ORDER = ("A", "B", "C", "D", "F")
-GRADE_THRESHOLDS = {
-    "A": 80,
-    "B": 65,
-    "C": 50,
-    "D": 35,
-    "F": 0,
-}
-GRADE_HYSTERESIS = 3.0
-
-
 def _neutral_dimension_count(scores: dict | None) -> int:
     if not isinstance(scores, dict):
         return len(DIMENSION_KEYS)
@@ -548,29 +537,6 @@ def calculate_weighted_score(scores: dict) -> float:
     return sum(values) / len(values)
 
 
-def _apply_grade_hysteresis(score: float, previous_grade: str | None) -> str:
-    current_grade = score_to_grade(score)
-    previous_grade = (previous_grade or "").strip().upper()
-
-    if previous_grade not in GRADE_THRESHOLDS:
-        return current_grade
-
-    if current_grade == previous_grade:
-        return current_grade
-
-    previous_index = GRADE_ORDER.index(previous_grade)
-    current_index = GRADE_ORDER.index(current_grade)
-
-    if current_index < previous_index:
-        if score >= GRADE_THRESHOLDS[current_grade] + GRADE_HYSTERESIS:
-            return current_grade
-        return previous_grade
-
-    if score < GRADE_THRESHOLDS[previous_grade] - GRADE_HYSTERESIS:
-        return current_grade
-    return previous_grade
-
-
 async def score_position(
     position: dict,
     position_report: dict,
@@ -952,7 +918,7 @@ Return EXACTLY this JSON format (no markdown, no explanation, no thinking):
         - macro_exposure: less macro-sensitive / more treasury-like=high (70-100), more macro-sensitive / more speculative=low (0-40)
         - position_sizing: prudent, appropriately sized exposure=high (70-100), oversized or speculative exposure=low (0-40)
         - volatility_trend: falling volatility / stable trend=high (70-100), rising volatility / unstable behavior=low (0-40)
-        - Grade A=80+, B=65-79, C=50-64, D=35-49, F=<35
+        - Grade bands: A (80-100), B (65-79), C (50-64), D (35-49), F (0-34)
 
         How to write "reasoning" — strict credit-rating format:
         FORMAT: [GRADE] — [Risk Level] ([arrow]) + max 2 driver lines. Each driver ≤60 chars.
