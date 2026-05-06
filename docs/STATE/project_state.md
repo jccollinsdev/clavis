@@ -1,10 +1,11 @@
 ---
 project: Clavis
 version: 1
-last_updated: 2026-05-05T2307Z
+last_updated: 2026-05-06T0039Z
 status: active
-current_phase: "P2 — Shared Ticker Intelligence And Evidence Quality"
+current_phase: "P5B — Score/Grade Source-of-Truth Cleanup (COMPLETE)"
 current_focus:
+  - DONE: Phase 5B — removed dead grade hysteresis code (_apply_grade_hysteresis, GRADE_THRESHOLDS, GRADE_ORDER, GRADE_HYSTERESIS) from risk_scorer.py; consolidated all grade derivations to single analysis_utils.score_to_grade(); unified LLM prompt grade bands; unified score provenance labels across dashboard/risk_score_response paths; protected refresh_ticker_snapshot from structural overwrite of AI snapshots (removed snapshot_type filter from existing-AI-snapshot guard); standardized null-grade to "—" across 4 iOS views; added 101 focused regression tests (all pass); iOS Simulator build succeeds; prepared SQL dry-run/backfill package for ticker_risk_snapshots.grade alignment (ready for review, not applied to production)
   - DONE: Phase 4 iOS compatibility field burn-down: added `resolvedCompanyName` accessors to `TickerSearchResult` and `WatchlistItem`, replaced all 6 remaining direct legacy `companyName` accesses in `HoldingsListView` (search ranking, search results, suggestion rows, exact-match resolution, watchlist rows) with canonical-resolved equivalents, regenerated XcodeGen, and the iOS Simulator build passed
   - DONE: Phase 3 iOS contract cleanup completed: added Swift DTOs for nested `shared_analysis` / `portfolio_overlay`, updated holdings/search/watchlist/ticker-detail/dashboard consumers to prefer canonical shared ticker analysis fields ahead of flattened compatibility fields, regenerated XcodeGen, and the iOS Simulator build passed
   - DONE: Phase 2 endpoint alignment completed for shared ticker analysis reads: added canonical `build_shared_ticker_analysis_summary()` / `build_shared_ticker_analysis_detail()` / `build_portfolio_overlay()` builders plus compatibility projections, then aligned holdings, watchlist, search, ticker detail, position detail, dashboard, and digest reads around the shared contract while preserving flattened iOS fields for one release
