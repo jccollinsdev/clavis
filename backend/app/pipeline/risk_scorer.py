@@ -1,18 +1,24 @@
+from __future__ import annotations
+
 import logging
 from datetime import datetime, timezone
 
 from ..services.minimax import chatcompletion_text
-from .analysis_utils import clamp_score, extract_json_object, score_to_grade, grade_direction, sanitize_rationale, format_rationale, evidence_strength
+from .analysis_utils import (
+    clamp_score,
+    extract_json_object,
+    score_to_grade,
+    grade_direction,
+    format_rationale,
+    evidence_strength,
+    calculate_weighted_score,
+    V2_DIMENSION_KEYS,
+)
 from .structural_scorer import (
-    calculate_structural_base_score,
-    calculate_macro_adjustment,
-    calculate_event_adjustment,
-    calculate_final_safety_score,
     smooth_score_change,
-    get_daily_move_cap,
 )
 
-SYSTEM_PROMPT = """You are a risk rating system. Given the position context and event evidence below, score this position across 4 risk dimensions and write a concise risk rationale.
+SYSTEM_PROMPT = """You are a risk rating system. Given the position context and event evidence below, score this position across 5 risk dimensions and write a concise risk rationale.
 
 Scale: 0 = penny-stock-like / very risky. 100 = treasury-like / very safe. Higher = lower risk.
 
@@ -26,31 +32,31 @@ Position:
 Long-form position report: {long_report}
 
 Scoring criteria:
-1. news_sentiment (0-100): Positive/supportive news → high. Negative/dangerous news → low. 50 only when truly balanced.
-2. macro_exposure (0-100): Less macro-sensitive / more treasury-like → high. More macro-sensitive / more speculative → low.
-3. position_sizing (0-100): Appropriately sized, prudent exposure → high. Oversized or speculative → low.
-4. volatility_trend (0-100): Falling volatility / stable trend → high. Rising volatility / unstable → low.
+1. financial_health (0-100): Strong balance sheet, cash flow, coverage ratios → high. Weak fundamentals, high leverage → low.
+2. news_sentiment (0-100): Positive/supportive news → high. Negative/dangerous news → low. 50 only when truly balanced.
+3. macro_exposure (0-100): Less macro-sensitive / more treasury-like → high. More macro-sensitive / more speculative → low.
+4. sector_exposure (0-100): Strong sector with broad participation → high. Weak, concentrated, or volatile sector → low.
+5. volatility (0-100): Low, stable, or falling volatility → high. High, rising, or extreme drawdown → low.
 
 How to write "reasoning" — the investor-facing rationale:
 FORMAT: Header line + max 2 driver lines. No paragraphs. No hedging.
 Example:
-C — Elevated Risk (↑ worsening)
+BBB — Stable, Watch Points (↑ worsening)
 Earnings miss on revenue weakness
 Sector rotation into defensives
 
 Rules:
 1. First line: [GRADE] — [Risk Level] ([arrow direction])
-   - Risk Level: A=Low Risk, B=Moderate Risk, C=Elevated Risk, D=High Risk, F=Severe Risk
+   - Risk Level per the bond-rating scale: AAA=Treasury-Grade, AA=Investment-Grade Safe, A=Solid, BBB=Stable Watch Points, BB=Mixed Signals, B=Elevated Risk, CCC=High Risk, CC=Severe Risk, C=Distressed, F=Failure Mode
    - Arrow: ↓ improving if score improved >2pts, ↑ worsening if score dropped >2pts, → stable otherwise
 2. Next 1-2 lines: specific, causal risk drivers. Each driver ≤60 chars.
 3. Each driver MUST name a concrete event, metric change, or sector theme:
    ✅ "Earnings miss on revenue weakness"
    ✅ "High rate sensitivity"
    ✅ "Valuation stretched vs earnings"
-   ✅ "Weak revenue momentum"
+   ✅ "Weak revenue trend"
    ❌ "Mixed signals across sectors"
    ❌ "Market uncertainty"
-   ❌ "Positive momentum"
    ❌ "Could impact performance"
 4. If evidence is thin (<3 events), write: "Limited data — risk based on fundamentals" as the only driver.
 5. Total output ≤140 chars preferred.
@@ -59,22 +65,19 @@ Banned words — DO NOT USE: may, could, would, suggests, indicates, sentiment, 
 Write like a credit rating bulletin — direct, specific, concrete. Not a research note, not a process description.
 
 How to write "dimension_rationale" — one short phrase per dimension:
-- news_sentiment: what the news means for risk (not "the score is 60")
+- financial_health: what the fundamentals show about structural strength
+- news_sentiment: what the news means for risk
 - macro_exposure: how macro conditions affect risk
-- position_sizing: whether the position size amplifies risk
-- volatility_trend: what is driving volatility behavior
+- sector_exposure: how the sector state affects risk
+- volatility: what is driving volatility behavior
 
-Forbidden language: dimension scores, "the model", "the score reflects", "based on the dimension", "data across N sources", internal evidence labels (full_body, title_only, headline_summary), implementation jargon. Avoid returning 50 for every dimension unless the evidence is genuinely neutral.
+Forbidden language: dimension scores, "the model", "the score reflects", "based on the dimension", "data across N sources", internal evidence labels, implementation jargon. Avoid returning 50 for every dimension unless the evidence is genuinely neutral.
 
 Respond in this exact JSON format (no markdown, no explanation):
-{{"news_sentiment": 0-100, "macro_exposure": 0-100, "position_sizing": 0-100, "volatility_trend": 0-100, "grade": "A|B|C|D|F", "reasoning": "concise risk rationale per rules above", "dimension_rationale": {{"news_sentiment": "...", "macro_exposure": "...", "position_sizing": "...", "volatility_trend": "..."}}}}"""
+{{"financial_health": 0-100, "news_sentiment": 0-100, "macro_exposure": 0-100, "sector_exposure": 0-100, "volatility": 0-100, "grade": "AAA|AA|A|BBB|BB|B|CCC|CC|C|F", "reasoning": "concise risk rationale per rules above", "dimension_rationale": {{"financial_health": "...", "news_sentiment": "...", "macro_exposure": "...", "sector_exposure": "...", "volatility": "..."}}}}"""
 
-DIMENSION_KEYS = [
-    "news_sentiment",
-    "macro_exposure",
-    "position_sizing",
-    "volatility_trend",
-]
+DIMENSION_KEYS = V2_DIMENSION_KEYS
+
 
 def _neutral_dimension_count(scores: dict | None) -> int:
     if not isinstance(scores, dict):
@@ -147,8 +150,9 @@ def _synthesized_reasoning(
 ) -> str:
     news_v = clamp_score(scores.get("news_sentiment"), 0)
     macro_v = clamp_score(scores.get("macro_exposure"), 0)
-    vol_v = clamp_score(scores.get("volatility_trend"), 0)
-    sizing_v = clamp_score(scores.get("position_sizing"), 0)
+    vol_v = clamp_score(scores.get("volatility"), 0)
+    sector_v = clamp_score(scores.get("sector_exposure"), 0)
+    fin_v = clamp_score(scores.get("financial_health"), 0)
 
     drivers: list[str] = []
 
@@ -162,11 +166,14 @@ def _synthesized_reasoning(
     elif macro_v <= 45:
         drivers.append("Rate sensitivity adds risk")
 
-    if sizing_v <= 40:
-        drivers.append("Concentration amplifies downside")
+    if sector_v <= 40:
+        drivers.append("Sector concentration risk")
 
     if vol_v <= 40:
         drivers.append("Elevated volatility")
+
+    if fin_v <= 45:
+        drivers.append("Weak financial health")
 
     if not drivers:
         if news_v <= 45:
@@ -314,43 +321,6 @@ def _risk_direction_value(direction: str | None) -> int:
     return 0
 
 
-def _macro_adjustment_from_context(position_data: dict) -> tuple[float, str]:
-    macro_impact = position_data.get("macro_impact") or {}
-    labels = {
-        str(label).strip().lower() for label in position_data.get("inferred_labels", [])
-    }
-    ticker_metadata = position_data.get("ticker_metadata") or {}
-
-    score = 62.0
-    rationale_parts = []
-    macro_relevance = (
-        str(macro_impact.get("macro_relevance") or "neutral").strip().lower()
-    )
-    if macro_relevance == "challenges" or macro_relevance == "contradicts":
-        score -= 18
-        rationale_parts.append("overnight macro conditions raise risk for this position")
-    elif macro_relevance == "confirms" or macro_relevance == "supports":
-        score += 10
-        rationale_parts.append("overnight macro backdrop lowers risk for this position")
-    else:
-        rationale_parts.append("no clear overnight macro shift detected")
-
-    if "rate_sensitive" in labels:
-        score -= 6
-        rationale_parts.append("rate sensitivity adds cyclical exposure")
-    if "defensive" in labels:
-        score += 5
-        rationale_parts.append("defensive characteristics cushion macro risk")
-
-    sector = str(ticker_metadata.get("sector") or "").strip().lower()
-    if sector in {"financials", "energy", "real estate", "realestate"}:
-        score -= 3
-    elif sector in {"healthcare", "consumer staples", "utilities"}:
-        score += 2
-
-    return clamp_score(round(score), 0), "; ".join(rationale_parts)
-
-
 def _deterministic_dimension_scores(
     position_data: dict,
     portfolio_total_value: float,
@@ -364,20 +334,23 @@ def _deterministic_dimension_scores(
         coverage_note,
     ) = _data_state_for_position(position_data)
     ticker_metadata = position_data.get("ticker_metadata") or {}
-    current_price = _safe_float(
-        position_data.get("current_price")
-        or ticker_metadata.get("price")
-        or position_data.get("purchase_price")
-    )
-    shares = _safe_float(position_data.get("shares"))
-    position_value = max(current_price * shares, 0.0)
-    portfolio_weight = (
-        position_value / portfolio_total_value if portfolio_total_value > 0 else 0.0
-    )
 
-    news_delta = 0.0
     worsening_major = 0
     improving_major = 0
+    for event in event_analyses:
+        direction = _risk_direction_value(event.get("risk_direction"))
+        significance = str(event.get("significance") or "minor").strip().lower()
+        if significance == "major" and direction < 0:
+            worsening_major += 1
+        if significance == "major" and direction > 0:
+            improving_major += 1
+
+    # --- Dimension 1: Financial Health (0-100) ---
+    fin = _score_financial_health(ticker_metadata)
+    fin_rationale = _fin_rationale(ticker_metadata, fin)
+
+    # --- Dimension 2: News Sentiment (0-100) ---
+    news_delta = 0.0
     for event in event_analyses:
         direction = _risk_direction_value(event.get("risk_direction"))
         significance = str(event.get("significance") or "minor").strip().lower()
@@ -386,10 +359,6 @@ def _deterministic_dimension_scores(
         recency = max(0.35, 1.0 - min(age_days, 14.0) / 20.0)
         magnitude = 15 if significance == "major" else 7
         news_delta += direction * magnitude * confidence * recency
-        if significance == "major" and direction < 0:
-            worsening_major += 1
-        if significance == "major" and direction > 0:
-            improving_major += 1
 
     news_sentiment = clamp_score(round(50 + news_delta), 0)
     news_rationale = (
@@ -398,49 +367,24 @@ def _deterministic_dimension_scores(
         else "No recent news with a clear directional signal — rating defaults to neutral pending new data."
     )
 
-    macro_exposure, macro_rationale = _macro_adjustment_from_context(position_data)
+    # --- Dimension 3: Macro Exposure (0-100) ---
+    macro_exposure = _score_macro_exposure(ticker_metadata)
+    macro_rationale = _macro_rationale(ticker_metadata, macro_exposure)
 
-    volatility_proxy = _safe_float(ticker_metadata.get("volatility_proxy"), 0.0)
-    beta = abs(_safe_float(ticker_metadata.get("beta"), 0.0))
-    volatility_trend = 78 - (volatility_proxy * 40)
-    if beta:
-        volatility_trend -= min(18, max(0.0, (beta - 1.0) * 10))
-    volatility_trend -= worsening_major * 5
-    volatility_trend += improving_major * 3
-    volatility_trend = clamp_score(round(volatility_trend), 0)
-    if beta and volatility_proxy:
-        volatility_rationale = f"Beta of {ticker_metadata.get('beta')} and elevated volatility proxy drive near-term price instability, compounded by {worsening_major} negative event(s)."
-    elif worsening_major:
-        volatility_rationale = f"Recent negative developments add upward pressure to near-term volatility."
-    else:
-        volatility_rationale = "Volatility is within normal range for this profile — no major event-driven instability detected."
+    # --- Dimension 4: Sector Exposure (0-100) ---
+    sector_exposure = _score_sector_exposure(ticker_metadata)
+    sector_rationale = _sector_rationale(ticker_metadata, sector_exposure)
 
-    sizing_score = 82.0
-    if portfolio_weight >= 0.2:
-        sizing_score -= 22
-    elif portfolio_weight >= 0.1:
-        sizing_score -= 12
-    elif portfolio_weight >= 0.05:
-        sizing_score -= 6
-    if news_sentiment < 45:
-        sizing_score -= 8
-    if volatility_trend < 45:
-        sizing_score -= 8
-    if portfolio_weight <= 0.01 and shares > 0:
-        sizing_score += 2
-    position_sizing = clamp_score(round(sizing_score), 0)
-    if portfolio_weight >= 0.2:
-        sizing_rationale = f"Concentration risk is elevated — this position represents {portfolio_weight:.0%} of portfolio value, amplifying downside from any adverse development."
-    elif portfolio_weight >= 0.1:
-        sizing_rationale = f"This position is a meaningful allocation at {portfolio_weight:.0%} of portfolio value, leaving moderate exposure to company-specific risk."
-    else:
-        sizing_rationale = f"Position sizing is manageable at {portfolio_weight:.0%} of portfolio — company-specific risk is not amplified by concentration."
+    # --- Dimension 5: Volatility (0-100) ---
+    volatility = _score_volatility(ticker_metadata, worsening_major, improving_major)
+    vol_rationale = _vol_rationale(ticker_metadata, volatility, worsening_major)
 
     normalized_scores = {
+        "financial_health": fin,
         "news_sentiment": news_sentiment,
         "macro_exposure": macro_exposure,
-        "position_sizing": position_sizing,
-        "volatility_trend": volatility_trend,
+        "sector_exposure": sector_exposure,
+        "volatility": volatility,
     }
     weighted = calculate_weighted_score(normalized_scores)
     total = round(
@@ -453,7 +397,7 @@ def _deterministic_dimension_scores(
     grade = score_to_grade(total)
 
     reasoning = _synthesized_reasoning(
-        str(position_data.get("ticker") or "this position"),
+        str(position_data.get("ticker") or "this ticker"),
         normalized_scores,
         coverage_state,
         source_count,
@@ -468,8 +412,6 @@ def _deterministic_dimension_scores(
         scores=normalized_scores,
         source_count=source_count,
     )
-    if position_data.get("previous_grade") and grade != score_to_grade(weighted):
-        pass
 
     return {
         **normalized_scores,
@@ -480,10 +422,11 @@ def _deterministic_dimension_scores(
         "reasoning": formatted_reasoning,
         "evidence_summary": position_data.get("summary", ""),
         "dimension_rationale": {
+            "financial_health": fin_rationale,
             "news_sentiment": news_rationale,
             "macro_exposure": macro_rationale,
-            "position_sizing": sizing_rationale,
-            "volatility_trend": volatility_rationale,
+            "sector_exposure": sector_rationale,
+            "volatility": vol_rationale,
         },
         "source_count": source_count,
         "major_event_count": major_event_count,
@@ -493,9 +436,179 @@ def _deterministic_dimension_scores(
         "is_provisional": coverage_state != "substantive",
         "evidence_strength": evidence_strength(source_count),
         "llm_scoring_used": False,
-        "mirofish_used": position_data.get("mirofish_used", False),
     }
 
+
+# ════════════════════════════════════════════════════════════════════════════
+# V2 Dimension Scorers
+# ════════════════════════════════════════════════════════════════════════════
+
+def _score_financial_health(metadata: dict) -> int:
+    d_e = _safe_float(metadata.get("debt_to_equity"))
+    fcf_margin = _safe_float(metadata.get("fcf_margin"))
+    interest_cov = _safe_float(metadata.get("interest_coverage"))
+    current_ratio = _safe_float(metadata.get("current_ratio"))
+    rev_growth = _safe_float(metadata.get("revenue_growth_trend"))
+
+    score = 50.0
+
+    if d_e > 0:
+        if d_e <= 0.3:
+            score += 8
+        elif d_e <= 0.7:
+            score += 4
+        elif d_e <= 1.5:
+            score += 0
+        elif d_e <= 3.0:
+            score -= 6
+        else:
+            score -= 12
+
+    if fcf_margin > 0:
+        if fcf_margin >= 0.20:
+            score += 10
+        elif fcf_margin >= 0.10:
+            score += 6
+        elif fcf_margin >= 0.05:
+            score += 2
+        else:
+            score -= 4
+
+    if interest_cov > 0:
+        if interest_cov >= 20:
+            score += 8
+        elif interest_cov >= 5:
+            score += 4
+        elif interest_cov >= 2:
+            score += 0
+        else:
+            score -= 6
+
+    if current_ratio > 0:
+        if current_ratio >= 2.0:
+            score += 6
+        elif current_ratio >= 1.0:
+            score += 2
+        elif current_ratio < 0.5:
+            score -= 5
+
+    if rev_growth:
+        if rev_growth >= 0.30:
+            score += 8
+        elif rev_growth >= 0.10:
+            score += 4
+        elif rev_growth >= 0.0:
+            score += 1
+        else:
+            score -= 5
+
+    if metadata.get("profitability_profile") == "profitable":
+        score += 4
+    elif metadata.get("profitability_profile") == "unprofitable":
+        score -= 5
+
+    return clamp_score(round(score), 0)
+
+
+def _fin_rationale(metadata: dict, score: int) -> str:
+    parts = []
+    d_e = _safe_float(metadata.get("debt_to_equity"))
+    fcf_margin = _safe_float(metadata.get("fcf_margin"))
+    if d_e > 0:
+        parts.append(f"D/E {d_e:.2f}")
+    if fcf_margin > 0:
+        parts.append(f"FCF margin {fcf_margin:.0%}")
+    if parts:
+        return f"Financials reflect {', '.join(parts)}."
+    return "Fundamentals based on available data."
+
+
+def _score_macro_exposure(metadata: dict) -> int:
+    beta = abs(_safe_float(metadata.get("beta"), 0.0))
+    macro_sens = str(metadata.get("macro_sensitivity") or "moderate").lower()
+
+    score = 65.0
+
+    if beta > 0:
+        if beta <= 0.8:
+            score += 8
+        elif beta <= 1.2:
+            score += 2
+        elif beta <= 1.8:
+            score -= 6
+        else:
+            score -= 14
+
+    if macro_sens == "low":
+        score += 5
+    elif macro_sens == "very_high":
+        score -= 10
+    elif macro_sens == "high":
+        score -= 5
+
+    return clamp_score(round(score), 0)
+
+
+def _macro_rationale(metadata: dict, score: int) -> str:
+    beta = _safe_float(metadata.get("beta"))
+    if beta:
+        return f"Beta of {beta:.2f} drives macro sensitivity."
+    return "Macro sensitivity based on sector profile."
+
+
+def _score_sector_exposure(metadata: dict) -> int:
+    sector = str(metadata.get("sector") or "").strip().lower()
+    market_cap = _safe_float(metadata.get("market_cap"))
+
+    score = 65.0
+
+    defensive = {"healthcare", "consumer staples", "utilities"}
+    cyclical = {"financials", "energy", "real estate", "realestate", "materials", "industrials"}
+
+    if sector in defensive:
+        score += 5
+    elif sector in cyclical:
+        score -= 4
+
+    if market_cap and market_cap >= 200e9:
+        score += 3
+    elif market_cap and market_cap < 2e9:
+        score -= 4
+
+    return clamp_score(round(score), 0)
+
+
+def _sector_rationale(metadata: dict, score: int) -> str:
+    sector = str(metadata.get("sector") or "").title()
+    if sector:
+        return f"Sector exposure shaped by {sector} profile."
+    return "Sector exposure based on industry classification."
+
+
+def _score_volatility(metadata: dict, worsening_major: int, improving_major: int) -> int:
+    volatility_proxy = _safe_float(metadata.get("volatility_proxy"), 0.0)
+    beta = abs(_safe_float(metadata.get("beta"), 0.0))
+
+    score = 78.0 - (volatility_proxy * 40)
+    if beta:
+        score -= min(18, max(0.0, (beta - 1.0) * 10))
+    score -= worsening_major * 5
+    score += improving_major * 3
+    return clamp_score(round(score), 0)
+
+
+def _vol_rationale(metadata: dict, score: int, worsening_major: int) -> str:
+    beta = _safe_float(metadata.get("beta"))
+    if beta and beta > 1.2:
+        return f"Beta of {beta:.2f} amplifies volatility exposure."
+    if worsening_major:
+        return "Recent negative events add upward pressure to volatility."
+    return "Volatility is within normal range for this profile."
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# LLM path
+# ════════════════════════════════════════════════════════════════════════════
 
 def _needs_llm_scoring(position_data: dict) -> bool:
     return not any(
@@ -532,23 +645,16 @@ def _llm_score_prompt(position_data: dict) -> str:
     )
 
 
-def calculate_weighted_score(scores: dict) -> float:
-    values = [clamp_score(scores.get(key), 0) for key in DIMENSION_KEYS]
-    return sum(values) / len(values)
-
-
 async def score_position(
     position: dict,
     position_report: dict,
     inferred_labels: list[str] | None = None,
-    mirofish_used: bool = False,
 ) -> dict:
     position_data = {
         **position,
         **position_report,
         "inferred_labels": inferred_labels
         or position_report.get("inferred_labels", []),
-        "mirofish_used": mirofish_used,
     }
     position_data["position_value"] = max(
         _safe_float(
@@ -569,12 +675,6 @@ async def score_position(
         return deterministic
 
     prompt = _llm_score_prompt(position_data)
-    required_dimensions = [
-        "news_sentiment",
-        "macro_exposure",
-        "position_sizing",
-        "volatility_trend",
-    ]
 
     def _request_scores() -> tuple[str, dict]:
         result_text = chatcompletion_text(
@@ -594,7 +694,7 @@ async def score_position(
         return result_text, extract_json_object(result_text, {})
 
     result_text, scores = _request_scores()
-    missing_dimensions = [key for key in required_dimensions if scores.get(key) is None]
+    missing_dimensions = [key for key in DIMENSION_KEYS if scores.get(key) is None]
     if missing_dimensions:
         logger.warning(
             "score_position parse failure for %s; missing=%s; raw=%r",
@@ -604,7 +704,7 @@ async def score_position(
         )
         retry_text, retry_scores = _request_scores()
         retry_missing = [
-            key for key in required_dimensions if retry_scores.get(key) is None
+            key for key in DIMENSION_KEYS if retry_scores.get(key) is None
         ]
         if len(retry_missing) < len(missing_dimensions):
             result_text, scores = retry_text, retry_scores
@@ -620,10 +720,8 @@ async def score_position(
         return deterministic
 
     normalized_scores = {
-        "news_sentiment": clamp_score(scores.get("news_sentiment"), 0),
-        "macro_exposure": clamp_score(scores.get("macro_exposure"), 0),
-        "position_sizing": clamp_score(scores.get("position_sizing"), 0),
-        "volatility_trend": clamp_score(scores.get("volatility_trend"), 0),
+        key: clamp_score(scores.get(key), 0)
+        for key in DIMENSION_KEYS
     }
     (
         coverage_state,
@@ -646,7 +744,7 @@ async def score_position(
     reasoning = (scores.get("reasoning") or "").strip()
     if not reasoning:
         reasoning = _synthesized_reasoning(
-            str(position_data.get("ticker") or "this position"),
+            str(position_data.get("ticker") or "this ticker"),
             normalized_scores,
             coverage_state,
             source_count,
@@ -663,10 +761,7 @@ async def score_position(
     )
 
     return {
-        "news_sentiment": normalized_scores["news_sentiment"],
-        "macro_exposure": normalized_scores["macro_exposure"],
-        "position_sizing": normalized_scores["position_sizing"],
-        "volatility_trend": normalized_scores["volatility_trend"],
+        **normalized_scores,
         "total_score": total,
         "grade": grade,
         "grade_direction": grade_direction(total, position_report.get("previous_total_score")),
@@ -682,7 +777,6 @@ async def score_position(
         "is_provisional": coverage_state != "substantive",
         "evidence_strength": evidence_strength(source_count),
         "llm_scoring_used": True,
-        "mirofish_used": mirofish_used,
     }
 
 
@@ -698,129 +792,85 @@ def score_position_structural(
     if recent_events is None:
         recent_events = []
 
-    market_cap = ticker_metadata.get("market_cap")
-    avg_daily_dollar_volume = ticker_metadata.get("avg_daily_dollar_volume")
-    volatility_proxy = ticker_metadata.get("volatility_proxy")
-    leverage_profile = ticker_metadata.get("leverage_profile", "moderate")
-    profitability_profile = ticker_metadata.get("profitability_profile", "mixed")
-    asset_class = ticker_metadata.get("asset_class")
-    macro_sensitivity = ticker_metadata.get("macro_sensitivity", "moderate")
-
-    structural_result = calculate_structural_base_score(
-        market_cap=market_cap,
-        avg_daily_dollar_volume=avg_daily_dollar_volume,
-        volatility_proxy=volatility_proxy,
-        leverage_profile=leverage_profile,
-        profitability_profile=profitability_profile,
-        asset_class=asset_class,
-    )
-
-    macro_adj = calculate_macro_adjustment(
-        regime_state=regime_state,
-        asset_sensitivity=macro_sensitivity,
-    )
-
-    total_event_adjustment = 0.0
+    worsening_major = 0
+    improving_major = 0
     for event in recent_events:
-        event_significance = event.get("significance", "minor")
-        event_direction = event.get("risk_direction", "neutral")
-        event_confidence = event.get("confidence", 0.5)
-        event_age_days = event.get("event_age_days", 0)
-        event_adj = calculate_event_adjustment(
-            event_significance=event_significance,
-            event_direction=event_direction,
-            event_confidence=event_confidence,
-            event_age_days=event_age_days,
-        )
-        total_event_adjustment += event_adj
+        direction = _risk_direction_value(event.get("risk_direction"))
+        significance = str(event.get("significance") or "minor").strip().lower()
+        if significance == "major" and direction < 0:
+            worsening_major += 1
+        if significance == "major" and direction > 0:
+            improving_major += 1
 
-    total_event_adjustment = max(-20, min(5, total_event_adjustment))
+    fin = _score_financial_health(ticker_metadata)
+    news = clamp_score(round(50 + sum(
+        _risk_direction_value(e.get("risk_direction")) * 7
+        for e in recent_events
+    )), 0)
+    macro = _score_macro_exposure(ticker_metadata)
+    sector = _score_sector_exposure(ticker_metadata)
+    vol = _score_volatility(ticker_metadata, worsening_major, improving_major)
 
-    final_safety = calculate_final_safety_score(
-        structural_base_score=structural_result["structural_base_score"],
-        macro_adjustment=macro_adj,
-        event_adjustment=total_event_adjustment,
-    )
-
-    if previous_safety_score is not None:
-        final_safety = smooth_score_change(
-            new_score=final_safety,
+    normalized = {
+        "financial_health": fin,
+        "news_sentiment": news,
+        "macro_exposure": macro,
+        "sector_exposure": sector,
+        "volatility": vol,
+    }
+    weighted = calculate_weighted_score(normalized)
+    total = round(
+        smooth_score_change(
+            new_score=weighted,
             previous_score=previous_safety_score,
-            asset_class=asset_class,
-            market_cap=market_cap,
-        )
-
-    safety_grade = score_to_grade(final_safety)
-    direction = grade_direction(final_safety, previous_safety_score)
-    source_count_struct = len(recent_events)
-    structural_drivers = []
-    if abs(macro_adj) > 3:
-        structural_drivers.append(f"Macro adjustment: {'+' if macro_adj > 0 else ''}{macro_adj}")
-    if abs(total_event_adjustment) > 1:
-        structural_drivers.append(f"Event adjustment: {'+' if total_event_adjustment > 0 else ''}{total_event_adjustment:.0f}")
-    if not structural_drivers:
-        structural_drivers.append("Structural profile dominant")
-    structural_reasoning = format_rationale(
-        grade=safety_grade,
-        direction=direction,
-        raw_text="\n".join(structural_drivers[:2]),
-        scores={"news_sentiment": 50, "macro_exposure": structural_result["structural_base_score"], "position_sizing": 50, "volatility_trend": 50},
-        source_count=source_count_struct,
+        ),
+        1,
     )
+    grade = score_to_grade(total)
+
     source_count = len(recent_events)
     major_event_count = sum(
-        1
-        for event in recent_events
-        if str(event.get("significance") or "minor").strip().lower() == "major"
+        1 for e in recent_events
+        if str(e.get("significance") or "minor").strip().lower() == "major"
     )
     minor_event_count = max(source_count - major_event_count, 0)
+
     if source_count == 0:
         coverage_state = "provisional"
-        coverage_note = "No recent event data was available, so this structural score uses limited data."
+        coverage_note = "No recent event data was available."
     elif source_count <= 2:
         coverage_state = "thin"
-        coverage_note = f"Limited data: only {source_count} recent event(s) were available."
+        coverage_note = f"Limited data: {source_count} recent event(s)."
     else:
         coverage_state = "substantive"
-        coverage_note = (
-            f"{source_count} recent event(s) supported this structural score."
-        )
+        coverage_note = f"{source_count} recent event(s) supported this score."
 
-    confidence = structural_result["confidence"]
-    if source_count == 0:
-        confidence = max(0.35, confidence - 0.2)
-    elif source_count == 1:
-        confidence = max(0.45, confidence - 0.12)
-    elif source_count == 2:
-        confidence = max(0.5, confidence - 0.08)
-
-    factor_breakdown = structural_result.get("factor_breakdown", {})
-    factor_breakdown.update(
-        {
-            "macro_adjustment": macro_adj,
-            "event_adjustment": total_event_adjustment,
-            "event_count": source_count,
-        }
+    structural_reasoning = format_rationale(
+        grade=grade,
+        direction=grade_direction(total, previous_safety_score),
+        raw_text="Structural profile dominant",
+        scores=normalized,
+        source_count=source_count,
     )
 
     return {
-        "safety_score": final_safety,
-        "confidence": confidence,
-        "structural_base_score": structural_result["structural_base_score"],
-        "macro_adjustment": macro_adj,
-        "event_adjustment": total_event_adjustment,
-        "total_score": final_safety,
-        "grade": safety_grade,
-        "grade_direction": grade_direction(final_safety, previous_safety_score),
-        "score_delta": int(round(final_safety - previous_safety_score)) if previous_safety_score is not None else None,
-        "factor_breakdown": factor_breakdown,
-        "market_cap_bucket": structural_result.get("market_cap_bucket"),
+        "safety_score": total,
+        "total_score": total,
+        "grade": grade,
+        "grade_direction": grade_direction(total, previous_safety_score),
+        "score_delta": int(round(total - previous_safety_score)) if previous_safety_score is not None else None,
         "reasoning": structural_reasoning,
         "dimension_rationale": {
-            "structural_base_score": f"Deterministic scoring from market cap, liquidity, volatility, leverage, profitability",
-            "macro_adjustment": f"Regime {regime_state} with {macro_sensitivity} sensitivity",
-            "event_adjustment": f"{len(recent_events)} recent events contributing {total_event_adjustment}",
+            "financial_health": _fin_rationale(ticker_metadata, fin),
+            "news_sentiment": "Event-driven sentiment from available articles.",
+            "macro_exposure": _macro_rationale(ticker_metadata, macro),
+            "sector_exposure": _sector_rationale(ticker_metadata, sector),
+            "volatility": _vol_rationale(ticker_metadata, vol, worsening_major),
         },
+        "factor_breakdown": {
+            "ai_dimensions": normalized,
+        },
+        **normalized,
         "source_count": source_count,
         "major_event_count": major_event_count,
         "minor_event_count": minor_event_count,
@@ -828,7 +878,6 @@ def score_position_structural(
         "coverage_note": coverage_note,
         "is_provisional": coverage_state != "substantive",
         "evidence_strength": evidence_strength(source_count),
-        "mirofish_used": False,
     }
 
 
@@ -897,12 +946,10 @@ async def score_positions_batch(
         )
         evidence_block = "\n\n".join(evidence_texts)
         score_example = ", ".join(
-            (
-                f'"{ticker}": {{"news_sentiment": 50, "macro_exposure": 50, "position_sizing": 50, "volatility_trend": 50, "grade": "C", "reasoning": "...", "dimension_rationale": {{"news_sentiment": "...", "macro_exposure": "...", "position_sizing": "...", "volatility_trend": "..."}}, "evidence_summary": "..."}}'
-            )
+            f'"{ticker}": {{"financial_health": 50, "news_sentiment": 50, "macro_exposure": 50, "sector_exposure": 50, "volatility": 50, "grade": "BBB", "reasoning": "...", "dimension_rationale": {{"financial_health": "...", "news_sentiment": "...", "macro_exposure": "...", "sector_exposure": "...", "volatility": "..."}}, "evidence_summary": "..."}}'
             for ticker in tickers
         )
-        prompt = f"""Score each position across 4 dimensions (0-100) and assign a grade.
+        prompt = f"""Score each position across 5 dimensions (0-100) and assign a grade.
 
 Scale: 0 = penny-stock-like / very risky, 100 = treasury-like / very safe. Higher = lower risk.
 
@@ -914,44 +961,31 @@ Return EXACTLY this JSON format (no markdown, no explanation, no thinking):
 {{"scores": {{{score_example}}}}}
 
         Scoring criteria:
+        - financial_health: strong balance sheet, cash flow, coverage=high (70-100), weak fundamentals=low (0-40)
         - news_sentiment: positive/supportive news=high (70-100), negative/dangerous news=low (0-40), neutral=50 only when truly balanced
-        - macro_exposure: less macro-sensitive / more treasury-like=high (70-100), more macro-sensitive / more speculative=low (0-40)
-        - position_sizing: prudent, appropriately sized exposure=high (70-100), oversized or speculative exposure=low (0-40)
-        - volatility_trend: falling volatility / stable trend=high (70-100), rising volatility / unstable behavior=low (0-40)
-        - Grade bands: A (80-100), B (65-79), C (50-64), D (35-49), F (0-34)
+        - macro_exposure: less macro-sensitive=high (70-100), more macro-sensitive=low (0-40)
+        - sector_exposure: strong sector with broad participation=high (70-100), weak/concentrated sector=low (0-40)
+        - volatility: low/stable/falling volatility=high (70-100), high/rising volatility=low (0-40)
+        - Grade bands: AAA (90-100), AA (80-89), A (70-79), BBB (60-69), BB (50-59), B (40-49), CCC (30-39), CC (20-29), C (10-19), F (0-9)
 
         How to write "reasoning" — strict credit-rating format:
         FORMAT: [GRADE] — [Risk Level] ([arrow]) + max 2 driver lines. Each driver ≤60 chars.
-        Risk Levels: A=Low Risk, B=Moderate Risk, C=Elevated Risk, D=High Risk, F=Severe Risk
         Arrows: ↓ improving if score improved, ↑ worsening if score dropped, → stable
         Example:
-        C — Elevated Risk (↑ worsening)
+        BBB — Stable, Watch Points (↑ worsening)
         Earnings miss on revenue weakness
         Sector rotation into defensives
 
         Rules:
-        1. Each driver MUST name a concrete event, metric change, or sector theme:
-           ✅ "Earnings miss on revenue weakness"
-           ✅ "High rate sensitivity"
-           ✅ "Valuation stretched vs earnings"
-           ❌ "Mixed signals across sectors"
-           ❌ "Market uncertainty"
-           ❌ "Could impact performance"
+        1. Each driver MUST name a concrete event, metric change, or sector theme.
         2. If evidence is thin (<3 events), write: "Limited data — risk based on fundamentals"
         3. No paragraphs. No hedging. No "may", "could", "would", "suggests", "indicates"
 
-        How to write "dimension_rationale" — one sentence per dimension about what is happening, not what the score number is:
-        - news_sentiment: what the news means (not "the score is 60")
-        - macro_exposure: how macro conditions interact with the position's profile
-        - position_sizing: whether the size is appropriate and why
-        - volatility_trend: what is driving volatility behavior
-
         Important:
-        - Do not return 50 across all four dimensions unless the evidence is genuinely absent.
+        - Do not return 50 across all five dimensions unless the evidence is genuinely absent.
         - If the evidence is directional, move the relevant dimensions away from 50.
-        - Use the position value and portfolio weight context when estimating position sizing.
 
-        Forbidden: dimension scores in rationale, "the model", "the score reflects", "based on the dimension", "data across N sources", internal evidence labels (full_body, title_only, headline_summary), "thesis", "positive momentum", "macro headwinds", "provisional", "sentiment", "confirms", "coverage", "monitor", "research", "analyst", "watch".
+        Forbidden: dimension scores in rationale, "the model", "the score reflects", internal evidence labels, "thesis", "positive momentum", "macro headwinds", "provisional", "sentiment", "confirms", "coverage", "monitor", "research", "analyst", "watch", "position_sizing".
 
 Respond with ONLY the JSON object. Start with {{ and end with }}."""
 
@@ -982,18 +1016,11 @@ Respond with ONLY the JSON object. Start with {{ and end with }}."""
             if not _is_batch_response_suspicious(retry_scores, tickers):
                 result_text, all_scores = retry_text, retry_scores
 
-        required_dimensions = [
-            "news_sentiment",
-            "macro_exposure",
-            "position_sizing",
-            "volatility_trend",
-        ]
-
         if not all_scores:
             for ticker in tickers:
                 ticker_upper = ticker.upper()
                 ticker_scores = {}
-                for dim in required_dimensions:
+                for dim in DIMENSION_KEYS:
                     pattern = rf"{ticker_upper}.*?{dim}.*?(\d+)"
                     match = re.search(pattern, result_text, re.IGNORECASE | re.DOTALL)
                     if match:
@@ -1022,10 +1049,8 @@ Respond with ONLY the JSON object. Start with {{ and end with }}."""
                 )
                 continue
             normalized = {
-                "news_sentiment": clamp_score(raw_scores.get("news_sentiment"), 0),
-                "macro_exposure": clamp_score(raw_scores.get("macro_exposure"), 0),
-                "position_sizing": clamp_score(raw_scores.get("position_sizing"), 0),
-                "volatility_trend": clamp_score(raw_scores.get("volatility_trend"), 0),
+                key: clamp_score(raw_scores.get(key), 0)
+                for key in DIMENSION_KEYS
             }
             reasoning = (raw_scores.get("reasoning") or "").strip()
             if not reasoning:
@@ -1046,16 +1071,6 @@ Respond with ONLY the JSON object. Start with {{ and end with }}."""
                 1,
             )
             grade = score_to_grade(total)
-            reasoning = (raw_scores.get("reasoning") or "").strip()
-            if not reasoning:
-                reasoning = _synthesized_reasoning(
-                    ticker,
-                    normalized,
-                    coverage_state,
-                    source_count,
-                    coverage_note,
-                    llm_used=True,
-                )
             formatted_reasoning = format_rationale(
                 grade=grade,
                 direction=grade_direction(total, position.get("previous_total_score")),
@@ -1064,10 +1079,7 @@ Respond with ONLY the JSON object. Start with {{ and end with }}."""
                 source_count=source_count,
             )
             results[result_index] = {
-                "news_sentiment": normalized["news_sentiment"],
-                "macro_exposure": normalized["macro_exposure"],
-                "position_sizing": normalized["position_sizing"],
-                "volatility_trend": normalized["volatility_trend"],
+                **normalized,
                 "total_score": total,
                 "grade": grade,
                 "grade_direction": grade_direction(total, position.get("previous_total_score")),
@@ -1083,14 +1095,8 @@ Respond with ONLY the JSON object. Start with {{ and end with }}."""
                 "is_provisional": coverage_state != "substantive",
                 "evidence_strength": evidence_strength(source_count),
                 "llm_scoring_used": True,
-                "mirofish_used": position.get("mirofish_used", False),
                 "factor_breakdown": {
-                    "ai_dimensions": {
-                        "news_sentiment": normalized["news_sentiment"],
-                        "macro_exposure": normalized["macro_exposure"],
-                        "position_sizing": normalized["position_sizing"],
-                        "volatility_trend": normalized["volatility_trend"],
-                    },
+                    "ai_dimensions": normalized,
                 },
             }
 

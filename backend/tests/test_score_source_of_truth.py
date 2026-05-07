@@ -41,11 +41,16 @@ class TestDeadCodeRemoved:
     def test_score_to_grade_is_only_grade_band(self):
         """The ONLY grade band definition is analysis_utils.score_to_grade."""
         assert callable(score_to_grade)
-        assert score_to_grade(80) == "A"
-        assert score_to_grade(65) == "B"
-        assert score_to_grade(50) == "C"
-        assert score_to_grade(35) == "D"
-        assert score_to_grade(34) == "F"
+        assert score_to_grade(95) == "AAA"
+        assert score_to_grade(80) == "AA"
+        assert score_to_grade(70) == "A"
+        assert score_to_grade(60) == "BBB"
+        assert score_to_grade(50) == "BB"
+        assert score_to_grade(40) == "B"
+        assert score_to_grade(30) == "CCC"
+        assert score_to_grade(20) == "CC"
+        assert score_to_grade(10) == "C"
+        assert score_to_grade(5) == "F"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -56,15 +61,25 @@ class TestCanonicalGradeBands:
     """score_to_grade() is the single source of truth for grade mapping."""
 
     def test_grade_boundaries(self):
-        assert score_to_grade(100) == "A"
-        assert score_to_grade(80) == "A"
-        assert score_to_grade(79.9) == "B"
-        assert score_to_grade(65) == "B"
-        assert score_to_grade(64.9) == "C"
-        assert score_to_grade(50) == "C"
-        assert score_to_grade(49.9) == "D"
-        assert score_to_grade(35) == "D"
-        assert score_to_grade(34.9) == "F"
+        assert score_to_grade(100) == "AAA"
+        assert score_to_grade(90) == "AAA"
+        assert score_to_grade(89.9) == "AA"
+        assert score_to_grade(80) == "AA"
+        assert score_to_grade(79.9) == "A"
+        assert score_to_grade(70) == "A"
+        assert score_to_grade(69.9) == "BBB"
+        assert score_to_grade(60) == "BBB"
+        assert score_to_grade(59.9) == "BB"
+        assert score_to_grade(50) == "BB"
+        assert score_to_grade(49.9) == "B"
+        assert score_to_grade(40) == "B"
+        assert score_to_grade(39.9) == "CCC"
+        assert score_to_grade(30) == "CCC"
+        assert score_to_grade(29.9) == "CC"
+        assert score_to_grade(20) == "CC"
+        assert score_to_grade(19.9) == "C"
+        assert score_to_grade(10) == "C"
+        assert score_to_grade(9.9) == "F"
         assert score_to_grade(0) == "F"
 
     def test_grade_is_deterministic(self):
@@ -74,7 +89,7 @@ class TestCanonicalGradeBands:
     def test_grade_never_returns_none(self):
         for score in range(-5, 106, 5):
             grade = score_to_grade(score)
-            assert grade in ("A", "B", "C", "D", "F")
+            assert grade in ("AAA", "AA", "A", "BBB", "BB", "B", "CCC", "CC", "C", "F")
 
     def test_all_scoring_functions_use_canonical_grade(self):
         """Verify every scoring function imports from analysis_utils."""

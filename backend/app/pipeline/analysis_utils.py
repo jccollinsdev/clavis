@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import hashlib
 import ast
 import json
@@ -114,12 +116,25 @@ _BANNED_PHRASES_PATTERNS: list[tuple[str, str]] = [
 ]
 
 _RISK_LEVELS: dict[str, str] = {
-    "A": "Low Risk",
-    "B": "Moderate Risk",
-    "C": "Elevated Risk",
-    "D": "High Risk",
-    "F": "Severe Risk",
+    "AAA": "Treasury-Grade",
+    "AA": "Investment-Grade Safe",
+    "A": "Solid",
+    "BBB": "Stable, Watch Points",
+    "BB": "Mixed Signals",
+    "B": "Elevated Risk",
+    "CCC": "High Risk",
+    "CC": "Severe Risk",
+    "C": "Distressed",
+    "F": "Failure Mode",
 }
+
+V2_DIMENSION_KEYS = [
+    "financial_health",
+    "news_sentiment",
+    "macro_exposure",
+    "sector_exposure",
+    "volatility",
+]
 
 _DRIVER_MAX_LENGTH = 60
 _RATIONALE_MAX_LENGTH = 140
@@ -136,9 +151,9 @@ _GENERIC_DRIVERS: dict[str, list[str]] = {
         "Favorable macro backdrop",
         "Rate sensitivity adds risk",
     ],
-    "sizing": [
-        "Concentration amplifies downside",
-        "Position size is manageable",
+    "sector": [
+        "Sector concentration risk",
+        "Sector breadth supports stability",
     ],
     "volatility": [
         "Elevated volatility",
@@ -469,19 +484,45 @@ def sanitize_public_analysis_text(value: Any) -> Any:
 
 
 def score_to_grade(score: float) -> str:
+    if score >= 90:
+        return "AAA"
     if score >= 80:
+        return "AA"
+    if score >= 70:
         return "A"
-    if score >= 65:
-        return "B"
+    if score >= 60:
+        return "BBB"
     if score >= 50:
+        return "BB"
+    if score >= 40:
+        return "B"
+    if score >= 30:
+        return "CCC"
+    if score >= 20:
+        return "CC"
+    if score >= 10:
         return "C"
-    if score >= 35:
-        return "D"
     return "F"
 
 
 def grade_to_risk_level(grade: str) -> str:
     return _RISK_LEVELS.get(grade.upper(), "Elevated Risk")
+
+
+def calculate_weighted_score(scores: dict) -> float:
+    values = [clamp_score(scores.get(key), 0) for key in V2_DIMENSION_KEYS]
+    limited_dimensions = [
+        key for key in V2_DIMENSION_KEYS
+        if key not in scores or scores.get(key) is None
+    ]
+    available = [v for v in values if v > 0 or (v == 0 and len(values) - len(limited_dimensions) > 1)]
+    if limited_dimensions:
+        valid_keys = [k for k in V2_DIMENSION_KEYS if k not in limited_dimensions]
+        valid_values = [clamp_score(scores.get(k), 0) for k in valid_keys]
+        if valid_values:
+            return sum(valid_values) / len(valid_values)
+        return 50.0
+    return sum(values) / len(values)
 
 
 def grade_direction(current_score: Optional[float], previous_score: Optional[float]) -> str:
@@ -583,10 +624,10 @@ def _sanitize_driver_text(text: str) -> str:
 
 
 def _pick_generic_drivers(grade: str, scores: Optional[Dict] = None) -> List[str]:
-    if grade in ("D", "F"):
-        drivers = _GENERIC_DRIVERS["news"][:1] + _GENERIC_DRIVERS["sizing"][:1]
-    elif grade == "C":
-        drivers = _GENERIC_DRIVERS["macro"][:1] + _GENERIC_DRIVERS["volatility"][:1]
+    if grade in ("CCC", "CC", "C", "F"):
+        drivers = _GENERIC_DRIVERS["news"][:1] + _GENERIC_DRIVERS["volatility"][:1]
+    elif grade in ("B", "BB"):
+        drivers = _GENERIC_DRIVERS["macro"][:1] + _GENERIC_DRIVERS["sector"][:1]
     else:
         drivers = _GENERIC_DRIVERS["fundamentals"][:1]
     if scores:
@@ -600,14 +641,17 @@ def _pick_generic_drivers(grade: str, scores: Optional[Dict] = None) -> List[str
                 return default
 
         news = _score_value("news_sentiment")
-        volatility = _score_value("volatility_trend")
+        volatility = _score_value("volatility")
         macro = _score_value("macro_exposure")
+        sector = _score_value("sector_exposure")
         if news < 35:
             drivers[0] = _GENERIC_DRIVERS["news"][0]
         elif news > 65:
             drivers[0] = _GENERIC_DRIVERS["news"][1]
         if volatility < 35:
             drivers[-1] = _GENERIC_DRIVERS["volatility"][0]
+        elif sector < 35:
+            drivers[-1] = _GENERIC_DRIVERS["sector"][0]
         elif macro < 35:
             drivers[-1] = _GENERIC_DRIVERS["macro"][0]
     return drivers[:2]

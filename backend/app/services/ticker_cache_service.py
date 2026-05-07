@@ -2171,6 +2171,17 @@ def build_risk_score_response(
                 if fallback.get("macro_exposure") is not None
                 else ai_dims.get("macro_exposure")
             ),
+            "financial_health": (
+                fallback.get("financial_health")
+                if fallback.get("financial_health") is not None
+                else ai_dims.get("financial_health")
+            ),
+            "sector_exposure": (
+                fallback.get("sector_exposure")
+                if fallback.get("sector_exposure") is not None
+                else ai_dims.get("sector_exposure")
+            ),
+            "volatility": ai_dims.get("volatility") or fallback.get("volatility"),
             "position_sizing": (
                 (
                     fallback.get("position_sizing")
@@ -2181,9 +2192,9 @@ def build_risk_score_response(
                 else None
             ),
             "volatility_trend": (
-                fallback.get("volatility_trend")
-                if fallback.get("volatility_trend") is not None
-                else ai_dims.get("volatility_trend")
+                ai_dims.get("volatility")
+                or fallback.get("volatility_trend")
+                or ai_dims.get("volatility_trend")
             ),
             "source_count": source_count,
             "major_event_count": major_event_count,

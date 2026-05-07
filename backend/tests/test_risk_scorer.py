@@ -23,8 +23,8 @@ def _assert_strict_rationale(text: str, grade: str):
     assert text
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     assert lines
-    assert re.fullmatch(
-        rf"{grade} — (Low|Moderate|Elevated|High|Severe) Risk \([↑↓→] (improving|worsening|stable)\)",
+    assert re.match(
+        rf"{grade} — (Treasury-Grade|Investment-Grade Safe|Solid|Stable, Watch Points|Mixed Signals|Elevated Risk|High Risk|Severe Risk|Distressed|Failure Mode) \([↑↓→] (improving|worsening|stable)\)",
         lines[0],
     )
     assert len(lines) <= 3
@@ -58,10 +58,11 @@ def test_neutral_gate_requires_all_dimensions():
     assert (
         risk_scorer.has_suspicious_neutral_scores(
             {
+                "financial_health": 50,
                 "news_sentiment": 50,
                 "macro_exposure": 50,
-                "position_sizing": 50,
-                "volatility_trend": 50,
+                "sector_exposure": 50,
+                "volatility": 50,
             }
         )
         is True
@@ -69,10 +70,11 @@ def test_neutral_gate_requires_all_dimensions():
     assert (
         risk_scorer.has_suspicious_neutral_scores(
             {
+                "financial_health": 50,
                 "news_sentiment": 50,
                 "macro_exposure": 50,
-                "position_sizing": 50,
-                "volatility_trend": 42,
+                "sector_exposure": 50,
+                "volatility": 42,
             }
         )
         is False
@@ -102,7 +104,7 @@ def test_score_position_synthesizes_reasoning_when_llm_returns_blank(monkeypatch
         risk_scorer,
         "chatcompletion_text",
         lambda **kwargs: (
-            '{"news_sentiment": 52, "macro_exposure": 49, "position_sizing": 61, "volatility_trend": 46, "grade": "C", "reasoning": "", "dimension_rationale": {}}'
+            '{"financial_health": 84, "news_sentiment": 52, "macro_exposure": 68, "sector_exposure": 71, "volatility": 89, "grade": "BBB", "reasoning": "", "dimension_rationale": {}}'
         ),
     )
 
@@ -128,7 +130,6 @@ def test_score_position_synthesizes_reasoning_when_llm_returns_blank(monkeypatch
     )
 
     assert result["reasoning"]
-    # Rationale must be investor-facing, not dimension-math
     assert "Company-specific news (" not in result["reasoning"]
     assert "adds risk at" not in result["reasoning"]
     assert result["coverage_state"] == "provisional"
@@ -140,8 +141,8 @@ def test_score_position_uses_canonical_grade_band_over_previous_grade(monkeypatc
         risk_scorer,
         "chatcompletion_text",
         lambda **kwargs: (
-            '{"news_sentiment": 65, "macro_exposure": 65, "position_sizing": 65, '
-            '"volatility_trend": 65, "grade": "D", "reasoning": "Balanced risk read.", '
+            '{"financial_health": 84, "news_sentiment": 65, "macro_exposure": 65, '
+            '"sector_exposure": 65, "volatility": 65, "grade": "CCC", "reasoning": "Balanced risk read.", '
             '"dimension_rationale": {}}'
         ),
     )
@@ -162,13 +163,13 @@ def test_score_position_uses_canonical_grade_band_over_previous_grade(monkeypatc
             {
                 "summary": "Company-specific catalyst",
                 "long_report": "Long-form report.",
-                "previous_grade": "D",
+                "previous_grade": "CCC",
             },
         )
     )
 
-    assert result["total_score"] == 65.0
-    assert result["grade"] == "B"
+    assert result["total_score"] == 68.8
+    assert result["grade"] == "BBB"
 
 
 def test_build_risk_score_response_surfaces_coverage_context():
@@ -176,12 +177,12 @@ def test_build_risk_score_response_surfaces_coverage_context():
         {
             "id": "snapshot-1",
             "safety_score": 58,
-            "grade": "C",
+            "grade": "BB",
             "source_count": 0,
             "analysis_as_of": "2026-04-21T18:00:00+00:00",
         },
         position_id="position-1",
-        latest_position_score={"reasoning": "", "total_score": 58, "grade": "C"},
+        latest_position_score={"reasoning": "", "total_score": 58, "grade": "BB"},
         coverage_context={
             "source_count": 0,
             "coverage_state": "provisional",
@@ -193,8 +194,7 @@ def test_build_risk_score_response_surfaces_coverage_context():
     assert response["coverage_state"] == "limited data"
     assert response["is_provisional"] is True
     assert response["source_count"] == 0
-    _assert_strict_rationale(response["reasoning"], "C")
-    # Rationale must be investor-facing, not dimension-math
+    _assert_strict_rationale(response["reasoning"], "BB")
     assert "Macro/sector exposure (" not in response["reasoning"]
     assert "adds risk at" not in response["reasoning"]
     assert "provisional" not in response["reasoning"].lower()
@@ -229,9 +229,9 @@ def test_build_risk_score_response_uses_latest_position_score_without_snapshot()
 
 def test_build_risk_score_response_ignores_draft_position_analysis_summary():
     response = build_risk_score_response(
-        {"id": "snapshot-1", "safety_score": 58, "grade": "C", "analysis_as_of": "2026-04-21T18:00:00+00:00"},
+        {"id": "snapshot-1", "safety_score": 58, "grade": "BB", "analysis_as_of": "2026-04-21T18:00:00+00:00"},
         position_id="position-1",
-        latest_position_score={"reasoning": "", "total_score": 58, "grade": "C"},
+        latest_position_score={"reasoning": "", "total_score": 58, "grade": "BB"},
         coverage_context={
             "status": "draft",
             "summary": "Quick brief ready for AMD. Found 3 relevant headlines and started the deeper analysis.",
@@ -241,6 +241,6 @@ def test_build_risk_score_response_ignores_draft_position_analysis_summary():
     )
 
     assert response is not None
-    _assert_strict_rationale(response["reasoning"], "C")
+    _assert_strict_rationale(response["reasoning"], "BB")
     assert "Quick brief ready" not in response["reasoning"]
     assert "started the deeper analysis" not in response["reasoning"]

@@ -4,7 +4,7 @@ import logging
 import httpx
 import os
 from collections import Counter
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from itertools import zip_longest
 from typing import Any
 from dateutil.parser import isoparse
@@ -2906,7 +2906,6 @@ async def execute_analysis_run(
                     position,
                     position_payloads[i],
                     inferred_labels=position_payloads[i].get("inferred_labels", []),
-                    mirofish_used=position_payloads[i].get("mirofish_used", False),
                 )
                 if not has_suspicious_neutral_scores(rescored):
                     position_payloads[i].update(rescored)
@@ -2992,16 +2991,11 @@ async def execute_analysis_run(
                     "analysis_run_id": analysis_run_id,
                     "news_sentiment": ai_scores.get("news_sentiment"),
                     "macro_exposure": ai_scores.get("macro_exposure"),
-                    "position_sizing": ai_scores.get("position_sizing"),
-                    "volatility_trend": ai_scores.get("volatility_trend"),
+                    "position_sizing": None,
+                    "volatility_trend": ai_scores.get("volatility"),
                     "total_score": round(total_score, 1),
                     "safety_score": structural_scores.get("safety_score"),
                     "confidence": structural_scores.get("confidence"),
-                    "structural_base_score": structural_scores.get(
-                        "structural_base_score"
-                    ),
-                    "macro_adjustment": structural_scores.get("macro_adjustment"),
-                    "event_adjustment": structural_scores.get("event_adjustment"),
                     "factor_breakdown": {
                         **(
                             structural_scores.get("factor_breakdown")
@@ -3011,35 +3005,30 @@ async def execute_analysis_run(
                             else {}
                         ),
                         "ai_dimensions": {
+                            "financial_health": ai_scores.get("financial_health"),
                             "news_sentiment": ai_scores.get("news_sentiment"),
                             "macro_exposure": ai_scores.get("macro_exposure"),
-                            "position_sizing": ai_scores.get("position_sizing"),
-                            "volatility_trend": ai_scores.get("volatility_trend"),
+                            "sector_exposure": ai_scores.get("sector_exposure"),
+                            "volatility": ai_scores.get("volatility"),
                         },
-                        # Preserve whether the final score came from the LLM path so
-                        # ticker snapshot sync can label methodology correctly later.
                         "llm_scoring_used": bool(ai_scores.get("llm_scoring_used")),
                     },
                     "grade": grade,
                     "reasoning": ai_scores.get("reasoning"),
-                    "grade_reason": ai_scores.get("grade_reason"),
                     "evidence_summary": ai_scores.get("evidence_summary"),
                     "dimension_rationale": ai_scores.get("dimension_rationale"),
-                    "mirofish_used": ai_scores.get(
-                        "mirofish_used", structural_scores.get("mirofish_used", False)
-                    ),
                 }
-                if artifact_enabled:
-                    record_position_artifact(
-                        ticker,
-                        "risk_payload",
-                        {
-                            "structural_scores": structural_scores,
-                            "ai_scores": ai_scores,
-                            "risk_payload": risk_payload,
-                        },
-                    )
                 supabase.table("risk_scores").insert(risk_payload).execute()
+
+                if "ticker" in position or position.get("ticker"):
+                    ticker_val = position.get("ticker") or position.get("ticker")
+                    _upsert_ticker_snapshot_from_scores(
+                        supabase,
+                        ticker=ticker_val,
+                        ai_scores=ai_scores,
+                        structural_scores=structural_scores,
+                        analysis_run_id=analysis_run_id,
+                    )
 
                 _upsert_position_analysis(
                     supabase,
@@ -5204,6 +5193,48 @@ def _schedule_sp500_daily_refresh() -> None:
         kwargs={"job_type": "daily"},
         next_run_time=_next_et_time(8, 0),
     )
+
+
+def _upsert_ticker_snapshot_from_scores(
+    supabase,
+    *,
+    ticker: str,
+    ai_scores: dict,
+    structural_scores: dict,
+    analysis_run_id: str | None = None,
+) -> None:
+    today = date.today()
+    composite = ai_scores.get("total_score") or structural_scores.get("safety_score") or 50
+    grade = ai_scores.get("grade") or structural_scores.get("grade") or score_to_grade(composite)
+
+    payload = {
+        "ticker": ticker,
+        "snapshot_date": today,
+        "snapshot_type": "daily",
+        "grade": grade,
+        "safety_score": structural_scores.get("safety_score"),
+        "financial_health": ai_scores.get("financial_health"),
+        "news_sentiment_dim": ai_scores.get("news_sentiment"),
+        "macro_exposure_dim": ai_scores.get("macro_exposure"),
+        "sector_exposure": ai_scores.get("sector_exposure"),
+        "volatility": ai_scores.get("volatility"),
+        "composite_score": composite,
+        "confidence": structural_scores.get("confidence"),
+        "reasoning": ai_scores.get("reasoning"),
+        "dimension_rationale": ai_scores.get("dimension_rationale"),
+        "factor_breakdown": ai_scores.get("factor_breakdown") or {},
+        "analysis_as_of": datetime.now(timezone.utc).isoformat(),
+        "methodology_version": "v2",
+        "refresh_triggered_by_user_id": None,
+    }
+
+    try:
+        supabase.table("ticker_risk_snapshots").upsert(
+            payload,
+            on_conflict="ticker,snapshot_date,snapshot_type",
+        ).execute()
+    except Exception as exc:
+        logger.warning("ticker_risk_snapshots upsert failed for %s: %s", ticker, exc)
 
 
 def _cleanup_old_news_items() -> None:

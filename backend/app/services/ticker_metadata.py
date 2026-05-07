@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 import requests
 import time
@@ -211,6 +212,48 @@ def fetch_ticker_details_from_finnhub(ticker: str) -> dict | None:
         beta = metric_values.get("beta")
         float_shares = metric_values.get("sharesFloat")
 
+        debt_to_equity = _metric_as_float(metric_values, "totalDebt/totalEquityAnnual")
+        if debt_to_equity is None:
+            debt_to_equity = _metric_as_float(metric_values, "longTermDebt/equityAnnual")
+        if debt_to_equity is None:
+            debt_to_equity = _metric_as_float(metric_values, "currentEV/freeCashFlowAnnual")
+
+        fcf_margin = None
+        fcf = _metric_as_float(metric_values, "freeCashFlowAnnual")
+        rev = _metric_as_float(metric_values, "revenueAnnual")
+        if fcf is not None and rev and rev > 0:
+            fcf_margin = fcf / rev
+
+        interest_coverage = None
+        ebit = _metric_as_float(metric_values, "ebitdPerShareAnnual")
+        interest = _metric_as_float(metric_values, "totalDebt/totalEquityAnnual")
+        if interest_coverage is None:
+            interest_cov_raw = metric_values.get("interestCoverageAnnual")
+            interest_cov_raw2 = metric_values.get("interestCoverageQuarterly")
+            if interest_cov_raw is not None:
+                interest_coverage = _safe_metric_float(interest_cov_raw)
+            elif interest_cov_raw2 is not None:
+                interest_coverage = _safe_metric_float(interest_cov_raw2)
+
+        current_ratio = _metric_as_float(metric_values, "currentRatioAnnual")
+        if current_ratio is None:
+            current_ratio = _metric_as_float(metric_values, "currentRatioQuarterly")
+
+        revenue_growth_trend = None
+        rev_growth_yoy = _metric_as_float(metric_values, "revenueGrowthQuarterlyYoy")
+        rev_growth_3y = _metric_as_float(metric_values, "revenueGrowth3Y")
+        if rev_growth_yoy is not None:
+            revenue_growth_trend = rev_growth_yoy
+        elif rev_growth_3y is not None:
+            revenue_growth_trend = rev_growth_3y
+
+        profitability_profile = _get_profitability_profile(
+            _metric_as_float(metric_values, "netProfitMarginAnnual"),
+            _metric_as_float(metric_values, "roeAnnual"),
+        )
+        leverage_profile = _get_leverage_profile(debt_to_equity)
+        macro_sens = _get_macro_sensitivity(beta)
+
         return {
             "company_name": profile_data.get("name"),
             "ticker": ticker.upper(),
@@ -235,6 +278,15 @@ def fetch_ticker_details_from_finnhub(ticker: str) -> dict | None:
             "avg_volume": avg_volume or ten_day_avg,
             "last_price_source": "finnhub",
             "is_supported": True,
+
+            "debt_to_equity": debt_to_equity,
+            "fcf_margin": fcf_margin,
+            "interest_coverage": interest_coverage,
+            "current_ratio": current_ratio,
+            "revenue_growth_trend": revenue_growth_trend,
+            "profitability_profile": profitability_profile,
+            "leverage_profile": leverage_profile,
+            "macro_sensitivity": macro_sens,
         }
     except Exception as e:
         print(f"Error fetching Finnhub ticker details for {ticker}: {e}")
@@ -343,6 +395,33 @@ def _get_leverage_profile(debt_to_equity: float | None) -> str:
     if debt_to_equity <= 1.5:
         return "moderate"
     if debt_to_equity <= 3.0:
+        return "high"
+    return "very_high"
+
+
+def _safe_metric_float(value) -> float | None:
+    try:
+        if value is None or value == "":
+            return None
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _metric_as_float(metric_values: dict, key: str) -> float | None:
+    raw = metric_values.get(key)
+    return _safe_metric_float(raw)
+
+
+def _get_macro_sensitivity(beta) -> str:
+    beta_val = _safe_metric_float(beta)
+    if beta_val is None:
+        return "moderate"
+    if beta_val <= 0.6:
+        return "low"
+    if beta_val <= 1.2:
+        return "moderate"
+    if beta_val <= 1.8:
         return "high"
     return "very_high"
 
