@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clavix iOS — Figma Export</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:#C8C8C8;
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+  padding:48px;
+  min-height:100vh;
+}
+:root{
+  --bg:#0B0D12;
+  --surface:#14171E;
+  --sur-el:#1B1F28;
+  --sur-mut:#101319;
+  --border:#242934;
+  --bdr-sub:#1E232D;
+  --tx1:#EEF1F5;
+  --tx2:#8A93A3;
+  --tx3:#5A6374;
+  --info:#3B82C4;
+  --ra:#1D9E75;
+  --rb:#639922;
+  --rc:#BA7517;
+  --rd:#D85A30;
+  --rf:#C8342B;
+  --ga-bg:#E1F5EE;--ga-tx:#085041;
+  --gb-bg:#EAF3DE;--gb-tx:#27500A;
+  --gc-bg:#FAEEDA;--gc-tx:#633806;
+  --gd-bg:#FAECE7;--gd-tx:#712B13;
+  --gf-bg:#FCEBEB;--gf-tx:#791F1F;
+  --cp:14px;--sp:16px;--cr:12px;--ir:10px;--sg:10px;
+}
+
+/* ── Canvas ─────────────────────────────────── */
+.canvas{display:flex;flex-direction:row;gap:40px;align-items:flex-start;flex-wrap:nowrap}
+.frame-wrap{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.frame-label{font-size:12px;font-weight:600;color:#333;letter-spacing:.3px}
+
+/* ── Phone Frame ─────────────────────────────── */
+.phone{
+  width:393px;height:852px;
+  background:var(--bg);
+  border-radius:44px;overflow:hidden;
+  display:flex;flex-direction:column;
+  box-shadow:0 20px 70px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.08);
+  position:relative;flex-shrink:0;
+}
+
+/* ── Status Bar ─────────────────────────────── */
+.status{
+  height:59px;background:var(--bg);
+  display:flex;align-items:flex-end;
+  padding:0 28px 10px;flex-shrink:0;position:relative;
+}
+.status::before{
+  content:'';position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  width:126px;height:35px;background:#000;border-radius:20px;
+}
+.status-time{font-size:15px;font-weight:600;color:var(--tx1);}
+.status-right{margin-left:auto;display:flex;align-items:center;gap:5px}
+.status-right svg{width:16px;height:16px;fill:var(--tx1)}
+
+/* ── Content ─────────────────────────────── */
+.content{flex:1;overflow-y:scroll;overflow-x:hidden;background:var(--bg);scrollbar-width:none}
+.content::-webkit-scrollbar{display:none}
+.screen{padding:0 var(--sp) 20px;display:flex;flex-direction:column;gap:var(--sg)}
+
+/* ── Tab Bar ─────────────────────────────── */
+.tabbar{
+  height:83px;background:var(--bg);border-top:1px solid var(--bdr-sub);
+  display:flex;align-items:flex-start;padding-top:8px;flex-shrink:0;position:relative;
+}
+.tabbar::after{
+  content:'';position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+  width:134px;height:5px;background:var(--tx1);border-radius:3px;opacity:.2;
+}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding-top:2px}
+.tab svg{width:22px;height:22px;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tab-lbl{font-size:10px;font-weight:500}
+.tab.on svg,.tab.on .tab-lbl{stroke:var(--tx1);color:var(--tx1)}
+.tab.off svg,.tab.off .tab-lbl{stroke:var(--tx2);color:var(--tx2)}
+
+/* ── Page Header ─────────────────────────── */
+.pg-header{padding-top:6px;display:flex;flex-direction:column;gap:12px}
+.wm-row{display:flex;align-items:center;justify-content:space-between;height:34px}
+.wm{font-size:17px;font-weight:700;color:var(--tx1);letter-spacing:-.2px}
+.wm-acc{display:flex;gap:6px;align-items:center}
+.pg-title{font-size:28px;font-weight:600;color:var(--tx1);letter-spacing:-.3px;line-height:1.1}
+.pg-sub{font-size:13px;color:var(--tx2);margin-top:3px}
+
+/* ── Ticker Nav Bar ───────────────────────── */
+.tnav{display:flex;flex-direction:column;gap:4px;padding-top:4px}
+.tnav-row1{display:flex;align-items:center;justify-content:space-between}
+.back-btn{display:flex;align-items:center;gap:2px;color:var(--info);font-size:15px}
+.back-btn svg{width:11px;height:11px;stroke:var(--info);stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.tnav-actions{display:flex;gap:4px}
+
+/* ── Icon Button ─────────────────────────── */
+.ibtn{width:32px;height:32px;display:flex;align-items:center;justify-content:center}
+.ibtn svg{width:18px;height:18px;fill:none;stroke:var(--tx1);stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.ibtn-star svg{stroke:var(--info);fill:var(--info)}
+
+/* ── Section Label ───────────────────────── */
+.sl{font-size:11px;font-weight:600;color:var(--tx2);letter-spacing:.8px;text-transform:uppercase}
+
+/* ── Cards ───────────────────────────────── */
+.card{background:var(--surface);border-radius:var(--cr);border:1px solid var(--border);padding:var(--cp)}
+.card-el{background:var(--sur-el);border-radius:var(--cr);border:1px solid var(--border);padding:var(--cp)}
+.card-inner{background:var(--sur-el);border-radius:var(--ir);border:1px solid var(--border);padding:var(--cp)}
+.card-flush{background:var(--surface);border-radius:var(--cr);border:1px solid var(--border);padding:0 14px}
+.card-raised{background:var(--sur-el);border-radius:var(--ir);border:1px solid var(--border);padding:10px}
+
+/* ── Grade Badge ─────────────────────────── */
+.gb{display:inline-flex;align-items:center;justify-content:center;font-family:'JetBrains Mono','SFMono-Regular',Consolas,monospace;font-weight:700;border-radius:4px;line-height:1;flex-shrink:0}
+.gb.c{width:26px;height:20px;font-size:13px}
+.gb.s{width:34px;height:26px;font-size:13px}
+.gb.l{width:76px;height:76px;font-size:40px}
+.gA{background:var(--ga-bg);color:var(--ga-tx)}
+.gB{background:var(--gb-bg);color:var(--gb-tx)}
+.gC{background:var(--gc-bg);color:var(--gc-tx)}
+.gD{background:var(--gd-bg);color:var(--gd-tx)}
+.gF{background:var(--gf-bg);color:var(--gf-tx)}
+.g-{background:var(--sur-el);color:var(--tx2)}
+
+/* ── Grade Display Hero ──────────────────── */
+.gd-hero{display:flex;align-items:center;gap:14px}
+.gd-info{display:flex;flex-direction:column;gap:6px}
+.gd-score{display:flex;align-items:baseline;gap:6px}
+.gd-slabel{font-size:11px;font-weight:500;color:var(--tx2)}
+.gd-sval{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--tx2)}
+.gd-sprev{font-size:11px;color:var(--tx3)}
+
+/* ── Risk Direction ──────────────────────── */
+.rd{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600}
+.rd-w{color:var(--rd)}
+.rd-i{color:var(--ra)}
+.rd-s{color:var(--tx2)}
+
+/* ── Evidence Dots ───────────────────────── */
+.edots{display:flex;align-items:center;gap:4px}
+.edot{width:5px;height:5px;border-radius:50%}
+
+/* ── Chips ────────────────────────────────── */
+.chip{font-size:10px;font-weight:500;padding:3px 6px;background:var(--sur-el);border-radius:4px;border:.5px solid var(--border);line-height:1.3;display:inline-flex;align-items:center;white-space:nowrap}
+.chip-src{color:var(--info)}
+.chip-fresh{color:var(--tx3)}
+.chip-stale{color:var(--rc)}
+
+/* ── Risk Bar ─────────────────────────────── */
+.rbar{width:100%;height:4px;background:var(--border);position:relative;overflow:hidden}
+.rbar-fill{position:absolute;top:0;left:0;height:100%}
+
+/* ── Stat Strip ──────────────────────────── */
+.stat-strip{display:flex;flex-direction:row;background:var(--surface);border-radius:var(--cr);border:1px solid var(--border);overflow:hidden}
+.stat-cell{flex:1;padding:14px;display:flex;flex-direction:column;gap:4px;position:relative}
+.stat-cell:not(:last-child)::after{content:'';position:absolute;right:0;top:0;bottom:0;width:1px;background:var(--border)}
+.stat-lbl{font-size:11px;font-weight:500;color:var(--tx2)}
+.stat-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--tx1)}
+.stat-det{font-size:11px;color:var(--tx2)}
+
+/* ── Divider ─────────────────────────────── */
+.div{width:100%;height:1px;background:var(--border)}
+
+/* ── Small Buttons ───────────────────────── */
+.sbtn{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:var(--ir);font-size:13px;font-weight:500;border:1px solid var(--border);white-space:nowrap}
+.sbtn-n{background:var(--sur-el);color:var(--tx2)}
+.sbtn-p{background:var(--tx1);color:var(--bg);border-color:var(--tx1);font-weight:600}
+
+/* ── Filter Pills ────────────────────────── */
+.fpill{display:inline-flex;align-items:center;padding:7px 12px;border-radius:var(--ir);font-size:13px;white-space:nowrap;border:1px solid var(--border)}
+.fpill-on{background:var(--tx1);color:var(--bg);font-weight:600;border-color:var(--tx1)}
+.fpill-off{background:transparent;color:var(--tx2);font-weight:500}
+
+/* ── Toggle ──────────────────────────────── */
+.tog{width:51px;height:31px;border-radius:16px;position:relative;flex-shrink:0}
+.tog::after{content:'';width:27px;height:27px;border-radius:50%;background:#fff;position:absolute;top:2px;box-shadow:0 2px 4px rgba(0,0,0,.4)}
+.tog-on{background:#34C759}.tog-on::after{right:2px}
+.tog-off{background:#3A3D47}.tog-off::after{left:2px}
+
+/* ── Position Row ────────────────────────── */
+.pos-row{display:flex;flex-direction:column}
+.pos-row-content{display:flex;align-items:center;gap:12px;padding:13px 0}
+
+/* ── Settings Row ────────────────────────── */
+.set-row{display:flex;align-items:center;min-height:44px;padding:13px 0;position:relative}
+.set-row-bdr::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--border)}
+
+/* ── Timeline ────────────────────────────── */
+.tl-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;position:relative}
+.tl-spine{display:flex;flex-direction:column;align-items:center;gap:4px;width:26px;flex-shrink:0}
+.tl-conn{width:1px;flex:1;min-height:16px;background:var(--border)}
+.tl-body{flex:1;display:flex;flex-direction:column;gap:5px}
+.tl-bdr::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--border);transform:translateX(18px)}
+
+/* ── Metric Grid ─────────────────────────── */
+.mgrid{display:grid;grid-template-columns:1fr 1fr 1fr}
+.mcell{padding:12px 14px;display:flex;flex-direction:column;gap:4px;position:relative;background:var(--surface)}
+.mcell:not(:last-child)::after{content:'';position:absolute;right:0;top:0;bottom:0;width:1px;background:var(--border)}
+
+/* ── Risk Dim Bar ────────────────────────── */
+.rdim{display:flex;flex-direction:column;gap:6px}
+.rdim-hd{display:flex;justify-content:space-between;align-items:center}
+.rdim-trk{width:100%;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.rdim-fill{height:100%;border-radius:2px;background:rgba(238,241,245,.55)}
+
+/* ── Misc ────────────────────────────────── */
+.hstack{display:flex;flex-direction:row;align-items:center}
+.vstack{display:flex;flex-direction:column}
+.sp{flex:1}
+.chips-row{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
+.ticker-tag{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--tx1);padding:3px 6px;background:var(--sur-el);border-radius:4px;display:inline-flex}
+.left-accent-d{border-left:3px solid var(--rd);border-radius:var(--cr);overflow:hidden}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bullet-item{display:flex;align-items:flex-start;gap:10px}
+.bdot{width:6px;height:6px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.bdot-gray{background:rgba(138,147,163,.55)}
+.bdot-rd{background:rgba(216,90,48,.5)}
+.bdot-crit{background:rgba(200,52,43,.7)}
+.section-grp{display:flex;flex-direction:column;gap:8px}
+.search-bar{background:var(--sur-el);border-radius:var(--ir);border:1px solid var(--border);padding:12px;display:flex;align-items:center;gap:10px}
+.grade-change-row{display:flex;align-items:center;gap:6px}
+.detail-chip{font-size:11px;font-weight:500;color:var(--tx3);padding:3px 6px;background:var(--sur-el);border-radius:4px}
+.horizon-tag{font-size:10px;font-weight:500;color:var(--tx2);padding:2px 5px;background:var(--sur-el);border-radius:4px}
+.lh16{line-height:1.6}
+.lh14{line-height:1.4}
+</style>
+</head>
+<body>
+<div class="canvas">
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 1 — HOME / DASHBOARD
+     ═══════════════════════════════════════════════════════ -->
+<div class="frame-wrap">
+<div class="frame-label">1 · Home / Dashboard</div>
+<div class="phone">
+
+  <!-- Status Bar -->
+  <div class="status">
+    <span class="status-time">9:41</span>
+    <div class="status-right">
+      <svg viewBox="0 0 16 12"><path d="M1 9h2v3H1zM5 6h2v6H5zM9 3h2v9H9zM13 0h2v12h-2z" fill="var(--tx1)"/></svg>
+      <svg viewBox="0 0 16 12"><path d="M8 2.4C5.4 2.4 3.1 3.5 1.5 5.3L0 3.8C2 1.5 4.8 0 8 0s6 1.5 8 3.8L14.5 5.3C12.9 3.5 10.6 2.4 8 2.4zm0 4.8c-1.4 0-2.6.6-3.5 1.5L3 7.2C4.3 5.9 6.1 5.1 8 5.1s3.7.8 5 2.1L11.5 8.7C10.6 7.8 9.4 7.2 8 7.2zm0 4.8c-.8 0-1.5.3-2 .8L8 15l2-2.8c-.5-.5-1.2-.8-2-.8z" fill="var(--tx1)"/></svg>
+      <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="var(--tx1)" stroke-width="1.2" fill="none"/><rect x="1.5" y="2.5" width="17" height="7" rx="1.5" fill="var(--tx1)"/><path d="M23 4.5v3c.8-.4 1.5-1 1.5-1.5S23.8 4.9 23 4.5z" fill="var(--tx1)"/></svg>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+  <div class="screen">
+
+    <!-- Page Header -->
+    <div class="pg-header">
+      <div class="wm-row">
+        <span class="wm">Clavix</span>
+        <div class="wm-acc">
+          <div class="ibtn">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="pg-title">Good morning</div>
+        <div class="pg-sub">Fri May 2</div>
+      </div>
+    </div>
+
+    <!-- Portfolio Score Hero Card -->
+    <div class="card">
+      <div class="vstack" style="gap:0">
+        <div class="sl" style="margin-bottom:10px">Portfolio Score</div>
+
+        <!-- GradeDisplay hero -->
+        <div class="gd-hero">
+          <div class="gb l gC">C</div>
+          <div class="gd-info">
+            <span class="rd rd-s">→ stable</span>
+            <div class="gd-score">
+              <span class="gd-slabel">Score</span>
+              <span class="gd-sval">57</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chips -->
+        <div class="chips-row" style="margin-top:6px">
+          <span class="chip chip-src">Portfolio-specific</span>
+          <span class="chip chip-fresh">Updated 2h ago</span>
+        </div>
+
+        <!-- Summary -->
+        <p style="font-size:15px;color:var(--tx2);line-height:1.6;margin-top:10px">
+          Mixed signals across holdings. AMD showing elevated risk from earnings pressure while HOOD stabilized post-earnings. Portfolio at moderate risk.
+        </p>
+
+        <!-- Buttons -->
+        <div class="hstack" style="gap:8px;margin-top:16px">
+          <button class="sbtn sbtn-n">
+            <svg style="width:14px;height:14px;stroke:var(--tx2);fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15A9 9 0 1 1 18 5.5"/></svg>
+            Refresh
+          </button>
+          <button class="sbtn sbtn-p">Run</button>
+        </div>
+
+        <!-- Footer meta -->
+        <div class="hstack" style="gap:6px;margin-top:8px">
+          <span style="font-size:11px;color:var(--tx2)">Updated 8:02 AM</span>
+          <span style="font-size:11px;color:var(--tx2)">·</span>
+          <span style="font-size:11px;color:var(--tx2)">Next 6:00 AM</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stat Strip -->
+    <div class="stat-strip">
+      <div class="stat-cell">
+        <span class="stat-lbl">At risk</span>
+        <span class="stat-val">1</span>
+        <span class="stat-det">of 2 holdings</span>
+      </div>
+      <div class="stat-cell">
+        <span class="stat-lbl">Alerts</span>
+        <span class="stat-val">3</span>
+        <span class="stat-det">recent changes</span>
+      </div>
+      <div class="stat-cell">
+        <span class="stat-lbl">Watchlist</span>
+        <span class="stat-val">2</span>
+        <span class="stat-det">items tracked</span>
+      </div>
+    </div>
+
+    <!-- Needs Attention Card -->
+    <div class="card">
+      <div class="vstack" style="gap:12px">
+        <span style="font-size:15px;font-weight:600;color:var(--tx1)">Needs Attention</span>
+
+        <!-- AMD attention row -->
+        <div class="card-inner">
+          <div class="vstack" style="gap:10px">
+            <div class="hstack" style="gap:12px;align-items:flex-start">
+              <div class="vstack" style="gap:4px;flex:1">
+                <span style="font-size:15px;font-weight:600;color:var(--tx1)">AMD</span>
+                <span style="font-size:12px;color:var(--tx2);line-height:1.4">Earnings miss concerns and elevated macro exposure.</span>
+              </div>
+              <div class="vstack" style="gap:4px;align-items:flex-end">
+                <div class="gb c gD">D</div>
+                <span class="rd rd-w">↑ worsening</span>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--tx2)">42</span>
+              </div>
+            </div>
+            <div class="rbar"><div class="rbar-fill" style="width:42%;background:var(--rd)"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- What Changed Card -->
+    <div class="card">
+      <div class="vstack" style="gap:10px">
+        <div class="hstack">
+          <span class="sl">What changed · 3</span>
+          <div class="sp"></div>
+          <span style="font-size:13px;color:var(--info)">See all</span>
+        </div>
+
+        <!-- Portfolio row -->
+        <div class="hstack" style="gap:10px;align-items:flex-start">
+          <div class="gb c gC">C</div>
+          <div class="vstack" style="gap:2px;flex:1">
+            <span style="font-size:12px;font-weight:600;color:var(--tx1)">Portfolio</span>
+            <span style="font-size:12px;color:var(--tx2);line-height:1.4">Score 57 · Elevated</span>
+          </div>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--tx2)">2h ago</span>
+        </div>
+
+        <!-- AMD row -->
+        <div class="hstack" style="gap:10px;align-items:flex-start">
+          <div class="gb c gD">D</div>
+          <div class="vstack" style="gap:2px;flex:1">
+            <span style="font-size:12px;font-weight:600;color:var(--tx1)">AMD</span>
+            <span style="font-size:12px;color:var(--tx2);line-height:1.4">Grade changed C→D · Earnings miss, elevated risk</span>
+          </div>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--tx2)">4h ago</span>
+        </div>
+
+        <!-- HOOD row -->
+        <div class="hstack" style="gap:10px;align-items:flex-start">
+          <div class="gb c gB">B</div>
+          <div class="vstack" style="gap:2px;flex:1">
+            <span style="font-size:12px;font-weight:600;color:var(--tx1)">HOOD</span>
+            <span style="font-size:12px;color:var(--tx2);line-height:1.4">Score 71 · Stable</span>
+          </div>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--tx2)">6h ago</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Risk Contributors Card -->
+    <div class="card">
+      <div class="vstack" style="gap:10px">
+        <div class="sl">Portfolio risk contributors</div>
+        <div class="bullet-item">
+          <div class="bdot" style="background:rgba(216,90,48,.5)"></div>
+          <span style="font-size:12px;font-weight:600;color:var(--tx1);line-height:1.5">AMD earnings risk and near-term guidance uncertainty</span>
+        </div>
+        <div class="bullet-item">
+          <div class="bdot bdot-gray"></div>
+          <span style="font-size:12px;font-weight:600;color:var(--tx1);line-height:1.5">Macro rate sensitivity elevated across tech names</span>
+        </div>
+        <div class="bullet-item">
+          <div class="bdot bdot-gray"></div>
+          <span style="font-size:12px;font-weight:600;color:var(--tx1);line-height:1.5">Semiconductor sector headwinds from AI capex slowdown</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Morning Rating Teaser -->
+    <div class="card">
+      <div class="vstack" style="gap:8px">
+        <div class="hstack">
+          <span class="sl">Morning rating</span>
+          <div class="sp"></div>
+          <div class="gb c gC">C</div>
+        </div>
+        <p style="font-size:15px;font-weight:500;color:var(--tx1);line-height:1.5">Portfolio at moderate risk with AMD earnings headwinds partially offset by HOOD stability.</p>
+        <div class="hstack" style="gap:8px">
+          <span class="chip chip-src">Portfolio-specific</span>
+          <span class="chip chip-fresh">Updated 2h ago</span>
+          <div class="sp"></div>
+          <span style="font-size:12px;color:var(--tx2)">Today 8:02 AM</span>
+          <span style="color:var(--tx3)"> · </span>
+          <span style="font-size:13px;font-weight:500;color:var(--info)">Read rating →</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tabbar">
+    <div class="tab on">
+      <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="var(--tx1)" fill="none"/><path d="M9 21V12h6v9" stroke="var(--tx1)" fill="none"/></svg>
+      <span class="tab-lbl">Home</span>
+    </div>
+    <div class="tab off">
+      <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+      <span class="tab-lbl">Holdings</span>
+    </div>
+    <div class="tab off">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span class="tab-lbl">Rating</span>
+    </div>
+    <div class="tab off">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <span class="tab-lbl">Alerts</span>
+    </div>
+    <div class="tab off">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      <span class="tab-lbl">Settings</span>
+    </div>
+  </div>
+</div><!-- /phone -->
+</div><!-- /frame-wrap -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 2 — HOLDINGS
+     ═══════════════════════════════════════════════════════ -->
+<div class="frame-wrap">
+<div class="frame-label">2 · Holdings</div>
+<div class="phone">
+
+  <div class="status">
+    <span class="status-time">9:41</span>
+    <div class="status-right">
+      <svg viewBox="0 0 16 12"><path d="M1 9h2v3H1zM5 6h2v6H5zM9 3h2v9H9zM13 0h2v12h-2z" fill="var(--tx1)"/></svg>
+      <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="var(--tx1)" stroke-width="1.2" fill="none"/><rect x="1.5" y="2.5" width="17" height="7" rx="1.5" fill="var(--tx1)"/></svg>
+    </div>
+  </div>
+
+  <div class="content">
+  <div class="screen">
+
+    <!-- Header -->
+    <div class="pg-header">
+      <div class="wm-row">
+        <span class="wm">Clavix</span>
+        <div class="wm-acc">
+          <div class="ibtn">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <div class="ibtn">
+            <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15A9 9 0 1 1 18 5.5"/></svg>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="pg-title">Holdings</div>
+        <div class="pg-sub">Updated May 2 · Brokerage sync May 2</div>
+      </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-bar">
+      <svg style="width:15px;height:15px;stroke:var(--tx2);fill:none;stroke-width:2;stroke-linecap:round;flex-shrink:0" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span style="font-size:15px;color:var(--tx2)">Search ticker or company</span>
+    </div>
+
+    <!-- Control Card -->
+    <div class="card">
+      <div class="vstack" style="gap:10px">
+        <!-- Filter Pills -->
+        <div class="hstack" style="gap:8px;flex-wrap:nowrap;overflow:hidden">
+          <span class="fpill fpill-on">All</span>
+          <span class="fpill fpill-off">Grade D/F</span>
+          <span class="fpill fpill-off">Improving</span>
+          <span class="fpill fpill-off">Watchlist</span>
+        </div>
+        <!-- Sort row -->
+        <div class="hstack" style="gap:8px">
+          <div class="sp"></div>
+          <span style="font-size:12px;color:var(--tx2)">Sort</span>
+          <span style="font-size:13px;font-weight:500;color:var(--tx1)">Grade</span>
+          <svg style="width:10px;height:10px;stroke:var(--tx1);fill:none;stroke-width:2.5;stroke-linecap:round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          <span style="font-size:12px;font-weight:500;color:var(--tx1);margin-left:8px">Refresh</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Downgraded section -->
+    <div class="section-grp">
+      <span style="font-size:11px;font-weight:600;color:var(--tx2);letter-spacing:.8px;text-transform:uppercase">Downgraded · 1</span>
+
+      <div style="background:var(--surface);border-radius:var(--cr);border:1px solid var(--border);overflow:hidden;position:relative">
+        <!-- left accent -->
+        <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--rd);border-radius:1.5px"></div>
+        <div style="padding:0 14px">
+          <!-- AMD row -->
+          <div class="pos-row-content">
+            <div class="gb s gD">D</div>
+            <div class="vstack" style="gap:3px;flex:1">
+              <div class="hstack" style="gap:8px">
+                <span style="font-size:15px;font-weight:600;color:var(--tx1)">AMD</span>
+                <span style="font-size:12px;color:var(--tx2)">Growth</span>
+              </div>
+              <span style="font-size:12px;color:var(--tx2);line-height:1.4">Elevated risk following Q4 earnings miss and guidance cut. Data center weakness pressuring near-term outlook.</span>
+              <div class="chips-row" style="margin-top:2px">
+                <div class="edots">
+                  <div class="edot" style="background:rgba(216,90,48,.4);outline:.5px solid rgba(216,90,48,.4)"></div>
+                  <div class="edot" style="background:rgba(216,90,48,.4);outline:.5px solid rgba(216,90,48,.4)"></div>
+                  <div class="edot" style="background:rgba(216,90,48,.1);outline:.5px solid rgba(216,90,48,.4)"></div>
+                </div>
+                <span class="chip chip-src">Portfolio-specific</span>
+                <span class="chip chip-fresh">Updated 4h ago</span>
+              </div>
+            </div>
+            <div class="vstack" style="gap:4px;align-items:flex-end">
+              <span class="rd rd-w">↑ worsening</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:var(--tx2)">42</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- All holdings section -->
+    <div class="section-grp">
+      <span style="font-size:11px;font-weight:600;color:var(--tx2);letter-spacing:.8px;text-transform:uppercase">All holdings · 2</span>
+
+      <div style="background:var(--surface);border-radius:var(--cr);border:1px solid var(--border);padding:0 14px">
+
+        <!-- AMD row -->
+        <div class="pos-row">
+          <div class="pos-row-content">
+            <div class="gb s gD">D</div>
+            <div class="vstack" style="gap:3px;flex:1">
+              <div class="hstack" style="gap:8px">
+                <span style="font-size:15px;font-weight:600;color:var(--tx1)">AMD</span>
+                <span style="font-size:12px;color:var(--tx2)">Growth</span>
+              </div>
+              <span style="font-size:12px;color:var(--tx2);line-height:1.4">Elevated risk following Q4 earnings miss and guidance cut.</span>
+              <div class="chips-row" style="margin-top:2px">
+                <div class="edots">
+                  <div class="edot" style="background:rgba(216,90,48,.4)"></div>
+                  <div class="edot" style="background:rgba(216,90,48,.4)"></div>
+                  <div class="edot" style="background:rgba(216,90,48,.1)"></div>
+                </div>
+                <span class="chip chip-src">Portfolio-specific</span>
+                <span class="chip chip-fresh">Updated 4h ago</span>
+              </div>
+            </div>
+            <div class="vstack" style="gap:4px;align-items:flex-end">
+              <span class="rd rd-w">↑ worsening</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:var(--tx2)">42</span>
+            </div>
+          </div>
+          <div class="div"></div>
+        </div>
+
+        <!-- HOOD row -->
+        <div class="pos-row">
+          <div class="pos-row-content">
+            <div class="gb s gB">B</div>
+            <div class="vstack" style="gap:3px;flex:1">
+              <div class="hstack" style="gap:8px">
+                <span style="font-size:15px;font-weight:600;color:var(--tx1)">HOOD</span>
+                <span style="font-size:12px;color:var(--tx2)">Growth</span>
+                <span style="font-size:11px;color:var(--info);padding:3px 6px;background:rgba(59,130,196,.12);border-radius:12px">Synced</span>
+              </div>
+              <span style="font-size:12px;color:var(--tx2);line-height:1.4">Risk stabilizing after post-earnings recovery. Crypto revenue improving, regulatory headwinds remain.</span>
+              <div class="chips-row" style="margin-top:2px">
+                <div class="edots">
+                  <div class="edot" style="background:rgba(99,153,34,.4)"></div>
+                  <div class="edot" style="background:rgba(99,153,34,.4)"></div>
+                  <div class="edot" style="background:rgba(99,153,34,.4)"></div>
+                </div>
+                <span class="chip chip-src">Portfolio-specific</span>
+                <span class="chip chip-fresh">Updated 2h ago</span>
+              </div>
+            </div>
+            <div class="vstack" style="gap:4px;align-items:flex-end">
+              <span class="rd rd-s">→ stable</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:var(--tx2)">71</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab off">
+      <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="var(--tx2)" fill="none"/><path d="M9 21V12h6v9" stroke="var(--tx2)" fill="none"/></svg>
+      <span class="tab-lbl">Home</span>
+    </div>
+    <div class="tab on">
+      <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" stroke="var(--tx1)" fill="var(--tx1)" fill-opacity=".12"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" stroke="var(--tx1)"/></svg>
+      <span class="tab-lbl">Holdings</span>
+    </div>
+    <div class="tab off">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="var(--tx2)" fill="none"/><polyline points="14 2 14 8 20 8" stroke="var(--tx2)" fill="none"/></svg>
+      <span class="tab-lbl">Rating</span>
+    </div>
+    <div class="tab off">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="var(--tx2)" fill="none"/><path d="M13.73 21a2 2 0 01-3.46 0" stroke="var(--tx2)" fill="none"/></svg>
+      <span class="tab-lbl">Alerts</span>
+    </div>
+    <div class="tab off">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke="var(--tx2)" fill="none"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="var(--tx2)"/></svg>
+      <span class="tab-lbl">Settings</span>
+    </div>
+  </div>
+</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 3 — TICKER DETAIL (AMD)
+     ═══════════════════════════════════════════════════════ -->
+<div class="frame-wrap">
+<div class="frame-label">3 · Ticker Detail — AMD</div>
+<div class="phone">
+
+  <div class="status">
+    <span class="status-time">9:41</span>
+    <div class="status-right">
+      <svg viewBox="0 0 16 12"><path d="M1 9h2v3H1zM5 6h2v6H5zM9 3h2v9H9zM13 0h2v12h-2z" fill="var(--tx1)"/></svg>
+      <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="var(--tx1)" stroke-width="1.2" fill="none"/><rect x="1.5" y="2.5" width="17" height="7" rx="1.5" fill="var(--tx1)"/></svg>
+    </div>
+  </div>
+
+  <div class="content">
+  <div class="screen">
+
+    <!-- CX2NavBar -->
+    <div class="tnav">
+      <div class="tnav-row1">
+        <div class="back-btn">
+          <svg viewBox="0 0 12 12"><polyline points="8 2 4 6 8 10"/></svg>
+          Holdings
+        </div>
+        <div class="tnav-actions">
+          <div class="ibtn">
+            <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15A9 9 0 1 1 18 5.5"/></svg>
+          </div>
+          <div class="ibtn ibtn-star">
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="pg-title" style="margin-top:6px">AMD</div>
+      <div class="pg-sub">Advanced Micro Devices, Inc.</div>
+    </div>
+
+    <!-- Hero Card -->
+    <div class="card">
+      <div class="vstack" style="gap:16px">
+        <!-- GradeDisplay hero -->
+        <div class="gd-hero">
+          <div class="gb l gD">D</div>
+          <div class="gd-info">
+            <span class="rd rd-w">↑ worsening</span>
+            <div class="gd-score">
+              <span class="gd-slabel">Score</span>
+              <span class="gd-sval">42</span>
+              <span class="gd-sprev">was 51</span>
+            </div>
+            <div class="edots">
+              <div class="edot" style="background:rgba(216,90,48,.4);outline:.5px solid rgba(216,90,48,.4)"></div>
+              <div class="edot" style="background:rgba(216,90,48,.4);outline:.5px solid rgba(216,90,48,.4)"></div>
+              <div class="edot" style="background:rgba(216,90,48,.1);outline:.5px solid rgba(216,90,48,.4)"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ticker + company -->
+        <div class="vstack" style="gap:2px">
+          <span class="sl">AMD</span>
+          <span style="font-size:15px;font-weight:600;color:var(--tx1)">Advanced Micro Devices, Inc.</span>
+        </div>
+
+        <!-- Chips + sector -->
+        <div class="hstack" style="gap:6px;flex-wrap:wrap">
+          <span class="chip chip-src">Portfolio-specific</span>
+          <span class="chip chip-fresh">Updated 4h ago</span>
+          <div class="sp"></div>
+          <span style="font-size:12px;color:var(--tx2)">Semiconductors</span>
+        </div>
+
+        <!-- Rationale -->
+        <div class="vstack" style="gap:6px">
+          <span style="font-size:15px;font-weight:600;color:var(--tx1);line-height:1.5">Elevated risk following Q4 earnings miss and guidance cut.</span>
+          <span style="font-size:15px;color:var(--tx2);line-height:1.6">AMD missed Q4 estimates significantly, with data center revenue below expectations. Near-term outlook pressured by inventory corrections and competitive headwinds in AI infrastructure spending.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Price Card -->
+    <div class="card">
+      <div class="vstack" style="gap:10px">
+        <div class="hstack" style="align-items:flex-start">
+          <div class="vstack" style="gap:4px">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;color:var(--tx1)">$157.42</span>
+            <span style="font-size:12px;color:var(--tx2)">1 month</span>
+          </div>
+          <div class="sp"></div>
+          <div class="vstack" style="gap:2px;align-items:flex-end">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--ra)">+1.2%</span>
+            <span style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--tx2)">Today</span>
+          </div>
+        </div>
+
+        <!-- Sparkline -->
+        <svg width="361" height="56" viewBox="0 0 361 56" style="display:block">
+          <path d="M0,18 L30,16 L60,22 L90,28 L120,34 L150,42 L180,47 L210,50 L230,45 L255,40 L280,36 L310,33 L335,30 L361,28"
+                stroke="var(--ra)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+
+        <!-- Day pills -->
+        <div class="hstack" style="gap:6px">
+          <span class="fpill fpill-off" style="padding:5px 10px;font-size:12px">1D</span>
+          <span class="fpill fpill-off" style="padding:5px 10px;font-size:12px">1W</span>
+          <span class="fpill fpill-on" style="padding:5px 10px;font-size:12px">1M</span>
+          <span class="fpill fpill-off" style="padding:5px 10px;font-size:12px">3M</span>
+          <span class="fpill fpill-off" style="padding:5px 10px;font-size:12px">1Y</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fundamentals -->
+    <div class="card">
+      <div class="vstack" style="gap:8px">
+        <div class="sl">Fundamentals</div>
+        <div style="background:var(--surface);border-radius:var(--cr);border:1px solid var(--border);overflow:hidden">
+          <div class="mgrid">
+            <div class="mcell">
+              <span style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--tx2)">P/E</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:var(--tx1)">35.2</span>
+            </div>
+            <div class="mcell">
+              <span style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--tx2)">Mkt cap</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:var(--tx1)">$254.8B</span>
+            </div>
+            <div class="mcell">
+              <span style="font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--tx2)">Volatility</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;color:var(--tx1)">62</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Risk Dimensions -->
+    <div class="card">
+      <div class="vstack" style="gap:10px">
+        <div class="sl">Risk dimensions</div>
+        <div class="rdim">
+          <div class="rdim-hd">
+            <span style="font-size:13px;color:var(--tx1)">News risk signals</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--tx1)">38</span>
+          </div>
+          <div class="rdim-trk"><div class="rdim-fill" style="width:38%"></div></div>
+          <span style="font-size:11px;color:var(--tx3);line-height:1.5">Multiple negative news events. Analyst downgrades and cautious coverage following earnings.</span>
+        </div>
+        <div class="rdim">
+          <div class="rdim-hd">
+            <span style="font-size:13px;color:var(--tx1)">Macro exposure</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--tx1)">45</span>
+          </div>
+          <div class="rdim-trk"><div class="rdim-fill" style="width:45%"></div></div>
+          <span style="font-size:11px;color:var(--tx3);line-height:1.5">Moderate exposure to rate sensitivity and AI infrastructure spending slowdown.</span>
+        </div>
+        <div class="rdim">
+          <div class="rdim-hd">
+            <span style="font-size:13px;color:var(--tx1)">Position sizing</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--tx1)">52</span>
+          </div>
+          <div class="rdim-trk"><div class="rdim-fill" style="width:52%"></div></div>
+        </div>
+        <div class="rdim">
+          <div class="rdim-hd">
+            <span style="font-size:13px;color:var(--tx1)">Volatility trend</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--tx1)">38</span>
+          </div>
+          <div class="rdim-trk"><div class="rdim-fill" style="width:38%"></div></div>
+          <span style="font-size:11px;color:var(--tx3);line-height:1.5">30-day realized vol elevated. IV term structure inverted suggesting near-term uncertainty.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Score Rationale -->
+    <div class="card">
+      <div class="vstack" style="gap:10px">
+        <div class="sl">Score rationale</div>
+        <p style="font-size:15px;color:var(--tx2);line-height:1.7">AMD was downgraded to D following Q4 earnings that missed revenue estimates by 4.2%. Data center segment, which had been the primary growth driver, reported below-consensus figures. Management provided Q1 guidance below the Street consensus, citing inventory digestion at hyperscale customers and near-term softness in AI chip orders. Competitive pressure from NVIDIA and Intel in the data center segment adds to near-term risk.</p>
+      </div>
+    </div>
+
+    <!-- Why This Grade -->
+    <div class="card-flush">
+      <div class="vstack" style="padding:12px 0">
+        <div class="sl" style="padding-bottom:12px">Why this grade</div>
+
+        <div class="vstack" style="gap:0">
+          <div style="padding:12px 0">
+            <div class="hstack" style="gap:8px;align-items:flex-start;margin-bottom:4px">
+              <span style="font-size:15px;font-weight:600;color:var(--tx1);flex:1;line-height:1.4">AMD Q4 Earnings Miss — Data Center Weakness</span>
+              <span class="horizon-tag">Near-term</span>
+            </div>
+            <p style="font-size:12px;color:var(--tx2);line-height:1.6">Revenue miss of 4.2% with data center below expectations. Hyperscale customers digesting inventory. Q1 guidance set at $5.1B vs $5.6B consensus.</p>
+          </div>
+          <div class="div"></div>
+          <div style="padding:12px 0">
+            <div class="hstack" style="gap:8px;align-items:flex-start;margin-bottom:4px">
+              <span style="font-size:15px;font-weight:600;color:var(--tx1);flex:1;line-height:1.4">AI Infrastructure Capex Slowdown Risk</span>
+              <span class="horizon-tag">Medium-term</span>
+            </div>
+            <p style="font-size:12px;color:var(--tx2);line-height:1.6">Major hyperscale capex commitments under scrutiny. AI chip orders subject to pullback if ROI timelines extend. Competitive dynamics with NVIDIA intensifying.</p>
+          </div>
+          <div class="div"></div>
+          <div style="padding:12px 0">
+            <div class="hstack" style="gap:8px;align-items:flex-start;margin-bottom:4px">
+              <span style="font-size:15px;font-weight:600;color:var(--tx1);flex:1;line-height:1.4">CEO Guidance on Data Center Recovery</span>
+              <span class="horizon-tag">Ongoing</span>
+            </div>
+            <p style="font-size:12px;color:var(--tx2);line-height:1.6">Management indicated recovery expected in H2 2025. Credibility of timeline uncertain given prior guidance misses.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Alerts -->
+    <div class="card-flush">
+      <div class="vstack" style="padding:0">
+        <div class="hstack" style="padding:12px 0">
+          <div class="sl">Recent alerts</div>
+          <div class="sp"></div>
+          <span style="font-size:15px;color:var(--info)">All alerts</span>
+        </div>
+        <div>
+          <div class="hstack" style="gap:12px;align-items:flex-start;padding:12px 0">
+            <div class="gb c gD">D</div>
+            <div class="vstack" style="gap:3px;flex:1">
+              <span class="sl">Grade Change</span>
+              <span style="font-size:15px;font-weight:400;color:var(--tx1);line-height:1.4">AMD downgraded from C to D following Q4 earnings miss.</span>
+            </div>
+            <span style="font-size:12px;color:var(--tx2)">4:02 AM</span>
+          </div>
+          <div class="div"></div>
+          <div class="hstack" style="gap:12px;align-items:flex-start;padding:12px 0">
+            <div class="gb c gD">D</div>
+            <div class="vstack" style="gap:3px;flex:1">
+              <span class="sl">Major Event</span>
+              <span style="font-size:15px;font-weight:400;color:var(--tx1);line-height:1.4">AMD Q4 earnings miss — data center revenue below estimates.</span>
+            </div>
+            <span style="font-size:12px;color:var(--tx2)">3:45 AM</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab off"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="var(--tx2)" fill="none"/><path d="M9 21V12h6v9" stroke="var(--tx2)" fill="none"/></svg><span class="tab-lbl">Home</span></div>
+    <div class="tab on"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" stroke="var(--tx1)" fill="none"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" stroke="var(--tx1)"/></svg><span class="tab-lbl">Holdings</span></div>
+    <div class="tab off"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="var(--tx2)" fill="none"/><polyline points="14 2 14 8 20 8" stroke="var(--tx2)" fill="none"/></svg><span class="tab-lbl">Rating</span></div>
+    <div class="tab off"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="var(--tx2)" fill="none"/></svg><span class="tab-lbl">Alerts</span></div>
+    <div class="tab off"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke="var(--tx2)" fill="none"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="var(--tx2)"/></svg><span class="tab-lbl">Settings</span></div>
+  </div>
+</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 4 — RATING (DIGEST)
+     ═══════════════════════════════════════════════════════ -->
+<div class="frame-wrap">
+<div class="frame-label">4 · Rating</div>
+<div class="phone">
+
+  <div class="status">
+    <span class="status-time">9:41</span>
+    <div class="status-right">
+      <svg viewBox="0 0 16 12"><path d="M1 9h2v3H1zM5 6h2v6H5zM9 3h2v9H9zM13 0h2v12h-2z" fill="var(--tx1)"/></svg>
+      <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="var(--tx1)" stroke-width="1.2" fill="none"/><rect x="1.5" y="2.5" width="17" height="7" rx="1.5" fill="var(--tx1)"/></svg>
+    </div>
+  </div>
+
+  <div class="content">
+  <div class="screen">
+
+    <!-- Header -->
+    <div class="pg-header">
+      <div class="wm-row">
+        <span class="wm">Clavix</span>
+        <div class="wm-acc">
+          <div class="ibtn">
+            <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" fill="var(--tx1)" stroke="var(--tx1)" fill-opacity=".15"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" stroke="var(--tx1)" fill="none"/></svg>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="pg-title">Morning Rating</div>
+        <div class="pg-sub">Fri May 2</div>
+      </div>
+    </div>
+
+    <!-- DigestHeroCard -->
+    <div class="vstack" style="gap:12px">
+
+      <div class="sl">Rating · 8:02 AM</div>
+
+      <!-- GradeDisplay hero -->
+      <div class="gd-hero">
+        <div class="gb l gC">C</div>
+        <div class="gd-info">
+          <span class="rd rd-s">→ stable</span>
+          <div class="gd-score">
+            <span class="gd-slabel">Score</span>
+            <span class="gd-sval">57</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chips -->
+      <div class="chips-row">
+        <span class="chip chip-src">Portfolio-specific</span>
+        <span class="chip chip-fresh">Updated 2h ago</span>
+      </div>
+
+      <!-- Risk driver bullets -->
+      <div class="vstack" style="gap:4px">
+        <span style="font-size:12px;color:var(--tx2);line-height:1.5">• AMD: Significant earnings miss with data center revenue below estimates</span>
+        <span style="font-size:12px;color:var(--tx2);line-height:1.5">• HOOD stabilized post-earnings with improving crypto revenue</span>
+      </div>
+
+      <!-- Summary -->
+      <p style="font-size:15px;color:var(--tx2);line-height:1.6">Your Morning Rating is ready with the latest portfolio risks and changes. AMD's earnings miss is the primary risk driver this week, partially offset by HOOD's stabilization.</p>
+
+      <!-- Footer -->
+      <div class="hstack" style="gap:6px">
+        <span style="font-size:12px;color:var(--tx2)">2 holdings</span>
+        <span style="color:var(--tx3)">·</span>
+        <span style="font-size:12px;color:var(--tx2)">Stable</span>
+        <div class="sp"></div>
+        <button class="sbtn sbtn-n" style="font-size:12px;padding:5px 10px">
+          <svg style="width:12px;height:12px;stroke:var(--tx2);fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15A9 9 0 1 1 18 5.5"/></svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- What Matters Today -->
+    <div class="section-grp">
+      <span class="sl">What matters today</span>
+      <div class="card-flush">
+        <div class="bullet-item" style="padding:12px 0;border-bottom:1px solid var(--border)">
+          <div class="bdot bdot-gray" style="margin-top:4px"></div>
+          <div class="vstack" style="gap:3px;flex:1">
+            <span style="font-size:15px;font-weight:600;color:var(--tx1)">AMD earnings miss &amp; forward guidance cut</span>
+            <span style="font-size:12px;color:var(--tx2)">High urgency</span>
+            <span style="font-size:12px;color:var(--tx3)">AMD</span>
+          </div>
+        </div>
+        <div class="bullet-item" style="padding:12px 0;border-bottom:1px solid var(--border)">
+          <div class="bdot bdot-gray" style="margin-top:4px"></div>
+          <div class="vstack" style="gap:3px;flex:1">
+            <span style="font-size:15px;font-weight:600;color:var(--tx1)">AI infrastructure capex guidance from hyperscalers</span>
+            <span style="font-size:12px;color:var(--tx2)">Medium urgency</span>
+            <span style="font-size:12px;color:var(--tx3)">AMD, Portfolio</span>
+          </div>
+        </div>
+        <div class="bullet-item" style="padding:12px 0">
+          <div class="bdot bdot-gray" style="margin-top:4px"></div>
+          <div class="vstack" style="gap:3px;flex:1">
+            <span style="font-size:15px;font-weight:600;color:var(--tx1)">Fed rate decision language — May meeting</span>
+            <span style="font-size:12px;color:var(--tx2)">Medium urgency</span>
+            <span style="font-size:12px;color:var(--tx3)">Portfolio</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sector Overview -->
+    <div class="section-grp">
+      <span class="sl">Sector overview</span>
+      <div class="card-flush">
+        <div style="padding:12px 0;border-bottom:1px solid var(--border)">
+          <div class="hstack" style="gap:10px;align-items:flex-start">
+            <div class="bdot bdot-gray" style="margin-top:5px"></div>
+            <div class="vstack" style="gap:3px;flex:1">
+              <span style="font-size:15px;font-weight:600;color:var(--tx1)">Semiconductors</span>
+              <span style="font-size:12px;color:var(--tx2);line-height:1.5">AMD earnings miss creating sector-wide concern about AI chip demand trajectory. NVDA holding, but sector multiple under pressure.</span>
+            </div>
+          </div>
+        </div>
+        <div style="padding:12px 0">
+          <div class="hstack" style="gap:10px;align-items:flex-start">
+            <div class="bdot bdot-gray" style="margin-top:5px"></div>
+            <div class="vstack" style="gap:3px;flex:1">
+              <span style="font-size:15px;font-weight:600;color:var(--tx1)">Financial Services</span>
+              <span style="font-size:12px;color:var(--tx2);line-height:1.5">HOOD stable post-earnings beat. Broader fintech resilient ahead of Fed meeting. Crypto markets moderately risk-on.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overnight Macro -->
+    <div class="card" style="background:var(--surface)">
+      <div class="vstack" style="gap:12px">
+        <div class="sl">Overnight macro</div>
+        <p style="font-size:15px;color:var(--tx2);line-height:1.6">Futures moderately lower overnight following AMD earnings miss. Nasdaq futures -0.4%, S&amp;P flat. 10Y yields steady at 4.32%. Dollar index slight uptick on risk-off tone.</p>
+        <span style="font-size:12px;color:var(--tx3)">AI capex • Rate sensitivity • Risk-off tone</span>
+        <div class="vstack" style="gap:8px">
+          <span style="font-size:15px;color:var(--tx2);line-height:1.5">• AMD Q4 miss pressures Nasdaq futures overnight</span>
+          <span style="font-size:15px;color:var(--tx2);line-height:1.5">• Hyperscaler AI capex commentary under scrutiny</span>
+          <span style="font-size:15px;color:var(--tx2);line-height:1.5">• Fed policy expected unchanged, focus on language</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Position Impacts -->
+    <div class="section-grp">
+      <span class="sl">Position impacts</span>
+      <div class="card-flush">
+        <!-- AMD -->
+        <div style="padding:12px 0;border-bottom:1px solid var(--border)">
+          <div class="vstack" style="gap:10px">
+            <div class="hstack" style="gap:12px;align-items:flex-start">
+              <div class="gb c gD">D</div>
+              <div class="vstack" style="gap:2px;flex:1">
+                <span style="font-size:15px;font-weight:600;color:var(--tx1)">AMD</span>
+                <span style="font-size:12px;color:var(--tx2);line-height:1.4">Downgraded following Q4 earnings miss. Data center revenue disappointed and Q1 guidance set below consensus.</span>
+              </div>
+              <span style="font-size:12px;color:var(--tx2)">High</span>
+            </div>
+            <span style="font-size:13px;font-weight:600;color:var(--info)">Open ticker</span>
+            <span style="font-size:12px;color:var(--tx3);line-height:1.5">Watch AI chip demand signals • Watch hyperscaler capex calls</span>
+            <span style="font-size:12px;color:var(--tx3);line-height:1.5">Risks: Inventory correction extension • NVDA market share gain</span>
+          </div>
+        </div>
+        <!-- HOOD -->
+        <div style="padding:12px 0">
+          <div class="vstack" style="gap:10px">
+            <div class="hstack" style="gap:12px;align-items:flex-start">
+              <div class="gb c gB">B</div>
+              <div class="vstack" style="gap:2px;flex:1">
+                <span style="font-size:15px;font-weight:600;color:var(--tx1)">HOOD</span>
+                <span style="font-size:12px;color:var(--tx2);line-height:1.4">Grade stable after earnings beat. Crypto revenue improving, regulatory environment still a watch item.</span>
+              </div>
+              <span style="font-size:12px;color:var(--tx2)">Low</span>
+            </div>
+            <span style="font-size:13px;font-weight:600;color:var(--info)">Open ticker</span>
+            <span style="font-size:12px;color:var(--tx3);line-height:1.5">Watch SEC actions • Watch crypto volume trends</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab off"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="var(--tx2)" fill="none"/><path d="M9 21V12h6v9" stroke="var(--tx2)" fill="none"/></svg><span class="tab-lbl">Home</span></div>
+    <div class="tab off"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" stroke="var(--tx2)" fill="none"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" stroke="var(--tx2)"/></svg><span class="tab-lbl">Holdings</span></div>
+    <div class="tab on"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="var(--tx1)" fill="none"/><polyline points="14 2 14 8 20 8" stroke="var(--tx1)"/></svg><span class="tab-lbl">Rating</span></div>
+    <div class="tab off"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="var(--tx2)" fill="none"/></svg><span class="tab-lbl">Alerts</span></div>
+    <div class="tab off"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke="var(--tx2)" fill="none"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="var(--tx2)"/></svg><span class="tab-lbl">Settings</span></div>
+  </div>
+</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 5 — ALERTS
+     ═══════════════════════════════════════════════════════ -->
+<div class="frame-wrap">
+<div class="frame-label">5 · Alerts</div>
+<div class="phone">
+
+  <div class="status">
+    <span class="status-time">9:41</span>
+    <div class="status-right">
+      <svg viewBox="0 0 16 12"><path d="M1 9h2v3H1zM5 6h2v6H5zM9 3h2v9H9zM13 0h2v12h-2z" fill="var(--tx1)"/></svg>
+      <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="var(--tx1)" stroke-width="1.2" fill="none"/><rect x="1.5" y="2.5" width="17" height="7" rx="1.5" fill="var(--tx1)"/></svg>
+    </div>
+  </div>
+
+  <div class="content">
+  <div class="screen">
+
+    <!-- Header -->
+    <div class="pg-header">
+      <div class="wm-row">
+        <span class="wm">Clavix</span>
+      </div>
+      <div>
+        <div class="pg-title">Alerts</div>
+        <div class="pg-sub">Last 24h</div>
+      </div>
+    </div>
+
+    <!-- Summary Grid -->
+    <div class="card">
+      <div class="summary-grid">
+        <div class="card-raised">
+          <div class="hstack" style="margin-bottom:6px">
+            <span style="font-size:11px;font-weight:500;color:var(--tx2)">Critical</span>
+            <div class="sp"></div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--tx1)">1</span>
+          </div>
+          <div style="height:2px;background:var(--rf);border-radius:1px"></div>
+        </div>
+        <div class="card-raised">
+          <div class="hstack" style="margin-bottom:6px">
+            <span style="font-size:11px;font-weight:500;color:var(--tx2)">High</span>
+            <div class="sp"></div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--tx1)">1</span>
+          </div>
+          <div style="height:2px;background:var(--rd);border-radius:1px"></div>
+        </div>
+        <div class="card-raised">
+          <div class="hstack" style="margin-bottom:6px">
+            <span style="font-size:11px;font-weight:500;color:var(--tx2)">Elevated</span>
+            <div class="sp"></div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--tx1)">2</span>
+          </div>
+          <div style="height:2px;background:var(--rc);border-radius:1px"></div>
+        </div>
+        <div class="card-raised">
+          <div class="hstack" style="margin-bottom:6px">
+            <span style="font-size:11px;font-weight:500;color:var(--tx2)">Info</span>
+            <div class="sp"></div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--tx1)">1</span>
+          </div>
+          <div style="height:2px;background:var(--tx2);border-radius:1px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Chips -->
+    <div style="display:flex;gap:6px;overflow:hidden">
+      <span class="fpill fpill-on" style="font-size:12px;padding:7px 10px">All · 5</span>
+      <span class="fpill fpill-off" style="font-size:12px;padding:7px 10px">Critical · 1</span>
+      <span class="fpill fpill-off" style="font-size:12px;padding:7px 10px">Grade · 2</span>
+      <span class="fpill fpill-off" style="font-size:12px;padding:7px 10px">Events · 1</span>
+    </div>
+
+    <!-- Timeline -->
+    <div class="card-flush">
+
+      <!-- Row 1: AMD Grade Change (Critical) -->
+      <div class="tl-row" style="border-bottom:1px solid var(--border)">
+        <div class="tl-spine">
+          <div class="gb c gD">D</div>
+          <div class="tl-conn"></div>
+        </div>
+        <div class="tl-body">
+          <div class="hstack">
+            <span class="sl">Grade Change</span>
+            <div class="sp"></div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--tx2)">May 2, 4:02 AM</span>
+          </div>
+          <span style="font-size:15px;font-weight:600;color:var(--tx1);line-height:1.4">AMD downgraded from C to D following Q4 earnings miss and guidance cut.</span>
+          <div><span class="ticker-tag">AMD</span></div>
+          <div class="grade-change-row">
+            <div class="gb c gC">C</div>
+            <span style="color:var(--tx3);font-size:13px;font-weight:600">→</span>
+            <div class="gb c gD">D</div>
+            <span class="rd rd-w">↑ worsening</span>
+          </div>
+          <p style="font-size:12px;color:var(--tx2);line-height:1.5">Earnings miss of 4.2% on revenue. Data center segment below consensus. Q1 guidance set at $5.1B vs $5.6B Street estimate.</p>
+          <div class="hstack" style="gap:6px;margin-top:2px">
+            <span class="detail-chip">Earnings</span>
+            <span class="detail-chip">Guidance cut</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: AMD Major Event -->
+      <div class="tl-row" style="border-bottom:1px solid var(--border)">
+        <div class="tl-spine">
+          <div class="gb c gD">D</div>
+          <div class="tl-conn"></div>
+        </div>
+        <div class="tl-body">
+          <div class="hstack">
+            <span class="sl">Major Event</span>
+            <div class="sp"></div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--tx2)">May 2, 3:45 AM</span>
+          </div>
+          <span style="font-size:15px;font-weight:600;color:var(--tx1);line-height:1.4">AMD Q4 earnings miss — data center revenue significantly below analyst estimates.</span>
+          <div><span class="ticker-tag">AMD</span></div>
+          <p style="font-size:12px;color:var(--tx2);line-height:1.5">Data center grew 69% YoY but missed the $2.7B estimate. Hyperscale customers digesting inventory.</p>
+        </div>
+      </div>
+
+      <!-- Row 3: Portfolio Grade Change -->
+      <div class="tl-row" style="border-bottom:1px solid var(--border)">
+        <div class="tl-spine">
+          <div class="gb c gC">C</div>
+          <div class="tl-conn"></div>
+        </div>
+        <div class="tl-body">
+          <div class="hstack">
+            <span class="sl">Portfolio Grade Change</span>
+            <div class="sp"></div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--tx2)">May 2, 3:43 AM</span>
+          </div>
+          <span style="font-size:15px;font-weight:600;color:var(--tx1);line-height:1.4">Portfolio risk elevated. Score moved from 64 to 57 following AMD downgrade.</span>
+          <div class="grade-change-row" style="margin-top:4px">
+            <div class="gb c gB">B</div>
+            <span style="color:var(--tx3);font-size:13px;font-weight:600">→</span>
+            <div class="gb c gC">C</div>
+            <span class="rd rd-w">↑ worsening</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 4: HOOD Grade Change -->
+      <div class="tl-row" style="border-bottom:1px solid var(--border)">
+        <div class="tl-spine">
+          <div class="gb c gB">B</div>
+          <div class="tl-conn"></div>
+        </div>
+        <div class="tl-body">
+          <div class="hstack">
+            <span class="sl">Grade Change</span>
+            <div class="sp"></div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--tx2)">May 1, 11:20 PM</span>
+          </div>
+          <span style="font-size:15px;font-weight:600;color:var(--tx1);line-height:1.4">HOOD upgraded to B — earnings beat and improving risk metrics.</span>
+          <div><span class="ticker-tag">HOOD</span></div>
+          <div class="grade-change-row" style="margin-top:4px">
+            <div class="gb c gC">C</div>
+            <span style="color:var(--tx3);font-size:13px;font-weight:600">→</span>
+            <div class="gb c gB">B</div>
+            <span class="rd rd-i">↓ improving</span>
+          </div>
+          <p style="font-size:12px;color:var(--tx2);line-height:1.5">Q4 earnings beat on revenue and EPS. Crypto segment growing faster than expected.</p>
+        </div>
+      </div>
+
+      <!-- Row 5: Rating Ready -->
+      <div class="tl-row">
+        <div class="tl-spine">
+          <div class="gb c g-">—</div>
+        </div>
+        <div class="tl-body">
+          <div class="hstack">
+            <span class="sl">Rating Ready</span>
+            <div class="sp"></div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--tx2)">May 2, 8:00 AM</span>
+          </div>
+          <span style="font-size:15px;font-weight:600;color:var(--tx1);line-height:1.4">Morning Rating is ready for your 2-holding portfolio.</span>
+        </div>
+      </div>
+
+    </div><!-- /timeline -->
+
+  </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab off"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="var(--tx2)" fill="none"/><path d="M9 21V12h6v9" stroke="var(--tx2)" fill="none"/></svg><span class="tab-lbl">Home</span></div>
+    <div class="tab off"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" stroke="var(--tx2)" fill="none"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" stroke="var(--tx2)"/></svg><span class="tab-lbl">Holdings</span></div>
+    <div class="tab off"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="var(--tx2)" fill="none"/><polyline points="14 2 14 8 20 8" stroke="var(--tx2)"/></svg><span class="tab-lbl">Rating</span></div>
+    <div class="tab on"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="var(--tx1)" fill="none"/><path d="M13.73 21a2 2 0 01-3.46 0" stroke="var(--tx1)"/></svg><span class="tab-lbl">Alerts</span></div>
+    <div class="tab off"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke="var(--tx2)" fill="none"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="var(--tx2)"/></svg><span class="tab-lbl">Settings</span></div>
+  </div>
+</div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     SCREEN 6 — SETTINGS
+     ═══════════════════════════════════════════════════════ -->
+<div class="frame-wrap">
+<div class="frame-label">6 · Settings</div>
+<div class="phone">
+
+  <div class="status">
+    <span class="status-time">9:41</span>
+    <div class="status-right">
+      <svg viewBox="0 0 16 12"><path d="M1 9h2v3H1zM5 6h2v6H5zM9 3h2v9H9zM13 0h2v12h-2z" fill="var(--tx1)"/></svg>
+      <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="var(--tx1)" stroke-width="1.2" fill="none"/><rect x="1.5" y="2.5" width="17" height="7" rx="1.5" fill="var(--tx1)"/></svg>
+    </div>
+  </div>
+
+  <div class="content">
+  <div class="screen">
+
+    <!-- Header -->
+    <div class="pg-header">
+      <div class="wm-row">
+        <span class="wm">Clavix</span>
+      </div>
+      <div>
+        <div class="pg-title">Settings</div>
+      </div>
+    </div>
+
+    <!-- Rating Section -->
+    <div class="section-grp">
+      <span class="sl" style="padding-left:2px">Rating</span>
+      <div class="card">
+        <div class="set-row set-row-bdr">
+          <span style="font-size:15px;color:var(--tx1)">Rating time</span>
+          <div class="sp"></div>
+          <span style="font-size:14px;color:var(--tx2)">6:00 AM</span>
+        </div>
+        <div class="set-row">
+          <div class="vstack" style="gap:2px;flex:1">
+            <span style="font-size:15px;color:var(--tx1)">Weekday only</span>
+            <span style="font-size:12px;color:var(--tx2)">Skip weekend rating delivery</span>
+          </div>
+          <div class="tog tog-on"></div>
+        </div>
+      </div>
+      <span style="font-size:12px;color:var(--tx2);padding-left:2px">Morning rating is generated from overnight data. Changes save automatically.</span>
+    </div>
+
+    <!-- Brokerage Section -->
+    <div class="section-grp">
+      <span class="sl" style="padding-left:2px">Brokerage</span>
+      <div class="card">
+        <div class="set-row set-row-bdr">
+          <span style="font-size:15px;color:var(--tx1)">Status</span>
+          <div class="sp"></div>
+          <span style="font-size:14px;color:var(--tx2)">Not connected</span>
+        </div>
+        <div class="set-row">
+          <span style="font-size:15px;color:var(--info)">Connect brokerage</span>
+          <div class="sp"></div>
+          <svg style="width:15px;height:15px;stroke:var(--tx3);fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+      <span style="font-size:12px;color:var(--tx2);padding-left:2px">Brokerage connections are read-only. Clavix imports holdings and lets you choose between manual and automatic sync.</span>
+    </div>
+
+    <!-- Alerts Section -->
+    <div class="section-grp">
+      <span class="sl" style="padding-left:2px">Alerts</span>
+      <div class="card">
+        <div class="set-row set-row-bdr">
+          <div class="vstack" style="gap:2px;flex:1">
+            <span style="font-size:15px;color:var(--tx1)">Grade changes</span>
+            <span style="font-size:12px;color:var(--tx2)">Any upgrade or downgrade</span>
+          </div>
+          <div class="tog tog-on"></div>
+        </div>
+        <div class="set-row set-row-bdr">
+          <div class="vstack" style="gap:2px;flex:1">
+            <span style="font-size:15px;color:var(--tx1)">Major events</span>
+            <span style="font-size:12px;color:var(--tx2)">Holdings only</span>
+          </div>
+          <div class="tog tog-on"></div>
+        </div>
+        <div class="set-row set-row-bdr">
+          <div class="vstack" style="gap:2px;flex:1">
+            <span style="font-size:15px;color:var(--tx1)">Portfolio risk changes</span>
+            <span style="font-size:12px;color:var(--tx2)">Composite portfolio score moves</span>
+          </div>
+          <div class="tog tog-on"></div>
+        </div>
+        <div class="set-row set-row-bdr">
+          <div class="vstack" style="gap:2px;flex:1">
+            <span style="font-size:15px;color:var(--tx1)">Large price moves</span>
+            <span style="font-size:12px;color:var(--tx2)">Significant daily moves in your holdings</span>
+          </div>
+          <div class="tog tog-off"></div>
+        </div>
+        <div class="set-row set-row-bdr">
+          <div class="vstack" style="gap:2px;flex:1">
+            <span style="font-size:15px;color:var(--tx1)">Quiet hours</span>
+            <span style="font-size:12px;color:var(--tx2)">Suppress alerts overnight</span>
+          </div>
+          <div class="tog tog-on"></div>
+        </div>
+        <div class="set-row set-row-bdr">
+          <span style="font-size:15px;color:var(--tx1)">From</span>
+          <div class="sp"></div>
+          <span style="font-size:14px;color:var(--tx2)">10:00 PM</span>
+        </div>
+        <div class="set-row">
+          <span style="font-size:15px;color:var(--tx1)">To</span>
+          <div class="sp"></div>
+          <span style="font-size:14px;color:var(--tx2)">7:00 AM</span>
+        </div>
+      </div>
+      <span style="font-size:12px;color:var(--tx2);padding-left:2px">Alert rows cover grade changes, major events, portfolio risk shifts, and large price moves.</span>
+    </div>
+
+    <!-- Notifications Section -->
+    <div class="section-grp">
+      <span class="sl" style="padding-left:2px">Notifications</span>
+      <div class="card">
+        <div class="set-row">
+          <div class="vstack" style="gap:2px;flex:1">
+            <span style="font-size:15px;color:var(--tx1)">Push notifications</span>
+            <span style="font-size:12px;color:var(--tx2)">Controls whether the app sends rating and alert pushes</span>
+          </div>
+          <div class="tog tog-on"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account Section -->
+    <div class="section-grp">
+      <span class="sl" style="padding-left:2px">Account</span>
+      <div class="card">
+        <div class="set-row set-row-bdr">
+          <span style="font-size:15px;color:var(--tx1)">Email</span>
+          <div class="sp"></div>
+          <span style="font-size:14px;color:var(--tx2)">user@example.com</span>
+        </div>
+        <div class="set-row set-row-bdr">
+          <span style="font-size:15px;color:var(--tx1)">Plan</span>
+          <div class="sp"></div>
+          <span style="font-size:14px;color:var(--tx2)">Clavix Pro</span>
+        </div>
+        <div class="set-row set-row-bdr">
+          <span style="font-size:15px;color:var(--info)">Export my data</span>
+          <div class="sp"></div>
+          <svg style="width:15px;height:15px;stroke:var(--tx3);fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="set-row">
+          <span style="font-size:15px;color:var(--rf)">Delete account</span>
+          <div class="sp"></div>
+          <svg style="width:15px;height:15px;stroke:var(--tx3);fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- About Section -->
+    <div class="section-grp">
+      <span class="sl" style="padding-left:2px">About</span>
+      <div class="card">
+        <div class="set-row set-row-bdr">
+          <span style="font-size:15px;color:var(--tx1)">Version</span>
+          <div class="sp"></div>
+          <span style="font-size:14px;color:var(--tx2)">1.2.0</span>
+        </div>
+        <div class="set-row set-row-bdr">
+          <span style="font-size:15px;color:var(--tx1)">Score explanation</span>
+          <div class="sp"></div>
+          <svg style="width:15px;height:15px;stroke:var(--tx3);fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="set-row set-row-bdr">
+          <span style="font-size:15px;color:var(--tx1)">Data sources &amp; methodology</span>
+          <div class="sp"></div>
+          <svg style="width:15px;height:15px;stroke:var(--tx3);fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="set-row set-row-bdr">
+          <span style="font-size:15px;color:var(--tx1)">Privacy policy</span>
+          <div class="sp"></div>
+          <svg style="width:15px;height:15px;stroke:var(--tx3);fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </div>
+        <div class="set-row set-row-bdr">
+          <span style="font-size:15px;color:var(--tx1)">Terms of service</span>
+          <div class="sp"></div>
+          <svg style="width:15px;height:15px;stroke:var(--tx3);fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </div>
+        <div class="set-row">
+          <span style="font-size:15px;color:var(--tx1)">Refund policy</span>
+          <div class="sp"></div>
+          <svg style="width:15px;height:15px;stroke:var(--tx3);fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Disclaimer Card -->
+    <div class="card-el">
+      <div class="vstack" style="gap:6px">
+        <span class="sl">Informational only</span>
+        <p style="font-size:12px;color:var(--tx2);line-height:1.6">Clavix provides risk scores and portfolio summaries for informational purposes only. Nothing on this platform constitutes financial advice, investment recommendations, or a solicitation to buy or sell any security. Always consult a qualified financial advisor before making investment decisions.</p>
+      </div>
+    </div>
+
+    <!-- Sign Out -->
+    <div class="section-grp">
+      <div class="card">
+        <div class="set-row">
+          <span style="font-size:15px;color:var(--rf)">Sign out</span>
+          <div class="sp"></div>
+          <svg style="width:15px;height:15px;stroke:var(--tx3);fill:none;stroke-width:2;stroke-linecap:round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  </div>
+
+  <div class="tabbar">
+    <div class="tab off"><svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="var(--tx2)" fill="none"/><path d="M9 21V12h6v9" stroke="var(--tx2)" fill="none"/></svg><span class="tab-lbl">Home</span></div>
+    <div class="tab off"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" stroke="var(--tx2)" fill="none"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" stroke="var(--tx2)"/></svg><span class="tab-lbl">Holdings</span></div>
+    <div class="tab off"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="var(--tx2)" fill="none"/><polyline points="14 2 14 8 20 8" stroke="var(--tx2)"/></svg><span class="tab-lbl">Rating</span></div>
+    <div class="tab off"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="var(--tx2)" fill="none"/></svg><span class="tab-lbl">Alerts</span></div>
+    <div class="tab on"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke="var(--tx1)" fill="none"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="var(--tx1)"/></svg><span class="tab-lbl">Settings</span></div>
+  </div>
+</div>
+</div>
+
+</div><!-- /canvas -->
+</body>
+</html>

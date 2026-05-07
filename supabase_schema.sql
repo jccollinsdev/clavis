@@ -44,7 +44,8 @@ CREATE TABLE IF NOT EXISTS public.analysis_runs (
   error_message TEXT,
   started_at TIMESTAMPTZ DEFAULT now(),
   completed_at TIMESTAMPTZ,
-  overall_portfolio_grade TEXT,
+  overall_portfolio_grade TEXT
+    CHECK (overall_portfolio_grade IS NULL OR overall_portfolio_grade IN ('AAA','AA','A','BBB','BB','B','CCC','CC','C','F')),
   positions_processed INTEGER DEFAULT 0,
   events_processed INTEGER DEFAULT 0
 );
@@ -60,7 +61,7 @@ CREATE TABLE IF NOT EXISTS public.risk_scores (
   volatility_trend NUMERIC,
   thesis_integrity NUMERIC,
   total_score NUMERIC,
-  grade TEXT CHECK (grade IN ('A','B','C','D','F')),
+  grade TEXT CHECK (grade IN ('AAA','AA','A','BBB','BB','B','CCC','CC','C','F')),
   reasoning TEXT,
   grade_reason TEXT,
   evidence_summary TEXT,
@@ -93,7 +94,8 @@ CREATE TABLE IF NOT EXISTS public.digests (
   analysis_run_id UUID REFERENCES public.analysis_runs,
   content TEXT NOT NULL,
   grade_summary JSONB,
-  overall_grade TEXT,
+  overall_grade TEXT
+    CHECK (overall_grade IS NULL OR overall_grade IN ('AAA','AA','A','BBB','BB','B','CCC','CC','C','F')),
   overall_score NUMERIC,
   structured_sections JSONB,
   summary TEXT,
@@ -114,8 +116,10 @@ CREATE TABLE IF NOT EXISTS public.alerts (
   user_id UUID REFERENCES auth.users NOT NULL,
   position_ticker TEXT,
   type TEXT CHECK (type IN ('grade_change','major_event','portfolio_grade_change','digest_ready','safety_deterioration','concentration_danger','cluster_risk','macro_shock','structural_fragility','portfolio_safety_threshold_breach')),
-  previous_grade TEXT,
-  new_grade TEXT,
+  previous_grade TEXT
+    CHECK (previous_grade IS NULL OR previous_grade IN ('AAA','AA','A','BBB','BB','B','CCC','CC','C','F')),
+  new_grade TEXT
+    CHECK (new_grade IS NULL OR new_grade IN ('AAA','AA','A','BBB','BB','B','CCC','CC','C','F')),
   event_hash TEXT,
   analysis_run_id UUID REFERENCES public.analysis_runs,
   change_reason TEXT,
@@ -231,7 +235,7 @@ CREATE INDEX IF NOT EXISTS idx_event_analyses_event_hash ON public.event_analyse
 
 -- Current production extensions from later migrations
 ALTER TABLE public.user_preferences
-  ADD COLUMN IF NOT EXISTS summary_length TEXT DEFAULT 'standard',
+  ADD COLUMN IF NOT EXISTS summary_length TEXT DEFAULT 'standard' CHECK (summary_length IS NULL OR summary_length IN ('brief', 'standard', 'verbose')),
   ADD COLUMN IF NOT EXISTS weekday_only BOOLEAN DEFAULT false,
   ADD COLUMN IF NOT EXISTS alerts_grade_changes BOOLEAN DEFAULT true,
   ADD COLUMN IF NOT EXISTS alerts_major_events BOOLEAN DEFAULT true,
@@ -341,7 +345,8 @@ CREATE TABLE IF NOT EXISTS public.ticker_risk_snapshots (
   ticker TEXT NOT NULL REFERENCES public.ticker_universe(ticker) ON DELETE CASCADE,
   snapshot_date DATE NOT NULL,
   snapshot_type TEXT NOT NULL CHECK (snapshot_type IN ('daily', 'manual_refresh', 'backfill')),
-  grade TEXT,
+  grade TEXT
+    CHECK (grade IS NULL OR grade IN ('AAA','AA','A','BBB','BB','B','CCC','CC','C','F')),
   safety_score NUMERIC,
   structural_base_score NUMERIC,
   macro_adjustment NUMERIC,
@@ -355,6 +360,18 @@ CREATE TABLE IF NOT EXISTS public.ticker_risk_snapshots (
   methodology_version TEXT,
   analysis_as_of TIMESTAMPTZ NOT NULL,
   refresh_triggered_by_user_id UUID,
+
+  -- V2 dimension columns (Phase 1 / migration 003)
+  financial_health     NUMERIC,
+  news_sentiment_dim   NUMERIC,
+  macro_exposure_dim   NUMERIC,
+  sector_exposure      NUMERIC,
+  volatility           NUMERIC,
+  composite_score      NUMERIC,
+  dimension_inputs     JSONB DEFAULT '{}'::jsonb,
+  dimension_last_refreshed JSONB DEFAULT '{}'::jsonb,
+  limited_data_dimensions   JSONB DEFAULT '[]'::jsonb,
+
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (ticker, snapshot_date, snapshot_type)
@@ -414,3 +431,185 @@ CREATE TABLE IF NOT EXISTS public.watchlist_items (
 );
 
 ALTER TABLE public.watchlist_items ENABLE ROW LEVEL SECURITY;
+
+-- ============================================================================
+-- V2 / Phase 1 reconciled tables
+-- ============================================================================
+
+-- ticker_metadata — Company fundamentals metadata cache
+CREATE TABLE IF NOT EXISTS public.ticker_metadata (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    ticker TEXT NOT NULL UNIQUE,
+    company_name TEXT,
+    asset_class TEXT CHECK (asset_class IN ('treasury', 'large_cap_equity', 'mid_cap_equity', 'small_cap_equity', 'adr', 'biotech', 'penny_stock', 'etf', 'other')),
+    sector TEXT,
+    industry TEXT,
+    exchange TEXT,
+    market_cap NUMERIC,
+    market_cap_bucket TEXT CHECK (market_cap_bucket IN ('very_high', 'high', 'moderate_high', 'moderate', 'low_moderate', 'low', 'very_low')),
+    float_shares NUMERIC,
+    avg_daily_dollar_volume NUMERIC,
+    beta NUMERIC,
+    volatility_proxy NUMERIC,
+    profitability_profile TEXT CHECK (profitability_profile IN ('profitable', 'mixed', 'unprofitable')),
+    leverage_profile TEXT CHECK (leverage_profile IN ('low', 'moderate', 'high', 'very_high')),
+    macro_sensitivity TEXT CHECK (macro_sensitivity IN ('low', 'moderate', 'high', 'very_high')),
+    structural_fragility NUMERIC,
+    liquidity_risk NUMERIC,
+    pe_ratio NUMERIC,
+    week_52_high NUMERIC,
+    week_52_low NUMERIC,
+    price NUMERIC,
+    price_as_of TIMESTAMPTZ,
+    avg_volume NUMERIC,
+    previous_close NUMERIC,
+    open_price NUMERIC,
+    day_high NUMERIC,
+    day_low NUMERIC,
+    last_price_source TEXT,
+    is_supported BOOLEAN NOT NULL DEFAULT false,
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE public.ticker_metadata ENABLE ROW LEVEL SECURITY;
+
+-- asset_safety_profiles — Daily structural safety snapshot
+CREATE TABLE IF NOT EXISTS public.asset_safety_profiles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    ticker TEXT NOT NULL,
+    as_of_date DATE NOT NULL,
+    structural_base_score NUMERIC,
+    macro_adjustment NUMERIC,
+    event_adjustment NUMERIC,
+    safety_score NUMERIC,
+    confidence NUMERIC,
+    asset_class TEXT,
+    regime_state TEXT,
+    market_cap_bucket TEXT,
+    liquidity_score NUMERIC,
+    volatility_score NUMERIC,
+    leverage_score NUMERIC,
+    profitability_score NUMERIC,
+    macro_sensitivity_score NUMERIC,
+    event_risk_score NUMERIC,
+    factor_breakdown JSONB,
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE (ticker, as_of_date)
+);
+
+ALTER TABLE public.asset_safety_profiles ENABLE ROW LEVEL SECURITY;
+
+-- macro_regime_snapshots — Daily shared macro state
+CREATE TABLE IF NOT EXISTS public.macro_regime_snapshots (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    as_of_date DATE NOT NULL UNIQUE,
+    regime_state TEXT CHECK (regime_state IN ('risk_on', 'risk_off', 'rates_up', 'rates_down', 'credit_tightening', 'credit_easing', 'inflation_shock', 'commodity_shock', 'recession_pressure', 'expansion_supportive', 'neutral')),
+    rates_signal TEXT CHECK (rates_signal IN ('rising', 'falling', 'stable')),
+    credit_signal TEXT CHECK (credit_signal IN ('tightening', 'easing', 'stable')),
+    inflation_signal TEXT CHECK (inflation_signal IN ('spiking', 'moderating', 'stable')),
+    growth_signal TEXT CHECK (growth_signal IN ('expanding', 'contracting', 'stable')),
+    risk_on_off_signal TEXT CHECK (risk_on_off_signal IN ('risk_on', 'risk_off', 'neutral')),
+    vix_level NUMERIC,
+    credit_spread_level NUMERIC,
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+ALTER TABLE public.macro_regime_snapshots ENABLE ROW LEVEL SECURITY;
+
+-- portfolio_risk_snapshots — Per-user portfolio risk rollup
+CREATE TABLE IF NOT EXISTS public.portfolio_risk_snapshots (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users NOT NULL,
+    as_of_date DATE NOT NULL,
+    portfolio_allocation_risk_score NUMERIC,
+    confidence NUMERIC,
+    concentration_risk NUMERIC,
+    cluster_risk NUMERIC,
+    correlation_risk NUMERIC,
+    liquidity_mismatch NUMERIC,
+    macro_stack_risk NUMERIC,
+    factor_breakdown JSONB,
+    top_risk_drivers JSONB,
+    danger_clusters JSONB,
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE (user_id, as_of_date)
+);
+
+ALTER TABLE public.portfolio_risk_snapshots ENABLE ROW LEVEL SECURITY;
+
+-- shared_ticker_events — Canonical event/article store (v2 consolidated news store)
+CREATE TABLE IF NOT EXISTS public.shared_ticker_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    ticker TEXT NOT NULL,
+    event_hash TEXT NOT NULL,
+    external_event_id TEXT,
+    news_id UUID REFERENCES public.news_items(id),
+    news_cache_id UUID REFERENCES public.ticker_news_cache(id),
+    title TEXT NOT NULL,
+    summary TEXT,
+    source TEXT,
+    source_url TEXT,
+    published_at TIMESTAMPTZ,
+    event_type TEXT,
+    significance TEXT CHECK (significance IN ('major', 'minor')),
+    classification JSONB,
+    analysis_source TEXT,
+    what_happened TEXT,
+    tldr TEXT,
+    what_it_means TEXT,
+    long_analysis TEXT,
+    confidence NUMERIC CHECK (confidence >= 0 AND confidence <= 1),
+    impact_horizon TEXT CHECK (impact_horizon IN ('immediate', 'near_term', 'long_term')),
+    risk_direction TEXT CHECK (risk_direction IN ('improving', 'neutral', 'worsening')),
+    scenario_summary TEXT,
+    key_implications JSONB,
+    follow_up_notes JSONB,
+    tags JSONB DEFAULT '[]'::jsonb,
+    analysis_run_id UUID REFERENCES public.analysis_runs(id),
+    factored_into_score BOOLEAN DEFAULT false,
+    provenance TEXT DEFAULT 'shared',
+    methodology_version TEXT,
+
+    -- V2 sentiment & audit fields (Phase 1 / migration 004)
+    body              TEXT,
+    canonical_url     TEXT,
+    sentiment_score   NUMERIC CHECK (sentiment_score IS NULL OR (sentiment_score >= 0 AND sentiment_score <= 100)),
+    sentiment_reason  TEXT,
+    source_tier       INTEGER CHECK (source_tier IS NULL OR source_tier IN (1, 2, 3)),
+    recency_weight    NUMERIC,
+    source_weight     NUMERIC,
+    impact_tag        TEXT CHECK (impact_tag IS NULL OR impact_tag IN ('financial-impact', 'regulatory', 'leadership', 'product', 'macro', 'sector', 'other')),
+    extraction_status TEXT,
+    paywalled         BOOLEAN DEFAULT false,
+    article_window    TEXT CHECK (article_window IS NULL OR article_window IN ('last_24h', '24_72h', '72h_7d')),
+
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE (ticker, event_hash)
+);
+
+ALTER TABLE public.shared_ticker_events ENABLE ROW LEVEL SECURITY;
+
+-- sector_regime_snapshots — Daily per-sector quantitative and narrative state
+CREATE TABLE IF NOT EXISTS public.sector_regime_snapshots (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    sector TEXT NOT NULL,
+    snapshot_date DATE NOT NULL,
+    sector_beta      NUMERIC,
+    sector_momentum  NUMERIC,
+    sector_breadth   NUMERIC,
+    sector_score     NUMERIC,
+    narrative_text   TEXT,
+    narrative_last_refreshed TIMESTAMPTZ,
+    regulatory_risk  TEXT,
+    supply_chain_risk TEXT,
+    demand_cycle_risk TEXT,
+    source_etf TEXT,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE (sector, snapshot_date)
+);
+
+ALTER TABLE public.sector_regime_snapshots ENABLE ROW LEVEL SECURITY;
