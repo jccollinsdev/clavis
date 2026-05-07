@@ -38,9 +38,11 @@ async def export_account(user_id: str = Depends(get_user_id)):
     risk_scores = []
     if position_ids:
         risk_scores = (
-            supabase.table("risk_scores")
+            supabase.table("ticker_risk_snapshots")
             .select("*")
-            .in_("position_id", position_ids)
+            .in_("ticker", held_tickers if held_tickers else [])
+            .order("created_at", desc=True)
+            .limit(200)
             .execute()
             .data
             or []
@@ -173,9 +175,7 @@ async def delete_account(user_id: str = Depends(get_user_id)):
         deleted_counts["position_analyses"] = delete_rows_in(
             "position_analyses", "position_id", position_ids
         )
-        deleted_counts["risk_scores"] = delete_rows_in(
-            "risk_scores", "position_id", position_ids
-        )
+        deleted_counts["risk_scores"] = 0
 
     # ── Step 3: Children of watchlists ──────────────────────────────────────
     if watchlist_ids:

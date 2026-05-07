@@ -2242,18 +2242,20 @@ def _get_latest_position_score_for_ids(
 ) -> dict[str, Any] | None:
     if not position_ids:
         return None
-    result = (
-        supabase.table("risk_scores")
-        .select("*")
-        .in_("position_id", position_ids)
-        .order("calculated_at", desc=True)
-        .limit(10)
+    tickers_result = (
+        supabase.table("positions")
+        .select("ticker")
+        .in_("id", position_ids)
         .execute()
     )
-    rows = result.data or []
-    for row in rows:
-        if row.get("position_id") in position_ids:
-            return row
+    tickers = list({r.get("ticker", "").upper() for r in (tickers_result.data or []) if r.get("ticker")})
+    if not tickers:
+        return None
+    snapshots = get_latest_risk_snapshot_map(supabase, tickers)
+    for ticker in tickers:
+        s = snapshots.get(ticker)
+        if s:
+            return s
     return None
 
 
@@ -2262,19 +2264,14 @@ def _get_latest_position_score_map_for_ids(
 ) -> dict[str, dict[str, Any]]:
     if not position_ids:
         return {}
-    result = (
-        supabase.table("risk_scores")
-        .select("*")
-        .in_("position_id", position_ids)
-        .order("calculated_at", desc=True)
+    tickers_result = (
+        supabase.table("positions")
+        .select("ticker")
+        .in_("id", position_ids)
         .execute()
     )
-    grouped: dict[str, dict[str, Any]] = {}
-    for row in result.data or []:
-        position_id = row.get("position_id")
-        if position_id and position_id not in grouped:
-            grouped[position_id] = row
-    return grouped
+    tickers = list({r.get("ticker", "").upper() for r in (tickers_result.data or []) if r.get("ticker")})
+    return get_latest_risk_snapshot_map(supabase, tickers)
 
 
 def _get_latest_position_analysis_for_ids(

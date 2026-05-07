@@ -245,7 +245,6 @@ def _delete_position_related_rows(supabase, user_id: str, position_id: str) -> N
     supabase.table("position_analyses").delete().eq(
         "position_id", position_id
     ).execute()
-    supabase.table("risk_scores").delete().eq("position_id", position_id).execute()
     supabase.table("positions").delete().eq("id", position_id).eq(
         "user_id", user_id
     ).execute()

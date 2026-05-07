@@ -1364,16 +1364,16 @@ def _load_completed_position_payloads(
     for position in positions:
         score_rows = _execute_supabase_with_retry(
             lambda: (
-                supabase.table("risk_scores")
+                supabase.table("ticker_risk_snapshots")
                 .select("*")
-                .eq("analysis_run_id", analysis_run_id)
-                .eq("position_id", position["id"])
+                .eq("ticker", position.get("ticker", ""))
+                .order("created_at", desc=True)
                 .limit(1)
                 .execute()
                 .data
             ),
             context=(
-                f"risk_scores load for partial run {analysis_run_id} "
+                f"ticker_risk_snapshots load for partial run {analysis_run_id} "
                 f"position {position['id']}"
             ),
         )
@@ -1397,15 +1397,15 @@ def _load_completed_position_payloads(
 
         history_rows = _execute_supabase_with_retry(
             lambda: (
-                supabase.table("risk_scores")
-                .select("analysis_run_id, grade")
-                .eq("position_id", position["id"])
-                .order("calculated_at", desc=True)
+                supabase.table("ticker_risk_snapshots")
+                .select("grade")
+                .eq("ticker", position.get("ticker", ""))
+                .order("created_at", desc=True)
                 .limit(2)
                 .execute()
                 .data
             ),
-            context=f"risk_scores history load for position {position['id']}",
+            context=f"ticker_risk_snapshots history load for position {position['id']}",
         )
         previous_grade = None
         if len(history_rows) >= 2:
@@ -2399,20 +2399,20 @@ async def execute_analysis_run(
         previous_grades_by_ticker = {}
         previous_total_scores_by_ticker = {}
         for position in positions:
-            previous_scores = (
-                supabase.table("risk_scores")
-                .select("grade, total_score")
-                .eq("position_id", position["id"])
-                .order("calculated_at", desc=True)
+            previous_snaps = (
+                supabase.table("ticker_risk_snapshots")
+                .select("grade, safety_score")
+                .eq("ticker", position["ticker"])
+                .order("created_at", desc=True)
                 .limit(1)
                 .execute()
                 .data
             )
             previous_grades_by_ticker[position["ticker"]] = (
-                previous_scores[0]["grade"] if previous_scores else None
+                previous_snaps[0]["grade"] if previous_snaps else None
             )
             previous_total_scores_by_ticker[position["ticker"]] = (
-                previous_scores[0].get("total_score") if previous_scores else None
+                previous_snaps[0].get("safety_score") if previous_snaps else None
             )
 
         async def _process_position(
@@ -2904,10 +2904,10 @@ async def execute_analysis_run(
                 )
 
                 previous_score_result = (
-                    supabase.table("risk_scores")
+                    supabase.table("ticker_risk_snapshots")
                     .select("safety_score")
-                    .eq("position_id", position["id"])
-                    .order("calculated_at", desc=True)
+                    .eq("ticker", ticker.upper())
+                    .order("created_at", desc=True)
                     .limit(1)
                     .execute()
                 )
@@ -2949,40 +2949,6 @@ async def execute_analysis_run(
                     or 50
                 )
                 grade = ai_scores.get("grade") or structural_scores.get("grade") or "C"
-
-                risk_payload = {
-                    "position_id": position["id"],
-                    "analysis_run_id": analysis_run_id,
-                    "news_sentiment": ai_scores.get("news_sentiment"),
-                    "macro_exposure": ai_scores.get("macro_exposure"),
-                    "position_sizing": None,
-                    "volatility_trend": ai_scores.get("volatility"),
-                    "total_score": round(total_score, 1),
-                    "safety_score": structural_scores.get("safety_score"),
-                    "confidence": structural_scores.get("confidence"),
-                    "factor_breakdown": {
-                        **(
-                            structural_scores.get("factor_breakdown")
-                            if isinstance(
-                                structural_scores.get("factor_breakdown"), dict
-                            )
-                            else {}
-                        ),
-                        "ai_dimensions": {
-                            "financial_health": ai_scores.get("financial_health"),
-                            "news_sentiment": ai_scores.get("news_sentiment"),
-                            "macro_exposure": ai_scores.get("macro_exposure"),
-                            "sector_exposure": ai_scores.get("sector_exposure"),
-                            "volatility": ai_scores.get("volatility"),
-                        },
-                        "llm_scoring_used": bool(ai_scores.get("llm_scoring_used")),
-                    },
-                    "grade": grade,
-                    "reasoning": ai_scores.get("reasoning"),
-                    "evidence_summary": ai_scores.get("evidence_summary"),
-                    "dimension_rationale": ai_scores.get("dimension_rationale"),
-                }
-                supabase.table("risk_scores").insert(risk_payload).execute()
 
                 if "ticker" in position or position.get("ticker"):
                     ticker_val = position.get("ticker") or position.get("ticker")
@@ -4229,13 +4195,19 @@ def _sync_ai_scores_to_ticker_snapshots_sync(
     if not position_rows:
         return
     position_id = position_rows[0]["id"]
-    score_query = supabase.table("risk_scores").select("*").eq("position_id", position_id)
-    if analysis_run_id:
-        score_query = score_query.eq("analysis_run_id", analysis_run_id)
-    latest_score_rows = score_query.order("calculated_at", desc=True).limit(1).execute().data
-    if not latest_score_rows:
+    latest_snap_rows = (
+        supabase.table("ticker_risk_snapshots")
+        .select("*")
+        .eq("ticker", ticker.upper())
+        .eq("snapshot_type", job_type)
+        .order("created_at", desc=True)
+        .limit(1)
+        .execute()
+        .data
+    )
+    if not latest_snap_rows:
         return
-    ai_score = latest_score_rows[0]
+    ai_score = latest_snap_rows[0]
     analysis_query = (
         supabase.table("position_analyses").select("*").eq("position_id", position_id)
     )
@@ -4752,19 +4724,16 @@ async def run_sp500_full_ai_analysis_fast(
         )
         latest_score = None
         if position_rows:
-            latest_score_rows = (
-                supabase.table("risk_scores")
-                .select(
-                    "news_sentiment, macro_exposure, position_sizing, volatility_trend, total_score, reasoning, analysis_run_id"
-                )
-                .eq("position_id", position_rows[0]["id"])
-                .eq("analysis_run_id", analysis_run_id)
-                .order("calculated_at", desc=True)
+            latest_snap_rows = (
+                supabase.table("ticker_risk_snapshots")
+                .select("grade, safety_score, financial_health, news_sentiment, macro_exposure, sector_exposure, volatility, reasoning, methodology_version")
+                .eq("ticker", ticker.upper())
+                .order("created_at", desc=True)
                 .limit(1)
                 .execute()
                 .data
             )
-            latest_score = latest_score_rows[0] if latest_score_rows else None
+            latest_score = latest_snap_rows[0] if latest_snap_rows else None
 
         snap = (
             supabase.table("ticker_risk_snapshots")
@@ -4783,17 +4752,19 @@ async def run_sp500_full_ai_analysis_fast(
         grade = s.get("grade") or "N/A"
         score = s.get("safety_score") or "N/A"
         method = s.get("methodology_version") or ""
+        fh = latest_score.get("financial_health") if latest_score else "N/A"
         news_sent = latest_score.get("news_sentiment") if latest_score else "N/A"
         macro_exp = latest_score.get("macro_exposure") if latest_score else "N/A"
-        pos_size = latest_score.get("position_sizing") if latest_score else "N/A"
-        vol_trend = latest_score.get("volatility_trend") if latest_score else "N/A"
+        sector_exp = latest_score.get("sector_exposure") if latest_score else "N/A"
+        vol = latest_score.get("volatility") if latest_score else "N/A"
         reasoning = (latest_score or {}).get("reasoning") or s.get("reasoning") or ""
         short_reasoning = reasoning[:80] + "..." if len(reasoning) > 80 else reasoning
         ai_tag = " [AI]" if "sp500-ai" in method else ""
         print(
             f"[{ticker}] AI{ai_tag}: Grade={grade} Score={score} | "
-            f"NewsSentiment={news_sent} | MacroExposure={macro_exp} | "
-            f"PositionSizing={pos_size} | VolatilityTrend={vol_trend} | "
+            f"FinHealth={fh} | NewsSentiment={news_sent} | "
+            f"MacroExposure={macro_exp} | SectorExposure={sector_exp} | "
+            f"Volatility={vol} | "
             f"Reasoning: {short_reasoning}"
         )
 

@@ -238,7 +238,6 @@ async def delete_holding(position_id: str, user_id: str = Depends(get_user_id)):
     supabase.table("position_analyses").delete().eq(
         "position_id", position_id
     ).execute()
-    supabase.table("risk_scores").delete().eq("position_id", position_id).execute()
 
     result = (
         supabase.table("positions")
