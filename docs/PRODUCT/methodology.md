@@ -1,115 +1,118 @@
-# Methodology
-How Clavis analyzes your portfolio risk and translates market events into clear, observable signals.
+# Clavix Methodology
 
-**Last updated:** April 12, 2026
+How Clavix rates portfolio risk using observable data, transparent scoring, and a bond-rating-style grade scale.
 
----
-
-## The Three Analysis Layers
-
-Clavis evaluates your portfolio across three interconnected layers. Every score reflects all three working together — not a single number pulled in isolation.
-
-### Macro Layer
-
-Broad market conditions that set the overall risk tone: interest rates, Federal Reserve policy, inflation trends, GDP growth, geopolitical events, and cross-sector volatility regimes. These factors affect nearly every position indirectly. When the macro picture shifts, it changes the baseline risk for all holdings — even solid companies can see their risk scores rise simply because the environment became more hostile.
-
-### Sector Layer
-
-Industry and sector-level dynamics: earnings surprises within a sector, regulatory changes, supply chain shifts, commodity price moves, and sector rotation patterns. These factors affect groups of related positions. A rate-sensitive sector like real estate can underperform even when individual REITs have strong operating metrics. Sector signals help the model understand *why* a position is moving before the company-specific news arrives.
-
-### Position Layer
-
-Company-specific signals: earnings results versus expectations, leadership changes, product recalls, legal developments, unusual options activity, and news sentiment specific to that ticker. These are the most direct inputs to a position's score — and the fastest to change. A single earnings miss can move a position from B to D in hours.
+**Last updated:** May 7, 2026
 
 ---
 
-## Risk Scoring Dimensions
+## What Clavix Measures
 
-Each position receives a score (0–100) across four dimensions. The dimension scores are averaged into a single total score, which maps to a letter grade (A–F). Scores are archetype-aware: a small-cap speculative holding is judged against different baselines than a defensive utility.
+Clavix rates the risk of each tracked ticker across five dimensions. Each dimension is scored from 0 to 100, where higher means lower observed risk. The composite score is the average of the available dimensions.
 
-### News Sentiment (0–100)
+Clavix is informational only. It does not recommend buying, selling, or holding any security. It describes risk signals based on public market data, company fundamentals, price behavior, and recent news.
 
-The tone and severity of recent news coverage for this specific ticker. Positive coverage moves the score up; negative coverage — especially coverage describing operational problems, leadership instability, or legal issues — moves it down. Neutral news scores 50. This dimension captures the market's attention and whether that attention is favorable or hostile.
+## The Five Risk Dimensions
 
-### Macro Exposure (0–100)
+### 1. Financial Health
 
-How sensitive this position is to current macro conditions. High macro sensitivity (e.g., rate-sensitive equities, high-beta growth names) scores lower when macro conditions are hostile. Low macro sensitivity (e.g., defensive names, companies with pricing power, non-cyclical businesses) scores higher. This dimension prevents the model from treating all positions the same when the Fed is moving.
+Financial Health measures the structural strength of the company. It uses balance-sheet and cash-flow inputs such as debt-to-equity ratio, free cash flow margin, interest coverage, current ratio, revenue growth trend, and profitability trend.
 
-### Position Sizing (0–100)
+This dimension updates quarterly as new filings and fundamentals become available. For ETFs, Clavix uses the weighted financial health of the ETF's top holdings when enough underlying holdings are available. If there is not enough data, the dimension is shown as limited rather than estimated.
 
-Whether your allocation to this position is appropriate given its current risk profile. A large position in a high-risk name is penalized. A small position in the same name is treated more indulgently. This dimension is personal — it reflects your portfolio, not the market. Two investors holding the same ticker can receive different scores on this dimension if their position sizes differ.
+### 2. News Sentiment
 
-### Volatility Trend (0–100)
+News Sentiment measures the tone and severity of news about a ticker over the trailing seven days. Each article receives an individual 0-100 score, a short reason for that score, an impact tag, and source/recency weights.
 
-Whether recent price volatility is increasing, stable, or decreasing. Increasing volatility — especially when it coincides with negative news — signals elevated risk. Decreasing volatility in a flat or positive price context signals stability. This dimension uses recent price behavior, not long-term averages, to stay current.
+Recent articles carry more weight than older articles. High-quality sources carry more weight than aggregators or low-confidence sources. A sudden increase in article volume is also treated as a risk signal because unusual attention can matter even before the direction is fully clear.
 
----
+If fewer than three relevant articles are available in the seven-day window, Clavix shows limited data and excludes this dimension from the composite calculation.
+
+### 3. Macro Exposure
+
+Macro Exposure measures how sensitive a ticker is to broad macro factors. Clavix evaluates historical relationships between the ticker's returns and factors such as 10-year Treasury yields, the U.S. dollar, crude oil, VIX, and S&P 500 returns.
+
+The quantitative score is based on observed sensitivity. The narrative explains what the current macro environment means for that ticker right now.
+
+### 4. Sector Exposure
+
+Sector Exposure measures how vulnerable a ticker is to its sector's current state. It considers sector beta, sector momentum versus the S&P 500, sector breadth, and sector-specific news.
+
+A company in a weak or highly concentrated sector can score lower even if company-specific news is quiet. A defensive sector with broad participation and stable conditions can support a higher score.
+
+### 5. Volatility
+
+Volatility measures price instability and whether it is rising or falling. Inputs include 30-day realized volatility, 90-day realized volatility, the 30-day/90-day volatility ratio, maximum drawdown from the trailing 252-day high, and beta to the S&P 500.
+
+Low volatility and falling volatility support a higher score. High volatility, rising volatility, large drawdowns, or high beta reduce the score.
+
+## Composite Score
+
+Each available dimension is weighted equally.
+
+```text
+composite_score = average(available dimension scores)
+```
+
+When all five dimensions are available, each contributes 20% of the final score. If a dimension has limited data, Clavix excludes it and averages the remaining dimensions. Clavix does not fabricate a score when the underlying data is missing.
 
 ## Grade Scale
 
-Grades translate the total score into a severity signal. The scale is fixed and applies uniformly across all positions.
+Clavix maps the composite score to a bond-rating-style grade.
 
-| Grade | Score Range | What It Means |
-|---|---|---|
-| **A** | 80–100 | Risk is low. Market conditions and company fundamentals are cooperating with your position's current setup. |
-| **B** | 65–79 | No immediate concerns. Conditions are net positive but worth watching. |
-| **C** | 50–64 | Mixed signals. The position is neither clearly safe nor clearly at risk. Watch for developments. |
-| **D** | 35–49 | Risk is elevated. Things have deteriorated enough that the downside is material. |
-| **F** | 0–34 | High risk. Fundamentals or market conditions have moved against the position. |
+| Grade | Score | Meaning |
+|---|---:|---|
+| AAA | 90-100 | Treasury-grade. Major defensive blue chips, broad-market ETFs, ultra-stable names. |
+| AA | 80-89 | Investment-grade safe. Strong large caps, defensive sectors, well-capitalized. |
+| A | 70-79 | Solid. Healthy balance sheet, reasonable risk profile. |
+| BBB | 60-69 | Stable but watch points. Some pressure but no immediate concerns. |
+| BB | 50-59 | Mixed signals. Real risks present, weighing them is required. |
+| B | 40-49 | Elevated risk. Material concerns across multiple dimensions. |
+| CCC | 30-39 | High risk. Pressure compounding. |
+| CC | 20-29 | Severe risk. Multiple dimensions in deterioration. |
+| C | 10-19 | Distressed. Near-failure signals in fundamentals or news. |
+| F | 0-9 | Failure mode. Illiquid, broken, near-zero. |
 
-**Grade stability.** Clavis applies a hysteresis buffer when a position is near a grade boundary. A position won't flip from B to C simply because its score dipped one point below the threshold — it needs to stay there. This prevents noise from creating false signals. When a grade does change, the new grade is stable before it propagates to alerts.
+## Grade Stability
 
-**Grade history.** Every score is stored over time. You can see whether a position has been holding steady at A or slowly drifting from B toward C over the past month. A position that has been B for six weeks is different from one that dropped from A to B in two days.
+Clavix applies a stability rule so grades do not flicker because of small daily score movement. A grade change requires the score to move at least three points across the boundary and stay there for two consecutive days.
 
----
+If there is not enough score history, Clavix shows no previous grade or delta. It shows `New` or `--` instead of inventing a prior value.
 
-## Signal Labels
+## Methodology Drill-Down
 
-Every position carries an observational signal label — a plain-language description of what the evidence currently shows. These are not instructions. They describe what the model is observing, not what you should do.
+Every score is auditable. From a ticker rating, users can inspect:
 
-| Label | What It Means |
-|---|---|
-| **Thesis Intact** | The case for owning this position is holding. No concerning signals detected. |
-| **Watching** | Something has changed. Not yet a problem, but the trajectory warrants attention. |
-| **Pressure Building** | Negative signals are accumulating. The position is showing stress. |
-| **Risk Elevated** | The downside has become material. The evidence is no longer ambiguous. |
-| **Under Stress** | Fundamentals or market conditions have moved clearly against the position. |
+- The five dimension scores
+- The inputs behind each dimension
+- The source of each input
+- When each input was last updated
+- The article-level scores that contributed to News Sentiment
+- The reason each article received its score
 
----
+The goal is simple: a user should be able to understand why a ticker is rated AA, BBB, or B without trusting a black box.
 
-## The Daily Digest
+## Daily Digest
 
-Each morning, Clavis delivers a briefing organized in three parts:
+The daily digest turns these scores into a morning briefing. It is organized in this order:
 
-**Market Context** — Key macro events from the prior 24 hours and what they mean for markets broadly. This is the layer that sets the tone before your positions are even considered.
+1. Header with portfolio composite grade
+2. Overnight macro
+3. Sector heat for sectors the user owns
+4. Position-by-position changes, ranked by risk movement
+5. Watchlist updates
+6. What to watch today
 
-**Where You're Exposed** — How macro and sector moves connect to your specific holdings, ranked by risk severity. The positions driving the most portfolio risk appear first. Each entry shows the current grade and what's driving it.
-
-**Notable Changes** — A plain-language summary of what changed overnight for your positions. New negative signals, grade movements, and emerging concerns are flagged here. The goal is to answer "did anything happen overnight that changes my risk?" in under a minute.
-
----
+The digest is personalized to the user's holdings and watchlist, but the underlying ticker scores remain ticker-level ratings. Position size, cost basis, and brokerage data affect the explanation of what a change means for the user; they do not change the ticker's rating.
 
 ## Data Sources
 
-Clavis aggregates from multiple provider types:
+Clavix uses market data, fundamentals, and news from providers including Polygon, Finnhub, Google News RSS, CNBC RSS, Jina Reader, and MiniMax for structured language analysis.
 
-- **Brokerage connections** (via SnapTrade) — read-only access to your holdings data
-- **Licensed financial news and data feeds** — real-time news ingestion filtered to your holdings
-- **Public market data providers** (Polygon, Finnhub) — price, volume, fundamentals, and options data
-- **Alternative data** — options flow patterns and sentiment indices used for early signal detection
+Brokerage connections are read-only and are used only to sync holdings. Clavix cannot place trades.
 
----
+## Limitations
 
-## Model Limitations
+Clavix ratings depend on available data. Some events can move faster than scheduled refresh cycles. Some articles are paywalled or incomplete. Some tickers outside the tracked universe have limited fundamentals or limited news.
 
-No model is omniscient. Clavis has explicit, known boundaries:
-
-**Lag.** News events take time to propagate into scores. A sudden market move — a flash crash, an unexpected Fed statement — may not be reflected in scores immediately. The model works on the prior 24–48 hours of evidence, not real-time ticks.
-
-**Black swan events.** Sudden, unpredictable shocks (natural disasters, geopolitical crises, surprise regulatory actions) can overwhelm the patterns the model relies on. These events are by definition outside the training distribution.
-
-**Archetype assumptions.** Scoring is relative to the position's archetype, but archetypes are inferred from data, not declared. A position tagged incorrectly by archetype will be judged against the wrong baseline.
-
-**Sentiment analysis.** Text-based news analysis can miss sarcasm, spin, delayed reporting, or information that is well-known to institutional investors but underreported in mainstream financial news.
-
-**Score disclaimer.** All Clavis outputs are algorithmically generated informational signals. They are not investment advice, not a substitute for professional analysis, and not a prediction of future performance. Treat them as one input among many in your own decision-making process. Past signal behavior does not guarantee future results. The methodology may evolve as the model is refined over time.
+When data is limited, Clavix labels it as limited. It does not fill gaps with invented scores.

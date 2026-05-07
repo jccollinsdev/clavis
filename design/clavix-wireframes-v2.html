@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Clavix · Wireframes v2</title>
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; background: #f0eee9; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+    @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+    .phone {
+      width: 100%; height: 100%;
+      border-radius: 38px; overflow: hidden;
+      background: #ffffff; position: relative;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.08), 0 14px 40px rgba(0,0,0,0.10), 0 0 0 8px #1a1a1a, 0 0 0 9px #2a2a2a;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="wf-primitives.jsx"></script>
+  <script type="text/babel" src="wf-digest.jsx"></script>
+  <script type="text/babel" src="wf-ticker.jsx"></script>
+  <script type="text/babel" src="wf-screens.jsx"></script>
+
+  <script type="text/babel" data-presets="env,react">
+    const { useState } = React;
+
+    function Phone({ children }) {
+      return <div className="phone">{children}</div>;
+    }
+
+    function Note({ label, children, style }) {
+      return (
+        <div style={{
+          fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace',
+          fontSize: 12, lineHeight: 1.45, color: '#3a3f46',
+          background: '#fffbe8', border: '1px solid #e8d97a',
+          padding: '10px 12px', maxWidth: 260, ...style,
+        }}>
+          {label && (
+            <div style={{ fontSize: 9, letterSpacing: 0.8, textTransform: 'uppercase', color: '#a35a00', fontWeight: 700, marginBottom: 4 }}>{label}</div>
+          )}
+          {children}
+        </div>
+      );
+    }
+
+    function NoteBoard({ id, label, height = 844, children }) {
+      return (
+        <DCArtboard id={id} label={label} width={280} height={height}>
+          <div style={{ width: '100%', height: '100%', padding: 16, boxSizing: 'border-box', display: 'flex', flexDirection: 'column', gap: 10, background: 'transparent' }}>
+            {children}
+          </div>
+        </DCArtboard>
+      );
+    }
+
+    function App() {
+      const [tweaks, setTweak] = useTweaks(/*EDITMODE-BEGIN*/{
+        "showAnnotations": true,
+        "tier": "Pro",
+        "digestLength": "Standard"
+      }/*EDITMODE-END*/);
+      const annotationFilter = tweaks.showAnnotations ? '' : 'note-hidden';
+
+      return (
+        <>
+          <style>{`.note-hidden [data-dc-slot][data-id^="note-"]{display:none}`}</style>
+          <div className={annotationFilter} style={{ width: '100%', height: '100%' }}>
+            <DesignCanvas>
+
+              {/* ─── README ─── */}
+              <DCSection id="overview" title="Clavix · Wireframes v2" subtitle="iOS · Full app wireframe · v2 incorporating design review feedback">
+                <DCArtboard id="readme" label="README" width={460} height={960}>
+                  <div style={{ width: '100%', height: '100%', padding: 28, boxSizing: 'border-box', background: '#fff', borderLeft: '4px solid #c2410c', fontFamily: '-apple-system, system-ui, sans-serif' }}>
+                    <div style={{ fontSize: 11, letterSpacing: 1.5, color: '#c2410c', fontWeight: 700, fontFamily: 'ui-monospace, Menlo, monospace' }}>CLAVIX · WIREFRAMES V2</div>
+                    <div style={{ fontSize: 26, fontWeight: 600, lineHeight: 1.2, letterSpacing: -0.4, marginTop: 14 }}>Full app wireframe — post design review.</div>
+                    <div style={{ fontSize: 10, letterSpacing: 0.8, color: '#6b7280', fontFamily: 'ui-monospace, Menlo, monospace', textTransform: 'uppercase', marginTop: 22 }}>What's in v2</div>
+                    <ol style={{ fontSize: 13, color: '#3a3f46', lineHeight: 1.7, paddingLeft: 18, marginTop: 6 }}>
+                      <li><b>Onboarding</b> · 2 screens</li>
+                      <li><b>Daily Digest</b> · A–C kept · D now has 3 concepts (D1/D2/D3) — all: macro → sector → positions</li>
+                      <li><b>Portfolio + Watchlist</b></li>
+                      <li><b>Ticker Detail</b> · C (Radar) updated: no score chart, stock chart below hero, exec summary drawer, "Why this score?" toggle, no fundamentals section</li>
+                      <li><b>Methodology Drawer</b> · quick view</li>
+                      <li><b>Methodology Full Audits</b> · 4 pages: News Sentiment · Financial Health · Macro Exposure · Sector Exposure · Volatility (formula removed; articles + weighted mean + distribution chart)</li>
+                      <li><b>Article Detail</b> · "Why this score?" hidden behind tap (not "LLM reasoning")</li>
+                      <li><b>Search</b></li>
+                      <li><b>Alerts</b> · tap-through destinations shown · digest-ready alert type added</li>
+                      <li><b>Settings + Paywall</b> · digest alert toggle added · score history row removed</li>
+                    </ol>
+                    <div style={{ fontSize: 10, letterSpacing: 0.8, color: '#6b7280', fontFamily: 'ui-monospace, Menlo, monospace', textTransform: 'uppercase', marginTop: 22 }}>Removed in v2</div>
+                    <ul style={{ fontSize: 13, color: '#3a3f46', lineHeight: 1.6, paddingLeft: 18, marginTop: 6 }}>
+                      <li>Score History screen — out of v1 scope</li>
+                      <li>18d composite sparkline on Ticker hero</li>
+                      <li>Fundamentals &amp; last filing section on Ticker</li>
+                      <li>Formula display on methodology audit pages</li>
+                      <li>"LLM reasoning" label — now "Why this score?"</li>
+                    </ul>
+                    <div style={{ fontSize: 10, letterSpacing: 0.8, color: '#6b7280', fontFamily: 'ui-monospace, Menlo, monospace', textTransform: 'uppercase', marginTop: 22 }}>Conventions</div>
+                    <div style={{ fontSize: 12, color: '#3a3f46', lineHeight: 1.6, marginTop: 6 }}>
+                      <b>Mono numbers</b> · tabular figures throughout.<br />
+                      <b>Sharp boxes</b> · 0px radius, border not shadow.<br />
+                      <b>Burnt-orange accent</b> · personalised data only.<br />
+                      <b>Bond-grade pills</b> · AAA → F scale.
+                    </div>
+                  </div>
+                </DCArtboard>
+              </DCSection>
+
+              {/* ─── 1 · ONBOARDING ─── */}
+              <DCSection id="onboarding" title="1 · Onboarding" subtitle="2 screens · welcome → portfolio setup">
+                <DCArtboard id="onb-a" label="A · Welcome" width={390} height={844}><Phone><OnboardA /></Phone></DCArtboard>
+                <DCArtboard id="onb-b" label="B · Add portfolio" width={390} height={844}><Phone><OnboardB /></Phone></DCArtboard>
+                <NoteBoard id="note-onb" label="Notes">
+                  <Note label="Add paths">Three paths: brokerage sync, CSV, manual. Ordered by recommendation.</Note>
+                  <Note label="Banned strings">Per product spec — "SnapTrade" never shown in UI. Copy says "Connect brokerage."</Note>
+                  <Note label="Trial">14-day Pro free trial · no credit card · auto-downgrades day 15.</Note>
+                </NoteBoard>
+              </DCSection>
+
+              {/* ─── 2 · DAILY DIGEST ─── */}
+              <DCSection id="digest" title="2 · Daily Digest" subtitle="A–C: original variations kept · D1/D2/D3: 3 new concepts, all macro→sector→positions">
+                <DCArtboard id="digest-a" label="A · Prose-led" width={390} height={1480}><Phone><DigestA /></Phone></DCArtboard>
+                <DCArtboard id="digest-b" label="B · Card stack" width={390} height={1480}><Phone><DigestB /></Phone></DCArtboard>
+                <DCArtboard id="digest-c" label="C · Hybrid" width={390} height={1360}><Phone><DigestC /></Phone></DCArtboard>
+                <DCArtboard id="digest-d1" label="D1 · Sectioned memo" width={390} height={1340}><Phone><DigestD1 /></Phone></DCArtboard>
+                <DCArtboard id="digest-d2" label="D2 · Stacked cards" width={390} height={1340}><Phone><DigestD2 /></Phone></DCArtboard>
+                <DCArtboard id="digest-d3" label="D3 · Tight ledger" width={390} height={1240}><Phone><DigestD3 /></Phone></DCArtboard>
+                <NoteBoard id="note-digest" label="D concept notes" height={1480}>
+                  <Note label="All 3 D concepts follow the same structure">
+                    Macro (prose) → Sector (prose/table) → Positions (diff-led). Grade + composite are visible at top of each.
+                  </Note>
+                  <Note label="D1 · Sectioned memo">
+                    Editorial feel. Horizontal rule dividers. Macro and sector as flowing prose paragraphs. Positions as diff rows with accent on the mover. Most "newsletter" feeling.
+                  </Note>
+                  <Note label="D2 · Stacked cards">
+                    Each section is a bordered card. Dense but scannable. Score delta gets a numeric callout. Best for users who want to scan all three sections without prose fatigue.
+                  </Note>
+                  <Note label="D3 · Tight ledger">
+                    Masthead with "Morning Report" framing. Roman-numeral sections (I/II/III). Positions as a ruled ledger with delta column. Most "rating agency" — matches Clavix tone doc.
+                  </Note>
+                  <Note label="Key decision">
+                    All three keep macro as prose (it's narrative), sector as a structured hybrid, and positions as a scannable diff table. The question is the visual density and "weight" of each section.
+                  </Note>
+                </NoteBoard>
+              </DCSection>
+
+              {/* ─── 3 · PORTFOLIO ─── */}
+              <DCSection id="portfolio" title="3 · Portfolio + Watchlist" subtitle="One screen · holdings table with watchlist as inline section">
+                <DCArtboard id="port" label="Holdings" width={390} height={1180}><Phone><Portfolio /></Phone></DCArtboard>
+                <NoteBoard id="note-port" label="Notes" height={1180}>
+                  <Note label="One screen">Watchlist lives inside Holdings as a section. Saves a tab slot, matches mental model.</Note>
+                  <Note label="Alert highlight">NVDA row tinted — active grade-change alert. Tap → ticker detail. Clears on open.</Note>
+                  <Note label="Sort">Default Weight. Toggle to Grade for "show me my riskiest positions."</Note>
+                </NoteBoard>
+              </DCSection>
+
+              {/* ─── 4 · TICKER DETAIL ─── */}
+              <DCSection id="ticker" title="4 · Ticker Detail" subtitle="C (Radar) is the chosen direction — updated per design review">
+                <DCArtboard id="ticker-a" label="A · Bars" width={390} height={1300}><Phone><TickerA /></Phone></DCArtboard>
+                <DCArtboard id="ticker-b" label="B · Pills" width={390} height={1360}><Phone><TickerB /></Phone></DCArtboard>
+                <DCArtboard id="ticker-c" label="C · Radar ★ (chosen)" width={390} height={1480}><Phone><TickerC /></Phone></DCArtboard>
+                <DCArtboard id="ticker-d" label="D · Terminal" width={390} height={1060}><Phone><TickerD /></Phone></DCArtboard>
+                <NoteBoard id="note-ticker" label="C changes" height={1480}>
+                  <Note label="Hero card">Radar + grade + score. No 18d composite sparkline. Score was/delta shown as text only.</Note>
+                  <Note label="Stock chart">Price chart placeholder sits directly below the hero card — above the dimensions table. Period selector included.</Note>
+                  <Note label="Dimensions table">Each row taps to the full methodology audit for that dimension. Callout reinforces this.</Note>
+                  <Note label="Executive summary">Tap the SUMMARY button in the app bar. Drawer slides up with: Bullish tailwinds · Bearish headwinds · What to look for.</Note>
+                  <Note label="Why this score?">Below each article headline — collapsed by default. Tap to expand. NOT labelled "LLM reasoning."</Note>
+                  <Note label="Removed">Fundamentals &amp; last filing section — gone entirely. Users choose when to go verbose.</Note>
+                </NoteBoard>
+              </DCSection>
+
+              {/* ─── 5 · METHODOLOGY DRAWER ─── */}
+              <DCSection id="methodology-drawer" title="5 · Methodology Drawer" subtitle="Quick view · slides up from score tap · links to full audit">
+                <DCArtboard id="meth-drawer" label="Drawer (quick)" width={390} height={844}><Phone><MethodologyDrawer /></Phone></DCArtboard>
+                <NoteBoard id="note-meth-drawer" label="Notes">
+                  <Note label="Drawer behaviour">Slides up from score tap. Dim backing screen. Drag handle. Scrollable. Accordion per dimension.</Note>
+                  <Note label="No formula">Drawer shows: score, source, a small distribution chart when expanded, and article count. "Full audit ↗" link goes to the deep page.</Note>
+                  <Note label="Distribution chart">Mini bar chart shows spread of article scores. Helps user understand if the mean was driven by outliers.</Note>
+                </NoteBoard>
+              </DCSection>
+
+              {/* ─── 6 · METHODOLOGY FULL AUDITS ─── */}
+              <DCSection id="methodology-audits" title="6 · Methodology Full Audits" subtitle="4 pages · one per scored dimension · no formula · articles + weighted mean + distribution">
+                <DCArtboard id="meth-news" label="News Sentiment" width={390} height={1180}><Phone><MethodologyAuditNews /></Phone></DCArtboard>
+                <DCArtboard id="meth-fin" label="Financial Health" width={390} height={1200}><Phone><MethodologyAuditFinHealth /></Phone></DCArtboard>
+                <DCArtboard id="meth-macro" label="Macro Exposure" width={390} height={1200}><Phone><MethodologyAuditMacro /></Phone></DCArtboard>
+                <DCArtboard id="meth-sector" label="Sector Exposure" width={390} height={1180}><Phone><MethodologyAuditSector /></Phone></DCArtboard>
+                <DCArtboard id="meth-vol" label="Volatility" width={390} height={1180}><Phone><MethodologyAuditVolatility /></Phone></DCArtboard>
+                <NoteBoard id="note-meth-audits" label="Notes" height={1200}>
+                  <Note label="What's on every audit page">Score hero (large, with delta) · last refreshed · distribution chart · inputs table (signal / value / score / weight) · weighted mean row · callout.</Note>
+                  <Note label="No formula">Formula removed per design review. Users see the inputs and their weights — enough to understand the score without the math.</Note>
+                  <Note label="Distribution chart">Shows where article/signal scores cluster. Makes it visually obvious if one outlier is dragging the mean.</Note>
+                  <Note label="News vs fundamentals">News audit shows article table with w_R (recency) and w_T (tier) columns. Fundamental/macro/sector/vol audits show signal table with value and weight columns.</Note>
+                  <Note label="Refresh cadence">Each page states the data source and refresh cadence. Financial Health = quarterly. Others = daily/intraday.</Note>
+                </NoteBoard>
+              </DCSection>
+
+              {/* ─── 7 · ARTICLE DETAIL ─── */}
+              <DCSection id="article" title="7 · Article Detail" subtitle="TL;DR · What It Means · Key implications · Why this score? (hidden by default)">
+                <DCArtboard id="article-detail" label="Article" width={390} height={1160}><Phone><ArticleDetail /></Phone></DCArtboard>
+                <NoteBoard id="note-article" label="Notes" height={1160}>
+                  <Note label="Why this score?">"LLM reasoning" is now labelled "Why this score?" and hidden behind a tap. Shows an expand/collapse chevron. Default collapsed.</Note>
+                  <Note label="Personalisation">"What it means for you" box uses shares, cost basis, P&amp;L, weight in book. Orange tint distinguishes from generic TLDR.</Note>
+                  <Note label="Source link">Always link to original. Clavix is a lens, not a content host.</Note>
+                </NoteBoard>
+              </DCSection>
+
+              {/* ─── 8 · SEARCH ─── */}
+              <DCSection id="search" title="8 · Universal Search" subtitle="Ticker + company name · in-portfolio flag · outside-universe section">
+                <DCArtboard id="search-screen" label="Search" width={390} height={844}><Phone><Search /></Phone></DCArtboard>
+                <NoteBoard id="note-search">
+                  <Note label="In-portfolio chip">Inline accent flag. Prevents duplicate adds.</Note>
+                  <Note label="Outside universe">Separate section with cap/volume reason and manual-add CTA.</Note>
+                  <Note label="Recent pills">One-tap recall for the 5-10 tickers a power user revisits.</Note>
+                </NoteBoard>
+              </DCSection>
+
+              {/* ─── 9 · ALERTS ─── */}
+              <DCSection id="alerts" title="9 · Alerts" subtitle="In-app history · tap-through to source page · digest-ready alert type">
+                <DCArtboard id="alerts-screen" label="Alerts" width={390} height={1100}><Phone><Alerts /></Phone></DCArtboard>
+                <NoteBoard id="note-alerts" label="Notes" height={1100}>
+                  <Note label="Tap-through">Every alert shows a destination badge on the right: → NVDA · → Article · → Today · → Holdings. Tap anywhere on the row to navigate.</Note>
+                  <Note label="Digest ready">New alert type: DIGEST READY. Fires at 7:00 AM when the digest is generated. Takes user to the Today tab. Toggleable in Settings.</Note>
+                  <Note label="Filter tabs">All · Grade · News · Macro · Digest. (Score History tab removed — out of v1.)</Note>
+                  <Note label="Hysteresis">Grade alerts only fire after hysteresis threshold. Body states the score delta so user understands it wasn't a flicker.</Note>
+                  <Note label="Quiet hours">Queue during quiet hours, deliver at 7:00 AM. Digest-ready always at 7:00.</Note>
+                </NoteBoard>
+              </DCSection>
+
+              {/* ─── 10 · SETTINGS + PAYWALL ─── */}
+              <DCSection id="settings-paywall" title="10 · Settings & Paywall" subtitle="Account · digest · alerts · quiet hours · upgrade">
+                <DCArtboard id="settings" label="Settings" width={390} height={1180}><Phone><Settings /></Phone></DCArtboard>
+                <DCArtboard id="paywall" label="Paywall · Free → Pro" width={390} height={1180}><Phone><Paywall /></Phone></DCArtboard>
+                <NoteBoard id="note-settings" label="Notes" height={1180}>
+                  <Note label="Digest alert toggle">New toggle in the Digest group: "Digest alerts" — on/off for the 7:00 AM DIGEST READY push notification.</Note>
+                  <Note label="Score history row removed">Not in v1 scope. Paywall comparison table updated accordingly.</Note>
+                  <Note label="Paywall">Single price $20/mo · 14d trial · no card. No annual plan until retention data exists.</Note>
+                </NoteBoard>
+              </DCSection>
+
+            </DesignCanvas>
+          </div>
+
+          <TweaksPanel title="Tweaks">
+            <TweakSection title="Annotations">
+              <TweakToggle label="Show margin notes" value={tweaks.showAnnotations} onChange={v => setTweak('showAnnotations', v)} />
+            </TweakSection>
+            <TweakSection title="User state">
+              <TweakRadio label="Tier" value={tweaks.tier} options={['Free', 'Pro']} onChange={v => setTweak('tier', v)} />
+              <TweakSelect label="Digest length" value={tweaks.digestLength} options={['Brief', 'Standard', 'Verbose']} onChange={v => setTweak('digestLength', v)} />
+            </TweakSection>
+            <TweakSection title="Tip">
+              <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.4 }}>
+                ⤢ to focus any artboard fullscreen · Esc to close · drag grip to reorder.
+              </div>
+            </TweakSection>
+          </TweaksPanel>
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
