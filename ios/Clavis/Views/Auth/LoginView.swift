@@ -25,7 +25,7 @@ struct LoginView: View {
 
                             Text("CLAVIX")
                                 .font(.custom("Inter", size: 20).weight(.bold))
-                                .foregroundColor(.brandCream)
+                                .foregroundColor(.accentBurnt)
                                 .tracking(4)
 
                             Text("Portfolio intelligence for self-directed investors")

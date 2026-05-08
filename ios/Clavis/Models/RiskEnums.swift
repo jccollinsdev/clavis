@@ -41,17 +41,17 @@ enum RiskTrend: String, Codable, CaseIterable {
 
     var arrow: String {
         switch self {
-        case .worsening:  return "\u{2191}"
+        case .worsening:  return "\u{2193}"
         case .stable:     return "\u{2192}"
-        case .improving:  return "\u{2193}"
+        case .improving:  return "\u{2191}"
         }
     }
 
     var iconName: String {
         switch self {
-        case .worsening:  return "arrow.up.right"
+        case .worsening:  return "arrow.down.right"
         case .stable:     return "minus"
-        case .improving:  return "arrow.down.right"
+        case .improving:  return "arrow.up.right"
         }
     }
 }

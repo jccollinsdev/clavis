@@ -639,7 +639,7 @@ struct HoldingsControlCard: View {
                     HStack(spacing: 4) {
                         Text("Sort:")
                             .font(.system(size: 13, weight: .regular))
-                            .foregroundColor(Color(hex: "#9DA5B4"))
+                            .foregroundColor(.ink4)
                         Text(selectedSort.rawValue)
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(.textPrimary)
@@ -658,7 +658,7 @@ struct HoldingsControlCard: View {
                         Text(isRefreshing ? "Refreshing" : "Refresh")
                             .font(.system(size: 13, weight: .bold))
                     }
-                    .foregroundColor(Color(hex: "#F0C76C"))
+                    .foregroundColor(.accentBurnt)
                 }
                 .buttonStyle(.plain)
                 .disabled(isRefreshing)
@@ -679,10 +679,10 @@ struct HoldingsControlCard: View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
-                .foregroundColor(isSelected ? Color(hex: "#121313") : Color(hex: "#B6BDCA"))
+                .foregroundColor(isSelected ? .accentInk : .ink4)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 7)
-                .background(isSelected ? LinearGradient(colors: [Color(hex: "#FFE8A8"), Color(hex: "#EABF57")], startPoint: .topLeading, endPoint: .bottomTrailing) : LinearGradient(colors: [Color.surfaceElevated.opacity(0.02), Color.surfaceElevated.opacity(0.02)], startPoint: .top, endPoint: .bottom))
+                .background(isSelected ? Color.accentBurnt : Color.surfaceElevated.opacity(0.02))
                 .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 11, style: .continuous)
@@ -797,7 +797,7 @@ struct PositionCardRow: View {
                         HStack(spacing: 8) {
                             Text(position.ticker)
                                 .font(.system(size: 15, weight: .semibold))
-                                .foregroundColor(Color(hex: "#F0C76C"))
+                                .foregroundColor(.accentBurnt)
 
                             if let companyName = position.resolvedCompanyName, !companyName.isEmpty {
                                 Text(companyName)

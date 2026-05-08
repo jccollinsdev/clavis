@@ -103,7 +103,7 @@ struct TickerDetailView: View {
                 VStack(spacing: 3) {
                     Text(ticker)
                         .font(ClavisTypography.inter(17, weight: .bold))
-                        .foregroundColor(Color(hex: "#F3D58C"))
+                        .foregroundColor(.accentBurnt)
                     if let company = detail?.profile.companyName, !company.isEmpty {
                         Text(company)
                             .font(ClavisTypography.footnote)
@@ -191,7 +191,7 @@ struct TickerDetailView: View {
                     VStack(alignment: .leading, spacing: 14) {
                         Text(ticker)
                             .font(.system(size: 22, weight: .bold, design: .monospaced))
-                            .foregroundColor(Color(hex: "#F3D58C"))
+                            .foregroundColor(.accentBurnt)
 
                         if let company = detail.profile.companyName, !company.isEmpty {
                             Text(company)
@@ -390,10 +390,10 @@ struct TickerDetailView: View {
                         }
                     }
                     .font(ClavisTypography.inter(14, weight: .bold))
-                    .foregroundColor(Color(hex: "#14171d"))
+                    .foregroundColor(.accentInk)
                     .padding(.horizontal, 18)
                     .padding(.vertical, 11)
-                    .background(Color(hex: "#f3f5f8"))
+                    .background(Color.accentBurnt)
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
                 .buttonStyle(.plain)

@@ -3,10 +3,10 @@ import SwiftUI
 // MARK: - Theme Constants
 
 enum ClavisTheme {
-    static let cornerRadius: CGFloat = 12         // cards
-    static let innerCornerRadius: CGFloat = 10    // controls and inline surfaces
-    static let sectionSpacing: CGFloat = 10
-    static let cardPadding: CGFloat = 14
+    static let cornerRadius: CGFloat = 4          // v2 sharp-box system
+    static let innerCornerRadius: CGFloat = 0     // controls and inline surfaces
+    static let sectionSpacing: CGFloat = 12
+    static let cardPadding: CGFloat = 16
     static let screenPadding: CGFloat = 16
     static let microSpacing: CGFloat = 4
     static let smallSpacing: CGFloat = 8
@@ -69,7 +69,7 @@ enum ClavisTypography {
 // MARK: - Color Palette
 
 extension Color {
-    // MARK: Surfaces (dark)
+    // MARK: V2 dark surfaces
     static let backgroundPrimary = Color(hex: "#0B0D12")
     static let surface           = Color(hex: "#14171E")
     static let surfaceElevated   = Color(hex: "#1B1F28")
@@ -77,11 +77,32 @@ extension Color {
     static let border            = Color(hex: "#242934")
     static let borderSubtleTone  = Color(hex: "#1E232D")
 
-    // MARK: Text
+    // MARK: V2 typography colors
     static let textPrimary   = Color(hex: "#EEF1F5")
     static let textSecondary = Color(hex: "#8A93A3")
     static let textTertiary  = Color(hex: "#5A6374")
-    static let brandCream    = Color(hex: "#D4C49B")
+
+    // MARK: Wireframe token aliases
+    static let ink        = textPrimary
+    static let ink2       = Color(hex: "#CDD3DD")
+    static let ink3       = textSecondary
+    static let ink4       = Color(hex: "#9AA1AB")
+    static let rule       = border
+    static let rule2      = borderSubtleTone
+    static let paper      = surface
+    static let paper2     = surfaceElevated
+
+    // MARK: V2 accent + semantic states
+    static let accentBurnt = Color(hex: "#C2410C")
+    static let accentSoft  = Color(hex: "#3D241A")
+    static let accentInk   = Color(hex: "#F7E5D8")
+    static let good        = Color(hex: "#1F6F43")
+    static let goodSoft    = Color(hex: "#173124")
+    static let warn        = Color(hex: "#A35A00")
+    static let warnSoft    = Color(hex: "#382714")
+    static let bad         = Color(hex: "#9A1D1D")
+    static let badSoft     = Color(hex: "#341719")
+    static let brandCream  = accentBurnt
 
     // MARK: Informational (non-risk blue — never near score displays)
     static let informational = Color(hex: "#3B82C4")
@@ -127,6 +148,7 @@ extension Color {
     static let riskD = gradeCCCC  // old D → CCC orange
     static let riskF = gradeCF    // old F → F red
     static let accentBlue         = informational
+    static let accent             = accentBurnt
     static let canvasBackground   = backgroundPrimary
     static let cardBackground     = surface
     static let elevatedBackground = surfaceElevated
@@ -341,7 +363,7 @@ struct GradeBadge: View {
             .foregroundColor(ClavisGradeStyle.gradeBandText(for: grade))
             .frame(width: width, height: height, alignment: .center)
             .background(ClavisGradeStyle.gradeBandBg(for: grade))
-            .cornerRadius(4)
+            .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous))
     }
 }
 
@@ -352,16 +374,16 @@ struct RiskDirectionLabel: View {
 
     private var color: Color {
         switch trend {
-        case .worsening:  return .riskD
-        case .improving:  return .riskA
+        case .worsening:  return .bad
+        case .improving:  return .good
         case .stable:     return .textSecondary
         }
     }
 
     private var label: String {
         switch trend {
-        case .worsening:  return "↑ worsening"
-        case .improving:  return "↓ improving"
+        case .worsening:  return "↓ worsening"
+        case .improving:  return "↑ improving"
         case .stable:     return "→ stable"
         }
     }
@@ -370,8 +392,8 @@ struct RiskDirectionLabel: View {
         Text(label)
             .font(.system(size: 12, weight: .semibold, design: .monospaced))
             .foregroundColor(color)
-            .accessibilityLabel(label.replacingOccurrences(of: "↑", with: "worsening")
-                .replacingOccurrences(of: "↓", with: "improving")
+            .accessibilityLabel(label.replacingOccurrences(of: "↑", with: "improving")
+                .replacingOccurrences(of: "↓", with: "worsening")
                 .replacingOccurrences(of: "→", with: "stable"))
     }
 }
@@ -403,22 +425,6 @@ struct EvidenceDots: View {
             }
         }
         .accessibilityLabel("\(evidence.rawValue) evidence")
-    }
-}
-
-// MARK: - Grade Tag (deprecated)
-
-@available(*, deprecated, message: "Use GradeBadge instead. P1-C requires GradeBadge for visual hierarchy.")
-struct GradeTag: View {
-    let grade: String
-    var compact: Bool = false
-    var large: Bool = false
-
-    var body: some View {
-        GradeBadge(
-            grade: grade,
-            size: large ? .large : (compact ? .compact : .standard)
-        )
     }
 }
 
@@ -593,64 +599,6 @@ struct RiskBar: View {
             }
         }
         .frame(height: 4)
-    }
-}
-
-// MARK: - Gauge
-
-struct ClavixGauge: View {
-    let score: Int
-    let grade: String
-    var size: CGFloat = 112
-
-    var body: some View {
-        ZStack {
-            GaugeArc(shapeGrade: grade, progress: 1)
-                .stroke(Color.border, style: StrokeStyle(lineWidth: 8, lineCap: .round))
-
-            GaugeArc(shapeGrade: grade, progress: progress)
-                .stroke(ClavisGradeStyle.riskColor(for: grade), style: StrokeStyle(lineWidth: 8, lineCap: .round))
-
-            VStack(spacing: 4) {
-                Text("\(score)")
-                    .font(.system(size: size * 0.27, weight: .bold, design: .monospaced))
-                    .foregroundColor(.textPrimary)
-                    .monospacedDigit()
-                Text("GRADE \(grade)")
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundColor(.textSecondary)
-                    .tracking(0.8)
-            }
-            .offset(y: 6)
-        }
-        .frame(width: size, height: size)
-    }
-
-    private var progress: CGFloat {
-        CGFloat(max(0, min(score, 100))) / 100
-    }
-}
-
-private struct GaugeArc: Shape {
-    let shapeGrade: String
-    let progress: CGFloat
-
-    func path(in rect: CGRect) -> Path {
-        let startAngle = Angle(degrees: -220)
-        let endAngle = Angle(degrees: 40)
-        let angleDelta = endAngle.degrees - startAngle.degrees
-        let currentAngle = Angle(degrees: startAngle.degrees + angleDelta * progress)
-        let radius = min(rect.width, rect.height) / 2 - 10
-
-        var path = Path()
-        path.addArc(
-            center: CGPoint(x: rect.midX, y: rect.midY),
-            radius: radius,
-            startAngle: startAngle,
-            endAngle: currentAngle,
-            clockwise: false
-        )
-        return path
     }
 }
 
@@ -975,31 +923,6 @@ struct ClavisCircleButton<Content: View>: View {
     }
 }
 
-// MARK: - Capsule Button (deprecated — violates spec R-07)
-
-@available(*, deprecated, message: "Use clavisCardStyle instead. Capsule shapes violate spec R-07.")
-struct ClavisCapsuleButton<Content: View>: View {
-    let action: () -> Void
-    @ViewBuilder let content: Content
-
-    init(action: @escaping () -> Void, @ViewBuilder content: () -> Content) {
-        self.action = action
-        self.content = content()
-    }
-
-    var body: some View {
-        Button(action: action) {
-            content
-                .padding(.horizontal, 24)
-                .padding(.vertical, 16)
-                .background(Color.surface)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.border, lineWidth: 1))
-        }
-        .buttonStyle(.plain)
-    }
-}
-
 // MARK: - Eyebrow Header
 
 struct ClavisEyebrowHeader: View {
@@ -1107,34 +1030,6 @@ struct ClavisGlassHeader: View {
     }
 }
 
-// MARK: - Stat Pill (deprecated — violates spec R-07)
-
-@available(*, deprecated, message: "Use ClavisMetricLabel. Pill shapes violate spec R-07.")
-struct ClavisStatPill: View {
-    let label: String
-    let value: String
-    let tint: Color
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.microSpacing) {
-            Text(label)
-                .font(ClavisTypography.footnote)
-                .foregroundColor(.textSecondary)
-            Text(value)
-                .font(ClavisTypography.bodyEmphasis)
-                .foregroundColor(.textPrimary)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(Color.surfaceElevated)
-        .overlay(
-            RoundedRectangle(cornerRadius: 4)
-                .stroke(tint.opacity(0.18), lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 4))
-    }
-}
-
 // MARK: - Section Header
 
 struct ClavisSectionHeader<Accessory: View>: View {
@@ -1202,38 +1097,6 @@ struct ClavisLoadingCard: View {
         }
         .padding(ClavisTheme.cardPadding)
         .clavisCardStyle()
-    }
-}
-
-// MARK: - Ring Gauge (deprecated — violates spec R-02 and R-03)
-
-@available(*, deprecated, message: "Ring gauges violate spec R-02/R-03. Score is the primary visual object.")
-struct ClavisRingGauge: View {
-    let progress: Double
-    let lineWidth: CGFloat
-    let tint: Color
-    let icon: String?
-
-    init(progress: Double, lineWidth: CGFloat = 10, tint: Color, icon: String? = nil) {
-        self.progress = min(max(progress, 0), 1)
-        self.lineWidth = lineWidth
-        self.tint = tint
-        self.icon = icon
-    }
-
-    var body: some View {
-        ZStack {
-            Circle().stroke(Color.border, lineWidth: lineWidth)
-            Circle()
-                .trim(from: 0, to: progress)
-                .stroke(tint, style: StrokeStyle(lineWidth: lineWidth, lineCap: .butt))
-                .rotationEffect(.degrees(-90))
-            if let icon {
-                Image(systemName: icon)
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundColor(tint)
-            }
-        }
     }
 }
 
