@@ -340,7 +340,7 @@ def _upsert_shared_ticker_event(
         "tags": tags or [],
         "analysis_run_id": event_record.get("analysis_run_id"),
         "provenance": "shared",
-        "updated_at": _utcnow_iso(),
+        "updated_at": utcnow_iso(),
     }
 
     upserted = (
