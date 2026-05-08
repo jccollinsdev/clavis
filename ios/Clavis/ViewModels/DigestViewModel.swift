@@ -1,130 +1,52 @@
 import Foundation
 import SwiftUI
 
+enum DigestLengthOption: String, CaseIterable {
+    case brief = "brief"
+    case standard = "standard"
+    case verbose = "verbose"
+
+    var title: String {
+        rawValue.capitalized
+    }
+}
+
 @MainActor
-class DigestViewModel: ObservableObject {
+final class DigestViewModel: ObservableObject {
     @Published var todayDigest: Digest?
-    @Published var digestHistory: [Digest] = []
     @Published var holdings: [Position] = []
-    @Published var alerts: [Alert] = []
-    @Published var lastTriggerResult: TriggerAnalysisResponse?
-    @Published var activeRun: AnalysisRun?
     @Published var isLoading = false
     @Published var errorMessage: String?
-    @Published var timeoutMessage: String?
+    @Published var activeRun: AnalysisRun?
+    @Published var summaryLength: DigestLengthOption = .standard
+    @Published var subscriptionTier: String = "free"
 
     private let api = APIService.shared
-    private var loadGeneration = 0
 
     func loadDigest(showLoading: Bool = true) async {
-        loadGeneration += 1
-        let generation = loadGeneration
-        let previousDigest = todayDigest
-        let previousRunningRun = activeRun?.lifecycleStatus == "running" ? activeRun : nil
-
         if showLoading {
             isLoading = true
         }
         errorMessage = nil
-        timeoutMessage = nil
 
-        async let dashboardResult: Result<DashboardResponse, Error> = {
-            do {
-                return .success(try await api.fetchDashboard())
-            } catch {
-                return .failure(error)
-            }
-        }()
-        async let historyResult: Result<[Digest], Error> = {
-            do {
-                return .success(try await api.fetchDigestHistory(timeoutInterval: 75))
-            } catch {
-                return .failure(error)
-            }
-        }()
+        do {
+            async let digestResponse = api.fetchTodayDigest(timeoutInterval: 75)
+            async let holdingsResponse = api.fetchHoldings()
+            async let preferencesResponse = api.fetchPreferences()
+            async let latestRunResponse = api.fetchLatestAnalysisRun()
 
-        let resolvedDashboard = await dashboardResult
-        let resolvedHistory = await historyResult
+            let digest = try await digestResponse
+            let holdings = try await holdingsResponse
+            let preferences = try await preferencesResponse
+            let latestRun = try await latestRunResponse
 
-        guard generation == loadGeneration else { return }
-
-        var resolvedRun = previousRunningRun
-
-        switch resolvedDashboard {
-        case .success(let response):
-            resolvedRun = response.analysisRun ?? previousRunningRun
-            todayDigest = response.digest ?? response.generatedDigest ?? response.savedDigest ?? previousDigest
-            holdings = response.positions
-            alerts = response.alerts
-
-#if DEBUG
-            let authUserId = await SupabaseAuthService.shared.getUserId() ?? "nil"
-            let formattedScore: (Double?) -> String = { value in
-                guard let value else { return "nil" }
-                return String(format: "%.1f", value)
-            }
-            let formattedDate: (Date?) -> String = { value in
-                value?.formatted() ?? "nil"
-            }
-            let payloadSummary = [
-                "baseURL=\(Config.backendBaseUrl)",
-                "authUserId=\(authUserId)",
-                "topLevelScore=\(formattedScore(response.overallScore))",
-                "digestScore=\(formattedScore(response.digest?.overallScore))",
-                "savedDigestScore=\(formattedScore(response.savedDigest?.overallScore))",
-                "generatedDigestScore=\(formattedScore(response.generatedDigest?.overallScore))",
-                "overallGrade=\(response.overallGrade ?? "nil")",
-                "scoreSource=\(response.scoreSource ?? "nil")",
-                "scoreAsOf=\(formattedDate(response.scoreAsOf))",
-            ].joined(separator: " | ")
-            print("[DigestScorePayload] \(payloadSummary)")
-#endif
-
-            switch resolvedRun?.lifecycleStatus {
-            case "running", "queued":
-                activeRun = resolvedRun
-                errorMessage = nil
-            case "failed":
-                activeRun = resolvedRun
-                let displayError = resolvedRun?.displayErrorMessage ?? ClavisCopy.Errors.analysisRefreshFailed
-                errorMessage = isTransientAnalysisError(displayError) ? nil : ClavisCopy.Errors.analysisRefreshFailed
-            case "completed":
-                activeRun = response.digest == nil ? resolvedRun : nil
-                errorMessage = nil
-            default:
-                activeRun = nil
-                errorMessage = nil
-            }
-
-            if let run = resolvedRun,
-               run.lifecycleStatus == "running",
-               let startedAt = run.startedAt,
-               Date().timeIntervalSince(startedAt) > 25 * 60 {
-                timeoutMessage = "Analysis is taking longer than expected. You can leave this screen."
-            }
-        case .failure(let error):
-            if error is CancellationError {
-                if showLoading { isLoading = false }
-                return
-            }
-            todayDigest = previousDigest
-            activeRun = previousRunningRun
-            if previousRunningRun?.lifecycleStatus == "running" || previousRunningRun?.lifecycleStatus == "queued" {
-                errorMessage = nil
-                if let startedAt = previousRunningRun?.startedAt,
-                   Date().timeIntervalSince(startedAt) > 25 * 60 {
-                    timeoutMessage = "Analysis is taking longer than expected. You can leave this screen."
-                }
-            } else if (error as? APIError) != nil {
-                errorMessage = ClavisCopy.Errors.digestLoad(error)
-            } else {
-                errorMessage = ClavisCopy.Errors.digestLoad(error)
-            }
-        }
-
-        digestHistory = (try? resolvedHistory.get()) ?? []
-        if let message = errorMessage, message.localizedCaseInsensitiveContains("cancelled") {
-            errorMessage = nil
+            self.todayDigest = digest.digest ?? digest.generatedDigest ?? digest.savedDigest
+            self.holdings = holdings
+            self.activeRun = digest.analysisRun ?? latestRun
+            self.summaryLength = DigestLengthOption(rawValue: preferences.summaryLength?.lowercased() ?? "standard") ?? .standard
+            self.subscriptionTier = preferences.subscriptionTier?.lowercased() ?? "free"
+        } catch {
+            self.errorMessage = ClavisCopy.Errors.digestLoad(error)
         }
 
         if showLoading {
@@ -136,80 +58,38 @@ class DigestViewModel: ObservableObject {
         await loadDigest(showLoading: false)
     }
 
-    func triggerAnalysis() async {
-        isLoading = true
-        errorMessage = nil
-        timeoutMessage = nil
-
+    func saveSummaryLength(_ option: DigestLengthOption) async {
         do {
-            lastTriggerResult = try await api.triggerAnalysis()
-            if let runId = lastTriggerResult?.analysisRunId {
-                loadGeneration += 1
-                let finished = await pollAnalysisRun(runId: runId)
-                if finished {
-                    await waitForDigestReady()
-                    await loadDigest(showLoading: false)
-                }
-            }
-        } catch is CancellationError {
-            errorMessage = nil
+            try await api.updatePreferences(
+                digestTime: nil,
+                notificationsEnabled: nil,
+                summaryLength: option.rawValue,
+                weekdayOnly: nil
+            )
+            summaryLength = option
         } catch {
             errorMessage = ClavisCopy.Errors.digestRefresh(error)
         }
-
-        isLoading = false
     }
 
-    private func isTransientAnalysisError(_ message: String?) -> Bool {
-        guard let message = message?.lowercased() else { return false }
-        return message.contains("high traffic")
-            || message.contains("rate limit")
-            || message.contains("overload")
-            || message.contains("temporarily unavailable")
+    var isGenerating: Bool {
+        guard let activeRun else { return false }
+        return activeRun.lifecycleStatus == "running" || activeRun.lifecycleStatus == "queued"
     }
 
-    func pollAnalysisRun(runId: String) async -> Bool {
-        for _ in 0..<240 {
-            do {
-                let run = try await api.fetchAnalysisRun(id: runId)
-                activeRun = run
-
-                if run.isTerminal {
-                    if run.lifecycleStatus == "failed" {
-                        errorMessage = isTransientAnalysisError(run.displayErrorMessage) ? nil : ClavisCopy.Errors.analysisRefreshFailed
-                        return false
-                    }
-                    return true
-                }
-            } catch is CancellationError {
-                return false
-            } catch {
-                errorMessage = ClavisCopy.Errors.digestRefresh(error)
-                return false
-            }
-
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
-        }
-
-        timeoutMessage = "Analysis is still running. You can leave this screen and check back shortly."
-        return false
+    var hasHoldings: Bool {
+        !holdings.isEmpty
     }
 
-    private func waitForDigestReady() async {
-        for _ in 0..<10 {
-            do {
-                let response = try await api.fetchDashboard()
-                if let digest = response.digest ?? response.generatedDigest ?? response.savedDigest {
-                    todayDigest = digest
-                    return
-                }
-            } catch is CancellationError {
-                return
-            } catch {
-                break
-            }
+    var isFreeTier: Bool {
+        subscriptionTier == "free"
+    }
 
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
-        }
+    func grade(for ticker: String) -> String {
+        holdings.first(where: { $0.ticker.caseInsensitiveCompare(ticker) == .orderedSame })?.resolvedRiskGrade ?? "—"
+    }
+
+    func scoreDelta(for ticker: String) -> Int? {
+        holdings.first(where: { $0.ticker.caseInsensitiveCompare(ticker) == .orderedSame })?.scoreDelta
     }
 }
