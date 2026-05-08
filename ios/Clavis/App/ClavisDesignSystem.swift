@@ -1366,3 +1366,21 @@ struct MarkdownText: View {
         }
     }
 }
+
+struct ClavisTextFieldStyle: TextFieldStyle {
+    var monospaced: Bool = false
+
+    func _body(configuration: TextField<Self._Label>) -> some View {
+        configuration
+            .font(monospaced ? .system(size: 15, weight: .regular, design: .monospaced) : .system(size: 15, weight: .regular))
+            .padding(.horizontal, 14)
+            .padding(.vertical, 13)
+            .background(Color.surfaceElevated)
+            .foregroundColor(.textPrimary)
+            .overlay(
+                RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous)
+                    .stroke(Color.border, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous))
+    }
+}

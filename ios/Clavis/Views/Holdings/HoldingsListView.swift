@@ -1,5 +1,9 @@
 import SwiftUI
 
+extension Notification.Name {
+    static let openAddHoldingFromOnboarding = Notification.Name("openAddHoldingFromOnboarding")
+}
+
 struct HoldingsListView: View {
     @Binding var selectedTab: Int
     @Binding var deepLinkTicker: String?
@@ -114,6 +118,9 @@ struct HoldingsListView: View {
             }
             .navigationDestination(for: String.self) { ticker in
                 TickerDetailView(ticker: ticker)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .openAddHoldingFromOnboarding)) { _ in
+                openAddHolding()
             }
         }
     }

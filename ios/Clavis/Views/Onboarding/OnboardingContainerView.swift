@@ -1,48 +1,38 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct OnboardingContainerView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @StateObject private var viewModel = OnboardingViewModel()
     @StateObject private var brokerageViewModel = BrokerageViewModel()
+    @State private var showUpgradeSheet = false
+    @State private var showCSVSheet = false
 
     var body: some View {
         ZStack {
             Color.backgroundPrimary.ignoresSafeArea()
 
-            VStack(alignment: .leading, spacing: 0) {
-                OnboardingProgressHeader(
-                    currentPage: viewModel.currentPage.rawValue + 1,
-                    totalPages: OnboardingPage.allCases.count
-                )
-                .padding(.horizontal, ClavisTheme.screenPadding)
-                .padding(.top, 24)
-
-                Group {
-                    switch viewModel.currentPage {
-                    case .welcome:
-                        WelcomeStepView(viewModel: viewModel)
-                    case .nameDOB:
-                        DateOfBirthStepView(viewModel: viewModel)
-                    case .riskAck:
-                        RiskAcknowledgmentView(viewModel: viewModel)
-                    case .preferences:
-                        OnboardingPreferencesView(viewModel: viewModel) {
-                            viewModel.nextPage()
-                        }
-                    case .brokerage:
-                        OnboardingBrokerageView(
-                            viewModel: viewModel,
-                            brokerageViewModel: brokerageViewModel
-                        ) {
-                            viewModel.completeOnboarding {
-                                authViewModel.markOnboardingComplete()
-                            }
-                        }
-                    }
+            Group {
+                switch viewModel.currentPage {
+                case .welcome:
+                    OnboardingWelcomeView(
+                        onContinue: { viewModel.nextPage() },
+                        onSignIn: { Task { await authViewModel.signOut() } }
+                    )
+                case .addPortfolio:
+                    OnboardingAddPortfolioView(
+                        isFreeTier: authViewModel.subscriptionTier.lowercased() == "free",
+                        isCompleting: viewModel.isCompleting,
+                        errorMessage: viewModel.errorMessage ?? brokerageViewModel.errorMessage,
+                        onBack: { viewModel.previousPage() },
+                        onConnectBrokerage: handleConnectBrokerage,
+                        onImportCSV: { showCSVSheet = true },
+                        onAddManually: completeAndOpenHoldings,
+                        onSkip: completeAndOpenHoldings
+                    )
                 }
-                .transition(.opacity)
-                .animation(.easeInOut(duration: 0.2), value: viewModel.currentPage)
             }
+            .animation(.easeInOut(duration: 0.2), value: viewModel.currentPage)
         }
         .sheet(
             isPresented: Binding(
@@ -54,531 +44,345 @@ struct OnboardingContainerView: View {
                 SafariView(url: url)
             }
         }
+        .sheet(isPresented: $showCSVSheet) {
+            if authViewModel.subscriptionTier.lowercased() == "free" {
+                OnboardingUpgradeSheet()
+            } else {
+                CSVImportSheet()
+            }
+        }
+        .sheet(isPresented: $showUpgradeSheet) {
+            OnboardingUpgradeSheet()
+        }
         .onReceive(NotificationCenter.default.publisher(for: .snapTradeCallbackReceived)) { notification in
             guard let url = notification.object as? URL else { return }
             Task { await brokerageViewModel.handleCallback(url: url) }
         }
         .preferredColorScheme(.dark)
-        .ignoresSafeArea(.keyboard, edges: .bottom)
     }
-}
 
-enum OnboardingPage: Int, CaseIterable {
-    case welcome = 0
-    case nameDOB = 1
-    case riskAck = 2
-    case preferences = 3
-    case brokerage = 4
-}
+    private func handleConnectBrokerage() {
+        if authViewModel.subscriptionTier.lowercased() == "free" {
+            showUpgradeSheet = true
+            return
+        }
 
-private struct OnboardingProgressHeader: View {
-    let currentPage: Int
-    let totalPages: Int
+        Task {
+            await brokerageViewModel.startConnect()
+        }
+    }
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 4) {
-                ForEach(0..<totalPages, id: \.self) { index in
-                    RoundedRectangle(cornerRadius: 2, style: .continuous)
-                        .fill(index < currentPage ? Color.textPrimary : Color.border)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 3)
-                        .animation(.easeInOut(duration: 0.25), value: currentPage)
-                }
-            }
-
-            Text("Step \(currentPage) of \(totalPages)")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(.textSecondary)
-                .tracking(0.4)
+    private func completeAndOpenHoldings() {
+        viewModel.completeOnboarding {
+            authViewModel.markOnboardingComplete()
+            UserDefaults.standard.set(1, forKey: "clavix.selectedTab")
+            NotificationCenter.default.post(name: .openAddHoldingFromOnboarding, object: nil)
         }
     }
 }
 
-private struct WelcomeStepView: View {
-    @ObservedObject var viewModel: OnboardingViewModel
-    @FocusState private var isNameFocused: Bool
+private struct OnboardingWelcomeView: View {
+    let onContinue: () -> Void
+    let onSignIn: () -> Void
 
-    private var isValid: Bool {
-        !viewModel.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
+    private let bullets: [(String, String)] = [
+        ("One morning briefing, tailored to your holdings", "Read 4-6 apps to piece together overnight news"),
+        ("Pre-translated: macro → sector → your positions, in order", "Manually translate macro news into \"what does this mean for me\""),
+        ("See every article, every formula, every input that produced every score", "Trust an opaque \"AI risk score\" from a fintech app")
+    ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Spacer(minLength: 24)
+            Spacer(minLength: 40)
 
-            VStack(alignment: .leading, spacing: 24) {
-                ClavisMonogram(size: 64, cornerRadius: 16)
+            VStack(alignment: .leading, spacing: 28) {
+                Text("CLAVIX")
+                    .font(ClavisTypography.footnoteEmphasis)
+                    .foregroundColor(.accentBurnt)
 
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 14) {
                     Text("Portfolio risk, measured.")
-                        .font(.system(size: 30, weight: .bold))
+                        .font(.system(size: 32, weight: .semibold))
                         .foregroundColor(.textPrimary)
-                        .tracking(-0.4)
-                        .fixedSize(horizontal: false, vertical: true)
 
-                    Text("Clavix helps you answer three questions every morning: how risky is my portfolio, what changed, and what should I look at first.")
+                    Text("Clavix tells you what happened to your portfolio overnight, what it means, and how risky every position you own actually is — with the math shown.")
                         .font(ClavisTypography.body)
                         .foregroundColor(.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
-                OnboardingInputField(
-                    label: "YOUR NAME",
-                    text: $viewModel.name,
-                    placeholder: "First name",
-                    keyboardType: .default
-                )
-                .focused($isNameFocused)
-            }
-            .padding(.horizontal, ClavisTheme.screenPadding)
+                VStack(alignment: .leading, spacing: 16) {
+                    ForEach(Array(bullets.enumerated()), id: \.offset) { index, bullet in
+                        HStack(alignment: .top, spacing: 12) {
+                            Text("\(index + 1)")
+                                .font(ClavisTypography.footnoteEmphasis)
+                                .foregroundColor(.textPrimary)
+                                .frame(width: 28, height: 28)
+                                .background(Color.surface)
+                                .overlay(Rectangle().stroke(Color.border, lineWidth: 1))
 
-            Spacer()
-
-            ClavisPrimaryButton(title: "Continue", isEnabled: isValid) {
-                viewModel.nextPage()
-            }
-            .padding(.horizontal, ClavisTheme.screenPadding)
-            .padding(.bottom, 36)
-        }
-        .onAppear {
-            isNameFocused = viewModel.name.isEmpty
-        }
-    }
-}
-
-private struct DateOfBirthStepView: View {
-    @ObservedObject var viewModel: OnboardingViewModel
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Spacer(minLength: 24)
-
-            VStack(alignment: .leading, spacing: 24) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Date of birth")
-                        .font(ClavisTypography.h1)
-                        .foregroundColor(.textPrimary)
-
-                    Text("Required to confirm you meet minimum age requirements in your jurisdiction.")
-                        .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(bullet.0)
+                                    .font(ClavisTypography.bodyEmphasis)
+                                    .foregroundColor(.textPrimary)
+                                Text(bullet.1)
+                                    .font(ClavisTypography.footnote)
+                                    .foregroundColor(.textSecondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                    }
                 }
-
-                HStack {
-                    DatePicker(
-                        "Date of birth",
-                        selection: $viewModel.dateOfBirth,
-                        in: ...maxAllowedDate,
-                        displayedComponents: .date
-                    )
-                    .datePickerStyle(.compact)
-                    .labelsHidden()
-                    .tint(.informational)
-
-                    Spacer()
-                }
-
-                Text("You must be at least 18 years old to use Clavix. We use this only to verify age and store the birth year in your profile.")
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(12)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .clavisSecondaryCardStyle(fill: .surfaceElevated)
             }
-            .padding(.horizontal, ClavisTheme.screenPadding)
+            .padding(.horizontal, 24)
 
             Spacer()
 
             VStack(spacing: 10) {
-                ClavisPrimaryButton(
-                    title: "Continue",
-                    isEnabled: viewModel.isValidDateOfBirth(viewModel.dateOfBirth)
-                ) {
-                    viewModel.nextPage()
-                }
-
-                ClavisSecondaryButton(title: "Back") {
-                    viewModel.previousPage()
-                }
+                ClavisPrimaryButton(title: "Get Started", action: onContinue)
+                Button("Sign in") { onSignIn() }
+                    .font(ClavisTypography.footnoteEmphasis)
+                    .foregroundColor(.textSecondary)
+                    .buttonStyle(.plain)
             }
-            .padding(.horizontal, ClavisTheme.screenPadding)
-            .padding(.bottom, 36)
+            .padding(.horizontal, 24)
+            .padding(.bottom, 32)
         }
-    }
-
-    private var maxAllowedDate: Date {
-        Calendar.current.date(byAdding: .year, value: -18, to: Date()) ?? Date()
     }
 }
 
-struct RiskAcknowledgmentView: View {
-    @ObservedObject var viewModel: OnboardingViewModel
-    @State private var hasAcknowledged = false
+private struct OnboardingAddPortfolioView: View {
+    let isFreeTier: Bool
+    let isCompleting: Bool
+    let errorMessage: String?
+    let onBack: () -> Void
+    let onConnectBrokerage: () -> Void
+    let onImportCSV: () -> Void
+    let onAddManually: () -> Void
+    let onSkip: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Spacer(minLength: 24)
-
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("One thing before we begin.")
-                        .font(ClavisTypography.h1)
-                        .foregroundColor(.textPrimary)
-
-                    Text(ClavisCopy.informationalDisclosure)
-                        .font(ClavisTypography.bodyEmphasis)
+            HStack {
+                Button(action: onBack) {
+                    Image(systemName: "chevron.left")
                         .foregroundColor(.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                OnboardingNoticeCard {
-                    Text("Risk acknowledgement")
-                        .font(ClavisTypography.label)
-                        .foregroundColor(.textSecondary)
-
-                    Text(ClavisCopy.riskAcknowledgment)
-                        .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
-
-                    Divider()
-                        .overlay(Color.border)
-
-                    Text("Past scores do not predict future results. Always consult a qualified adviser before making investment decisions.")
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.textSecondary)
-                }
-
-                Button {
-                    hasAcknowledged.toggle()
-                } label: {
-                    HStack(alignment: .top, spacing: 12) {
-                        RoundedRectangle(cornerRadius: 5, style: .continuous)
-                            .stroke(hasAcknowledged ? Color.informational : Color.border, lineWidth: 1.5)
-                            .background(
-                                RoundedRectangle(cornerRadius: 5, style: .continuous)
-                                    .fill(hasAcknowledged ? Color.informational : Color.clear)
-                            )
-                            .frame(width: 22, height: 22)
-                            .overlay(
-                                Image(systemName: "checkmark")
-                                    .font(.system(size: 15, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .opacity(hasAcknowledged ? 1 : 0)
-                            )
-
-                        Text("I understand Clavix provides information only, and that I am solely responsible for my investment decisions.")
-                            .font(ClavisTypography.footnote)
-                            .foregroundColor(.textSecondary)
-                            .multilineTextAlignment(.leading)
-                    }
                 }
                 .buttonStyle(.plain)
+                Spacer()
+                Button("Skip for now", action: onSkip)
+                    .font(ClavisTypography.footnoteEmphasis)
+                    .foregroundColor(.textSecondary)
+                    .buttonStyle(.plain)
             }
-            .padding(.horizontal, ClavisTheme.screenPadding)
+            .padding(.horizontal, 24)
+            .padding(.top, 24)
 
-            Spacer()
-
-            VStack(spacing: 10) {
-                ClavisPrimaryButton(title: "Agree & continue", isEnabled: hasAcknowledged) {
-                    viewModel.nextPage()
-                }
-
-                ClavisSecondaryButton(title: "Back") {
-                    viewModel.previousPage()
-                }
+            VStack(alignment: .leading, spacing: 12) {
+                Text("How would you like to add your portfolio?")
+                    .font(ClavisTypography.h1)
+                    .foregroundColor(.textPrimary)
+                Text("Choose the path that fits how you already track your book.")
+                    .font(ClavisTypography.body)
+                    .foregroundColor(.textSecondary)
             }
-            .padding(.horizontal, ClavisTheme.screenPadding)
-            .padding(.bottom, 36)
-        }
-    }
-}
+            .padding(.horizontal, 24)
+            .padding(.top, 28)
 
-struct OnboardingPreferencesView: View {
-    @ObservedObject var viewModel: OnboardingViewModel
-    let onContinue: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Spacer(minLength: 24)
-
-            VStack(alignment: .leading, spacing: 20) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Pick what wakes you up.")
-                        .font(ClavisTypography.h1)
-                        .foregroundColor(.textPrimary)
-
-                    Text("Adjust any of these later in Settings.")
-                        .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
-                }
-
-                VStack(spacing: 10) {
-                    OnboardingToggleCard(
-                        title: "Morning rating",
-                        subtitle: "Daily portfolio summary at your configured rating time",
-                        isOn: $viewModel.morningDigestEnabled
-                    )
-
-                    OnboardingToggleCard(
-                        title: "Grade changes",
-                        subtitle: "Any upgrade or downgrade in your holdings",
-                        isOn: $viewModel.alertsGradeChangesEnabled
-                    )
-
-                    OnboardingToggleCard(
-                        title: "Major events",
-                        subtitle: "Earnings, regulatory actions, and major news",
-                        isOn: $viewModel.alertsMajorEventsEnabled
-                    )
-
-                    OnboardingToggleCard(
-                        title: "Large price moves",
-                        subtitle: "Significant daily moves across your portfolio",
-                        isOn: $viewModel.alertsLargePriceMovesEnabled
-                    )
-                }
+            VStack(spacing: 12) {
+                pathCard(title: "Connect Brokerage", subtitle: "Sync automatically", badge: "Pro", isRecommended: true, action: onConnectBrokerage)
+                pathCard(title: "Import CSV", subtitle: "Upload from your brokerage", badge: "Pro", isRecommended: false, action: onImportCSV)
+                pathCard(title: "Add Manually", subtitle: "Enter positions yourself", badge: "Free", isRecommended: false, action: onAddManually)
             }
-            .padding(.horizontal, ClavisTheme.screenPadding)
+            .padding(.horizontal, 16)
+            .padding(.top, 24)
 
-            Spacer()
-
-            if let errorMessage = viewModel.errorMessage {
+            if let errorMessage {
                 Text(errorMessage)
                     .font(ClavisTypography.footnote)
-                    .foregroundColor(.riskF)
-                    .padding(.horizontal, ClavisTheme.screenPadding)
-                    .padding(.bottom, 8)
+                    .foregroundColor(.bad)
+                    .padding(.horizontal, 24)
+                    .padding(.top, 12)
             }
-
-            VStack(spacing: 10) {
-                ClavisPrimaryButton(title: "Continue") {
-                    onContinue()
-                }
-
-                ClavisSecondaryButton(title: "Back") {
-                    viewModel.previousPage()
-                }
-            }
-            .padding(.horizontal, ClavisTheme.screenPadding)
-            .padding(.bottom, 36)
-        }
-    }
-}
-
-struct OnboardingBrokerageView: View {
-    @ObservedObject var viewModel: OnboardingViewModel
-    @ObservedObject var brokerageViewModel: BrokerageViewModel
-    let onComplete: () -> Void
-
-    // True when SnapTrade is not set up on the backend — brokerage linking unavailable.
-    private var brokerageUnavailable: Bool {
-        if let status = brokerageViewModel.status {
-            return !status.configured
-        }
-        return false
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Spacer(minLength: 24)
-
-            VStack(alignment: .leading, spacing: 20) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Connect your brokerage")
-                        .font(ClavisTypography.h1)
-                        .foregroundColor(.textPrimary)
-
-                    Text("Optional. Brokerage connections are read-only and only import holdings, so you can keep manual entries when you want to.")
-                        .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                OnboardingNoticeCard {
-                    Text(brokerageViewModel.isConnected ? "Brokerage connected" : "Why connect now?")
-                        .font(ClavisTypography.label)
-                        .foregroundColor(.textSecondary)
-
-                    if let connection = brokerageViewModel.primaryConnection {
-                        Text(connection.institutionName ?? "Connected brokerage")
-                            .font(ClavisTypography.bodyEmphasis)
-                            .foregroundColor(.textPrimary)
-                    }
-
-                    Text(brokerageViewModel.isConnected
-                         ? "Your holdings can now sync into Clavix. You can switch between manual and automatic sync later in Settings."
-                         : "Importing holdings here is faster than entering them by hand, and you can still keep manual holdings alongside synced ones.")
-                        .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
-                }
-
-                if brokerageUnavailable {
-                    Text("Brokerage auto-import is not available right now. You can add holdings manually and connect a brokerage later in Settings.")
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                if let infoMessage = brokerageViewModel.infoMessage {
-                    Text(infoMessage)
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.informational)
-                }
-
-                if let errorMessage = brokerageViewModel.errorMessage {
-                    Text(errorMessage)
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.riskF)
-                }
-
-                // Show completion errors (e.g. acknowledgeOnboarding failure).
-                if let completionError = viewModel.errorMessage {
-                    Text(completionError)
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.riskF)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            .padding(.horizontal, ClavisTheme.screenPadding)
 
             Spacer()
 
-            VStack(spacing: 10) {
-                if brokerageViewModel.isConnected {
-                    ClavisPrimaryButton(
-                        title: viewModel.isCompleting ? "Opening Clavix..." : "Open Clavix",
-                        isLoading: viewModel.isCompleting,
-                        isEnabled: !viewModel.isCompleting
-                    ) {
-                        onComplete()
-                    }
+            if isCompleting {
+                ProgressView()
+                    .tint(.textPrimary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.bottom, 24)
+            }
+        }
+        .background(Color.backgroundPrimary)
+    }
 
-                    ClavisSecondaryButton(
-                        title: brokerageViewModel.isSyncing ? "Syncing..." : "Sync holdings now",
-                        isEnabled: !(brokerageViewModel.isSyncing || viewModel.isCompleting)
-                    ) {
-                        Task { await brokerageViewModel.syncNow(refreshRemote: true) }
-                    }
-                } else {
-                    // Only show Connect button if brokerage linking is available.
-                    if !brokerageUnavailable {
-                        ClavisPrimaryButton(title: "Connect brokerage") {
-                            Task {
-                                await brokerageViewModel.startConnect(
-                                    reconnectConnectionId: brokerageViewModel.primaryConnection?.disabled == true ? brokerageViewModel.primaryConnection?.id : nil
-                                )
+    private func pathCard(title: String, subtitle: String, badge: String, isRecommended: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text(title)
+                        .font(ClavisTypography.bodyEmphasis)
+                        .foregroundColor(.textPrimary)
+                    Spacer()
+                    Text(badge)
+                        .font(ClavisTypography.label)
+                        .foregroundColor(badge == "Pro" ? .accentBurnt : .textSecondary)
+                }
+                Text(subtitle)
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textSecondary)
+                if isRecommended {
+                    Text("Recommended")
+                        .font(ClavisTypography.label)
+                        .foregroundColor(.accentBurnt)
+                }
+                if title == "Connect Brokerage" {
+                    Text("Read-only sync through your brokerage. Clavix never has trading access.")
+                        .font(ClavisTypography.footnote)
+                        .foregroundColor(.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(ClavisTheme.cardPadding)
+            .background(Color.surface)
+            .overlay(Rectangle().stroke(Color.border, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct CSVImportSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var showImporter = false
+    @State private var selectedFileName: String?
+    @State private var previewRows: [[String]] = [
+        ["AAPL", "100", "182.45", "2025-01-15"],
+        ["MSFT", "50", "401.10", "2024-11-03"],
+        ["NVDA", "24", "731.22", "2024-08-12"]
+    ]
+    @State private var tickerColumn = "Ticker"
+    @State private var sharesColumn = "Shares"
+    @State private var costBasisColumn = "Cost Basis"
+    @State private var dateColumn = "Date"
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
+                    ClavisPrimaryButton(title: selectedFileName == nil ? "Choose CSV" : selectedFileName!, action: { showImporter = true })
+
+                    mappingRow(label: "Ticker", selection: $tickerColumn)
+                    mappingRow(label: "Shares", selection: $sharesColumn)
+                    mappingRow(label: "Cost Basis", selection: $costBasisColumn)
+                    mappingRow(label: "Date", selection: $dateColumn)
+
+                    ClavisStandardCard(fill: .surface) {
+                        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                            Text("Preview")
+                                .font(ClavisTypography.label)
+                                .foregroundColor(.textSecondary)
+                            ForEach(Array(previewRows.enumerated()), id: \.offset) { _, row in
+                                Text(row.joined(separator: " · "))
+                                    .font(ClavisTypography.footnote)
+                                    .foregroundColor(.textSecondary)
                             }
                         }
                     }
 
-                    ClavisPrimaryButton(
-                        title: viewModel.isCompleting ? "Opening Clavix..." : "Continue without brokerage",
-                        isLoading: viewModel.isCompleting,
-                        isEnabled: !viewModel.isCompleting
-                    ) {
-                        onComplete()
-                    }
-                }
-
-                ClavisSecondaryButton(title: "Back", isEnabled: !viewModel.isCompleting) {
-                    viewModel.previousPage()
-                }
-            }
-            .padding(.horizontal, ClavisTheme.screenPadding)
-            .padding(.bottom, 36)
-        }
-        .task {
-            if brokerageViewModel.status == nil {
-                await brokerageViewModel.loadStatus()
-            }
-        }
-    }
-}
-
-private struct OnboardingNoticeCard<Content: View>: View {
-    @ViewBuilder let content: Content
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            content
-        }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surface)
-    }
-}
-
-private struct OnboardingToggleCard: View {
-    let title: String
-    let subtitle: String
-    @Binding var isOn: Bool
-
-    var body: some View {
-        Button {
-            isOn.toggle()
-        } label: {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 14) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(title)
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.textPrimary)
-
-                        Text(subtitle)
-                            .font(.system(size: 12, weight: .regular))
+                    ClavisStandardCard(fill: .surfaceElevated) {
+                        // TODO: wire CSV import to a backend parsing endpoint once it exists.
+                        Text("Importing... we'll notify you when done")
+                            .font(ClavisTypography.body)
                             .foregroundColor(.textSecondary)
                     }
-
-                    Spacer()
-
-                    CX2Toggle(isOn: $isOn)
+                }
+                .padding(.horizontal, ClavisTheme.screenPadding)
+                .padding(.vertical, ClavisTheme.sectionSpacing)
+            }
+            .background(ClavisAtmosphereBackground())
+            .navigationTitle("Import CSV")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                        .foregroundColor(.textSecondary)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Import \(previewRows.count) positions") { }
+                        .foregroundColor(.accentBurnt)
+                }
+            }
+            .fileImporter(isPresented: $showImporter, allowedContentTypes: [.commaSeparatedText, .plainText]) { result in
+                if case .success(let url) = result {
+                    selectedFileName = url.lastPathComponent
+                    if let content = try? String(contentsOf: url) {
+                        let lines = content.split(whereSeparator: \.isNewline).prefix(5)
+                        let rows = lines.map { line in
+                            line.split(separator: ",").map { String($0) }
+                        }
+                        if !rows.isEmpty {
+                            previewRows = rows
+                        }
+                    }
                 }
             }
         }
-        .buttonStyle(.plain)
-        .padding(14)
-        .clavisCardStyle(fill: .surface)
     }
-}
 
-private struct OnboardingInputField: View {
-    let label: String
-    @Binding var text: String
-    let placeholder: String
-    let keyboardType: UIKeyboardType
-    var monospaced: Bool = false
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(label)
-                .font(ClavisTypography.label)
+    private func mappingRow(label: String, selection: Binding<String>) -> some View {
+        ClavisStandardCard(fill: .surface) {
+            HStack {
+                Text(label)
+                    .font(ClavisTypography.bodyEmphasis)
+                    .foregroundColor(.textPrimary)
+                Spacer()
+                Menu(selection.wrappedValue) {
+                    Button("Ticker") { selection.wrappedValue = "Ticker" }
+                    Button("Shares") { selection.wrappedValue = "Shares" }
+                    Button("Cost Basis") { selection.wrappedValue = "Cost Basis" }
+                    Button("Date") { selection.wrappedValue = "Date" }
+                }
+                .font(ClavisTypography.footnote)
                 .foregroundColor(.textSecondary)
-
-            TextField(placeholder, text: $text)
-                .textFieldStyle(ClavisTextFieldStyle(monospaced: monospaced))
-                .keyboardType(keyboardType)
-                .textContentType(.none)
-                .autocorrectionDisabled()
+            }
         }
     }
 }
 
-struct ClavisTextFieldStyle: TextFieldStyle {
-    var monospaced: Bool = false
+private struct OnboardingUpgradeSheet: View {
+    @Environment(\.dismiss) private var dismiss
 
-    func _body(configuration: TextField<Self._Label>) -> some View {
-        configuration
-            .font(monospaced ? .system(size: 15, weight: .regular, design: .monospaced) : .system(size: 15, weight: .regular))
-            .padding(.horizontal, 14)
-            .padding(.vertical, 13)
-            .background(Color.surfaceElevated)
-            .foregroundColor(.textPrimary)
-            .overlay(
-                RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous)
-                    .stroke(Color.border, lineWidth: 1)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous))
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
+                    ClavisStandardCard(fill: .surface) {
+                        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
+                            Text("Upgrade to Pro")
+                                .font(ClavisTypography.h2)
+                                .foregroundColor(.textPrimary)
+                            Text("Connect your brokerage and import CSV files with Clavix Pro.")
+                                .font(ClavisTypography.body)
+                                .foregroundColor(.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            ClavisPrimaryButton(title: "Start 14-day trial", action: {})
+                        }
+                    }
+                }
+                .padding(.horizontal, ClavisTheme.screenPadding)
+                .padding(.vertical, ClavisTheme.sectionSpacing)
+            }
+            .background(ClavisAtmosphereBackground())
+            .navigationTitle("Upgrade")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                        .foregroundColor(.textSecondary)
+                }
+            }
+        }
     }
 }
