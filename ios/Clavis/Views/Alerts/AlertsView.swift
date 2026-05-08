@@ -3,456 +3,322 @@ import SwiftUI
 struct AlertsView: View {
     @Binding var selectedTab: Int
     @StateObject private var viewModel = AlertsViewModel()
-    @State private var selectedFilter: AlertFeedFilter = .all
+    @State private var selectedFilter: AlertsFilter = .all
     @State private var hasLoaded = false
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    if NetworkStatusMonitor.shared.isOffline {
-                        OfflineStatusBanner()
+                VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
+                    if let banner = viewModel.quietHoursBannerText {
+                        quietHoursBanner(banner)
                     }
 
-                    if let errorMessage = viewModel.errorMessage {
+                    if let errorMessage = viewModel.errorMessage, viewModel.alerts.isEmpty {
                         DashboardErrorCard(message: errorMessage)
-                    }
-
-                    if viewModel.isLoading && viewModel.alerts.isEmpty {
+                    } else if viewModel.isLoading && viewModel.alerts.isEmpty {
                         ClavisLoadingCard(title: "Loading alerts", subtitle: "Checking recent alert activity.")
-                    } else if viewModel.alerts.isEmpty {
-                        AlertsEmptyStateCard(openHoldings: { selectedTab = 1 })
+                    } else if filteredAlerts.isEmpty {
+                        emptyState
                     } else {
-                        AlertsSummaryGrid(alerts: viewModel.sortedAlerts)
-                        AlertFilterChipRow(selectedFilter: $selectedFilter, alerts: viewModel.sortedAlerts)
+                        ClavisStandardCard(fill: .surface) {
+                            VStack(spacing: 0) {
+                                ForEach(Array(filteredAlerts.enumerated()), id: \.element.id) { index, alert in
+                                    Button(action: { handleAlertTap(alert) }) {
+                                        alertRow(alert)
+                                    }
+                                    .buttonStyle(.plain)
 
-                        AlertsTimelineCard(
-                            alerts: filteredAlerts,
-                            evidenceForTicker: { ticker in
-                                viewModel.holdings.first(where: { $0.ticker.caseInsensitiveCompare(ticker ?? "") == .orderedSame })?.evidenceStrength
-                            },
-                            onTapAlert: handleAlertTap
-                        )
+                                    if index < filteredAlerts.count - 1 {
+                                        Divider().overlay(Color.border)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 .padding(.horizontal, ClavisTheme.screenPadding)
-                .padding(.top, 0)
-                .padding(.bottom, ClavisTheme.largeSpacing)
+                .padding(.top, ClavisTheme.sectionSpacing)
+                .padding(.bottom, ClavisTheme.extraLargeSpacing)
+            }
+            .background(ClavisAtmosphereBackground())
+            .safeAreaInset(edge: .top, spacing: 0) {
+                AlertsTopHeader(selectedFilter: $selectedFilter, unreadCount: viewModel.unreadCount)
+            }
+            .toolbar(.hidden, for: .navigationBar)
+            .task {
+                guard !hasLoaded else { return }
+                hasLoaded = true
+                await viewModel.loadAlerts()
             }
             .refreshable {
                 await viewModel.loadAlerts()
-            }
-            .background(ClavisAtmosphereBackground())
-            .toolbar(.hidden, for: .navigationBar)
-            .onAppear {
-                if selectedTab == 3 && !hasLoaded {
-                    hasLoaded = true
-                    Task { await viewModel.loadAlerts() }
-                }
-            }
-            .onChange(of: selectedTab) { newValue in
-                if newValue == 3 && !hasLoaded && !viewModel.isLoading {
-                    hasLoaded = true
-                    Task { await viewModel.loadAlerts() }
-                }
             }
         }
     }
 
     private var filteredAlerts: [Alert] {
-        selectedFilter.apply(to: viewModel.sortedAlerts)
+        selectedFilter.apply(to: viewModel.alerts)
     }
 
     private func handleAlertTap(_ alert: Alert) {
-        switch alertDestination(for: alert) {
+        switch destination(for: alert) {
         case .digest:
             selectedTab = 0
-        case .home:
-            selectedTab = 0
+        case .holdings:
+            selectedTab = 1
         case .ticker(let ticker):
             NotificationCenter.default.post(name: .openPositionDetail, object: ticker)
             selectedTab = 1
-        case .none:
-            break
         }
     }
 
-    private func alertDestination(for alert: Alert) -> AlertDestination? {
-        if alert.type == .ratingReady || alert.type == .digestReady {
-            return .digest
-        }
+    private func destination(for alert: Alert) -> AlertDestination {
+        if alert.type == .digestReady || alert.type == .ratingReady { return .digest }
+        if let ticker = alert.positionTicker, !ticker.isEmpty { return .ticker(ticker) }
+        return .holdings
+    }
 
-        if alert.type == .concentrationDanger || alert.type == .portfolioSafetyThresholdBreach {
-            return .home
-        }
+    private func alertRow(_ alert: Alert) -> some View {
+        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+            HStack(alignment: .firstTextBaseline, spacing: ClavisTheme.smallSpacing) {
+                Text(label(for: alert))
+                    .font(ClavisTypography.label)
+                    .foregroundColor(labelColor(for: alert))
+                Spacer()
+                Text(relativeDate(alert.createdAt))
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textSecondary)
+            }
 
-        if let ticker = alert.positionTicker, !ticker.isEmpty {
-            return .ticker(ticker)
-        }
+            if alert.type == .digestReady || alert.type == .ratingReady {
+                VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                    Text(alert.message.sanitizedDisplayText)
+                        .font(ClavisTypography.bodyEmphasis)
+                        .foregroundColor(.textPrimary)
+                    HStack {
+                        destinationBadge(text: "Read briefing")
+                        Spacer()
+                    }
+                }
+                .padding(ClavisTheme.cardPadding)
+                .background(Color.accentSoft)
+                .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous))
+            } else {
+                if let ticker = alert.positionTicker {
+                    HStack(spacing: ClavisTheme.smallSpacing) {
+                        Text(ticker)
+                            .font(ClavisTypography.bodyEmphasis)
+                            .foregroundColor(.accentBurnt)
+                        if let driver = driverText(for: alert) {
+                            destinationBadge(text: driver)
+                        }
+                    }
+                }
 
+                if let previous = alert.previousGrade, let new = alert.newGrade {
+                    HStack(spacing: ClavisTheme.smallSpacing) {
+                        GradeBadge(grade: previous, size: .compact)
+                        Image(systemName: "arrow.right")
+                            .foregroundColor(.textSecondary)
+                        GradeBadge(grade: new, size: .compact)
+                        Text(gradeDeltaText(previous: previous, new: new))
+                            .font(ClavisTypography.footnoteEmphasis)
+                            .foregroundColor(gradeDeltaColor(previous: previous, new: new))
+                    }
+                }
+
+                Text(alert.message.sanitizedDisplayText)
+                    .font(ClavisTypography.body)
+                    .foregroundColor(.textSecondary)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                HStack(spacing: ClavisTheme.smallSpacing) {
+                    if alert.type == .majorEvent || alert.type == .macroShock {
+                        destinationBadge(text: impactText(for: alert))
+                    }
+                    Spacer()
+                    destinationBadge(text: destinationText(for: alert))
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, ClavisTheme.mediumSpacing)
+    }
+
+    private func quietHoursBanner(_ text: String) -> some View {
+        ClavisStandardCard(fill: .surfaceElevated) {
+            Text(text)
+                .font(ClavisTypography.footnote)
+                .foregroundColor(.textSecondary)
+        }
+    }
+
+    private var emptyState: some View {
+        ClavisStandardCard(fill: .surface) {
+            Text("No alerts yet — you'll be notified when your holdings' grades change")
+                .font(ClavisTypography.body)
+                .foregroundColor(.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func label(for alert: Alert) -> String {
+        switch alert.type {
+        case .gradeChange: return "Grade Change"
+        case .majorEvent: return "Major News"
+        case .portfolioGradeChange: return "Portfolio Grade"
+        case .digestReady, .ratingReady: return "Digest Ready"
+        case .macroShock: return "Portfolio"
+        default: return alert.type.displayName
+        }
+    }
+
+    private func labelColor(for alert: Alert) -> Color {
+        switch alert.type {
+        case .digestReady, .ratingReady: return .accentBurnt
+        case .gradeChange: return .bad
+        case .majorEvent: return .warn
+        default: return .textSecondary
+        }
+    }
+
+    private func driverText(for alert: Alert) -> String? {
+        guard let details = alert.changeDetails else { return nil }
+        if let driver = details["driver"]?.sanitizedDisplayText, !driver.isEmpty { return driver }
+        if let dimension = details["dimension"]?.sanitizedDisplayText, !dimension.isEmpty { return dimension }
         return nil
+    }
+
+    private func impactText(for alert: Alert) -> String {
+        if let details = alert.changeDetails,
+           let impact = details["impact_tag"]?.sanitizedDisplayText,
+           !impact.isEmpty {
+            return impact
+        }
+        return "Impact"
+    }
+
+    private func destinationText(for alert: Alert) -> String {
+        switch destination(for: alert) {
+        case .digest: return "Today"
+        case .holdings: return "Holdings"
+        case .ticker(let ticker): return ticker
+        }
+    }
+
+    private func gradeDeltaText(previous: String, new: String) -> String {
+        let delta = Grade.ordinalValue(for: new) - Grade.ordinalValue(for: previous)
+        if delta == 0 { return "—" }
+        return delta > 0 ? "↑ +\(delta)" : "↓ \(abs(delta))"
+    }
+
+    private func gradeDeltaColor(previous: String, new: String) -> Color {
+        let delta = Grade.ordinalValue(for: new) - Grade.ordinalValue(for: previous)
+        if delta == 0 { return .textSecondary }
+        return delta > 0 ? .good : .bad
+    }
+
+    private func relativeDate(_ date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
+
+    private func destinationBadge(text: String) -> some View {
+        Text(text)
+            .font(ClavisTypography.label)
+            .foregroundColor(.textSecondary)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 4)
+            .background(Color.surfaceElevated)
+            .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous))
+    }
+}
+
+private enum AlertDestination {
+    case digest
+    case holdings
+    case ticker(String)
+}
+
+private enum AlertsFilter: CaseIterable {
+    case all
+    case gradeChanges
+    case news
+    case portfolio
+
+    var title: String {
+        switch self {
+        case .all: return "All"
+        case .gradeChanges: return "Grade Changes"
+        case .news: return "News"
+        case .portfolio: return "Portfolio"
+        }
+    }
+
+    func apply(to alerts: [Alert]) -> [Alert] {
+        let filtered: [Alert] = switch self {
+        case .all:
+            alerts
+        case .gradeChanges:
+            alerts.filter { $0.type == .gradeChange }
+        case .news:
+            alerts.filter { $0.type == .majorEvent }
+        case .portfolio:
+            alerts.filter { $0.type == .portfolioGradeChange || $0.type == .digestReady || $0.type == .ratingReady || $0.type == .macroShock }
+        }
+        return filtered.sorted { $0.createdAt > $1.createdAt }
     }
 }
 
 private struct AlertsTopHeader: View {
-    var body: some View {
-        ClavixPageHeader(title: "Alerts", subtitle: "Last 24h")
-            .padding(.horizontal, ClavisTheme.screenPadding)
-            .padding(.top, 8)
-            .padding(.bottom, 6)
-            .background(
-                Color.backgroundPrimary.opacity(0.9)
-                    .background(.ultraThinMaterial)
-                    .ignoresSafeArea(edges: .top)
-            )
-            .overlay(alignment: .bottom) {
-                Rectangle()
-                    .fill(Color.border.opacity(0.5))
-                    .frame(height: 0.5)
-            }
-    }
-}
-
-private struct AlertsSummaryGrid: View {
-    let alerts: [Alert]
+    @Binding var selectedFilter: AlertsFilter
+    let unreadCount: Int
 
     var body: some View {
-        ClavisStandardCard(fill: .surface, padding: ClavisTheme.cardPadding) {
-            LazyVGrid(
-                columns: [
-                    GridItem(.flexible(), spacing: 8),
-                    GridItem(.flexible(), spacing: 8),
-                ],
-                spacing: 8
-            ) {
-                summaryCell(label: "Critical", count: alerts.filter { $0.type.severity == .critical }.count, tint: .riskF)
-                summaryCell(label: "High", count: alerts.filter { severityBucket(for: $0) == .high }.count, tint: .riskD)
-                summaryCell(label: "Elevated", count: alerts.filter { severityBucket(for: $0) == .elevated }.count, tint: .riskC)
-                summaryCell(label: "Info", count: alerts.filter { $0.type.severity == .informational }.count, tint: .textSecondary)
+        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+            HStack(spacing: ClavisTheme.smallSpacing) {
+                Text("Alerts")
+                    .font(ClavisTypography.h2)
+                    .foregroundColor(.textPrimary)
+                Text("\(unreadCount)")
+                    .font(ClavisTypography.footnoteEmphasis)
+                    .foregroundColor(.accentInk)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.accentBurnt)
+                    .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous))
             }
-        }
-    }
 
-    private func severityBucket(for alert: Alert) -> AlertSummaryBucket {
-        switch alert.type.severity {
-        case .critical:
-            return .high
-        case .warning:
-            let currentOrd = Grade.ordinalValue(for: alert.newGrade ?? "")
-            let prevOrd = Grade.ordinalValue(for: alert.previousGrade ?? "")
-            if abs(currentOrd - prevOrd) >= 3 {
-                return .high
-            }
-            return .elevated
-        case .informational:
-            return .info
-        }
-    }
-
-    private func summaryCell(label: String, count: Int, tint: Color) -> some View {
-        ClavisRaisedControlSurface(padding: 10) {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(alignment: .firstTextBaseline) {
-                    Text(label)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(.textSecondary)
-
-                    Spacer(minLength: 6)
-
-                    Text("\(count)")
-                        .font(.system(size: 22, weight: .bold, design: .monospaced))
-                        .foregroundColor(.textPrimary)
-                        .monospacedDigit()
-                }
-
-                Rectangle()
-                    .fill(tint)
-                    .frame(height: 2)
-                    .clipShape(RoundedRectangle(cornerRadius: 1))
-            }
-        }
-    }
-}
-
-private enum AlertSummaryBucket {
-    case high
-    case elevated
-    case info
-}
-
-private struct AlertFilterChipRow: View {
-    @Binding var selectedFilter: AlertFeedFilter
-    let alerts: [Alert]
-
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
-                ForEach(AlertFeedFilter.allCases, id: \.self) { filter in
-                    Button {
-                        selectedFilter = filter
-                    } label: {
-                        Text(filter.label(with: alerts))
-                            .font(.system(size: 13, weight: selectedFilter == filter ? .semibold : .medium))
-                            .foregroundColor(selectedFilter == filter ? .textPrimary : .textSecondary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 7)
-                            .background(selectedFilter == filter ? Color.surfaceElevated : Color.surface)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous)
-                                    .stroke(selectedFilter == filter ? Color.textPrimary : Color.border, lineWidth: 1)
-                            )
+            HStack(spacing: ClavisTheme.smallSpacing) {
+                ForEach(AlertsFilter.allCases, id: \.title) { filter in
+                    Button(action: { selectedFilter = filter }) {
+                        Text(filter.title)
+                            .font(ClavisTypography.footnoteEmphasis)
+                            .foregroundColor(selectedFilter == filter ? .accentInk : .textSecondary)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(selectedFilter == filter ? Color.accentBurnt : Color.surfaceElevated)
                             .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous))
                     }
                     .buttonStyle(.plain)
                 }
             }
         }
-    }
-}
-
-private struct AlertsTimelineCard: View {
-    let alerts: [Alert]
-    let evidenceForTicker: (String?) -> EvidenceStrength?
-    let onTapAlert: (Alert) -> Void
-
-    var body: some View {
-        ClavisFlushListCard(fill: .surface, padding: 14) {
-            VStack(spacing: 0) {
-                ForEach(Array(alerts.enumerated()), id: \.element.id) { index, alert in
-                    AlertsTimelineRow(
-                        alert: alert,
-                        showsConnector: index < alerts.count - 1,
-                        positionEvidence: evidenceForTicker(alert.positionTicker),
-                        onTap: { onTapAlert(alert) }
-                    )
-                }
-            }
-        }
-    }
-}
-
-private struct AlertsTimelineRow: View {
-    let alert: Alert
-    let showsConnector: Bool
-    var positionEvidence: EvidenceStrength? = nil
-    let onTap: () -> Void
-
-    var body: some View {
-        Button(action: onTap) {
-            rowContent
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var rowContent: some View {
-        HStack(alignment: .top, spacing: 10) {
-            VStack(spacing: 4) {
-                GradeBadge(grade: displayGrade, size: .compact)
-                if showsConnector {
-                    Rectangle()
-                        .fill(Color.border)
-                        .frame(width: 1)
-                        .frame(maxHeight: .infinity)
-                }
-            }
-            .frame(width: 24)
-
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(alignment: .firstTextBaseline) {
-                    Text(alert.type.displayName)
-                        .font(ClavisTypography.label)
-                        .foregroundColor(.textSecondary)
-
-                    Spacer()
-
-                    Text(alert.createdAt.formatted(date: .abbreviated, time: .shortened))
-                        .font(.system(size: 11, weight: .regular, design: .monospaced))
-                        .foregroundColor(.textSecondary)
-                }
-
-                Text(alert.message.sanitizedDisplayText)
-                    .font(ClavisTypography.bodyEmphasis)
-                    .foregroundColor(.textPrimary)
-                    .multilineTextAlignment(.leading)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                if let ticker = alert.positionTicker {
-                    Text(ticker.uppercased())
-                        .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                        .foregroundColor(.textPrimary)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 3)
-                        .background(Color.surfaceElevated)
-                        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-                }
-
-                if let previous = alert.previousGrade, let next = alert.newGrade {
-                    HStack(spacing: 6) {
-                        GradeBadge(grade: previous, size: .compact)
-                        Image(systemName: "arrow.right")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(.textTertiary)
-                        GradeBadge(grade: next, size: .compact)
-                        if let direction = alertGradeDirection(previous: previous, new: next) {
-                            RiskDirectionLabel(trend: direction)
-                        }
-                    }
-                    .padding(.top, 2)
-                }
-
-                if let reason = alert.changeReason?.sanitizedDisplayText, !reason.isEmpty {
-                    Text(reason)
-                        .font(.system(size: 12, weight: .regular))
-                        .foregroundColor(.textSecondary)
-                        .padding(.top, 2)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                if let details = alert.changeDetails, !details.isEmpty {
-                    let detailValues = Array(details.values.prefix(2)).map { $0.sanitizedDisplayText }.filter { !$0.isEmpty }
-                    if !detailValues.isEmpty {
-                        HStack(spacing: 6) {
-                            ForEach(detailValues, id: \.self) { detail in
-                                Text(detail)
-                                    .font(.system(size: 11, weight: .medium))
-                                    .foregroundColor(.textTertiary)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 3)
-                                    .background(Color.surfaceElevated)
-                                    .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-                            }
-                        }
-                        .padding(.top, 2)
-                    }
-                }
-
-                if let evidence = positionEvidence {
-                    EvidenceDots(evidence: evidence, grade: displayGrade)
-                        .padding(.top, 2)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .padding(.vertical, 10)
+        .padding(.horizontal, ClavisTheme.screenPadding)
+        .padding(.top, ClavisTheme.smallSpacing)
+        .padding(.bottom, 6)
+        .background(
+            Color.backgroundPrimary.opacity(0.9)
+                .background(.ultraThinMaterial)
+                .ignoresSafeArea(edges: .top)
+        )
         .overlay(alignment: .bottom) {
-            if showsConnector {
-                Rectangle()
-                    .fill(Color.border)
-                    .frame(height: 1)
-                    .offset(x: 18)
-            }
-        }
-    }
-
-    private var displayGrade: String {
-        alert.newGrade ?? alert.previousGrade ?? "—"
-    }
-
-    private func alertGradeDirection(previous: String, new: String) -> RiskTrend? {
-        let prevVal = Grade.ordinalValue(for: previous)
-        let newVal = Grade.ordinalValue(for: new)
-        if newVal < prevVal { return .worsening }
-        if newVal > prevVal { return .improving }
-        return .stable
-    }
-}
-
-private enum AlertDestination {
-    case digest
-    case home
-    case ticker(String)
-}
-
-private enum AlertFeedFilter: CaseIterable {
-    case all
-    case critical
-    case grade
-    case events
-
-    func apply(to alerts: [Alert]) -> [Alert] {
-        switch self {
-        case .all:
-            return alerts
-        case .critical:
-            return alerts.filter { $0.type.severity == .critical }
-        case .grade:
-            return alerts.filter { $0.type == .gradeChange || $0.type == .portfolioGradeChange }
-        case .events:
-            return alerts.filter { $0.type == .majorEvent || $0.type == .macroShock }
-        }
-    }
-
-    func label(with alerts: [Alert]) -> String {
-        switch self {
-        case .all:
-            return "All · \(alerts.count)"
-        case .critical:
-            return "Critical · \(alerts.filter { $0.type.severity == .critical }.count)"
-        case .grade:
-            return "Grade · \(alerts.filter { $0.type == .gradeChange || $0.type == .portfolioGradeChange }.count)"
-        case .events:
-            return "Events · \(alerts.filter { $0.type == .majorEvent || $0.type == .macroShock }.count)"
-        }
-    }
-}
-
-// MARK: - Alert Group Model
-
-struct AlertGroup: Identifiable {
-    let id: String
-    let type: AlertType
-    let ticker: String?
-    let positionId: String?
-    let alerts: [Alert]
-    let latestTimestamp: Date
-}
-
-// MARK: - Alert Severity
-
-enum AlertSeverity {
-    case critical, warning, informational
-
-    var borderColor: Color {
-        switch self {
-        case .critical:      return .riskF
-        case .warning:       return .riskC
-        case .informational: return .informational
-        }
-    }
-}
-
-extension AlertType {
-    var severity: AlertSeverity {
-        switch self {
-        case .gradeChange, .safetyDeterioration, .concentrationDanger,
-             .portfolioSafetyThresholdBreach:
-            return .critical
-        case .majorEvent, .portfolioGradeChange, .clusterRisk,
-              .macroShock, .structuralFragility:
-            return .warning
-        case .ratingReady, .digestReady:
-            return .informational
-        }
-    }
-}
-
-// MARK: - Empty State
-
-struct AlertsEmptyStateCard: View {
-    let openHoldings: () -> Void
-
-    var body: some View {
-        ClavisStandardCard(fill: .surface) {
-            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                Text("No alerts")
-                    .font(ClavisTypography.cardTitle)
-                    .foregroundColor(.textPrimary)
-                Text("You don't have any recent alerts.")
-                    .font(ClavisTypography.body)
-                    .foregroundColor(.textSecondary)
-
-                ClavisPrimaryButton(title: "Open holdings", action: openHoldings)
-            }
+            Rectangle()
+                .fill(Color.border.opacity(0.5))
+                .frame(height: 0.5)
         }
     }
 }
