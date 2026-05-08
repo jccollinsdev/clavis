@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ArticleDetailSheet: View {
     let article: MethodologyArticle
@@ -121,7 +122,7 @@ struct ArticleDetailSheet: View {
 
     private var whatItMeansSection: some View {
         sectionBlock(title: "What It Means for \(ticker)") {
-            Text(article.sentimentReason ?? "Not available.")
+            Text(article.whatItMeans ?? "Not available.")
                 .font(ClavisTypography.body)
                 .foregroundColor(.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -131,9 +132,23 @@ struct ArticleDetailSheet: View {
     private var keyImplicationsSection: some View {
         sectionBlock(title: "Key Implications") {
             VStack(alignment: .leading, spacing: 6) {
-                Text(article.tldr ?? "Not available.")
-                    .font(ClavisTypography.body)
-                    .foregroundColor(.textSecondary)
+                if let implications = article.keyImplications, !implications.isEmpty {
+                    ForEach(implications, id: \.self) { implication in
+                        HStack(alignment: .top, spacing: 8) {
+                            Text("•")
+                                .font(ClavisTypography.body)
+                                .foregroundColor(.textTertiary)
+                            Text(implication)
+                                .font(ClavisTypography.body)
+                                .foregroundColor(.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                } else {
+                    Text("Not available.")
+                        .font(ClavisTypography.body)
+                        .foregroundColor(.textSecondary)
+                }
             }
         }
     }
@@ -168,7 +183,12 @@ struct ArticleDetailSheet: View {
             Divider().background(Color.border)
                 .padding(.vertical, 8)
 
-            Link(destination: URL(string: "about:blank")!) {
+            Button {
+                if let sourceUrl = article.sourceUrl,
+                   let url = URL(string: sourceUrl) {
+                    UIApplication.shared.open(url)
+                }
+            } label: {
                 HStack {
                     Image(systemName: "safari")
                         .font(.system(size: 14))
@@ -181,6 +201,7 @@ struct ArticleDetailSheet: View {
                 .foregroundColor(.informational)
                 .padding(.vertical, 10)
             }
+            .buttonStyle(.plain)
         }
     }
 

@@ -1,8 +1,20 @@
+from __future__ import annotations
 import logging
 
 from ..services.apns import PushDeliveryResult, send_push
 
-GRADE_RANK = {"A": 5, "B": 4, "C": 3, "D": 2, "F": 1}
+GRADE_RANK = {
+    "AAA": 10,
+    "AA": 9,
+    "A": 8,
+    "BBB": 7,
+    "BB": 6,
+    "B": 5,
+    "CCC": 4,
+    "CC": 3,
+    "C": 2,
+    "F": 1,
+}
 logger = logging.getLogger(__name__)
 
 

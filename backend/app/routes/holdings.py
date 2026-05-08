@@ -63,9 +63,7 @@ async def create_holding(
 
     supported = ensure_ticker_in_universe(supabase, position.ticker)
     if not supported:
-        raise HTTPException(
-            400, "Ticker is not available in the shared ticker cache yet"
-        )
+        raise HTTPException(400, "Ticker is not available in Clavix yet")
 
     normalized_ticker = supported["ticker"]
     existing_position = (

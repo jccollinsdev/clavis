@@ -1,16 +1,42 @@
 from __future__ import annotations
-from dataclasses import dataclass, field
+
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, Request
 
+from ..services.macro_regression import FACTOR_TICKERS, run_macro_regression
+from ..services.news_enrichment import enrich_and_store_articles_batch
+from ..services.polygon import fetch_aggs
 from ..services.supabase import get_supabase
+from ..services.ticker_cache_service import (
+    _build_macro_exposure_inputs,
+    _build_sector_exposure_inputs,
+    _build_volatility_inputs,
+)
 
 router = APIRouter()
 
 
 def get_user_id(request: Request) -> str:
     return request.state.user_id
+
+
+def _parse_iso_datetime(value: Any) -> datetime | None:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+
+
+def _isoformat_or_none(value: Any) -> str | None:
+    if isinstance(value, datetime):
+        return value.astimezone(timezone.utc).isoformat()
+    if value in {None, ""}:
+        return None
+    return str(value)
 
 
 @router.get("/{ticker}/methodology")
@@ -34,109 +60,232 @@ async def get_ticker_methodology(
         supabase.table("ticker_risk_snapshots")
         .select("*")
         .eq("ticker", upper)
-        .order("created_at", desc=True)
+        .order("analysis_as_of", desc=True)
+        .order("updated_at", desc=True)
         .limit(1)
         .execute()
     )
     snapshot = snapshot_result.data[0] if snapshot_result.data else {}
 
-    articles: list[dict[str, Any]] = []
-    try:
-        articles_result = (
+    factor_breakdown = snapshot.get("factor_breakdown") or {}
+    if isinstance(factor_breakdown, str):
+        import json
+
+        try:
+            factor_breakdown = json.loads(factor_breakdown)
+        except Exception:
+            factor_breakdown = {}
+
+    dimension_inputs = snapshot.get("dimension_inputs") or {}
+    if isinstance(dimension_inputs, str):
+        import json
+
+        try:
+            dimension_inputs = json.loads(dimension_inputs)
+        except Exception:
+            dimension_inputs = {}
+
+    articles_result = (
+        supabase.table("shared_ticker_events")
+        .select("*")
+        .eq("ticker", upper)
+        .order("published_at", desc=True)
+        .limit(50)
+        .execute()
+    )
+    articles = articles_result.data or []
+
+    now = datetime.now(timezone.utc)
+    seven_day_articles = []
+    for article in articles:
+        published_at = _parse_iso_datetime(article.get("published_at"))
+        if published_at and now - published_at <= timedelta(days=7):
+            seven_day_articles.append(article)
+
+    if seven_day_articles and all(
+        article.get("sentiment_score") is None
+        and article.get("tldr") is None
+        and article.get("source_tier") is None
+        for article in seven_day_articles[:8]
+    ):
+        await enrich_and_store_articles_batch(
+            supabase,
+            seven_day_articles[:8],
+            analysis_run_id=snapshot.get("analysis_run_id"),
+            max_concurrency=2,
+        )
+        refreshed_articles_result = (
             supabase.table("shared_ticker_events")
             .select("*")
             .eq("ticker", upper)
             .order("published_at", desc=True)
-            .limit(20)
+            .limit(50)
             .execute()
         )
-        articles = articles_result.data or []
-    except Exception:
-        pass
+        articles = refreshed_articles_result.data or []
+        seven_day_articles = []
+        for article in articles:
+            published_at = _parse_iso_datetime(article.get("published_at"))
+            if published_at and now - published_at <= timedelta(days=7):
+                seven_day_articles.append(article)
 
-    macro_audit = snapshot.get("audit", {}) if isinstance(snapshot.get("audit"), dict) else {}
-    macro_reg = macro_audit.get("macro_regression", {})
+    news_inputs = dimension_inputs.get("news_sentiment") or {}
+    macro_inputs = dimension_inputs.get("macro_exposure") or {}
+    sector_inputs = dimension_inputs.get("sector_exposure") or {}
+    volatility_inputs = dimension_inputs.get("volatility") or {}
+    financial_inputs = dimension_inputs.get("financial_health") or {}
+    macro_regression = factor_breakdown.get("macro_regression") or {}
 
-    fb = snapshot.get("factor_breakdown") or {}
-    if isinstance(fb, str):
-        import json
-        try:
-            fb = json.loads(fb)
-        except Exception:
-            fb = {}
-    ai_dims = fb.get("ai_dimensions", {})
+    enriched_articles = [
+        article
+        for article in seven_day_articles
+        if article.get("sentiment_score") is not None
+        or article.get("source_tier") is not None
+        or article.get("recency_weight") is not None
+        or article.get("tldr")
+        or article.get("what_it_means")
+    ]
+    display_articles = enriched_articles or seven_day_articles
+
+    if news_inputs.get("weighted_score") is None:
+        weighted_total = 0.0
+        total_weight = 0.0
+        for article in display_articles:
+            sentiment_score = article.get("sentiment_score")
+            recency_weight = article.get("recency_weight") or 1.0
+            source_weight = article.get("source_weight") or 1.0
+            if sentiment_score is None:
+                continue
+            weight = float(recency_weight) * float(source_weight)
+            weighted_total += float(sentiment_score) * weight
+            total_weight += weight
+        if total_weight > 0:
+            news_inputs["weighted_score"] = round(weighted_total / total_weight, 1)
+
+    ticker_bars = fetch_aggs(upper, days=400)
+    if (
+        not sector_inputs.get("sector_etf")
+        or sector_inputs.get("sector_beta") is None
+        or sector_inputs.get("sector_momentum_30d") is None
+        or sector_inputs.get("sector_breadth") is None
+    ):
+        sector_inputs = _build_sector_exposure_inputs(upper, metadata, ticker_bars)
+
+    factor_bars_map: dict[str, list[dict[str, Any]]] = {}
+    if not macro_inputs.get("current_factor_levels"):
+        factor_bars_map = {
+            factor_key: fetch_aggs(factor_ticker, days=400)
+            for factor_key, factor_ticker in FACTOR_TICKERS.items()
+        }
+        macro_source = macro_regression or run_macro_regression(
+            upper,
+            ticker_bars,
+            factor_bars_map,
+            as_of_date=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        )
+        macro_inputs = _build_macro_exposure_inputs(macro_source, factor_bars_map)
+
+    if (
+        volatility_inputs.get("realized_vol_30d") is None
+        or volatility_inputs.get("realized_vol_90d") is None
+        or volatility_inputs.get("vol_ratio") is None
+        or volatility_inputs.get("beta_to_spy") is None
+    ):
+        if not factor_bars_map:
+            factor_bars_map = {
+                factor_key: fetch_aggs(factor_ticker, days=400)
+                for factor_key, factor_ticker in FACTOR_TICKERS.items()
+            }
+        volatility_inputs = _build_volatility_inputs(
+            ticker_bars,
+            factor_bars_map.get("spy", []),
+            as_of_date=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        )
 
     return {
         "ticker": upper,
         "dimensions": {
             "financial_health": {
-                "score": ai_dims.get("financial_health"),
-                "label": "Financial Health",
-                "inputs": {
-                    "debt_to_equity": metadata.get("debt_to_equity"),
-                    "fcf_margin": metadata.get("fcf_margin"),
-                    "interest_coverage": metadata.get("interest_coverage"),
-                    "current_ratio": metadata.get("current_ratio"),
-                    "revenue_growth_trend": metadata.get("revenue_growth_trend"),
-                    "profitability_profile": metadata.get("profitability_profile"),
-                    "leverage_profile": metadata.get("leverage_profile"),
-                },
-                "sources": ["Finnhub stock/metric"],
+                "score": snapshot.get("financial_health"),
+                "debt_to_equity": financial_inputs.get("debt_to_equity"),
+                "fcf_margin": financial_inputs.get("fcf_margin"),
+                "interest_coverage": financial_inputs.get("interest_coverage"),
+                "current_ratio": financial_inputs.get("current_ratio"),
+                "revenue_growth_trend": financial_inputs.get("revenue_growth_trend"),
+                "profitability_trend": financial_inputs.get("profitability_trend"),
+                "as_of_date": financial_inputs.get("as_of_date") or _isoformat_or_none(metadata.get("updated_at")),
+                "data_source": financial_inputs.get("data_source") or "finnhub",
             },
             "news_sentiment": {
-                "score": ai_dims.get("news_sentiment"),
-                "label": "News Sentiment",
+                "score": snapshot.get("news_sentiment_dim"),
+                "article_count_7d": news_inputs.get("article_count_7d")
+                if news_inputs.get("article_count_7d") is not None
+                else len(seven_day_articles),
+                "volume_signal": bool(news_inputs.get("volume_signal")),
+                "weighted_score": news_inputs.get("weighted_score"),
                 "articles": [
                     {
-                        "id": a.get("id"),
-                        "title": a.get("title"),
-                        "source": a.get("source"),
-                        "sentiment_score": a.get("sentiment_score"),
-                        "sentiment_reason": a.get("sentiment_reason"),
-                        "source_tier": a.get("source_tier"),
-                        "recency_weight": a.get("recency_weight"),
-                        "source_weight": a.get("source_weight"),
-                        "impact_tag": a.get("impact_tag"),
-                        "tldr": a.get("tldr"),
-                        "published_at": a.get("published_at"),
+                        "title": article.get("title"),
+                        "source": article.get("source"),
+                        "published_at": article.get("published_at"),
+                        "source_tier": article.get("source_tier"),
+                        "recency_weight": article.get("recency_weight"),
+                        "sentiment_score": article.get("sentiment_score"),
+                        "sentiment_reason": article.get("sentiment_reason"),
+                        "impact_tag": article.get("impact_tag"),
+                        "tldr": article.get("tldr"),
+                        "what_it_means": article.get("what_it_means"),
+                        "key_implications": article.get("key_implications") or [],
+                        "source_url": article.get("canonical_url")
+                        or article.get("source_url")
+                        or article.get("url"),
                     }
-                    for a in articles[:15]
+                    for article in display_articles[:15]
                 ],
-                "article_count": len(articles),
-                "sources": ["Google News RSS", "MiniMax LLM"],
             },
             "macro_exposure": {
-                "score": ai_dims.get("macro_exposure"),
-                "label": "Macro Exposure",
-                "regression": macro_reg if macro_reg.get("coefficients") else None,
-                "beta_proxy": metadata.get("beta"),
-                "macro_sensitivity": metadata.get("macro_sensitivity"),
-                "sources": ["Polygon daily bars", "MiniMax LLM"],
+                "score": snapshot.get("macro_exposure_dim"),
+                "r_squared": macro_inputs.get("r_squared")
+                if macro_inputs.get("r_squared") is not None
+                else macro_regression.get("r_squared"),
+                "trading_days_used": macro_inputs.get("trading_days_used")
+                if macro_inputs.get("trading_days_used") is not None
+                else macro_regression.get("trading_days_used"),
+                "limited_data": bool(
+                    macro_inputs.get("limited_data")
+                    if macro_inputs.get("limited_data") is not None
+                    else macro_regression.get("limited_data")
+                ),
+                "as_of_date": macro_inputs.get("as_of_date")
+                or macro_regression.get("as_of_date"),
+                "coefficients": macro_inputs.get("coefficients")
+                or macro_regression.get("coefficients")
+                or {},
+                "current_factor_levels": macro_inputs.get("current_factor_levels") or {},
+                "narrative": macro_inputs.get("narrative"),
             },
             "sector_exposure": {
-                "score": ai_dims.get("sector_exposure"),
-                "label": "Sector Exposure",
-                "inputs": {
-                    "sector": metadata.get("sector"),
-                    "industry": metadata.get("industry"),
-                    "market_cap": metadata.get("market_cap"),
-                    "beta": metadata.get("beta"),
-                },
-                "sources": ["Finnhub stock/profile2"],
+                "score": snapshot.get("sector_exposure"),
+                "sector": sector_inputs.get("sector") or metadata.get("sector"),
+                "sector_etf": sector_inputs.get("sector_etf"),
+                "sector_beta": sector_inputs.get("sector_beta"),
+                "sector_momentum_30d": sector_inputs.get("sector_momentum_30d"),
+                "sector_breadth": sector_inputs.get("sector_breadth"),
+                "narrative": sector_inputs.get("narrative"),
             },
             "volatility": {
-                "score": ai_dims.get("volatility"),
-                "label": "Volatility",
-                "inputs": {
-                    "beta": metadata.get("beta"),
-                    "macro_sensitivity": metadata.get("macro_sensitivity"),
-                },
-                "sources": ["Polygon aggregate bars", "MiniMax LLM"],
+                "score": snapshot.get("volatility"),
+                "realized_vol_30d": volatility_inputs.get("realized_vol_30d"),
+                "realized_vol_90d": volatility_inputs.get("realized_vol_90d"),
+                "vol_ratio": volatility_inputs.get("vol_ratio"),
+                "max_drawdown_252d": volatility_inputs.get("max_drawdown_252d"),
+                "beta_to_spy": volatility_inputs.get("beta_to_spy"),
+                "as_of_date": volatility_inputs.get("as_of_date"),
             },
         },
         "composite": {
+            "score": snapshot.get("composite_score") or snapshot.get("safety_score"),
             "grade": snapshot.get("grade"),
-            "score": snapshot.get("safety_score"),
             "methodology_version": snapshot.get("methodology_version"),
         },
     }

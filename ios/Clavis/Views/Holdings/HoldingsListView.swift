@@ -1198,9 +1198,9 @@ struct AddPositionProgressView: View {
         switch viewModel.progressMessage {
         case let m where m.contains("Adding"):      return "CREATING POSITION"
         case let m where m.contains("limited"):     return "LIMITED DATA"
-        case let m where m.contains("running"):     return "ANALYSIS RUNNING"
+        case let m where m.contains("running"):     return "ANALYSIS IN PROGRESS"
         case let m where m.contains("ready"):       return "POSITION READY"
-        case let m where m.contains("failed"):      return "ANALYSIS FAILED"
+        case let m where m.contains("failed"):      return "ANALYSIS UNAVAILABLE"
         default:                                     return "UPDATING POSITION"
         }
     }

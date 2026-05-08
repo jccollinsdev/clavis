@@ -8,10 +8,10 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 FACTOR_TICKERS = {
-    "tnx": "TNX",
+    "tnx": "I:TNX",
     "dxy": "UUP",
     "wti": "USO",
-    "vix": "VIX",
+    "vix": "I:VIX",
     "spy": "SPY",
 }
 

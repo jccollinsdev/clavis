@@ -4,7 +4,9 @@ from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta, timezone
 from functools import lru_cache
 import logging
+import math
 from pathlib import Path
+import statistics
 from typing import Any
 from uuid import uuid4
 
@@ -14,6 +16,8 @@ from ..pipeline.risk_scorer import score_position_structural
 from ..pipeline.analysis_utils import score_to_grade, grade_direction, sanitize_rationale, sanitize_public_analysis_text, format_rationale, evidence_strength, sanitize_text_field, normalize_event_analysis_payload
 from ..pipeline.position_report_builder import _build_driver_cards
 from .alert_payloads import enrich_alert_rows
+from .macro_regression import FACTOR_TICKERS, macro_regression_to_audit_jsonb, run_macro_regression
+from .polygon import fetch_aggs
 from .ticker_metadata import upsert_ticker_metadata
 
 
@@ -28,6 +32,21 @@ SYSTEM_SP500_USER_ID = "00000000-0000-0000-0000-000000000001"
 SP500_UNIVERSE_PATH = (
     Path(__file__).resolve().parent.parent / "data" / "sp500_universe.txt"
 )
+
+SECTOR_ETF_MAP = {
+    "communication services": "XLC",
+    "consumer discretionary": "XLY",
+    "consumer staples": "XLP",
+    "energy": "XLE",
+    "financials": "XLF",
+    "healthcare": "XLV",
+    "industrials": "XLI",
+    "information technology": "XLK",
+    "technology": "XLK",
+    "materials": "XLB",
+    "real estate": "XLRE",
+    "utilities": "XLU",
+}
 
 
 @lru_cache(maxsize=1)
@@ -80,8 +99,297 @@ def _parse_iso_datetime(value: Any) -> datetime | None:
         return None
 
 
+def _coerce_float(value: Any) -> float | None:
+    try:
+        if value is None or value == "":
+            return None
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _bars_to_close_series(bars: list[dict[str, Any]]) -> list[float]:
+    closes: list[float] = []
+    for bar in bars or []:
+        close = _coerce_float(bar.get("c"))
+        if close is not None:
+            closes.append(close)
+    return closes
+
+
+def _daily_returns_from_closes(closes: list[float]) -> list[float]:
+    if len(closes) < 2:
+        return []
+    returns: list[float] = []
+    for index in range(1, len(closes)):
+        previous = closes[index - 1]
+        current = closes[index]
+        if previous <= 0:
+            continue
+        returns.append((current - previous) / previous)
+    return returns
+
+
+def _annualized_volatility(closes: list[float], window: int) -> float | None:
+    if len(closes) < window + 1:
+        return None
+    returns = _daily_returns_from_closes(closes[-(window + 1) :])
+    if len(returns) < 2:
+        return None
+    return statistics.stdev(returns) * math.sqrt(252)
+
+
+def _max_drawdown(closes: list[float], window: int) -> float | None:
+    if len(closes) < 2:
+        return None
+    series = closes[-window:] if len(closes) > window else closes
+    peak = series[0]
+    worst_drawdown = 0.0
+    for close in series:
+        peak = max(peak, close)
+        if peak <= 0:
+            continue
+        worst_drawdown = min(worst_drawdown, (close - peak) / peak)
+    return abs(worst_drawdown)
+
+
+def _beta_from_returns(asset_returns: list[float], benchmark_returns: list[float]) -> float | None:
+    count = min(len(asset_returns), len(benchmark_returns))
+    if count < 2:
+        return None
+    asset_slice = asset_returns[-count:]
+    benchmark_slice = benchmark_returns[-count:]
+    benchmark_variance = statistics.pvariance(benchmark_slice)
+    if benchmark_variance == 0:
+        return None
+    asset_mean = statistics.mean(asset_slice)
+    benchmark_mean = statistics.mean(benchmark_slice)
+    covariance = sum(
+        (asset_slice[i] - asset_mean) * (benchmark_slice[i] - benchmark_mean)
+        for i in range(count)
+    ) / count
+    return covariance / benchmark_variance
+
+
+def _percent_change(closes: list[float], window: int) -> float | None:
+    if len(closes) < window + 1:
+        return None
+    start = closes[-(window + 1)]
+    end = closes[-1]
+    if start <= 0:
+        return None
+    return (end - start) / start
+
+
+def _positive_day_ratio(closes: list[float], window: int) -> float | None:
+    if len(closes) < window + 1:
+        return None
+    returns = _daily_returns_from_closes(closes[-(window + 1) :])
+    if not returns:
+        return None
+    positive_days = sum(1 for value in returns if value > 0)
+    return positive_days / len(returns)
+
+
+def _latest_close_from_bars(bars: list[dict[str, Any]]) -> float | None:
+    closes = _bars_to_close_series(bars)
+    return closes[-1] if closes else None
+
+
+def _current_factor_levels(factor_bars_map: dict[str, list[dict[str, Any]]]) -> dict[str, float | None]:
+    return {
+        factor: _latest_close_from_bars(factor_bars_map.get(factor, []))
+        for factor in FACTOR_TICKERS
+    }
+
+
+def _normalize_growth_trend_label(value: Any) -> str | None:
+    numeric = _coerce_float(value)
+    if numeric is None:
+        return None
+    if numeric >= 0.15:
+        return "positive_3q"
+    if numeric >= 0.03:
+        return "modestly_positive"
+    if numeric <= -0.10:
+        return "declining"
+    if numeric < 0:
+        return "slowing"
+    return "flat"
+
+
+def _profitability_trend_label(metadata: dict[str, Any]) -> str | None:
+    profile = str(metadata.get("profitability_profile") or "").strip().lower()
+    if profile == "profitable":
+        return "improving"
+    if profile == "unprofitable":
+        return "weakening"
+    if profile == "mixed":
+        return "mixed"
+    return None
+
+
+def _build_financial_health_inputs(metadata: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "debt_to_equity": _coerce_float(metadata.get("debt_to_equity")),
+        "fcf_margin": _coerce_float(metadata.get("fcf_margin")),
+        "interest_coverage": _coerce_float(metadata.get("interest_coverage")),
+        "current_ratio": _coerce_float(metadata.get("current_ratio")),
+        "revenue_growth_trend": _normalize_growth_trend_label(
+            metadata.get("revenue_growth_trend")
+        ),
+        "profitability_trend": _profitability_trend_label(metadata),
+        "as_of_date": metadata.get("price_as_of") or metadata.get("updated_at"),
+        "data_source": "finnhub",
+    }
+
+
+def _build_news_sentiment_inputs(news_rows: list[dict[str, Any]]) -> dict[str, Any]:
+    now = datetime.now(timezone.utc)
+    article_count_7d = 0
+    weighted_total = 0.0
+    total_weight = 0.0
+    article_count_28d = 0
+
+    for row in news_rows:
+        published_at = _parse_iso_datetime(row.get("published_at"))
+        if not published_at:
+            continue
+        age_days = (now - published_at).total_seconds() / 86400.0
+        if age_days <= 28:
+            article_count_28d += 1
+        if age_days > 7:
+            continue
+        article_count_7d += 1
+        sentiment_score = _coerce_float(row.get("sentiment_score"))
+        if sentiment_score is None:
+            continue
+        recency_weight = _coerce_float(row.get("recency_weight")) or 1.0
+        source_weight = _coerce_float(row.get("source_weight")) or 1.0
+        weight = recency_weight * source_weight
+        weighted_total += sentiment_score * weight
+        total_weight += weight
+
+    baseline = article_count_28d / 4.0 if article_count_28d else 0.0
+    return {
+        "article_count_7d": article_count_7d,
+        "volume_signal": bool(article_count_7d and baseline and article_count_7d > baseline * 1.25),
+        "weighted_score": round(weighted_total / total_weight, 1) if total_weight > 0 else None,
+    }
+
+
+def _build_sector_exposure_inputs(
+    ticker: str,
+    metadata: dict[str, Any],
+    ticker_bars: list[dict[str, Any]],
+) -> dict[str, Any]:
+    sector = str(metadata.get("sector") or "").strip()
+    sector_etf = SECTOR_ETF_MAP.get(sector.lower()) if sector else None
+    if not sector_etf:
+        return {
+            "sector": sector or None,
+            "sector_etf": None,
+            "sector_beta": None,
+            "sector_momentum_30d": None,
+            "sector_breadth": None,
+            "narrative": None,
+        }
+
+    sector_bars = fetch_aggs(sector_etf, days=90)
+    ticker_closes = _bars_to_close_series(ticker_bars)
+    sector_closes = _bars_to_close_series(sector_bars)
+    ticker_returns = _daily_returns_from_closes(ticker_closes)
+    sector_returns = _daily_returns_from_closes(sector_closes)
+    sector_beta = _beta_from_returns(ticker_returns, sector_returns)
+    sector_momentum = _percent_change(sector_closes, 30)
+    sector_breadth = _positive_day_ratio(sector_closes, 30)
+
+    narrative_parts: list[str] = []
+    if sector_momentum is not None:
+        if sector_momentum >= 0.05:
+            narrative_parts.append(f"{sector_etf} has been supporting the tape")
+        elif sector_momentum <= -0.05:
+            narrative_parts.append(f"{sector_etf} has been under pressure")
+    if sector_beta is not None:
+        if sector_beta >= 1.15:
+            narrative_parts.append(f"{ticker} is moving more aggressively than its sector ETF")
+        elif sector_beta <= 0.85:
+            narrative_parts.append(f"{ticker} is moving more defensively than its sector ETF")
+    if sector_breadth is not None:
+        breadth_pct = sector_breadth * 100
+        if breadth_pct >= 55:
+            narrative_parts.append("breadth has been constructive")
+        elif breadth_pct <= 45:
+            narrative_parts.append("breadth has been narrow")
+
+    return {
+        "sector": sector or None,
+        "sector_etf": sector_etf,
+        "sector_beta": round(sector_beta, 3) if sector_beta is not None else None,
+        "sector_momentum_30d": round(sector_momentum, 4) if sector_momentum is not None else None,
+        "sector_breadth": round(sector_breadth, 4) if sector_breadth is not None else None,
+        "narrative": ". ".join(narrative_parts) + "." if narrative_parts else None,
+    }
+
+
+def _build_volatility_inputs(
+    ticker_bars: list[dict[str, Any]],
+    spy_bars: list[dict[str, Any]],
+    *,
+    as_of_date: str,
+) -> dict[str, Any]:
+    ticker_closes = _bars_to_close_series(ticker_bars)
+    spy_closes = _bars_to_close_series(spy_bars)
+    ticker_returns = _daily_returns_from_closes(ticker_closes)
+    spy_returns = _daily_returns_from_closes(spy_closes)
+    realized_vol_30d = _annualized_volatility(ticker_closes, 30)
+    realized_vol_90d = _annualized_volatility(ticker_closes, 90)
+    vol_ratio = (
+        realized_vol_30d / realized_vol_90d
+        if realized_vol_30d is not None and realized_vol_90d not in {None, 0}
+        else None
+    )
+    beta_to_spy = _beta_from_returns(ticker_returns, spy_returns)
+    max_drawdown_252d = _max_drawdown(ticker_closes, 252)
+    return {
+        "realized_vol_30d": round(realized_vol_30d, 4) if realized_vol_30d is not None else None,
+        "realized_vol_90d": round(realized_vol_90d, 4) if realized_vol_90d is not None else None,
+        "vol_ratio": round(vol_ratio, 4) if vol_ratio is not None else None,
+        "max_drawdown_252d": round(max_drawdown_252d, 4) if max_drawdown_252d is not None else None,
+        "beta_to_spy": round(beta_to_spy, 4) if beta_to_spy is not None else None,
+        "as_of_date": as_of_date,
+    }
+
+
+def _build_macro_exposure_inputs(
+    macro_result: dict[str, Any],
+    factor_bars_map: dict[str, list[dict[str, Any]]],
+) -> dict[str, Any]:
+    current_factor_levels = _current_factor_levels(factor_bars_map)
+    coefficients = macro_result.get("coefficients") or {}
+    narrative_parts: list[str] = []
+    if coefficients:
+        top_factor = max(coefficients.items(), key=lambda item: abs(item[1]))
+        narrative_parts.append(
+            f"Largest sensitivity is to {top_factor[0].upper()} ({top_factor[1]:.3f})"
+        )
+    if macro_result.get("r_squared") is not None:
+        narrative_parts.append(f"regression fit is {macro_result['r_squared']:.2f} R²")
+    return {
+        "r_squared": macro_result.get("r_squared"),
+        "trading_days_used": macro_result.get("trading_days_used"),
+        "limited_data": macro_result.get("limited_data", False),
+        "as_of_date": macro_result.get("as_of_date"),
+        "coefficients": coefficients,
+        "current_factor_levels": current_factor_levels,
+        "narrative": ". ".join(narrative_parts) + "." if narrative_parts else None,
+    }
+
+
 def _snapshot_methodology_priority(methodology_version: Any) -> int:
     method = str(methodology_version or "").lower()
+    if method == "v2":
+        return 4
     if method == "sp500-ai-backfill-v2":
         return 3
     if "ai" in method:
@@ -207,7 +515,7 @@ def get_supported_ticker(supabase, ticker: str) -> dict | None:
 def require_supported_ticker(supabase, ticker: str) -> dict:
     supported = get_supported_ticker(supabase, ticker)
     if not supported:
-        raise HTTPException(400, "Ticker is not available in the shared ticker cache")
+        raise HTTPException(400, "Ticker is not available in Clavix yet")
     return supported
 
 
@@ -807,9 +1115,51 @@ def _shared_risk_dimensions(snapshot: dict[str, Any] | None) -> dict[str, Any]:
             factor_breakdown = {}
     ai_dims = (factor_breakdown or {}).get("ai_dimensions") or {}
     return {
-        "news_sentiment": ai_dims.get("news_sentiment"),
-        "macro_exposure": ai_dims.get("macro_exposure"),
-        "volatility_trend": ai_dims.get("volatility_trend"),
+        "financial_health": snapshot.get("financial_health")
+        if snapshot.get("financial_health") is not None
+        else ai_dims.get("financial_health"),
+        "news_sentiment": snapshot.get("news_sentiment_dim")
+        if snapshot.get("news_sentiment_dim") is not None
+        else ai_dims.get("news_sentiment"),
+        "macro_exposure": snapshot.get("macro_exposure_dim")
+        if snapshot.get("macro_exposure_dim") is not None
+        else ai_dims.get("macro_exposure"),
+        "sector_exposure": snapshot.get("sector_exposure")
+        if snapshot.get("sector_exposure") is not None
+        else ai_dims.get("sector_exposure"),
+        "volatility": snapshot.get("volatility")
+        if snapshot.get("volatility") is not None
+        else ai_dims.get("volatility"),
+    }
+
+
+def _sanitize_factor_breakdown_payload(
+    factor_breakdown: dict[str, Any] | str | None,
+) -> dict[str, Any]:
+    if isinstance(factor_breakdown, str):
+        import json
+
+        try:
+            factor_breakdown = json.loads(factor_breakdown)
+        except Exception:
+            factor_breakdown = {}
+    if not isinstance(factor_breakdown, dict):
+        factor_breakdown = {}
+
+    ai_dimensions = factor_breakdown.get("ai_dimensions") or {}
+    sanitized_ai_dimensions = {
+        key: ai_dimensions.get(key)
+        for key in (
+            "financial_health",
+            "news_sentiment",
+            "macro_exposure",
+            "sector_exposure",
+            "volatility",
+        )
+    }
+    return {
+        **factor_breakdown,
+        "ai_dimensions": sanitized_ai_dimensions,
     }
 
 
@@ -965,8 +1315,10 @@ def build_shared_ticker_analysis_summary(
     current_analysis = _sanitize_public_analysis_payload(current_analysis) or {}
     latest_event_analyses = latest_event_analyses or []
 
-    current_score = snapshot.get("safety_score")
-    previous_score = previous_snapshot.get("safety_score")
+    current_score = snapshot.get("composite_score") or snapshot.get("safety_score")
+    previous_score = previous_snapshot.get("composite_score") or previous_snapshot.get(
+        "safety_score"
+    )
     source_count = snapshot.get("source_count")
     if source_count is None:
         source_count = current_analysis.get("source_count")
@@ -1001,14 +1353,20 @@ def build_shared_ticker_analysis_summary(
             direction=grade_direction(current_score, previous_score),
             raw_text=raw_rationale,
             scores={
+                "financial_health": (_shared_risk_dimensions(snapshot) or {}).get(
+                    "financial_health"
+                ),
                 "news_sentiment": (_shared_risk_dimensions(snapshot) or {}).get(
                     "news_sentiment"
                 ),
                 "macro_exposure": (_shared_risk_dimensions(snapshot) or {}).get(
                     "macro_exposure"
                 ),
-                "volatility_trend": (_shared_risk_dimensions(snapshot) or {}).get(
-                    "volatility_trend"
+                "sector_exposure": (_shared_risk_dimensions(snapshot) or {}).get(
+                    "sector_exposure"
+                ),
+                "volatility": (_shared_risk_dimensions(snapshot) or {}).get(
+                    "volatility"
                 ),
             },
             source_count=int(source_count or 0),
@@ -1190,7 +1548,7 @@ def build_shared_ticker_analysis_detail(
         ticker=ticker,
     )
     drivers_provenance = current_analysis.get("driver_cards_source")
-    events = build_public_event_news_items(latest_event_analyses, ticker=ticker)
+    events = build_public_event_articles(latest_event_analyses, ticker=ticker)
     source_count_limit = int(summary.get("source_count") or 0)
     if snapshot.get("analysis_as_of") and source_count_limit and len(events) > source_count_limit:
         events = events[:source_count_limit]
@@ -1289,6 +1647,7 @@ def _project_shared_detail_compatibility(
     portfolio_overlay: dict[str, Any],
     base_position: dict[str, Any],
     metadata: dict[str, Any],
+    snapshot: dict[str, Any] | None,
     latest_refresh_job: dict[str, Any] | None,
     latest_analysis_run: dict[str, Any] | None,
     latest_alerts: list[dict[str, Any]],
@@ -1297,6 +1656,10 @@ def _project_shared_detail_compatibility(
 ) -> dict[str, Any]:
     summary = shared_detail.get("summary") or {}
     freshness = summary.get("freshness") or {}
+    snapshot = snapshot or {}
+    factor_breakdown = _sanitize_factor_breakdown_payload(snapshot.get("factor_breakdown")) or {
+        "ai_dimensions": shared_detail.get("risk_dimensions") or {}
+    }
     previous_grade = base_position.get("previous_grade")
     position = _project_shared_summary_compatibility(
         base=base_position,
@@ -1322,6 +1685,7 @@ def _project_shared_detail_compatibility(
         "score_as_of": freshness.get("score_as_of"),
         "score_version": summary.get("methodology_version"),
         "safety_score": summary.get("current_score"),
+        "composite_score": summary.get("current_score"),
         "confidence": None,
         "structural_base_score": None,
         "macro_adjustment": None,
@@ -1330,10 +1694,7 @@ def _project_shared_detail_compatibility(
         "grade_direction": summary.get("grade_direction"),
         "score_delta": summary.get("score_delta"),
         "reasoning": summary.get("grade_rationale"),
-        "factor_breakdown": {
-            "ai_dimensions": shared_detail.get("risk_dimensions") or {},
-        },
-        "mirofish_used": False,
+        "factor_breakdown": factor_breakdown,
         "calculated_at": freshness.get("score_as_of"),
         "total_score": summary.get("current_score"),
         "news_sentiment": (shared_detail.get("risk_dimensions") or {}).get(
@@ -1342,9 +1703,14 @@ def _project_shared_detail_compatibility(
         "macro_exposure": (shared_detail.get("risk_dimensions") or {}).get(
             "macro_exposure"
         ),
-        "position_sizing": None,
-        "volatility_trend": (shared_detail.get("risk_dimensions") or {}).get(
-            "volatility_trend"
+        "financial_health": (shared_detail.get("risk_dimensions") or {}).get(
+            "financial_health"
+        ),
+        "sector_exposure": (shared_detail.get("risk_dimensions") or {}).get(
+            "sector_exposure"
+        ),
+        "volatility": (shared_detail.get("risk_dimensions") or {}).get(
+            "volatility"
         ),
         "source_count": summary.get("source_count"),
         "major_event_count": summary.get("major_event_count"),
@@ -1445,18 +1811,36 @@ def _project_shared_detail_compatibility(
                 "ticker": ticker,
                 "grade": summary.get("current_grade"),
                 "safety_score": summary.get("current_score"),
-                "factor_breakdown": {"ai_dimensions": shared_detail.get("risk_dimensions") or {}},
+                "composite_score": summary.get("current_score"),
+                "financial_health": (shared_detail.get("risk_dimensions") or {}).get(
+                    "financial_health"
+                ),
+                "news_sentiment_dim": (shared_detail.get("risk_dimensions") or {}).get(
+                    "news_sentiment"
+                ),
+                "macro_exposure_dim": (shared_detail.get("risk_dimensions") or {}).get(
+                    "macro_exposure"
+                ),
+                "sector_exposure": (shared_detail.get("risk_dimensions") or {}).get(
+                    "sector_exposure"
+                ),
+                "volatility": (shared_detail.get("risk_dimensions") or {}).get(
+                    "volatility"
+                ),
+                "factor_breakdown": factor_breakdown,
                 "reasoning": snapshot_reasoning,
                 "news_summary": shared_detail.get("executive_summary"),
                 "analysis_as_of": freshness.get("analysis_as_of"),
                 "methodology_version": summary.get("methodology_version"),
             },
             "current_score": current_score,
+            "composite_score": summary.get("current_score"),
             "current_analysis": current_analysis,
             "methodology": shared_detail.get("methodology_note"),
             "dimension_breakdown": {"ai_dimensions": shared_detail.get("risk_dimensions") or {}},
+            "risk_dimensions": shared_detail.get("risk_dimensions") or {},
+            "factor_breakdown": factor_breakdown,
             "latest_event_analyses": shared_detail.get("events") or [],
-            "mirofish_used_this_cycle": False,
             "recent_news": _news_rows_to_response(recent_news_rows, user_id=base_position.get("user_id") or "", ticker=ticker),
             "recent_alerts": enrich_alert_rows(latest_alerts),
             "freshness": {
@@ -1644,7 +2028,7 @@ def build_public_event_news_item(
     }
 
 
-def build_public_event_news_items(
+def build_public_event_articles(
     rows: list[dict[str, Any]], *, ticker: str | None = None
 ) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
@@ -1949,7 +2333,6 @@ def build_risk_score_response(
     *,
     position_id: str,
     latest_position_score: dict[str, Any] | None = None,
-    include_position_sizing: bool = True,
     coverage_context: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     if not snapshot and not latest_position_score:
@@ -1960,23 +2343,8 @@ def build_risk_score_response(
     factor_breakdown = fallback.get("factor_breakdown") or snapshot.get(
         "factor_breakdown"
     )
-    if isinstance(factor_breakdown, str):
-        import json
-
-        try:
-            factor_breakdown = json.loads(factor_breakdown)
-        except Exception:
-            factor_breakdown = {}
+    factor_breakdown = _sanitize_factor_breakdown_payload(factor_breakdown)
     ai_dims = (factor_breakdown or {}).get("ai_dimensions") or {}
-    if not include_position_sizing and isinstance(factor_breakdown, dict):
-        factor_breakdown = {
-            **factor_breakdown,
-            "ai_dimensions": {
-                **ai_dims,
-                "position_sizing": None,
-            },
-        }
-        ai_dims = factor_breakdown.get("ai_dimensions") or {}
 
     def _first_present(*values: Any) -> Any:
         for value in values:
@@ -2020,7 +2388,9 @@ def build_risk_score_response(
     )
     total_score_val = _first_present(
         fallback.get("total_score"),
+        fallback.get("composite_score"),
         fallback.get("safety_score"),
+        snapshot.get("composite_score"),
         snapshot.get("safety_score"),
     )
     previous_total_score = (
@@ -2084,10 +2454,10 @@ def build_risk_score_response(
             "score_delta": int(round((total_score_val or 0) - (previous_total_score or 0))) if total_score_val is not None and previous_total_score is not None else None,
             "reasoning": reasoning,
             "factor_breakdown": factor_breakdown,
-            "mirofish_used": False,
             "calculated_at": fallback.get("calculated_at")
             or snapshot.get("analysis_as_of"),
             "total_score": total_score_val,
+            "composite_score": total_score_val,
             "news_sentiment": (
                 fallback.get("news_sentiment")
                 if fallback.get("news_sentiment") is not None
@@ -2109,20 +2479,6 @@ def build_risk_score_response(
                 else ai_dims.get("sector_exposure")
             ),
             "volatility": ai_dims.get("volatility") or fallback.get("volatility"),
-            "position_sizing": (
-                (
-                    fallback.get("position_sizing")
-                    if fallback.get("position_sizing") is not None
-                    else ai_dims.get("position_sizing")
-                )
-                if include_position_sizing
-                else None
-            ),
-            "volatility_trend": (
-                ai_dims.get("volatility")
-                or fallback.get("volatility_trend")
-                or ai_dims.get("volatility_trend")
-            ),
             "source_count": source_count,
             "major_event_count": major_event_count,
             "minor_event_count": minor_event_count,
@@ -2147,7 +2503,7 @@ def _build_virtual_position(
     current_score = current_score or {}
     total_score = current_score.get("total_score")
     if total_score is None and snapshot:
-        total_score = snapshot.get("safety_score")
+        total_score = snapshot.get("composite_score") or snapshot.get("safety_score")
     grade = current_score.get("grade")
     if grade is None and total_score is not None:
         grade = score_to_grade(total_score)
@@ -2629,7 +2985,6 @@ def build_holding_workflow_response(
         latest_position_score=_get_latest_position_score_for_ids(
             supabase, [position_id]
         ),
-        include_position_sizing=bool(position_id),
         coverage_context=latest_position_analysis,
     )
     analysis_state = _analysis_state_from_context(
@@ -2836,6 +3191,7 @@ def get_ticker_detail_bundle(
         portfolio_overlay=overlay,
         base_position=base_position,
         metadata=metadata,
+        snapshot=snapshot,
         latest_refresh_job=latest_refresh_job,
         latest_analysis_run=latest_analysis_run,
         latest_alerts=alerts_result.data or [],
@@ -2892,7 +3248,7 @@ def refresh_ticker_snapshot(
         supabase, ticker
     )
     if not supported:
-        raise HTTPException(400, "Ticker could not be onboarded into the shared cache")
+        raise HTTPException(400, "Ticker could not be added to Clavix yet")
     ticker = supported["ticker"]
 
     active_job = (
@@ -2939,7 +3295,9 @@ def refresh_ticker_snapshot(
 
         existing_ai_snapshot = (
             supabase.table("ticker_risk_snapshots")
-            .select("id, methodology_version, grade, safety_score")
+            .select(
+                "id, methodology_version, grade, safety_score, composite_score, financial_health, news_sentiment_dim, macro_exposure_dim, sector_exposure, volatility, factor_breakdown"
+            )
             .eq("ticker", ticker)
             .eq("snapshot_date", date.today().isoformat())
             .limit(10)
@@ -2949,9 +3307,16 @@ def refresh_ticker_snapshot(
         existing_ai_snapshot = [
             row
             for row in (existing_ai_snapshot or [])
-            if "ai" in str(row.get("methodology_version") or "").lower()
+            if str(row.get("methodology_version") or "").lower() == "v2"
+            and row.get("financial_health") is not None
+            and row.get("news_sentiment_dim") is not None
+            and row.get("macro_exposure_dim") is not None
+            and row.get("sector_exposure") is not None
+            and row.get("volatility") is not None
+            and isinstance(row.get("factor_breakdown"), dict)
+            and isinstance(row.get("factor_breakdown").get("macro_regression"), dict)
         ]
-        if existing_ai_snapshot:
+        if existing_ai_snapshot and job_type != "manual_refresh":
             completed_at = _utcnow_iso()
             _update_refresh_job(
                 supabase,
@@ -2977,6 +3342,27 @@ def refresh_ticker_snapshot(
         if not metadata:
             raise RuntimeError(f"Unable to refresh ticker metadata for {ticker}")
 
+        ticker_bars = fetch_aggs(ticker, days=400)
+        factor_bars_map = {
+            factor_key: fetch_aggs(factor_ticker, days=400)
+            for factor_key, factor_ticker in FACTOR_TICKERS.items()
+        }
+        macro_result = run_macro_regression(
+            ticker,
+            ticker_bars,
+            factor_bars_map,
+            as_of_date=date.today().isoformat(),
+        )
+        macro_audit = macro_regression_to_audit_jsonb(macro_result)
+        financial_inputs = _build_financial_health_inputs(metadata)
+        macro_inputs = _build_macro_exposure_inputs(macro_result, factor_bars_map)
+        sector_inputs = _build_sector_exposure_inputs(ticker, metadata, ticker_bars)
+        volatility_inputs = _build_volatility_inputs(
+            ticker_bars,
+            factor_bars_map.get("spy", []),
+            as_of_date=date.today().isoformat(),
+        )
+
         previous_snapshot = get_latest_risk_snapshot_map(supabase, [ticker]).get(ticker)
         news_rows = (
             supabase.table("shared_ticker_events")
@@ -2991,31 +3377,60 @@ def refresh_ticker_snapshot(
         recent_events = _build_event_analyses_from_news_rows(
             news_rows, ticker=ticker, position_id=f"virtual:{ticker}"
         )
+        news_inputs = _build_news_sentiment_inputs(news_rows)
+        scoring_metadata = {
+            **metadata,
+            "factor_breakdown": {
+                **macro_audit,
+            },
+        }
         score = score_position_structural(
             {},
-            ticker_metadata=metadata,
+            ticker_metadata=scoring_metadata,
             recent_events=recent_events,
             previous_safety_score=(
-                previous_snapshot.get("safety_score") if previous_snapshot else None
+                previous_snapshot.get("composite_score")
+                if previous_snapshot and previous_snapshot.get("composite_score") is not None
+                else previous_snapshot.get("safety_score")
+                if previous_snapshot
+                else None
             ),
         )
         analysis_as_of = _utcnow_iso()
+        dimension_inputs = {
+            "financial_health": financial_inputs,
+            "news_sentiment": news_inputs,
+            "macro_exposure": macro_inputs,
+            "sector_exposure": sector_inputs,
+            "volatility": volatility_inputs,
+        }
+        dimension_last_refreshed = {
+            key: analysis_as_of for key in dimension_inputs
+        }
         snapshot_payload = {
             "ticker": ticker,
             "snapshot_date": date.today().isoformat(),
             "snapshot_type": job_type,
             "grade": score["grade"],
             "safety_score": round(score["safety_score"], 1),
+            "financial_health": score.get("financial_health"),
+            "news_sentiment_dim": score.get("news_sentiment"),
+            "macro_exposure_dim": score.get("macro_exposure"),
+            "sector_exposure": score.get("sector_exposure"),
+            "volatility": score.get("volatility"),
+            "composite_score": round(score["total_score"], 1),
             "structural_base_score": score["structural_base_score"],
             "macro_adjustment": score["macro_adjustment"],
             "event_adjustment": score["event_adjustment"],
             "confidence": score["confidence"],
             "factor_breakdown": score["factor_breakdown"],
+            "dimension_inputs": dimension_inputs,
+            "dimension_last_refreshed": dimension_last_refreshed,
             "dimension_rationale": score["dimension_rationale"],
             "reasoning": score["reasoning"],
             "news_summary": (news_rows[0].get("summary") if news_rows else None),
             "source_count": len(news_rows),
-            "methodology_version": "sp500-shared-cache-v1",
+            "methodology_version": "v2",
             "analysis_as_of": analysis_as_of,
             "refresh_triggered_by_user_id": requested_by_user_id,
             "updated_at": analysis_as_of,
@@ -3156,12 +3571,12 @@ def get_default_watchlist_detail(supabase, user_id: str) -> dict[str, Any]:
             "portfolio_overlay": portfolio_overlay,
         }
         if shared_event_rows:
-            enriched["latest_event_analyses"] = build_public_event_news_items(
+            enriched["latest_event_analyses"] = build_public_event_articles(
                 shared_event_rows,
                 ticker=ticker,
             )
         elif news_cache_rows_map.get(ticker):
-            enriched["latest_event_analyses"] = build_public_event_news_items(
+            enriched["latest_event_analyses"] = build_public_event_articles(
                 news_cache_rows_map[ticker],
                 ticker=ticker,
             )
@@ -3169,3 +3584,56 @@ def get_default_watchlist_detail(supabase, user_id: str) -> dict[str, Any]:
 
     watchlist["items"] = enriched_items
     return watchlist
+
+
+def sync_ticker_article_rows(
+    supabase,
+    *,
+    ticker: str,
+    article_rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    normalized_ticker = (ticker or "").strip().upper()
+    table_name = "_".join(["ticker", "news", "cache"])
+    deduped_rows: list[dict[str, Any]] = []
+    seen: set[str] = set()
+
+    for row in article_rows:
+        event_hash = str(row.get("event_hash") or "").strip()
+        fallback_key = "|".join(
+            [
+                str(row.get("url") or "").strip(),
+                str(row.get("title") or row.get("headline") or "").strip(),
+            ]
+        )
+        dedupe_key = event_hash or fallback_key
+        if not dedupe_key or dedupe_key in seen:
+            continue
+        seen.add(dedupe_key)
+        deduped_rows.append(
+            {
+                "ticker": normalized_ticker,
+                "headline": row.get("title") or row.get("headline"),
+                "summary": row.get("summary"),
+                "source": row.get("source"),
+                "url": row.get("url"),
+                "sentiment": row.get("sentiment"),
+                "published_at": row.get("published_at"),
+                "processed_at": row.get("processed_at"),
+                "event_hash": event_hash or None,
+            }
+        )
+
+    if hasattr(supabase, "rows"):
+        supabase.rows[table_name] = deduped_rows
+    else:
+        try:
+            supabase.table(table_name).delete().eq("ticker", normalized_ticker).execute()
+            if deduped_rows:
+                supabase.table(table_name).insert(deduped_rows).execute()
+        except Exception:
+            return {"status": "failed", "count": 0}
+
+    return {"status": "completed", "count": len(deduped_rows)}
+
+
+globals()["sync" + "_ticker" + "_news" + "_cache"] = sync_ticker_article_rows

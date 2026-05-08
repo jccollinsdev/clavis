@@ -16,16 +16,6 @@ struct MethodologyDrawerSheet: View {
         _expandedDimension = State(initialValue: tappedDimension)
     }
 
-    private var allDimensions: [(String, MethodologyDimension)] {
-        [
-            ("financial_health", methodology.dimensions.financialHealth),
-            ("news_sentiment", methodology.dimensions.newsSentiment),
-            ("macro_exposure", methodology.dimensions.macroExposure),
-            ("sector_exposure", methodology.dimensions.sectorExposure),
-            ("volatility", methodology.dimensions.volatility),
-        ]
-    }
-
     var body: some View {
         NavigationView {
             ScrollView {
@@ -33,21 +23,57 @@ struct MethodologyDrawerSheet: View {
                     headerSection
                     Divider().background(Color.border).padding(.vertical, 12)
 
-                    ForEach(allDimensions, id: \.0) { key, dim in
-                        MethodologyAccordionRow(
-                            dimension: dim,
-                            dimKey: key,
-                            isExpanded: expandedDimension == key,
-                            onTap: {
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    expandedDimension = (expandedDimension == key) ? "" : key
-                                }
-                            },
-                            onArticleTap: { article in
-                                selectedArticle = article
-                            }
+                    DimensionAccordion(
+                        key: "financial_health",
+                        score: methodology.dimensions.financialHealth.score,
+                        title: methodology.dimensions.financialHealth.label,
+                        isExpanded: expandedDimension == "financial_health",
+                        onTap: { toggle("financial_health") }
+                    ) {
+                        FinancialHealthDetailView(dimension: methodology.dimensions.financialHealth)
+                    }
+
+                    DimensionAccordion(
+                        key: "news_sentiment",
+                        score: methodology.dimensions.newsSentiment.score,
+                        title: methodology.dimensions.newsSentiment.label,
+                        isExpanded: expandedDimension == "news_sentiment",
+                        onTap: { toggle("news_sentiment") }
+                    ) {
+                        NewsSentimentDetailView(
+                            dimension: methodology.dimensions.newsSentiment,
+                            onArticleTap: { selectedArticle = $0 }
                         )
-                        Divider().background(Color.border)
+                    }
+
+                    DimensionAccordion(
+                        key: "macro_exposure",
+                        score: methodology.dimensions.macroExposure.score,
+                        title: methodology.dimensions.macroExposure.label,
+                        isExpanded: expandedDimension == "macro_exposure",
+                        onTap: { toggle("macro_exposure") }
+                    ) {
+                        MacroExposureDetailView(dimension: methodology.dimensions.macroExposure)
+                    }
+
+                    DimensionAccordion(
+                        key: "sector_exposure",
+                        score: methodology.dimensions.sectorExposure.score,
+                        title: methodology.dimensions.sectorExposure.label,
+                        isExpanded: expandedDimension == "sector_exposure",
+                        onTap: { toggle("sector_exposure") }
+                    ) {
+                        SectorExposureDetailView(dimension: methodology.dimensions.sectorExposure)
+                    }
+
+                    DimensionAccordion(
+                        key: "volatility",
+                        score: methodology.dimensions.volatility.score,
+                        title: methodology.dimensions.volatility.label,
+                        isExpanded: expandedDimension == "volatility",
+                        onTap: { toggle("volatility") }
+                    ) {
+                        VolatilityDetailView(dimension: methodology.dimensions.volatility)
                     }
 
                     compositeFooter
@@ -67,6 +93,12 @@ struct MethodologyDrawerSheet: View {
         }
         .sheet(item: $selectedArticle) { article in
             ArticleDetailSheet(article: article, ticker: ticker)
+        }
+    }
+
+    private func toggle(_ key: String) {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            expandedDimension = expandedDimension == key ? "" : key
         }
     }
 
@@ -113,34 +145,31 @@ struct MethodologyDrawerSheet: View {
     }
 }
 
-// MARK: - Accordion Row
-
-private struct MethodologyAccordionRow: View {
-    let dimension: MethodologyDimension
-    let dimKey: String
+private struct DimensionAccordion<Content: View>: View {
+    let key: String
+    let score: Double?
+    let title: String
     let isExpanded: Bool
     let onTap: () -> Void
-    let onArticleTap: (MethodologyArticle) -> Void
+    @ViewBuilder let content: Content
 
     var body: some View {
         VStack(spacing: 0) {
             Button(action: onTap) {
                 HStack(spacing: 10) {
-                    if let score = dimension.score {
+                    if let score {
                         Text("\(Int(score.rounded()))")
                             .font(.system(size: 14, weight: .bold, design: .monospaced))
-                            .foregroundColor(ClavisGradeStyle.riskColor(for: scoreToGrade(score)))
+                            .foregroundColor(ClavisGradeStyle.riskColor(for: grade(for: score)))
                             .frame(width: 32)
                     }
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(dimension.label)
+                        Text(title)
                             .font(ClavisTypography.bodyEmphasis)
                             .foregroundColor(.textPrimary)
-                        if dimension.score == nil {
-                            Text("Limited Data")
-                                .font(ClavisTypography.footnote)
-                                .foregroundColor(.textTertiary)
+                        if score == nil {
+                            LimitedDataBadge()
                         }
                     }
 
@@ -156,200 +185,130 @@ private struct MethodologyAccordionRow: View {
             .buttonStyle(.plain)
 
             if isExpanded {
-                dimensionDetailView
+                content
+                    .padding(.leading, 42)
                     .padding(.bottom, 12)
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
+
+            Divider().background(Color.border)
         }
     }
 
-    private func scoreToGrade(_ score: Double) -> String {
+    private func grade(for score: Double) -> String {
         switch score {
         case 90...100: return "AAA"
-        case 80..<90:  return "AA"
-        case 70..<80:  return "A"
-        case 60..<70:  return "BBB"
-        case 50..<60:  return "BB"
-        case 40..<50:  return "B"
-        case 30..<40:  return "CCC"
-        case 20..<30:  return "CC"
-        case 10..<20:  return "C"
-        default:       return "F"
+        case 80..<90: return "AA"
+        case 70..<80: return "A"
+        case 60..<70: return "BBB"
+        case 50..<60: return "BB"
+        case 40..<50: return "B"
+        case 30..<40: return "CCC"
+        case 20..<30: return "CC"
+        case 10..<20: return "C"
+        default: return "F"
+        }
+    }
+}
+
+private struct FinancialHealthDetailView: View {
+    let dimension: MethodologyFinancialHealth
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            ValueRow(label: "Debt / Equity", value: decimal(dimension.debtToEquity))
+            ValueRow(label: "FCF Margin", value: percent(dimension.fcfMargin))
+            ValueRow(label: "Interest Coverage", value: decimal(dimension.interestCoverage))
+            ValueRow(label: "Current Ratio", value: decimal(dimension.currentRatio))
+            TextRow(label: "Revenue Growth Trend", value: dimension.revenueGrowthTrend?.humanizedTitleCasedDisplayText)
+            TextRow(label: "Profitability Trend", value: dimension.profitabilityTrend?.humanizedTitleCasedDisplayText)
+            TextRow(label: "As Of", value: dimension.asOfDate)
+            TextRow(label: "Source", value: dimension.dataSource?.uppercased())
         }
     }
 
-    @ViewBuilder
-    private var dimensionDetailView: some View {
+    private func decimal(_ value: Double?) -> String? {
+        guard let value else { return nil }
+        return String(format: "%.2f", value)
+    }
+
+    private func percent(_ value: Double?) -> String? {
+        guard let value else { return nil }
+        return String(format: "%.1f%%", value * 100)
+    }
+}
+
+private struct NewsSentimentDetailView: View {
+    let dimension: MethodologyNewsSentiment
+    let onArticleTap: (MethodologyArticle) -> Void
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            switch dimKey {
-            case "financial_health":
-                financialHealthDetail
-            case "news_sentiment":
-                newsSentimentDetail
-            case "macro_exposure":
-                macroExposureDetail
-            case "sector_exposure":
-                sectorExposureDetail
-            case "volatility":
-                volatilityDetail
-            default:
-                EmptyView()
+            HStack {
+                Text("\(dimension.articleCount7d) articles, last 7 days")
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textSecondary)
+                if dimension.volumeSignal {
+                    LimitedDataBadge(title: "High Volume", tint: .gradeCF)
+                }
             }
 
-            Text("Sources: \(dimension.sources.joined(separator: ", "))")
-                .font(.system(size: 11))
-                .foregroundColor(.textTertiary)
-                .padding(.top, 4)
-        }
-        .padding(.leading, 42)
-    }
+            if let weightedScore = dimension.weightedScore {
+                Text("Weighted score: \(Int(weightedScore.rounded()))")
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textTertiary)
+            }
 
-    // MARK: - Financial Health
-
-    private var financialHealthDetail: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let inputs = dimension.inputs {
-                ForEach(["debt_to_equity", "fcf_margin", "interest_coverage", "current_ratio"], id: \.self) { key in
-                    if let val = inputs[key] {
-                        let status = ratioStatus(key: key, value: val)
-                        HStack {
-                            Text(key.replacingOccurrences(of: "_", with: " ").capitalized)
-                                .font(ClavisTypography.footnote)
-                                .foregroundColor(.textSecondary)
-                            Spacer()
-                            Text(val)
-                                .font(.system(size: 13, weight: .medium, design: .monospaced))
-                                .foregroundColor(statusColor(status))
-                        }
-                    }
-                }
-
-                if let profile = inputs["profitability_profile"] {
-                    LabeledRow("Profitability", profile, .textSecondary)
-                }
-                if let leverage = inputs["leverage_profile"] {
-                    LabeledRow("Leverage", leverage, .textSecondary)
-                }
+            if dimension.articles.isEmpty {
+                LimitedDataBadge()
             } else {
-                limitedDataLabel
-            }
-        }
-    }
-
-    private func ratioStatus(key: String, value: String) -> String {
-        guard let num = Double(value) else { return "neutral" }
-        switch key {
-        case "debt_to_equity":
-            return num > 3 ? "stressed" : (num > 1.5 ? "watch" : "healthy")
-        case "interest_coverage":
-            return num < 1.5 ? "stressed" : (num < 3 ? "watch" : "healthy")
-        case "current_ratio":
-            return num < 1 ? "stressed" : (num < 1.5 ? "watch" : "healthy")
-        case "fcf_margin":
-            return num < 0 ? "stressed" : (num < 0.05 ? "watch" : "healthy")
-        default:
-            return "neutral"
-        }
-    }
-
-    private func statusColor(_ status: String) -> Color {
-        switch status {
-        case "healthy": return .gradeCAA
-        case "watch":   return .gradeCBB
-        case "stressed": return .gradeCF
-        default:        return .textSecondary
-        }
-    }
-
-    // MARK: - News Sentiment
-
-    private var newsSentimentDetail: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            if let count = dimension.articleCount {
-                HStack {
-                    Text("\(count) articles, last 7 days")
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.textSecondary)
-                    if count > 20 {
-                        Text("HIGH VOLUME")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.gradeCF)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.gradeCF.opacity(0.12))
-                            .cornerRadius(4)
-                    }
-                }
-            }
-
-            if let articles = dimension.articles, !articles.isEmpty {
-                ForEach(articles.prefix(10)) { article in
+                ForEach(dimension.articles.prefix(10)) { article in
                     Button(action: { onArticleTap(article) }) {
-                        articleRow(article)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(article.title ?? "")
+                                .font(ClavisTypography.footnoteEmphasis)
+                                .foregroundColor(.textPrimary)
+                                .lineLimit(2)
+
+                            HStack(spacing: 6) {
+                                if let source = article.source {
+                                    Text(source)
+                                        .font(.system(size: 11))
+                                        .foregroundColor(.textTertiary)
+                                }
+                                if let date = article.publishedAt {
+                                    Text("·")
+                                        .foregroundColor(.textTertiary)
+                                    Text(String(date.prefix(10)))
+                                        .font(.system(size: 11))
+                                        .foregroundColor(.textTertiary)
+                                }
+                                if let score = article.sentimentScore {
+                                    PillText(text: "\(Int(score.rounded()))", color: sentimentColor(score))
+                                }
+                                if let tier = article.sourceTier {
+                                    PillText(text: "T\(tier)", color: .gradeCAA)
+                                }
+                                if let recencyWeight = article.recencyWeight {
+                                    PillText(text: "\(String(format: "%.1fx", recencyWeight))", color: .gradeCBBB)
+                                }
+                            }
+
+                            if let tldr = article.tldr, !tldr.isEmpty {
+                                Text(tldr)
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.textTertiary)
+                                    .lineLimit(3)
+                            }
+                        }
+                        .padding(8)
+                        .background(Color.surfaceElevated.opacity(0.6))
+                        .cornerRadius(6)
                     }
                     .buttonStyle(.plain)
                 }
-            } else {
-                limitedDataLabel
             }
         }
-    }
-
-    private func articleRow(_ article: MethodologyArticle) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(article.title ?? "")
-                .font(ClavisTypography.footnoteEmphasis)
-                .foregroundColor(.textPrimary)
-                .lineLimit(2)
-
-            HStack(spacing: 6) {
-                if let source = article.source {
-                    Text(source)
-                        .font(.system(size: 11))
-                        .foregroundColor(.textTertiary)
-                }
-                if let date = article.publishedAt {
-                    Text("·")
-                        .foregroundColor(.textTertiary)
-                    Text(date.prefix(10))
-                        .font(.system(size: 11))
-                        .foregroundColor(.textTertiary)
-                }
-
-                if let score = article.sentimentScore {
-                    sentimentPill(score)
-                }
-
-                if let tier = article.sourceTier {
-                    tierBadge(tier)
-                }
-
-                if let rw = article.recencyWeight {
-                    recencyBadge(rw)
-                }
-            }
-
-            if let tldr = article.tldr, !tldr.isEmpty {
-                Text(tldr)
-                    .font(.system(size: 11))
-                    .foregroundColor(.textTertiary)
-                    .lineLimit(3)
-                    .padding(.top, 2)
-            }
-        }
-        .padding(8)
-        .background(Color.surfaceElevated.opacity(0.6))
-        .cornerRadius(6)
-    }
-
-    private func sentimentPill(_ score: Double) -> some View {
-        Text("\(Int(score.rounded()))")
-            .font(.system(size: 10, weight: .bold))
-            .foregroundColor(sentimentColor(score))
-            .padding(.horizontal, 5)
-            .padding(.vertical, 1)
-            .background(sentimentColor(score).opacity(0.15))
-            .cornerRadius(4)
     }
 
     private func sentimentColor(_ score: Double) -> Color {
@@ -357,162 +316,208 @@ private struct MethodologyAccordionRow: View {
         if score >= 50 { return .gradeCBB }
         return .gradeCF
     }
+}
 
-    private func tierBadge(_ tier: Int) -> some View {
-        Text("T\(tier)")
-            .font(.system(size: 9, weight: .bold))
-            .foregroundColor(.gradeCAA)
-            .padding(.horizontal, 4)
-            .padding(.vertical, 1)
-            .background(Color.gradeCAA.opacity(0.12))
-            .cornerRadius(3)
-    }
+private struct MacroExposureDetailView: View {
+    let dimension: MethodologyMacroExposure
 
-    private func recencyBadge(_ weight: Double) -> some View {
-        Text("\(Int(weight.rounded()))x")
-            .font(.system(size: 9, weight: .bold))
-            .foregroundColor(.gradeCBBB)
-            .padding(.horizontal, 4)
-            .padding(.vertical, 1)
-            .background(Color.gradeCBBB.opacity(0.12))
-            .cornerRadius(3)
-    }
+    private let factorOrder = ["tnx", "dxy", "wti", "vix", "spy"]
 
-    // MARK: - Macro Exposure
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            if dimension.limitedData {
+                LimitedDataBadge()
+            }
 
-    private var macroExposureDetail: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let reg = dimension.regression, let coefs = reg.coefficients {
-                if let r2 = reg.rSquared {
-                    Text("R\u{00B2} = \(String(format: "%.3f", r2))")
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.textSecondary)
-                }
-                if let days = reg.tradingDaysUsed {
-                    Text("\(days) trading days used")
-                        .font(.system(size: 11))
-                        .foregroundColor(.textTertiary)
-                }
-                if let date = reg.asOfDate {
-                    Text("As of \(date)")
-                        .font(.system(size: 11))
-                        .foregroundColor(.textTertiary)
-                }
+            ValueRow(label: "R²", value: decimal(dimension.rSquared, places: 3))
+            ValueRow(label: "Trading Days", value: dimension.tradingDaysUsed.map(String.init))
+            TextRow(label: "As Of", value: dimension.asOfDate)
 
-                VStack(spacing: 4) {
-                    ForEach(["tnx", "dxy", "wti", "vix", "spy"], id: \.self) { factor in
-                        if let val = coefs[factor] {
+            if let coefficients = dimension.coefficients, !coefficients.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Coefficients")
+                        .font(ClavisTypography.footnoteEmphasis)
+                        .foregroundColor(.textPrimary)
+                    ForEach(factorOrder, id: \.self) { factor in
+                        if let value = coefficients[factor] {
                             HStack {
                                 Text(factor.uppercased())
                                     .font(.system(size: 12, weight: .medium, design: .monospaced))
                                     .foregroundColor(.textPrimary)
                                 Spacer()
-                                Text(String(format: "%.4f", val))
+                                Text(String(format: "%.4f", value))
                                     .font(.system(size: 12, weight: .medium, design: .monospaced))
-                                    .foregroundColor(val >= 0 ? .gradeCAA : .gradeCF)
-                                Image(systemName: val >= 0 ? "arrow.up.right" : "arrow.down.right")
+                                    .foregroundColor(value >= 0 ? .gradeCAA : .gradeCF)
+                                Image(systemName: value >= 0 ? "arrow.up.right" : "arrow.down.right")
                                     .font(.system(size: 10))
-                                    .foregroundColor(val >= 0 ? .gradeCAA : .gradeCF)
+                                    .foregroundColor(value >= 0 ? .gradeCAA : .gradeCF)
                             }
                         }
                     }
                 }
-                .padding(.top, 4)
+            }
 
-                if reg.limitedData == true {
-                    limitedDataLabel
+            if let factorLevels = dimension.currentFactorLevels, !factorLevels.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Current Factor Levels")
+                        .font(ClavisTypography.footnoteEmphasis)
+                        .foregroundColor(.textPrimary)
+                    ForEach(factorOrder, id: \.self) { factor in
+                        if let value = factorLevels[factor] {
+                            ValueRow(label: factor.uppercased(), value: decimal(value, places: 2))
+                        }
+                    }
                 }
             }
-            else if let beta = dimension.betaProxy {
-                Text("Beta proxy: \(String(format: "%.2f", beta))")
+
+            if let narrative = dimension.narrative, !narrative.isEmpty {
+                Text(narrative)
                     .font(ClavisTypography.footnote)
                     .foregroundColor(.textSecondary)
-                if let sens = dimension.macroSensitivity {
-                    Text("Sensitivity: \(sens)")
-                        .font(.system(size: 11))
-                        .foregroundColor(.textTertiary)
-                }
-            } else {
-                limitedDataLabel
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
 
-    // MARK: - Sector Exposure
-
-    private var sectorExposureDetail: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let inputs = dimension.inputs {
-                if let sectorVal = inputs["sector"] {
-                    LabeledRow("Sector", sectorVal, .textPrimary)
-                }
-                if let industryVal = inputs["industry"] {
-                    LabeledRow("Industry", industryVal, .textSecondary)
-                }
-                if let mcVal = inputs["market_cap"] {
-                    LabeledRow("Market Cap", formatMarketCapString(mcVal), .textSecondary)
-                }
-                if let betaVal = inputs["beta"] {
-                    LabeledRow("Beta to SPY", betaVal, .textSecondary)
-                }
-            } else {
-                limitedDataLabel
-            }
-        }
-    }
-
-    private var volatilityDetail: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let inputs = dimension.inputs {
-                if let betaVal = inputs["beta"] {
-                    LabeledRow("Beta (252d)", betaVal, .textSecondary)
-                }
-                if let sensVal = inputs["macro_sensitivity"] {
-                    LabeledRow("Macro Sensitivity", sensVal, .textSecondary)
-                }
-            } else {
-                limitedDataLabel
-            }
-        }
-    }
-
-    private func formatMarketCapString(_ value: String) -> String {
-        guard let num = Double(value) else { return value }
-        if num >= 1e12 { return String(format: "$%.2fT", num / 1e12) }
-        if num >= 1e9  { return String(format: "$%.2fB", num / 1e9) }
-        return String(format: "$%.0fM", num / 1e6)
-    }
-
-    private var limitedDataLabel: some View {
-        Text("Limited Data")
-            .font(ClavisTypography.footnote)
-            .foregroundColor(.gradeCBB)
-            .padding(.vertical, 4)
+    private func decimal(_ value: Double?, places: Int) -> String? {
+        guard let value else { return nil }
+        return String(format: "%.*f", places, value)
     }
 }
 
-// MARK: - Labeled Row
-
-private struct LabeledRow: View {
-    let label: String
-    let value: String
-    let color: Color
-
-    init(_ label: String, _ value: String, _ color: Color) {
-        self.label = label
-        self.value = value
-        self.color = color
-    }
+private struct SectorExposureDetailView: View {
+    let dimension: MethodologySectorExposure
 
     var body: some View {
-        HStack {
-            Text(label)
-                .font(ClavisTypography.footnote)
-                .foregroundColor(.textSecondary)
-            Spacer()
-            Text(value)
-                .font(.system(size: 13, weight: .medium, design: .monospaced))
-                .foregroundColor(color)
+        VStack(alignment: .leading, spacing: 10) {
+            TextRow(label: "Sector", value: dimension.sector)
+            TextRow(label: "Sector ETF", value: dimension.sectorEtf)
+            ValueRow(label: "Sector Beta", value: decimal(dimension.sectorBeta, places: 3))
+            ValueRow(label: "Momentum vs SPY (30d)", value: percent(dimension.sectorMomentum30d))
+            ValueRow(label: "Sector Breadth", value: percent(dimension.sectorBreadth))
+
+            if let narrative = dimension.narrative, !narrative.isEmpty {
+                Text(narrative)
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
+    }
+
+    private func decimal(_ value: Double?, places: Int) -> String? {
+        guard let value else { return nil }
+        return String(format: "%.*f", places, value)
+    }
+
+    private func percent(_ value: Double?) -> String? {
+        guard let value else { return nil }
+        return String(format: "%.1f%%", value * 100)
+    }
+}
+
+private struct VolatilityDetailView: View {
+    let dimension: MethodologyVolatility
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            ValueRow(label: "Realized Vol (30d)", value: percent(dimension.realizedVol30d))
+            ValueRow(label: "Realized Vol (90d)", value: percent(dimension.realizedVol90d))
+
+            if let volRatio = dimension.volRatio {
+                HStack {
+                    Text("Vol Ratio")
+                        .font(ClavisTypography.footnote)
+                        .foregroundColor(.textSecondary)
+                    Spacer()
+                    Text(String(format: "%.2f", volRatio))
+                        .font(.system(size: 13, weight: .medium, design: .monospaced))
+                        .foregroundColor(volRatio > 1 ? .gradeCF : .gradeCAA)
+                    Image(systemName: volRatio > 1 ? "arrow.up.right" : "arrow.down.right")
+                        .font(.system(size: 10))
+                        .foregroundColor(volRatio > 1 ? .gradeCF : .gradeCAA)
+                }
+            }
+
+            ValueRow(label: "Max Drawdown (252d)", value: percent(dimension.maxDrawdown252d))
+            ValueRow(label: "Beta to SPY", value: decimal(dimension.betaToSpy, places: 3))
+            TextRow(label: "As Of", value: dimension.asOfDate)
+        }
+    }
+
+    private func decimal(_ value: Double?, places: Int) -> String? {
+        guard let value else { return nil }
+        return String(format: "%.*f", places, value)
+    }
+
+    private func percent(_ value: Double?) -> String? {
+        guard let value else { return nil }
+        return String(format: "%.1f%%", value * 100)
+    }
+}
+
+private struct ValueRow: View {
+    let label: String
+    let value: String?
+
+    var body: some View {
+        if let value, !value.isEmpty {
+            HStack {
+                Text(label)
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textSecondary)
+                Spacer()
+                Text(value)
+                    .font(.system(size: 13, weight: .medium, design: .monospaced))
+                    .foregroundColor(.textPrimary)
+            }
+        }
+    }
+}
+
+private struct TextRow: View {
+    let label: String
+    let value: String?
+
+    var body: some View {
+        if let value, !value.isEmpty {
+            HStack(alignment: .top) {
+                Text(label)
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textSecondary)
+                Spacer(minLength: 12)
+                Text(value)
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textPrimary)
+                    .multilineTextAlignment(.trailing)
+            }
+        }
+    }
+}
+
+private struct PillText: View {
+    let text: String
+    let color: Color
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 10, weight: .bold))
+            .foregroundColor(color)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 1)
+            .background(color.opacity(0.15))
+            .cornerRadius(4)
+    }
+}
+
+private struct LimitedDataBadge: View {
+    var title: String = "Limited Data"
+    var tint: Color = .gradeCBB
+
+    var body: some View {
+        Text(title)
+            .font(ClavisTypography.footnote)
+            .foregroundColor(tint)
+            .padding(.vertical, 2)
     }
 }

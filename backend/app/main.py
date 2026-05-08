@@ -41,7 +41,7 @@ allowed_origins = [
     for origin in settings.cors_allowed_origins.split(",")
     if origin.strip()
 ]
-public_paths = {"/health", "/admin", "/admin/login", "/admin/logout"}
+public_paths = {"/health", "/admin/login", "/admin/logout"}
 public_doc_paths = {"/docs", "/openapi.json", "/redoc"}
 
 
@@ -151,7 +151,10 @@ async def validate_jwt_middleware(request: Request, call_next):
     if request.method == "OPTIONS" or _is_public_path(request.url.path):
         return await call_next(request)
 
-    if request.url.path.startswith("/admin/"):
+    if request.url.path.startswith("/admin/") and request.url.path not in {
+        "/admin/",
+        "/admin",
+    }:
         return await call_next(request)
 
     auth_header = request.headers.get("Authorization", "")

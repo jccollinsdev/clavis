@@ -100,7 +100,7 @@ class DashboardViewModel: ObservableObject {
     var analysisStatusText: String? {
         guard let run = activeRun else { return nil }
         if run.lifecycleStatus == "running" || run.lifecycleStatus == "queued" {
-            return run.currentStageMessage ?? run.status.capitalized
+            return run.currentStageMessage ?? ClavisCopy.Status.label(for: run.status)
         }
         if run.lifecycleStatus == "failed" {
             return run.displayErrorMessage
@@ -361,7 +361,7 @@ class DashboardViewModel: ObservableObject {
             return tickerAlert.message.sanitizedDisplayText
         }
 
-        if position.resolvedRiskGrade == "F" || position.resolvedRiskGrade == "D" {
+        if Grade.ordinalValue(for: position.resolvedRiskGrade ?? "") <= 4 {
             return "Low-grade holding."
         }
 

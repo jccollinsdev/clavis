@@ -34,13 +34,20 @@ async def export_account(user_id: str = Depends(get_user_id)):
     position_ids = [row["id"] for row in positions if row.get("id")]
     watchlists = _table_rows(supabase, "watchlists", user_id)
     watchlist_ids = [row["id"] for row in watchlists if row.get("id")]
+    held_tickers = sorted(
+        {
+            str(position.get("ticker", "")).strip().upper()
+            for position in positions
+            if position.get("ticker")
+        }
+    )
 
-    risk_scores = []
-    if position_ids:
-        risk_scores = (
+    ticker_snapshots = []
+    if held_tickers:
+        ticker_snapshots = (
             supabase.table("ticker_risk_snapshots")
             .select("*")
-            .in_("ticker", held_tickers if held_tickers else [])
+            .in_("ticker", held_tickers)
             .order("created_at", desc=True)
             .limit(200)
             .execute()
@@ -48,18 +55,25 @@ async def export_account(user_id: str = Depends(get_user_id)):
             or []
         )
 
-    held_tickers = sorted({str(p.get("ticker", "")).strip().upper() for p in positions if p.get("ticker")})
     watchlist_ticker_rows = []
     if watchlist_ids:
         watchlist_ticker_rows = (
             supabase.table("watchlist_items")
-            .select("ticker")
+            .select("watchlist_id, ticker, created_at")
             .in_("watchlist_id", watchlist_ids)
             .execute()
             .data
             or []
         )
-    user_tickers = sorted(set(held_tickers) | {str(w.get("ticker", "")).strip().upper() for w in watchlist_ticker_rows if w.get("ticker")})
+    watchlist_items = watchlist_ticker_rows
+    user_tickers = sorted(
+        set(held_tickers)
+        | {
+            str(watchlist_item.get("ticker", "")).strip().upper()
+            for watchlist_item in watchlist_ticker_rows
+            if watchlist_item.get("ticker")
+        }
+    )
     shared_events = []
     if user_tickers:
         shared_events = (
@@ -75,12 +89,11 @@ async def export_account(user_id: str = Depends(get_user_id)):
 
     return {
         "exported_at": datetime.now(timezone.utc).isoformat(),
-        "auth_user": auth_user,
         "user_preferences": _table_rows(supabase, "user_preferences", user_id),
         "positions": positions,
         "analysis_runs": _table_rows(supabase, "analysis_runs", user_id),
-        "risk_scores": risk_scores,
-        "news_items": shared_events,
+        "ticker_snapshots": ticker_snapshots,
+        "shared_events": shared_events,
         "digests": _table_rows(supabase, "digests", user_id),
         "alerts": _table_rows(supabase, "alerts", user_id),
         "position_analyses": (
@@ -118,7 +131,7 @@ async def delete_account(user_id: str = Depends(get_user_id)):
     Postgres raises a FK violation and the whole request fails with 500.
 
     Tables with FK → auth.users (NO ACTION):
-      alerts, analysis_runs, digests, news_items,
+      alerts, analysis_runs, digests,
       portfolio_risk_snapshots, positions, scheduler_jobs, user_preferences
 
     Tables without FK (safe to delete in any order):
@@ -175,7 +188,7 @@ async def delete_account(user_id: str = Depends(get_user_id)):
         deleted_counts["position_analyses"] = delete_rows_in(
             "position_analyses", "position_id", position_ids
         )
-        deleted_counts["risk_scores"] = 0
+        deleted_counts["ticker_snapshots"] = 0
 
     # ── Step 3: Children of watchlists ──────────────────────────────────────
     if watchlist_ids:

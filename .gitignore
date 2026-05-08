@@ -45,3 +45,4 @@ opencode.json
 # App specific
 token-dashboard/
 apns/
+ios/Clavis/Config/Secrets.local.xcconfig

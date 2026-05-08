@@ -1,3 +1,4 @@
+from __future__ import annotations
 import logging
 from ..services.minimax import chatcompletion_text
 from .analysis_utils import safe_json_loads, extract_json_list
@@ -104,14 +105,14 @@ Position context:
 
 
 async def analyze_major_events_batch(
-    news_items: list[dict], position_context: dict
+    articles: list[dict], position_context: dict
 ) -> list[dict]:
     """Analyze multiple major events for a specific position in one call."""
-    if not news_items:
+    if not articles:
         return []
 
     events_text = []
-    for i, item in enumerate(news_items):
+    for i, item in enumerate(articles):
         title = item.get("title", "")[:300]
         summary = item.get("summary", "")[:500]
         body = item.get("body", "")[:800]
@@ -151,27 +152,27 @@ Each object has: analysis_text, impact_horizon, risk_direction, confidence, scen
 
     parsed = extract_json_list(result, None)
     results = []
-    if isinstance(parsed, list) and len(parsed) == len(news_items):
+    if isinstance(parsed, list) and len(parsed) == len(articles):
         for p in parsed:
             normalized = _normalize_result(p)
             results.append(
                 normalized
                 if normalized
-                else _limited_data_result(news_items[len(results)])
+                else _limited_data_result(articles[len(results)])
             )
     else:
-        results = [_limited_data_result(item) for item in news_items]
+        results = [_limited_data_result(item) for item in articles]
 
     return results
 
 
-async def analyze_major_events_shared_batch(news_items: list[dict]) -> list[dict]:
+async def analyze_major_events_shared_batch(articles: list[dict]) -> list[dict]:
     """Analyze major events without a specific position context (shared/macro events)."""
-    if not news_items:
+    if not articles:
         return []
 
     events_text = []
-    for i, item in enumerate(news_items):
+    for i, item in enumerate(articles):
         title = item.get("title", "")[:320]
         summary = item.get("summary", "")[:520]
         body = item.get("body", "")[:900]
@@ -201,12 +202,12 @@ Each object has: analysis_text, impact_horizon, risk_direction, confidence, scen
 
     parsed = extract_json_list(result, None)
     results = []
-    if isinstance(parsed, list) and len(parsed) == len(news_items):
+    if isinstance(parsed, list) and len(parsed) == len(articles):
         for i, payload in enumerate(parsed):
             normalized = _normalize_result(payload)
             results.append(
-                normalized if normalized else _limited_data_result(news_items[i])
+                normalized if normalized else _limited_data_result(articles[i])
             )
         return results
 
-    return [_limited_data_result(item) for item in news_items]
+    return [_limited_data_result(item) for item in articles]

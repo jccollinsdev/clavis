@@ -144,15 +144,15 @@ class HoldingsViewModel: ObservableObject {
     private func workflowMessage(for workflow: APIService.HoldingWorkflowResponse) -> String {
         switch workflow.analysisState {
         case "queued":
-            return workflow.coverageNote ?? "Analysis queued."
+            return workflow.coverageNote ?? "Analysis pending."
         case "running":
-            return workflow.coverageNote ?? "Analysis running."
+            return workflow.coverageNote ?? "Analysis in progress."
         case "ready":
             return workflow.coverageNote ?? "Position is ready."
         case "thin":
             return workflow.coverageNote ?? "Limited data available."
         case "failed":
-            return workflow.coverageNote ?? "Analysis failed."
+            return workflow.coverageNote ?? "Analysis unavailable."
         default:
             return workflow.coverageNote ?? "Updating position."
         }
@@ -210,8 +210,8 @@ class HoldingsViewModel: ObservableObject {
                     if run.lifecycleStatus == "failed" {
                         throw APIError.networkError(
                             "analysis-run",
-                            NSError(domain: "Clavis", code: 1, userInfo: [
-                                NSLocalizedDescriptionKey: run.errorMessage ?? "Analysis failed."
+                                NSError(domain: "Clavis", code: 1, userInfo: [
+                                NSLocalizedDescriptionKey: run.errorMessage ?? "Analysis unavailable."
                             ])
                         )
                     }
@@ -221,7 +221,7 @@ class HoldingsViewModel: ObservableObject {
 
                 switch run.lifecycleStatus {
                 case "queued":
-                    progressMessage = run.currentStageMessage ?? "Queued for analysis..."
+                    progressMessage = run.currentStageMessage ?? "Pending analysis..."
                     progressValue = 0.18
                 case "running":
                     progressMessage = run.currentStageMessage ?? "Analyzing \(pendingTicker ?? "position")..."

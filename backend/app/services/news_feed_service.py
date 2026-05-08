@@ -375,9 +375,9 @@ def _build_feed_state(supabase, user_id: str) -> dict[str, Any]:
         if ticker:
             alerts_by_ticker[ticker].append(alert)
 
-    news_items: list[dict[str, Any]] = []
+    shared_events: list[dict[str, Any]] = []
     if tracked_tickers:
-        news_items = (
+        shared_events = (
             supabase.table("shared_ticker_events")
             .select("*")
             .in_("ticker", tracked_tickers)
@@ -408,7 +408,7 @@ def _build_feed_state(supabase, user_id: str) -> dict[str, Any]:
     metadata_map = get_metadata_map(supabase, tracked_tickers)
 
     stories: list[dict[str, Any]] = []
-    for row in news_items:
+    for row in shared_events:
         stories.append(
             _news_item_story(
                 row,

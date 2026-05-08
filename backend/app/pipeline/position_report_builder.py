@@ -1,3 +1,4 @@
+from __future__ import annotations
 import re
 from datetime import datetime
 from typing import Any
@@ -641,11 +642,11 @@ def _source_chips_for_group(group: list[dict[str, Any]]) -> list[str]:
 def _build_driver_cards(
     position: dict[str, Any],
     event_analyses: list[dict[str, Any]] | None = None,
-    news_items: list[dict[str, Any]] | None = None,
+    related_articles: list[dict[str, Any]] | None = None,
     alerts: list[dict[str, Any]] | None = None,
 ) -> tuple[list[dict[str, Any]], str, str | None]:
     event_analyses = event_analyses or []
-    news_items = news_items or []
+    related_articles = related_articles or []
     alerts = alerts or []
 
     candidates: list[dict[str, Any]] = []
@@ -653,7 +654,7 @@ def _build_driver_cards(
         candidate = _candidate_from_event(event)
         if candidate:
             candidates.append(candidate)
-    for article in news_items:
+    for article in related_articles:
         candidate = _candidate_from_news(article)
         if candidate:
             candidates.append(candidate)
@@ -855,7 +856,7 @@ async def build_position_report(
     driver_cards, driver_cards_state, driver_cards_source = _build_driver_cards(
         position,
         event_analyses=event_analyses,
-        news_items=related_articles,
+        related_articles=related_articles,
         alerts=alerts,
     )
 

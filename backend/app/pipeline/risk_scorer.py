@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import math
 from datetime import datetime, timezone
 
 from ..services.minimax import chatcompletion_text
@@ -524,9 +525,25 @@ def _fin_rationale(metadata: dict, score: int) -> str:
 
 
 def _score_macro_exposure(metadata: dict) -> int:
-    reg = metadata.get("macro_regression_result")
-    if isinstance(reg, dict) and not reg.get("limited_data") and reg.get("sensitivity_score") is not None:
-        return clamp_score(round(reg["sensitivity_score"]), 0)
+    factor_breakdown = metadata.get("factor_breakdown") or {}
+    if isinstance(factor_breakdown, str):
+        import json
+
+        try:
+            factor_breakdown = json.loads(factor_breakdown)
+        except Exception:
+            factor_breakdown = {}
+    reg = factor_breakdown.get("macro_regression") or {}
+    if isinstance(reg, dict) and not reg.get("limited_data"):
+        sensitivity_score = reg.get("sensitivity_score")
+        if sensitivity_score is None:
+            coefficients = reg.get("coefficients") or {}
+            sensitivity = math.sqrt(
+                sum(float(value) ** 2 for value in coefficients.values())
+            )
+            sensitivity_score = 100.0 * (1.0 - min(1.0, sensitivity / 5.0))
+        if sensitivity_score is not None:
+            return clamp_score(round(sensitivity_score), 0)
 
     beta = abs(_safe_float(metadata.get("beta"), 0.0))
     macro_sens = str(metadata.get("macro_sensitivity") or "moderate").lower()
@@ -554,7 +571,15 @@ def _score_macro_exposure(metadata: dict) -> int:
 
 
 def _macro_rationale(metadata: dict, score: int) -> str:
-    reg = metadata.get("macro_regression_result")
+    factor_breakdown = metadata.get("factor_breakdown") or {}
+    if isinstance(factor_breakdown, str):
+        import json
+
+        try:
+            factor_breakdown = json.loads(factor_breakdown)
+        except Exception:
+            factor_breakdown = {}
+    reg = factor_breakdown.get("macro_regression") or {}
     if isinstance(reg, dict) and reg.get("r_squared") is not None and not reg.get("limited_data"):
         coef = reg.get("coefficients", {})
         top_factor = max(coef.items(), key=lambda x: abs(x[1])) if coef else ("market", 0.0)
@@ -883,9 +908,23 @@ def score_position_structural(
         source_count=source_count,
     )
 
+    existing_factor_breakdown = ticker_metadata.get("factor_breakdown") or {}
+    if isinstance(existing_factor_breakdown, str):
+        import json
+
+        try:
+            existing_factor_breakdown = json.loads(existing_factor_breakdown)
+        except Exception:
+            existing_factor_breakdown = {}
+
     return {
         "safety_score": total,
         "total_score": total,
+        "composite_score": total,
+        "structural_base_score": total,
+        "macro_adjustment": 0.0,
+        "event_adjustment": 0.0,
+        "confidence": 0.75,
         "grade": grade,
         "grade_direction": grade_direction(total, previous_safety_score),
         "score_delta": int(round(total - previous_safety_score)) if previous_safety_score is not None else None,
@@ -898,6 +937,7 @@ def score_position_structural(
             "volatility": _vol_rationale(ticker_metadata, vol, worsening_major),
         },
         "factor_breakdown": {
+            **existing_factor_breakdown,
             "ai_dimensions": normalized,
         },
         **normalized,
@@ -1015,7 +1055,7 @@ Return EXACTLY this JSON format (no markdown, no explanation, no thinking):
         - Do not return 50 across all five dimensions unless the evidence is genuinely absent.
         - If the evidence is directional, move the relevant dimensions away from 50.
 
-        Forbidden: dimension scores in rationale, "the model", "the score reflects", internal evidence labels, "thesis", "positive momentum", "macro headwinds", "provisional", "sentiment", "confirms", "coverage", "monitor", "research", "analyst", "watch", "position_sizing".
+        Forbidden: dimension scores in rationale, "the model", "the score reflects", internal evidence labels, "thesis", "positive momentum", "macro headwinds", "provisional", "sentiment", "confirms", "coverage", "monitor", "research", "analyst", "watch", "portfolio weighting".
 
 Respond with ONLY the JSON object. Start with {{ and end with }}."""
 

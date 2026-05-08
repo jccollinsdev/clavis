@@ -87,6 +87,19 @@ Avoid phrases like:
 - "structurally"
 """
 
+GRADE_ORDINAL = {
+    "AAA": 10,
+    "AA": 9,
+    "A": 8,
+    "BBB": 7,
+    "BB": 6,
+    "B": 5,
+    "CCC": 4,
+    "CC": 3,
+    "C": 2,
+    "F": 1,
+}
+
 
 def _grade_change_text(position: dict) -> str:
     previous_grade = position.get("previous_grade")
@@ -329,7 +342,7 @@ def _build_portfolio_advice(
         score = float(position.get("total_score") or 0)
 
         if (
-            grade in {"D", "F"}
+            GRADE_ORDINAL.get(grade, 0) <= 4
             or score < 45
             or (previous_grade and previous_grade != grade)
         ):
@@ -534,8 +547,9 @@ def _sanitize_watchlist_alerts(items: list[str] | None) -> list[str]:
 
 
 def _position_urgency(position: dict) -> tuple[int, float]:
-    grade = position.get("grade") or "C"
-    priority = {"F": 5, "D": 4, "C": 3, "B": 2, "A": 1}.get(grade, 3)
+    grade = str(position.get("grade") or "C").strip().upper()
+    ordinal = GRADE_ORDINAL.get(grade, GRADE_ORDINAL["C"])
+    priority = 11 - ordinal
     changed = (
         1
         if position.get("previous_grade") and position.get("previous_grade") != grade

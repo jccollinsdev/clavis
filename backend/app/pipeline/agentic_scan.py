@@ -1,3 +1,4 @@
+from __future__ import annotations
 from ..services.minimax import chatcompletion_text
 from .analysis_utils import extract_json_list, extract_json_object
 
@@ -142,7 +143,7 @@ Position context:
 - Purchase price: ${purchase_price}
 
 News items to analyze:
-{news_items}
+{articles}
 
 For each news item, state the primary risk implication first. If a news item has both positive and negative angles, resolve which is primary. Be specific about how the development connects to fundamentals or valuation.
 
@@ -163,7 +164,7 @@ GENERIC_MINOR_EVENTS_BATCH_PROMPT = """You are a portfolio risk rater.
 Given multiple news items, produce a reusable base analysis for each event without assuming a specific holder. For each event, state the primary risk implication — what it means for the company's risk profile, not just what happened.
 
 News items to analyze:
-{news_items}
+{articles}
 
 For each news item above, return a JSON object with:
 - "analysis_text": "2-4 sentence analysis stating the primary implication"
@@ -178,18 +179,18 @@ Return a JSON array with one object per news item in order."""
 
 
 async def analyze_minor_events_batch(
-    news_items: list[dict],
+    articles: list[dict],
     position: dict,
     inferred_labels: list[str] | None = None,
 ) -> list[dict]:
-    if not news_items:
+    if not articles:
         return []
 
     labels = ", ".join(inferred_labels or [position.get("archetype", "growth")])
     purchase_price = position.get("purchase_price", 0)
 
     news_texts = []
-    for i, item in enumerate(news_items):
+    for i, item in enumerate(articles):
         title = item.get("title", "")[:200]
         summary = item.get("summary", "")[:300]
         body = item.get("body", "")[:700]
@@ -202,7 +203,7 @@ async def analyze_minor_events_batch(
         ticker=position.get("ticker", ""),
         labels=labels,
         purchase_price=purchase_price,
-        news_items="\n\n".join(news_texts),
+        articles="\n\n".join(news_texts),
     )
 
     result = chatcompletion_text(
@@ -216,9 +217,9 @@ async def analyze_minor_events_batch(
     parsed = extract_json_list(result, None)
 
     results = []
-    if isinstance(parsed, list) and len(parsed) == len(news_items):
+    if isinstance(parsed, list) and len(parsed) == len(articles):
         for i, p in enumerate(parsed):
-            fallback = _fallback_minor_event_analysis(news_items[i], position)
+            fallback = _fallback_minor_event_analysis(articles[i], position)
             results.append(
                 {
                     "analysis_text": p.get("analysis_text")
@@ -237,19 +238,19 @@ async def analyze_minor_events_batch(
                 }
             )
     else:
-        for item in news_items:
+        for item in articles:
             fallback = _fallback_minor_event_analysis(item, position)
             results.append(fallback)
 
     return results
 
 
-async def analyze_minor_events_shared_batch(news_items: list[dict]) -> list[dict]:
-    if not news_items:
+async def analyze_minor_events_shared_batch(articles: list[dict]) -> list[dict]:
+    if not articles:
         return []
 
     news_texts = []
-    for i, item in enumerate(news_items):
+    for i, item in enumerate(articles):
         title = item.get("title", "")[:220]
         summary = item.get("summary", "")[:320]
         body = item.get("body", "")[:700]
@@ -259,7 +260,7 @@ async def analyze_minor_events_shared_batch(news_items: list[dict]) -> list[dict
         )
 
     prompt = GENERIC_MINOR_EVENTS_BATCH_PROMPT.format(
-        news_items="\n\n".join(news_texts),
+        articles="\n\n".join(news_texts),
     )
 
     result = chatcompletion_text(
@@ -270,9 +271,9 @@ async def analyze_minor_events_shared_batch(news_items: list[dict]) -> list[dict
 
     parsed = extract_json_list(result, None)
     results = []
-    if isinstance(parsed, list) and len(parsed) == len(news_items):
+    if isinstance(parsed, list) and len(parsed) == len(articles):
         for i, payload in enumerate(parsed):
-            fallback = _fallback_shared_minor_event_analysis(news_items[i])
+            fallback = _fallback_shared_minor_event_analysis(articles[i])
             results.append(
                 {
                     "analysis_text": payload.get("analysis_text")
@@ -295,4 +296,4 @@ async def analyze_minor_events_shared_batch(news_items: list[dict]) -> list[dict
             )
         return results
 
-    return [_fallback_shared_minor_event_analysis(item) for item in news_items]
+    return [_fallback_shared_minor_event_analysis(item) for item in articles]

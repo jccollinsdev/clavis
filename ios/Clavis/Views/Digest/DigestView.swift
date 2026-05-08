@@ -621,14 +621,14 @@ struct AnalysisRunStatusCard: View {
         case "computing_portfolio_risk": return "Computing portfolio risk"
         case "building_digest": return "Building your rating"
         default:
-            return run.status == "queued" ? "Queued for analysis" : "Analysis in progress"
+            return run.status == "queued" ? "Pending analysis" : "Analysis in progress"
         }
     }
 
     private var statusBadge: String {
         switch run.lifecycleStatus {
-        case "completed": return "Done"
-        case "failed": return "Failed"
+        case "completed": return "Ready"
+        case "failed": return "Unavailable"
         default: return ClavisCopy.Status.label(for: run.status)
         }
     }

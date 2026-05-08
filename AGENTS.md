@@ -216,6 +216,8 @@ cat /etc/cloudflared/config.yml
 
 The tunnel name is `clavis-prod`. Do NOT rename it. SnapTrade and DNS are all keyed to it.
 
+TODO before launch: put `/admin` behind Cloudflare Access in the Cloudflare dashboard. Application ID: [add when configured].
+
 ### Crontab / scheduled jobs
 
 There are NO OS-level crontab entries for `clavix-backend`. All scheduling is **APScheduler in-process** inside the FastAPI container. Job state persists in the `scheduler_jobs` Postgres table.
@@ -287,6 +289,8 @@ xcodebuild -scheme Clavis -configuration Debug \
 # Open in Xcode for hands-on testing
 open Clavis.xcodeproj
 ```
+
+`ios/Clavis/Config/Secrets.local.xcconfig` is gitignored. Get the Supabase anon key from Bipul and create this file locally when needed.
 
 The iOS scheme is `Clavis` (internal name). The display name on a phone is `Clavix`. Both are correct.
 

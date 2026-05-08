@@ -1,7 +1,7 @@
-"""Find and clean dirty news/event rows in Supabase that contain JS/code artifacts.
+"""Find and clean dirty article/event rows in Supabase that contain JS/code artifacts.
 
 Usage:
-    python -m app.scripts.clean_dirty_text_rows [--dry-run] [--table event_analyses|ticker_news_cache|news_items|all]
+    python -m app.scripts.clean_dirty_text_rows [--dry-run] [--table event_analyses|shared_ticker_events|all]
 """
 import argparse
 import os
@@ -118,16 +118,15 @@ def clean_table(supabase, table: str, text_columns: list[str], dirty_rows: list[
 
 TEXT_COLUMNS = {
     "event_analyses": ["title", "summary", "long_analysis", "scenario_summary", "source"],
-    "ticker_news_cache": ["headline", "summary", "source"],
-    "news_items": ["title", "source"],
+    "shared_ticker_events": ["title", "summary", "source", "body"],
 }
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Find and clean dirty news/event rows")
+    parser = argparse.ArgumentParser(description="Find and clean dirty article/event rows")
     parser.add_argument("--dry-run", action="store_true", default=True, help="Only scan, don't update")
     parser.add_argument("--apply", action="store_true", help="Actually update dirty rows")
-    parser.add_argument("--table", choices=["event_analyses", "ticker_news_cache", "news_items", "all"], default="all")
+    parser.add_argument("--table", choices=["event_analyses", "shared_ticker_events", "all"], default="all")
     args = parser.parse_args()
 
     supabase = get_supabase()
