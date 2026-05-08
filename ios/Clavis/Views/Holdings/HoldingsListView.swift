@@ -1,202 +1,84 @@
 import SwiftUI
 
-private enum HoldingsDetailRoute: Hashable {
-    case ticker(String)
-    case position(String)
-}
-
 struct HoldingsListView: View {
     @Binding var selectedTab: Int
     @Binding var deepLinkTicker: String?
+
     @StateObject private var viewModel = HoldingsViewModel()
     @State private var searchQuery = ""
     @State private var tickerSearchResults: [TickerSearchResult] = []
     @State private var isSearchingTickers = false
     @State private var tickerSearchError: String?
     @State private var tickerSearchTask: Task<Void, Never>?
-    @State private var selectedSort: HoldingSort = .grade
-    @State private var selectedFilter: HoldingFilter = .all
-    @State private var deleteTickerCandidate: Position?
-    @State private var navigationPath: [HoldingsDetailRoute] = []
-
-    private var sortedHoldings: [Position] {
-        selectedSort.sort(filteredHoldings)
-    }
-
-    private var filteredHoldings: [Position] {
-        viewModel.holdings.filter { selectedFilter.matches(position: $0) }
-    }
+    @State private var deleteCandidate: Position?
+    @State private var showUpgradeSheet = false
+    @State private var showAddHoldingSheet = false
 
     private var trimmedSearchQuery: String {
         searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    private var isSearchingUniverse: Bool {
-        !trimmedSearchQuery.isEmpty
     }
 
     private var watchlistTickers: Set<String> {
         Set(viewModel.watchlistItems.map { $0.ticker.uppercased() })
     }
 
-    private var holdingsCount: Int {
-        viewModel.holdings.count
+    private var totalMarketValue: Double {
+        viewModel.holdings.compactMap(\.currentValue).reduce(0, +)
     }
 
-    private var watchlistCount: Int {
-        viewModel.watchlistItems.count
+    private var weightedScore: Double? {
+        let weightedPairs = viewModel.holdings.compactMap { position -> (Double, Double)? in
+            guard let value = position.currentValue, value > 0, let score = position.resolvedTotalScore else { return nil }
+            return (value, score)
+        }
+
+        let totalWeight = weightedPairs.reduce(0) { $0 + $1.0 }
+        guard totalWeight > 0 else { return nil }
+        return weightedPairs.reduce(0) { $0 + ($1.0 * $1.1) } / totalWeight
     }
 
-    private var riskyCount: Int {
-        viewModel.holdings.filter {
-            let g = $0.resolvedRiskGrade ?? ""
-            return Grade.ordinalValue(for: g) <= 5
-        }.count
+    private var weightedGrade: String {
+        guard let score = weightedScore else { return "—" }
+        return grade(for: score)
     }
 
-    private var improvingCount: Int {
-        viewModel.holdings.filter { $0.riskTrend == .improving }.count
+    private var biggestMover: Position? {
+        viewModel.holdings.max { abs($0.scoreDelta ?? 0) < abs($1.scoreDelta ?? 0) }
+    }
+
+    private var isFreeTier: Bool {
+        viewModel.subscriptionTier == "free"
     }
 
     var body: some View {
-        NavigationStack(path: $navigationPath) {
+        NavigationStack {
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    if NetworkStatusMonitor.shared.isOffline {
-                        OfflineStatusBanner()
-                    }
-
+                VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
                     if let errorMessage = viewModel.errorMessage {
                         DashboardErrorCard(message: errorMessage)
                     }
 
-                    if viewModel.isLoading && viewModel.holdings.isEmpty {
-                        ClavisLoadingCard(title: "Loading holdings", subtitle: "Pulling your holdings and the latest scores.")
-                    } else if isSearchingUniverse {
-                        HoldingsTickerSearchResultsCard(
-                            query: trimmedSearchQuery,
-                            results: tickerSearchResults,
-                            isSearching: isSearchingTickers,
-                            errorMessage: tickerSearchError,
-                            watchlistedTickers: watchlistTickers,
-                            onToggleWatchlist: { result in
-                                Task { await toggleWatchlist(for: result) }
-                            }
-                        )
-                    } else if viewModel.holdings.isEmpty {
-                        HoldingsEmptyState(onAddPosition: { viewModel.showAddSheet = true })
-                    } else {
-                        HoldingsControlCard(
-                            selectedFilter: $selectedFilter,
-                            selectedSort: $selectedSort,
-                            isRefreshing: viewModel.isRefreshing,
-                            onRefresh: { Task { await viewModel.refreshHoldings() } }
-                        )
+                    portfolioHeader
+                    searchBar
 
-                        if !viewModel.watchlistItems.isEmpty {
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack(spacing: 10) {
-                                    Text("Watchlist")
-                                        .font(ClavisTypography.inter(16, weight: .heavy))
-                                        .foregroundColor(.textPrimary)
-                                    Text("\(viewModel.watchlistItems.count)")
-                                        .font(ClavisTypography.inter(13, weight: .semibold))
-                                        .foregroundColor(.textSecondary)
-                                        .frame(width: 24, height: 24)
-                                        .background(Color.surfaceElevated)
-                                        .clipShape(Circle())
-                                }
-
-                                PrototypeHoldingsSection {
-                                    ForEach(Array(viewModel.watchlistItems.enumerated()), id: \.element.id) { index, item in
-                                        NavigationLink(value: HoldingsDetailRoute.ticker(item.ticker)) {
-                                            WatchlistCardRow(item: item, showsDivider: index < viewModel.watchlistItems.count - 1)
-                                        }
-                                        .buttonStyle(.plain)
-                                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                            Button(role: .destructive) {
-                                                Task { _ = try? await viewModel.removeTickerFromWatchlist(item.ticker) }
-                                            } label: {
-                                                Label("Remove", systemImage: "star.slash")
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        if !needsReviewPositions.isEmpty {
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack(spacing: 10) {
-                                    Text("Needs Attention")
-                                        .font(ClavisTypography.inter(16, weight: .heavy))
-                                        .foregroundColor(.textPrimary)
-                                    Text("\(needsReviewPositions.count)")
-                                        .font(ClavisTypography.inter(13, weight: .semibold))
-                                        .foregroundColor(.riskD)
-                                        .frame(width: 24, height: 24)
-                                        .background(Color.riskD.opacity(0.12))
-                                        .clipShape(Circle())
-                                }
-
-                                VStack(alignment: .leading, spacing: 0) {
-                                    PrototypeHoldingsSection {
-                                        ForEach(Array(needsReviewPositions.enumerated()), id: \.element.id) { index, position in
-                                            holdingRow(for: position, isLast: index == needsReviewPositions.count - 1)
-                                        }
-                                    }
-                                }
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous)
-                                        .stroke(Color.border, lineWidth: 1)
-                                )
-                                .overlay(alignment: .leading) {
-                                    Rectangle()
-                                        .fill(Color.riskD)
-                                        .frame(width: 3)
-                                        .clipShape(RoundedRectangle(cornerRadius: 1.5))
-                                }
-                                .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous))
-                            }
-                        }
-
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack(spacing: 10) {
-                                Text("All Holdings")
-                                    .font(ClavisTypography.inter(16, weight: .heavy))
-                                    .foregroundColor(.textPrimary)
-                                Text("\(sortedHoldings.count)")
-                                    .font(ClavisTypography.inter(13, weight: .semibold))
-                                    .foregroundColor(.textSecondary)
-                                    .frame(width: 24, height: 24)
-                                    .background(Color.surfaceElevated)
-                                    .clipShape(Circle())
-                            }
-
-                            PrototypeHoldingsSection {
-                                ForEach(Array(sortedHoldings.enumerated()), id: \.element.id) { index, position in
-                                    holdingRow(for: position, isLast: index == sortedHoldings.count - 1)
-                                }
-                            }
-                        }
+                    if isSearchingUniverse {
+                        searchResultsSection
                     }
+
+                    holdingsSection
+                    watchlistSection
                 }
                 .padding(.horizontal, ClavisTheme.screenPadding)
-                .padding(.top, 0)
-                .padding(.bottom, ClavisTheme.floatingTabHeight + ClavisTheme.floatingTabInset + ClavisTheme.extraLargeSpacing)
+                .padding(.top, ClavisTheme.sectionSpacing)
+                .padding(.bottom, ClavisTheme.extraLargeSpacing)
             }
+            .background(ClavisAtmosphereBackground())
             .safeAreaInset(edge: .top, spacing: 0) {
-                VStack(spacing: 0) {
-                    HoldingsTopHeader(
-                        onAddPosition: { viewModel.showAddSheet = true },
-                        onRefresh: { Task { await viewModel.refreshHoldings() } },
-                        isRefreshing: viewModel.isRefreshing,
-                        isOffline: NetworkStatusMonitor.shared.isOffline,
-                        lastRefreshedAt: viewModel.lastRefreshedAt,
-                        brokerageLastSyncedAt: viewModel.brokerageLastSyncedAt
-                    )
-                    HoldingsSearchBar(query: $searchQuery)
-                }
+                topHeader
+            }
+            .toolbar(.hidden, for: .navigationBar)
+            .task {
+                await viewModel.loadHoldings()
             }
             .refreshable {
                 await viewModel.refreshHoldings()
@@ -204,337 +86,57 @@ struct HoldingsListView: View {
             .onChange(of: searchQuery) { newValue in
                 scheduleTickerSearch(for: newValue)
             }
-            .background(ClavisAtmosphereBackground())
-            .toolbar(.hidden, for: .navigationBar)
-            .sheet(isPresented: $viewModel.showAddSheet) {
-                AddPositionSheet(viewModel: viewModel)
+            .onChange(of: deepLinkTicker) { newValue in
+                guard newValue != nil else { return }
+                deepLinkTicker = nil
+            }
+            .sheet(isPresented: $showAddHoldingSheet) {
+                HoldingsAddSheet(viewModel: viewModel)
             }
             .fullScreenCover(isPresented: $viewModel.showProgressSheet) {
                 AddPositionProgressView(viewModel: viewModel)
             }
-            .alert("Error", isPresented: $viewModel.showError) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text(viewModel.errorMessage ?? "Unknown error")
+            .sheet(isPresented: $showUpgradeSheet) {
+                HoldingsUpgradeSheet()
             }
-            .alert("Delete holding?", isPresented: Binding(get: { deleteTickerCandidate != nil }, set: { if !$0 { deleteTickerCandidate = nil } })) {
+            .alert("Delete holding?", isPresented: Binding(get: { deleteCandidate != nil }, set: { if !$0 { deleteCandidate = nil } })) {
                 Button("Delete", role: .destructive) {
-                    if let candidate = deleteTickerCandidate {
-                        Task { await viewModel.deleteHolding(candidate) }
-                    }
-                    deleteTickerCandidate = nil
+                    guard let deleteCandidate else { return }
+                    Task { await viewModel.deleteHolding(deleteCandidate) }
+                    self.deleteCandidate = nil
                 }
-                Button("Cancel", role: .cancel) { deleteTickerCandidate = nil }
+                Button("Cancel", role: .cancel) { deleteCandidate = nil }
             } message: {
                 Text("This removes the holding from your portfolio.")
             }
-            .onAppear {
-                viewModel.showError = false
-                if viewModel.holdings.isEmpty && !viewModel.isLoading {
-                    Task { await viewModel.loadHoldings() }
-                } else if !viewModel.isLoading {
-                    Task { await viewModel.refreshWatchlist() }
-                }
+            .navigationDestination(for: TickerSearchResult.self) { result in
+                TickerDetailView(ticker: result.ticker)
             }
-            .onChange(of: deepLinkTicker) { newValue in
-                guard let newValue = newValue else { return }
-                navigationPath = [.ticker(newValue)]
-                deepLinkTicker = nil
-            }
-            .navigationDestination(for: HoldingsDetailRoute.self) { route in
-                switch route {
-                case .ticker(let ticker):
-                    TickerDetailView(ticker: ticker)
-                case .position(let positionId):
-                    PositionDetailView(positionId: positionId)
-                }
+            .navigationDestination(for: String.self) { ticker in
+                TickerDetailView(ticker: ticker)
             }
         }
     }
 
-    private func scheduleTickerSearch(for rawQuery: String) {
-        tickerSearchTask?.cancel()
-
-        let trimmed = rawQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else {
-            tickerSearchResults = []
-            tickerSearchError = nil
-            isSearchingTickers = false
-            return
-        }
-
-        tickerSearchTask = Task { [trimmed] in
-            isSearchingTickers = true
-            tickerSearchError = nil
-
-            do {
-                try await Task.sleep(nanoseconds: 250_000_000)
-                guard !Task.isCancelled else { return }
-                let results = try await viewModel.searchTickers(query: trimmed, limit: 10)
-                guard !Task.isCancelled else { return }
-                tickerSearchResults = prioritizedSearchResults(results, query: trimmed)
-            } catch is CancellationError {
-                return
-            } catch {
-                tickerSearchResults = []
-                tickerSearchError = ClavisCopy.Errors.tickerSearch(error)
-            }
-
-            isSearchingTickers = false
-        }
-    }
-
-    private func prioritizedSearchResults(_ results: [TickerSearchResult], query: String) -> [TickerSearchResult] {
-        let normalizedQuery = query.uppercased()
-
-        return results.sorted { left, right in
-            let leftKey = searchRank(for: left, query: normalizedQuery)
-            let rightKey = searchRank(for: right, query: normalizedQuery)
-
-            if leftKey.priority != rightKey.priority {
-                return leftKey.priority < rightKey.priority
-            }
-
-            if leftKey.secondary != rightKey.secondary {
-                return leftKey.secondary < rightKey.secondary
-            }
-
-            return left.ticker < right.ticker
-        }
-    }
-
-    private func searchRank(for result: TickerSearchResult, query: String) -> (priority: Int, secondary: Int) {
-        let ticker = result.ticker.uppercased()
-        let company = (result.resolvedCompanyName ?? "").uppercased()
-
-        if ticker == query { return (0, 0) }
-        if ticker.hasPrefix(query) { return (1, 0) }
-        if company.hasPrefix(query) { return (2, 0) }
-        if ticker.contains(query) { return (3, 0) }
-        if company.contains(query) { return (4, 0) }
-        return (5, 0)
-    }
-
-    private func toggleWatchlist(for result: TickerSearchResult) async {
-        let ticker = result.ticker.uppercased()
-
-        do {
-            if watchlistTickers.contains(ticker) {
-                try await viewModel.removeTickerFromWatchlist(ticker)
-            } else {
-                try await viewModel.addTickerToWatchlist(ticker)
-            }
-
-            tickerSearchTask?.cancel()
-            searchQuery = ""
-            tickerSearchResults = []
-            tickerSearchError = nil
-        } catch {
-            tickerSearchError = ClavisCopy.Errors.watchlistUpdate(error)
-        }
-    }
-
-    private var needsReviewPositions: [Position] {
-        sortedHoldings.filter {
-            let g = $0.resolvedRiskGrade ?? ""
-            return Grade.ordinalValue(for: g) <= 5 || $0.riskTrend == .worsening
-        }
-    }
-
-    @ViewBuilder
-    private func holdingRow(for position: Position, isLast: Bool) -> some View {
-        PositionCardRow(
-            position: position,
-            showsDivider: !isLast,
-            onOpenDetail: { navigationPath.append(.position(position.id)) }
-        )
-        .contextMenu {
-            Button {
-                Task {
-                    if watchlistTickers.contains(position.ticker.uppercased()) {
-                        _ = try? await viewModel.removeTickerFromWatchlist(position.ticker)
-                    } else {
-                        _ = try? await viewModel.addTickerToWatchlist(position.ticker)
-                    }
-                }
-            } label: {
-                Label(watchlistTickers.contains(position.ticker.uppercased()) ? "Remove from watchlist" : "Add to watchlist", systemImage: "star")
-            }
-
-            Button(role: .destructive) {
-                deleteTickerCandidate = position
-            } label: {
-                Label("Delete Position", systemImage: "trash")
-            }
-        }
-        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            Button(role: .destructive) {
-                deleteTickerCandidate = position
-            } label: {
-                Label("Delete", systemImage: "trash")
-            }
-        }
-        .swipeActions(edge: .leading, allowsFullSwipe: false) {
-            Button {
-                Task {
-                    if watchlistTickers.contains(position.ticker.uppercased()) {
-                        _ = try? await viewModel.removeTickerFromWatchlist(position.ticker)
-                    } else {
-                        _ = try? await viewModel.addTickerToWatchlist(position.ticker)
-                    }
-                }
-            } label: {
-                Label(watchlistTickers.contains(position.ticker.uppercased()) ? "Unstar" : "Star", systemImage: "star")
-            }
-            .tint(.informational)
-        }
-    }
-}
-
-private struct HoldingsTickerSearchResultsCard: View {
-    let query: String
-    let results: [TickerSearchResult]
-    let isSearching: Bool
-    let errorMessage: String?
-    let watchlistedTickers: Set<String>
-    let onToggleWatchlist: (TickerSearchResult) -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Search results")
-                        .font(ClavisTypography.label)
-                        .foregroundColor(.textSecondary)
-                    Text(query.uppercased())
-                        .font(ClavisTypography.bodyEmphasis)
+    private var topHeader: some View {
+        ClavixPageHeader(title: "Holdings", subtitle: holdingsSubtitle) {
+            HStack(spacing: ClavisTheme.smallSpacing) {
+                Button(action: openAddHolding) {
+                    Image(systemName: "plus")
                         .foregroundColor(.textPrimary)
                 }
-
-                Spacer()
-
-                if isSearching {
-                    ProgressView()
-                }
-            }
-
-            let supportedResults = Array(results.filter { $0.isSupported }.prefix(3))
-            let exactMatch = results.first { $0.ticker.caseInsensitiveCompare(query) == .orderedSame }
-            let isUnsupportedExactTicker = exactMatch != nil && exactMatch?.isSupported == false
-
-            if let errorMessage {
-                Text(errorMessage)
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.riskF)
-            } else if !isSearching && (results.isEmpty || isUnsupportedExactTicker) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Unsupported ticker")
-                        .font(ClavisTypography.bodyEmphasis)
-                        .foregroundColor(.riskF)
-                    Text("No analysis available for \(query.uppercased()) yet.")
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.textSecondary)
-                }
-            }
-
-            ForEach(Array(supportedResults.enumerated()), id: \.element.id) { index, result in
-                HoldingsTickerSearchResultRow(
-                    result: result,
-                    isWatchlisted: watchlistedTickers.contains(result.ticker.uppercased()),
-                    showsDivider: index < supportedResults.count - 1,
-                    onToggleWatchlist: { onToggleWatchlist(result) }
-                )
-            }
-        }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle()
-    }
-}
-
-private struct HoldingsTickerSearchResultRow: View {
-    let result: TickerSearchResult
-    let isWatchlisted: Bool
-    let showsDivider: Bool
-    let onToggleWatchlist: () -> Void
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            NavigationLink(destination: TickerDetailView(ticker: result.ticker)) {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 8) {
-                        Text(result.ticker)
-                            .font(ClavisTypography.bodyEmphasis)
-                            .foregroundColor(.textPrimary)
-                        GradeBadge(grade: result.resolvedGrade ?? "—", size: .compact)
-                    }
-
-                    Text(result.resolvedCompanyName ?? "")
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.textSecondary)
-
-                    if let summary = result.resolvedSummary, !summary.isEmpty {
-                        Text(summary.sanitizedDisplayText)
-                            .font(ClavisTypography.footnote)
-                            .foregroundColor(.textTertiary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .buttonStyle(.plain)
-
-            Button(action: onToggleWatchlist) {
-                Image(systemName: isWatchlisted ? "star.fill" : "star")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(isWatchlisted ? .informational : .textSecondary)
-                    .frame(width: 32, height: 32)
-                    .background(Color.surface)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.border, lineWidth: 1))
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.vertical, 12)
-        .overlay(alignment: .bottom) {
-            if showsDivider {
-                Rectangle()
-                    .fill(Color.border)
-                    .frame(height: 1)
-                    .offset(x: 0, y: 8)
-            }
-        }
-    }
-}
-
-private struct HoldingsTopHeader: View {
-    let onAddPosition: () -> Void
-    let onRefresh: () -> Void
-    let isRefreshing: Bool
-    let isOffline: Bool
-    let lastRefreshedAt: Date?
-    let brokerageLastSyncedAt: Date?
-
-    var body: some View {
-        ClavixPageHeader(
-            title: "Holdings",
-            subtitle: holdingsSubtitle
-        ) {
-            HStack(spacing: 6) {
-                Button(action: onAddPosition) {
-                    HoldingsHeaderButton(systemName: "plus")
-                }
                 .buttonStyle(.plain)
 
-                Button(action: onRefresh) {
-                    HoldingsHeaderButton(systemName: isRefreshing ? "hourglass" : "arrow.clockwise")
+                Button(action: { Task { await viewModel.refreshHoldings() } }) {
+                    Image(systemName: viewModel.isRefreshing ? "hourglass" : "arrow.clockwise")
+                        .foregroundColor(.textPrimary)
                 }
                 .buttonStyle(.plain)
-                .disabled(isRefreshing || isOffline)
-                .accessibilityLabel(isRefreshing ? "Refreshing holdings" : "Refresh holdings")
+                .disabled(viewModel.isRefreshing)
             }
         }
         .padding(.horizontal, ClavisTheme.screenPadding)
-        .padding(.top, 8)
+        .padding(.top, ClavisTheme.smallSpacing)
         .padding(.bottom, 6)
         .background(
             Color.backgroundPrimary.opacity(0.9)
@@ -548,541 +150,621 @@ private struct HoldingsTopHeader: View {
         }
     }
 
-    private var holdingsSubtitle: String? {
-        var parts: [String] = []
+    private var portfolioHeader: some View {
+        ClavisStandardCard(fill: .surface) {
+            HStack(alignment: .center, spacing: ClavisTheme.mediumSpacing) {
+                GradeBadge(grade: weightedGrade, size: .large)
 
-        if let lastRefreshedAt {
-            parts.append("Updated \(lastRefreshedAt.formatted(date: .abbreviated, time: .omitted))")
-        }
-
-        if let brokerageLastSyncedAt {
-            parts.append("Brokerage sync \(brokerageLastSyncedAt.formatted(date: .abbreviated, time: .omitted))")
-        }
-
-        return parts.isEmpty ? nil : parts.joined(separator: " · ")
-    }
-}
-
-private struct HoldingsHeaderButton: View {
-    let systemName: String
-
-    var body: some View {
-        Image(systemName: systemName)
-            .font(.system(size: 16, weight: .medium))
-            .foregroundColor(.textPrimary)
-            .frame(width: 32, height: 32)
-    }
-}
-
-private struct HoldingsSearchBar: View {
-    @Binding var query: String
-
-    var body: some View {
-        ClavisRaisedControlSurface(padding: 12) {
-            HStack(spacing: 10) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(.textSecondary)
-
-                TextField("Search ticker or company", text: $query)
-                    .font(.system(size: 15, weight: .regular))
-                    .foregroundColor(.textPrimary)
-                    .autocorrectionDisabled()
-            }
-        }
-    }
-}
-
-private struct PrototypeHoldingsSection<Content: View>: View {
-    @ViewBuilder let content: Content
-
-    init(@ViewBuilder content: () -> Content) {
-        self.content = content()
-    }
-
-    var body: some View {
-        VStack(spacing: 0) {
-            content
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 2)
-        .clavisCardStyle(fill: .surface)
-    }
-}
-
-struct HoldingsControlCard: View {
-    @Binding var selectedFilter: HoldingFilter
-    @Binding var selectedSort: HoldingSort
-    let isRefreshing: Bool
-    let onRefresh: () -> Void
-
-    var body: some View {
-        VStack(spacing: 14) {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(HoldingFilter.allCases, id: \.self) { filter in
-                        controlPill(title: filter.rawValue, isSelected: selectedFilter == filter) {
-                            selectedFilter = filter
-                        }
-                    }
-                }
-            }
-
-            HStack(spacing: 8) {
-                Menu {
-                    ForEach(HoldingSort.allCases, id: \.self) { sort in
-                        Button(sort.rawValue) {
-                            selectedSort = sort
-                        }
-                    }
-                } label: {
-                    HStack(spacing: 4) {
-                        Text("Sort:")
-                            .font(.system(size: 13, weight: .regular))
-                            .foregroundColor(.ink4)
-                        Text(selectedSort.rawValue)
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(.textPrimary)
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundColor(.textPrimary)
-                    }
+                VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                    Text("Portfolio composite · weighted")
+                        .font(ClavisTypography.label)
+                        .foregroundColor(.textSecondary)
+                    Text(weightedScore.map { "\(Int($0.rounded()))/100" } ?? "—")
+                        .font(ClavisTypography.metric)
+                        .foregroundColor(.textPrimary)
+                    Text(biggestMoverSummary)
+                        .font(ClavisTypography.footnote)
+                        .foregroundColor(.textSecondary)
                 }
 
                 Spacer()
-
-                Button(action: onRefresh) {
-                    HStack(spacing: 6) {
-                        Image(systemName: isRefreshing ? "hourglass" : "arrow.clockwise")
-                            .font(.system(size: 12, weight: .semibold))
-                        Text(isRefreshing ? "Refreshing" : "Refresh")
-                            .font(.system(size: 13, weight: .bold))
-                    }
-                    .foregroundColor(.accentBurnt)
-                }
-                .buttonStyle(.plain)
-                .disabled(isRefreshing)
             }
-            .padding(.horizontal, 18)
-            .padding(.vertical, 12)
-            .background(Color(hex: "#0D1119").opacity(0.62))
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(Color(hex: "#242934").opacity(0.5), lineWidth: 1)
-            )
+        }
+    }
+
+    private var searchBar: some View {
+        ClavisStandardCard(fill: .surface) {
+            HStack(spacing: ClavisTheme.smallSpacing) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.textSecondary)
+                TextField("Search ticker or company", text: $searchQuery)
+                    .font(ClavisTypography.body)
+                    .foregroundColor(.textPrimary)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.characters)
+                if !trimmedSearchQuery.isEmpty {
+                    Button("Clear") {
+                        searchQuery = ""
+                        tickerSearchResults = []
+                        tickerSearchError = nil
+                    }
+                    .font(ClavisTypography.footnoteEmphasis)
+                    .foregroundColor(.accentBurnt)
+                    .buttonStyle(.plain)
+                }
+            }
         }
     }
 
     @ViewBuilder
-    private func controlPill(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
-                .foregroundColor(isSelected ? .accentInk : .ink4)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 7)
-                .background(isSelected ? Color.accentBurnt : Color.surfaceElevated.opacity(0.02))
-                .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 11, style: .continuous)
-                        .stroke(isSelected ? Color.clear : Color(hex: "#242934").opacity(0.5), lineWidth: 1)
-                )
+    private var holdingsSection: some View {
+        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+            sectionHeader("Holdings")
+
+            if viewModel.isLoading && viewModel.holdings.isEmpty {
+                ClavisLoadingCard(title: "Loading holdings", subtitle: "Pulling your latest positions and ratings.")
+            } else if viewModel.holdings.isEmpty {
+                HoldingsEmptyState(onAddPosition: openAddHolding)
+            } else {
+                ClavisStandardCard(fill: .surface) {
+                    VStack(spacing: 0) {
+                        ForEach(Array(viewModel.holdings.enumerated()), id: \.element.id) { index, position in
+                            NavigationLink(value: position.ticker) {
+                                HoldingsRow(position: position)
+                            }
+                            .buttonStyle(.plain)
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button(role: .destructive) {
+                                    deleteCandidate = position
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
+
+                            if index < viewModel.holdings.count - 1 {
+                                Divider().overlay(Color.border)
+                            }
+                        }
+                    }
+                }
+            }
         }
-        .buttonStyle(.plain)
     }
-}
 
-struct HoldingsStatPill: View {
-    let title: String
-    let value: String
-    var accent: Color = .textPrimary
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(title)
-                .font(ClavisTypography.label)
-                .foregroundColor(.textTertiary)
-            Text(value)
+    @ViewBuilder
+    private var watchlistSection: some View {
+        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+            HStack {
+                sectionHeader(isFreeTier ? "Watchlist · \(viewModel.watchlistItems.count) of 5 free" : "Watchlist")
+                Spacer()
+                Button("Add") {
+                    selectedTab = 2
+                }
                 .font(ClavisTypography.footnoteEmphasis)
-                .foregroundColor(accent)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .clavisSecondaryCardStyle(fill: .surfaceElevated)
-    }
-}
+                .foregroundColor(.accentBurnt)
+                .buttonStyle(.plain)
+            }
 
-struct HoldingsSectionCard<Content: View>: View {
-    let title: String
-    var subtitle: String? = nil
-    @ViewBuilder let content: Content
-
-    init(title: String, subtitle: String? = nil, @ViewBuilder content: () -> Content) {
-        self.title = title
-        self.subtitle = subtitle
-        self.content = content()
-    }
-
-    var body: some View {
-        ClavisStandardCard(fill: .surface) {
-            VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
-                        .font(ClavisTypography.cardTitle)
-                        .foregroundColor(.textPrimary)
-
-                    if let subtitle, !subtitle.isEmpty {
-                        Text(subtitle)
-                            .font(ClavisTypography.footnote)
-                            .foregroundColor(.textSecondary)
+            if viewModel.watchlistItems.isEmpty {
+                ClavisStandardCard(fill: .surface) {
+                    Button(action: { selectedTab = 2 }) {
+                        Text("Add tickers to watch")
+                            .font(ClavisTypography.bodyEmphasis)
+                            .foregroundColor(.accentBurnt)
                     }
+                    .buttonStyle(.plain)
                 }
+            } else {
+                ClavisStandardCard(fill: .surface) {
+                    VStack(spacing: 0) {
+                        ForEach(Array(viewModel.watchlistItems.enumerated()), id: \.element.id) { index, item in
+                            NavigationLink(value: item.ticker) {
+                                WatchlistRow(item: item)
+                            }
+                            .buttonStyle(.plain)
 
-                VStack(spacing: ClavisTheme.smallSpacing) {
-                    content
+                            if index < viewModel.watchlistItems.count - 1 {
+                                Divider().overlay(Color.border)
+                            }
+                        }
+                    }
                 }
             }
         }
     }
+
+    @ViewBuilder
+    private var searchResultsSection: some View {
+        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+            sectionHeader("Search Results")
+
+            if let tickerSearchError {
+                DashboardErrorCard(message: tickerSearchError)
+            } else if isSearchingTickers {
+                ClavisLoadingCard(title: "Searching tickers", subtitle: "Checking the tracked universe.")
+            } else if tickerSearchResults.isEmpty {
+                ClavisStandardCard(fill: .surface) {
+                    Text("No search results yet.")
+                        .font(ClavisTypography.body)
+                        .foregroundColor(.textSecondary)
+                }
+            } else {
+                ClavisStandardCard(fill: .surface) {
+                    VStack(spacing: 0) {
+                        ForEach(Array(tickerSearchResults.enumerated()), id: \.element.id) { index, result in
+                            NavigationLink(value: result) {
+                                SearchResultRow(result: result, isWatchlisted: watchlistTickers.contains(result.ticker.uppercased()))
+                            }
+                            .buttonStyle(.plain)
+
+                            if index < tickerSearchResults.count - 1 {
+                                Divider().overlay(Color.border)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var holdingsSubtitle: String? {
+        var parts: [String] = []
+        if let lastRefreshedAt = viewModel.lastRefreshedAt {
+            parts.append("Updated \(lastRefreshedAt.formatted(date: .abbreviated, time: .omitted))")
+        }
+        if let brokerageLastSyncedAt = viewModel.brokerageLastSyncedAt {
+            parts.append("Brokerage sync \(brokerageLastSyncedAt.formatted(date: .abbreviated, time: .omitted))")
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    private var isSearchingUniverse: Bool {
+        !trimmedSearchQuery.isEmpty
+    }
+
+    private var biggestMoverSummary: String {
+        guard let biggestMover else { return "No day-over-day change available." }
+        let delta = biggestMover.scoreDelta ?? 0
+        if delta == 0 { return "No rating change from yesterday." }
+        return "\(delta > 0 ? "▲" : "▼") \(abs(delta)) from yesterday · \(biggestMover.ticker)"
+    }
+
+    private func sectionHeader(_ text: String) -> some View {
+        Text(text)
+            .font(ClavisTypography.label)
+            .foregroundColor(.textSecondary)
+    }
+
+    private func scheduleTickerSearch(for query: String) {
+        tickerSearchTask?.cancel()
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmed.isEmpty else {
+            tickerSearchResults = []
+            tickerSearchError = nil
+            isSearchingTickers = false
+            return
+        }
+
+        tickerSearchTask = Task {
+            isSearchingTickers = true
+            tickerSearchError = nil
+
+            do {
+                try await Task.sleep(nanoseconds: 250_000_000)
+                guard !Task.isCancelled else { return }
+                let results = try await viewModel.searchTickers(query: trimmed, limit: 12)
+                guard !Task.isCancelled else { return }
+                tickerSearchResults = results
+            } catch is CancellationError {
+                return
+            } catch {
+                tickerSearchResults = []
+                tickerSearchError = ClavisCopy.Errors.tickerSearch(error)
+            }
+
+            isSearchingTickers = false
+        }
+    }
+
+    private func openAddHolding() {
+        if isFreeTier && viewModel.holdings.count >= 3 {
+            showUpgradeSheet = true
+        } else {
+            showAddHoldingSheet = true
+        }
+    }
+
+    private func grade(for score: Double) -> String {
+        switch score {
+        case 90...100: return "AAA"
+        case 80..<90: return "AA"
+        case 70..<80: return "A"
+        case 60..<70: return "BBB"
+        case 50..<60: return "BB"
+        case 40..<50: return "B"
+        case 30..<40: return "CCC"
+        case 20..<30: return "CC"
+        case 10..<20: return "C"
+        default: return "F"
+        }
+    }
 }
 
-struct PositionCardRow: View {
+private struct HoldingsRow: View {
     let position: Position
-    var showsDivider: Bool = false
-    let onOpenDetail: () -> Void
 
-    private var grade: String {
-        position.resolvedRiskGrade ?? "—"
-    }
-
-    private var scoreText: String {
-        if let score = position.resolvedTotalScore {
-            return "\(Int(score.rounded()))"
-        }
-        return "--"
-    }
-
-    private var subtitleText: String {
-        if let state = position.resolvedAnalysisState {
-            switch state {
-            case "queued", "running":
-                return position.resolvedCoverageNote ?? "Updating this holding now."
-            case "failed":
-                return position.resolvedCoverageNote ?? "Analysis incomplete. Showing the latest available data."
-            case "stale":
-                return position.resolvedCoverageNote ?? "Refreshing with newer market data."
-            case "thin":
-                return position.resolvedCoverageNote ?? "Limited recent data available."
-            default:
-                break
-            }
-        }
-        if let summary = position.resolvedSummary?.sanitizedDisplayText, !summary.isEmpty {
-            return Self.previewSummary(summary)
-        }
-        if position.analysisStartedAt != nil && position.resolvedRiskGrade == nil {
-            return "Updating this holding now. Scores will appear shortly."
-        }
-        return "Analysis pending."
-    }
+    private var grade: String { position.resolvedRiskGrade ?? "—" }
+    private var companyName: String { position.resolvedCompanyName ?? "Unknown company" }
 
     var body: some View {
-        VStack(spacing: 0) {
-            Button(action: onOpenDetail) {
-                HStack(alignment: .center, spacing: 12) {
-                    GradeBadge(grade: grade)
+        HStack(alignment: .top, spacing: ClavisTheme.mediumSpacing) {
+            GradeBadge(grade: grade, size: .compact)
 
-                    VStack(alignment: .leading, spacing: 3) {
-                        HStack(spacing: 8) {
-                            Text(position.ticker)
-                                .font(.system(size: 15, weight: .semibold))
-                                .foregroundColor(.accentBurnt)
-
-                            if let companyName = position.resolvedCompanyName, !companyName.isEmpty {
-                                Text(companyName)
-                                    .font(ClavisTypography.footnote)
-                                    .foregroundColor(.textSecondary)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.85)
-                            }
-
-                            if position.isBrokerageSynced {
-                                Text("Synced")
-                                    .font(ClavisTypography.label)
-                                    .foregroundColor(.informational)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 3)
-                                    .background(Color.informational.opacity(0.12))
-                                    .clipShape(Capsule())
-                            }
-                        }
-
-                        Text(subtitleText)
-                            .font(ClavisTypography.footnote)
-                            .foregroundColor(.textSecondary)
-                            .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true)
-
-                    }
-
-                    Spacer(minLength: 12)
-
-                    VStack(alignment: .trailing, spacing: 4) {
-                        if let trend = position.riskTrend {
-                            RiskDirectionLabel(trend: trend)
-                        }
-
-                        Text(scoreText)
-                            .font(.system(size: 15, weight: .semibold, design: .monospaced))
-                            .foregroundColor(.textSecondary)
-                            .monospacedDigit()
-                    }
+            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                HStack(spacing: ClavisTheme.smallSpacing) {
+                    Text(companyName)
+                        .font(ClavisTypography.bodyEmphasis)
+                        .foregroundColor(.textPrimary)
+                        .lineLimit(1)
+                    Text(position.ticker)
+                        .font(ClavisTypography.footnoteEmphasis)
+                        .foregroundColor(.accentBurnt)
                 }
-            }
-            .buttonStyle(.plain)
 
-            if showsDivider {
-                Divider()
-                    .overlay(Color.border)
+                HStack(spacing: ClavisTheme.smallSpacing) {
+                    Text("\(position.shares.formatted()) sh")
+                    Text("·")
+                    Text(currency(position.currentValue))
+                    Text("·")
+                    // TODO: backend holdings payload should return real day-change values per position.
+                    Text("Day —")
+                }
+                .font(ClavisTypography.footnote)
+                .foregroundColor(.textSecondary)
+
+                Text(unrealizedText)
+                    .font(ClavisTypography.footnoteEmphasis)
+                    .foregroundColor(unrealizedColor)
             }
+
+            Spacer()
         }
-        .padding(.vertical, 13)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, ClavisTheme.mediumSpacing)
+        .padding(.horizontal, ClavisTheme.smallSpacing)
+        .background(backgroundTint)
     }
 
-    private static func previewSummary(_ summary: String, wordLimit: Int = 15) -> String {
-        let words = summary.split { $0.isWhitespace }
-        guard words.count > wordLimit else { return summary }
-        return words.prefix(wordLimit).joined(separator: " ") + "..."
+    private var backgroundTint: Color {
+        position.riskTrend == .worsening ? .warnSoft : .clear
+    }
+
+    private var unrealizedText: String {
+        let value = currency(position.unrealizedPL)
+        let pct = position.unrealizedPLPercent.map { String(format: "%@%.1f%%", $0 >= 0 ? "+" : "", $0) } ?? "—"
+        return "Unrealized \(value) · \(pct)"
+    }
+
+    private var unrealizedColor: Color {
+        guard let pnl = position.unrealizedPL else { return .textSecondary }
+        return pnl >= 0 ? .good : .bad
+    }
+
+    private func currency(_ value: Double?) -> String {
+        guard let value else { return "—" }
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.maximumFractionDigits = 0
+        return formatter.string(from: NSNumber(value: value)) ?? "—"
     }
 }
 
-// MARK: - Holdings Empty State
+private struct WatchlistRow: View {
+    let item: WatchlistItem
+
+    var body: some View {
+        HStack(alignment: .top, spacing: ClavisTheme.mediumSpacing) {
+            GradeBadge(grade: item.resolvedGrade ?? "—", size: .compact)
+
+            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                HStack(spacing: ClavisTheme.smallSpacing) {
+                    Text(item.resolvedCompanyName ?? "Tracked symbol")
+                        .font(ClavisTypography.bodyEmphasis)
+                        .foregroundColor(.textPrimary)
+                        .lineLimit(1)
+                    Text(item.ticker)
+                        .font(ClavisTypography.footnoteEmphasis)
+                        .foregroundColor(.accentBurnt)
+                }
+
+                HStack(spacing: ClavisTheme.smallSpacing) {
+                    Text(item.price.map { currency($0) } ?? "—")
+                    Text("·")
+                    Text("Watching")
+                }
+                .font(ClavisTypography.footnote)
+                .foregroundColor(.textSecondary)
+            }
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, ClavisTheme.mediumSpacing)
+        .padding(.horizontal, ClavisTheme.smallSpacing)
+    }
+
+    private func currency(_ value: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.maximumFractionDigits = 2
+        return formatter.string(from: NSNumber(value: value)) ?? "—"
+    }
+}
+
+private struct SearchResultRow: View {
+    let result: TickerSearchResult
+    let isWatchlisted: Bool
+
+    var body: some View {
+        HStack(alignment: .top, spacing: ClavisTheme.mediumSpacing) {
+            GradeBadge(grade: result.resolvedGrade ?? "—", size: .compact)
+
+            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                HStack(spacing: ClavisTheme.smallSpacing) {
+                    Text(result.ticker)
+                        .font(ClavisTypography.bodyEmphasis)
+                        .foregroundColor(.accentBurnt)
+                    Text(result.companyName)
+                        .font(ClavisTypography.footnote)
+                        .foregroundColor(.textSecondary)
+                        .lineLimit(1)
+                }
+
+                HStack(spacing: ClavisTheme.smallSpacing) {
+                    Text(result.price.map { currency($0) } ?? "—")
+                        .font(ClavisTypography.footnote)
+                        .foregroundColor(.textSecondary)
+
+                    if !result.isSupported {
+                        SearchTag(text: "Not in tracked universe", foreground: .warn, background: .warnSoft)
+                    }
+
+                    if isWatchlisted {
+                        SearchTag(text: "Watching", foreground: .accentInk, background: .accentBurnt)
+                    }
+                }
+            }
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, ClavisTheme.mediumSpacing)
+    }
+
+    private func currency(_ value: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.maximumFractionDigits = 2
+        return formatter.string(from: NSNumber(value: value)) ?? "—"
+    }
+}
+
+private struct SearchTag: View {
+    let text: String
+    let foreground: Color
+    let background: Color
+
+    var body: some View {
+        Text(text)
+            .font(ClavisTypography.label)
+            .foregroundColor(foreground)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 4)
+            .background(background)
+            .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous))
+    }
+}
 
 struct HoldingsEmptyState: View {
     let onAddPosition: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.largeSpacing) {
-            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                Text("No holdings yet")
-                    .font(ClavisTypography.cardTitle)
+        ClavisStandardCard(fill: .surface) {
+            VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
+                Text("Add your first holding")
+                    .font(ClavisTypography.h2)
                     .foregroundColor(.textPrimary)
-                Text("Add your first holding to start tracking downside risk and portfolio updates.")
+                Text("Start with the positions you track most closely. Clavix will build your morning briefing around them.")
                     .font(ClavisTypography.body)
                     .foregroundColor(.textSecondary)
-
-                ClavisPrimaryButton(title: "Add holding", action: onAddPosition)
+                    .fixedSize(horizontal: false, vertical: true)
+                ClavisPrimaryButton(title: "Add your first holding", action: onAddPosition)
             }
-            .padding(ClavisTheme.cardPadding)
-            .clavisCardStyle()
         }
-        .padding(.horizontal, ClavisTheme.screenPadding)
-        .padding(.vertical, ClavisTheme.largeSpacing)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 }
 
-// MARK: - Backward compat: keep HoldingRow as alias
-typealias HoldingRow = PositionCardRow
-
-// MARK: - Add Position Sheet
-
-struct AddPositionSheet: View {
+private struct HoldingsAddSheet: View {
     @ObservedObject var viewModel: HoldingsViewModel
     @Environment(\.dismiss) private var dismiss
+
     @State private var ticker = ""
     @State private var companyName = ""
     @State private var tickerSuggestions: [TickerSearchResult] = []
     @State private var isSearchingSuggestions = false
+    @State private var tickerError: String?
     @State private var isTickerSupported = false
-    @State private var supportMessage: String?
     @State private var shares = ""
-    @State private var purchasePrice = ""
-    @State private var archetype: Archetype = .growth
-    @State private var showError = false
-    @State private var errorMessage = ""
+    @State private var costBasis = ""
+    @State private var purchaseDate = Date()
     @State private var resolveTickerTask: Task<Void, Never>?
 
-    private var isFormValid: Bool {
-        isTickerSupported && !shares.isEmpty && Double(shares) != nil && !purchasePrice.isEmpty && Double(purchasePrice) != nil
+    private var isValid: Bool {
+        isTickerSupported && (Double(shares) ?? 0) > 0 && (Double(costBasis) ?? 0) >= 0
     }
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("Position") {
-                    TextField("Ticker (e.g., AAPL)", text: $ticker)
-                        .textCase(.uppercase)
-                        .textInputAutocapitalization(.characters)
-                        .autocorrectionDisabled()
-                        .onChange(of: ticker) { newValue in
-                            resolveTickerTask?.cancel()
-                            resolveTickerTask = Task { await resolveTicker(newValue) }
+            ScrollView {
+                VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
+                    fieldCard(title: "Ticker") {
+                        TextField("Search ticker", text: $ticker)
+                            .font(ClavisTypography.body)
+                            .foregroundColor(.textPrimary)
+                            .textInputAutocapitalization(.characters)
+                            .autocorrectionDisabled()
+                            .onChange(of: ticker) { newValue in
+                                resolveTickerTask?.cancel()
+                                resolveTickerTask = Task { await resolveTicker(newValue) }
+                            }
+
+                        if isSearchingSuggestions {
+                            ProgressView()
+                                .tint(.textPrimary)
                         }
 
-                    if isSearchingSuggestions {
-                        ProgressView()
-                    }
+                        if !companyName.isEmpty {
+                            Text(companyName)
+                                .font(ClavisTypography.footnote)
+                                .foregroundColor(.textSecondary)
+                        }
 
-                    if !companyName.isEmpty {
-                        Text(companyName)
-                            .font(ClavisTypography.footnote)
-                            .foregroundColor(.textSecondary)
-                    }
-
-                    if let supportMessage {
-                        Text(supportMessage)
-                            .font(ClavisTypography.footnote)
-                            .foregroundColor(.riskF)
+                        if let tickerError {
+                            Text(tickerError)
+                                .font(ClavisTypography.footnote)
+                                .foregroundColor(.bad)
+                        }
                     }
 
                     if !tickerSuggestions.isEmpty {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Top matches")
-                                .font(ClavisTypography.label)
-                                .foregroundColor(.textSecondary)
-
-                            ForEach(Array(tickerSuggestions.prefix(3)), id: \.ticker) { suggestion in
-                                Button {
-                                    resolveTickerTask?.cancel()
-                                    ticker = suggestion.ticker
-                                    companyName = suggestion.resolvedCompanyName ?? ""
-                                    tickerSuggestions = []
-                                    supportMessage = nil
-                                    isTickerSupported = suggestion.isSupported
-                                } label: {
-                                    HStack(spacing: 10) {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(suggestion.ticker)
-                                                .font(ClavisTypography.bodyEmphasis)
-                                                .foregroundColor(.textPrimary)
-                                            Text(suggestion.resolvedCompanyName ?? "")
-                                                .font(ClavisTypography.footnote)
-                                                .foregroundColor(.textSecondary)
-                                        }
-
-                                        Spacer()
-
-                                        GradeBadge(grade: suggestion.resolvedGrade ?? "—", size: .compact)
+                        ClavisStandardCard(fill: .surface) {
+                            VStack(spacing: 0) {
+                                ForEach(Array(tickerSuggestions.enumerated()), id: \.element.id) { index, suggestion in
+                                    Button(action: { applySuggestion(suggestion) }) {
+                                        SearchResultRow(result: suggestion, isWatchlisted: false)
                                     }
-                                    .padding(.vertical, 8)
+                                    .buttonStyle(.plain)
+
+                                    if index < tickerSuggestions.count - 1 {
+                                        Divider().overlay(Color.border)
+                                    }
                                 }
-                                .buttonStyle(.plain)
                             }
                         }
                     }
 
-                    TextField("Shares", text: $shares)
-                        .keyboardType(.decimalPad)
-
-                    TextField("Purchase Price", text: $purchasePrice)
-                        .keyboardType(.decimalPad)
-                }
-
-                Section("Archetype") {
-                    Picker("Archetype", selection: $archetype) {
-                        ForEach(Archetype.allCases, id: \.self) { arch in
-                            Text(arch.displayName).tag(arch)
-                        }
+                    fieldCard(title: "Shares") {
+                        TextField("0", text: $shares)
+                            .font(ClavisTypography.body)
+                            .foregroundColor(.textPrimary)
+                            .keyboardType(.decimalPad)
                     }
-                    .pickerStyle(.menu)
+
+                    fieldCard(title: "Cost basis per share") {
+                        TextField("0", text: $costBasis)
+                            .font(ClavisTypography.body)
+                            .foregroundColor(.textPrimary)
+                            .keyboardType(.decimalPad)
+                    }
+
+                    fieldCard(title: "Purchase date") {
+                        DatePicker("Purchase date", selection: $purchaseDate, displayedComponents: .date)
+                            .datePickerStyle(.compact)
+                            .labelsHidden()
+                            .tint(.accentBurnt)
+                        // TODO: backend add-holding endpoint does not yet accept purchase_date.
+                        Text("Purchase date will be sent once the backend route supports it.")
+                            .font(ClavisTypography.footnote)
+                            .foregroundColor(.textSecondary)
+                    }
                 }
+                .padding(.horizontal, ClavisTheme.screenPadding)
+                .padding(.vertical, ClavisTheme.sectionSpacing)
             }
-            .navigationTitle("Add Position")
+            .background(ClavisAtmosphereBackground())
+            .navigationTitle("Add Holding")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
+                        .foregroundColor(.textSecondary)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Add") {
-                        Task { await addPosition() }
+                        Task { await submit() }
                     }
-                    .disabled(!isFormValid)
+                    .foregroundColor(isValid ? .accentBurnt : .textTertiary)
+                    .disabled(!isValid)
                 }
-            }
-            .alert("Error", isPresented: $showError) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text(errorMessage)
             }
         }
     }
 
-    private func addPosition() async {
-        guard let sharesVal = Double(shares), let priceVal = Double(purchasePrice) else {
-            errorMessage = "Invalid number format"
-            showError = true
-            return
-        }
-
-        await viewModel.addHolding(
-            ticker: ticker.uppercased(),
-            shares: sharesVal,
-            purchasePrice: priceVal,
-            archetype: archetype
-        )
-
-        if viewModel.errorMessage == nil {
-            dismiss()
-        } else {
-            errorMessage = viewModel.errorMessage ?? "Unable to add holding."
-            showError = true
+    private func fieldCard<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+        ClavisStandardCard(fill: .surface) {
+            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                Text(title)
+                    .font(ClavisTypography.label)
+                    .foregroundColor(.textSecondary)
+                content()
+            }
         }
     }
 
     private func resolveTicker(_ query: String) async {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.count >= 1 else {
-            companyName = ""
+        guard !trimmed.isEmpty else {
             tickerSuggestions = []
-            supportMessage = nil
+            tickerError = nil
+            companyName = ""
             isTickerSupported = false
-            isSearchingSuggestions = false
             return
         }
 
         isSearchingSuggestions = true
-
         do {
-            // Debounce: wait before hitting the network, matching the main search behaviour.
             try await Task.sleep(nanoseconds: 200_000_000)
-            guard !Task.isCancelled else { isSearchingSuggestions = false; return }
-
-            let results = try await viewModel.searchTickers(query: trimmed, limit: 10)
-            guard !Task.isCancelled else { isSearchingSuggestions = false; return }
+            guard !Task.isCancelled else { return }
+            let results = try await viewModel.searchTickers(query: trimmed, limit: 8)
+            guard !Task.isCancelled else { return }
 
             let exactMatch = results.first { $0.ticker.caseInsensitiveCompare(trimmed) == .orderedSame }
-
             if let exactMatch, exactMatch.isSupported {
-                // Exact supported match — resolve immediately, no need to show suggestions.
-                companyName = exactMatch.resolvedCompanyName ?? ""
+                applySuggestion(exactMatch)
                 tickerSuggestions = []
-                supportMessage = nil
-                isTickerSupported = true
             } else {
+                tickerSuggestions = results
                 companyName = ""
                 isTickerSupported = false
-                tickerSuggestions = Array(results.filter { $0.isSupported }.prefix(3))
-                supportMessage = (results.isEmpty || exactMatch?.isSupported == false)
-                    ? "This ticker is not supported yet."
-                    : nil
+                tickerError = results.isEmpty ? "Ticker not found" : nil
             }
         } catch is CancellationError {
-            // A newer keystroke cancelled this task — leave state as-is.
+            return
         } catch {
-            companyName = ""
             tickerSuggestions = []
-            supportMessage = "Unable to check ticker support right now."
+            companyName = ""
             isTickerSupported = false
+            tickerError = "Unable to validate ticker right now."
         }
-
         isSearchingSuggestions = false
     }
-}
 
-// MARK: - Add Position Progress View
+    private func applySuggestion(_ suggestion: TickerSearchResult) {
+        ticker = suggestion.ticker
+        companyName = suggestion.resolvedCompanyName ?? suggestion.companyName
+        isTickerSupported = suggestion.isSupported
+        tickerError = suggestion.isSupported ? nil : "Ticker not found"
+    }
+
+    private func submit() async {
+        guard let sharesValue = Double(shares), let costBasisValue = Double(costBasis) else { return }
+        await viewModel.addHolding(ticker: ticker.uppercased(), shares: sharesValue, purchasePrice: costBasisValue)
+        if viewModel.errorMessage == nil {
+            dismiss()
+        }
+    }
+}
 
 struct AddPositionProgressView: View {
     @ObservedObject var viewModel: HoldingsViewModel
@@ -1090,155 +772,110 @@ struct AddPositionProgressView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 32) {
+            VStack(spacing: ClavisTheme.extraLargeSpacing) {
                 Spacer()
 
-                VStack(spacing: 20) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous)
-                            .fill(Color.surface)
-                            .frame(width: 80, height: 80)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous)
-                                    .stroke(Color.border, lineWidth: 1)
-                            )
-
+                ClavisStandardCard(fill: .surface) {
+                    VStack(spacing: ClavisTheme.mediumSpacing) {
                         Image(systemName: viewModel.progressValue >= 1.0 ? "checkmark" : "chart.line.uptrend.xyaxis")
                             .font(.system(size: 28, weight: .medium))
-                            .foregroundColor(viewModel.progressValue >= 1.0 ? .riskA : .textSecondary)
-                            .animation(.linear(duration: 0.3), value: viewModel.progressValue)
-                    }
+                            .foregroundColor(iconColor)
 
-                    VStack(spacing: 6) {
-                        Text(primaryProgressMessage)
-                            .font(ClavisTypography.h2)
-                            .foregroundColor(.textPrimary)
-                            .multilineTextAlignment(.center)
+                        VStack(spacing: ClavisTheme.smallSpacing) {
+                            Text(primaryProgressMessage)
+                                .font(ClavisTypography.h2)
+                                .foregroundColor(.textPrimary)
+                                .multilineTextAlignment(.center)
 
-                        Text(progressDescription)
-                            .font(ClavisTypography.body)
-                            .foregroundColor(.textSecondary)
-                            .multilineTextAlignment(.center)
-                    }
-
-                    // Progress bar — flat, no capsule
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            Rectangle()
-                                .fill(Color.border)
-                                .frame(height: 4)
-                            Rectangle()
-                                .fill(ClavisGradeStyle.riskColor(for: progressGrade))
-                                .frame(width: geo.size.width * CGFloat(viewModel.progressValue), height: 4)
-                                .animation(.spring(response: 0.5, dampingFraction: 0.82), value: viewModel.progressValue)
+                            Text(viewModel.progressMessage)
+                                .font(ClavisTypography.body)
+                                .foregroundColor(.textSecondary)
+                                .multilineTextAlignment(.center)
                         }
-                    }
-                    .frame(height: 4)
 
-                    Text(progressStageText)
-                        .font(ClavisTypography.label)
-                        .kerning(0.88)
-                        .foregroundColor(.textSecondary)
-                        .multilineTextAlignment(.center)
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                Rectangle()
+                                    .fill(Color.border)
+                                    .frame(height: 4)
+                                Rectangle()
+                                    .fill(iconColor)
+                                    .frame(width: geo.size.width * CGFloat(viewModel.progressValue), height: 4)
+                            }
+                        }
+                        .frame(height: 4)
+
+                        Text(progressStageText)
+                            .font(ClavisTypography.label)
+                            .foregroundColor(.textSecondary)
+                    }
                 }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 28)
-                .background(Color.surface)
-                .overlay(
-                    RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous)
-                        .stroke(Color.border, lineWidth: 1)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous))
 
                 Spacer()
             }
-            .padding(24)
-            .background(Color.backgroundPrimary.ignoresSafeArea())
-            .navigationTitle(viewModel.pendingTicker ?? "New Position")
+            .padding(ClavisTheme.screenPadding)
+            .background(ClavisAtmosphereBackground())
+            .navigationTitle(viewModel.pendingTicker ?? "New Holding")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
+                        .foregroundColor(.textSecondary)
                 }
             }
         }
     }
 
+    private var iconColor: Color {
+        if viewModel.progressValue >= 1.0 { return .good }
+        if viewModel.progressMessage.lowercased().contains("failed") { return .bad }
+        if viewModel.progressMessage.lowercased().contains("limited") { return .warn }
+        return .accentBurnt
+    }
+
     private var primaryProgressMessage: String {
-        if viewModel.progressValue >= 1.0 {
-            let lower = viewModel.progressMessage.lowercased()
-            if lower.contains("failed") || lower.contains("limited") {
-                return viewModel.progressMessage
-            }
-            return "Analysis complete"
-        }
-        return viewModel.progressMessage
-    }
-
-    private var progressDescription: String {
-        if let pendingTicker = viewModel.pendingTicker {
-            let lower = viewModel.progressMessage.lowercased()
-            if lower.contains("failed") || lower.contains("limited") {
-                return viewModel.progressMessage
-            }
-            if viewModel.progressValue >= 1.0 {
-                return "\(pendingTicker) now has the latest available analysis."
-            }
-            return viewModel.progressMessage
-        }
-        return "Preparing your new holding."
-    }
-
-    private var progressGrade: String {
-        return "Analyzing\u{2026}"
+        if viewModel.progressValue >= 1.0 { return "Holding ready" }
+        return "Adding \(viewModel.pendingTicker ?? "holding")"
     }
 
     private var progressStageText: String {
         if viewModel.progressValue >= 1.0 { return "POSITION READY" }
-        switch viewModel.progressMessage {
-        case let m where m.contains("Adding"):      return "CREATING POSITION"
-        case let m where m.contains("limited"):     return "LIMITED DATA"
-        case let m where m.contains("running"):     return "ANALYSIS IN PROGRESS"
-        case let m where m.contains("ready"):       return "POSITION READY"
-        case let m where m.contains("failed"):      return "ANALYSIS UNAVAILABLE"
-        default:                                     return "UPDATING POSITION"
-        }
+        return viewModel.activeRun?.currentStageMessage?.uppercased() ?? "ANALYSIS IN PROGRESS"
     }
 }
 
-struct WatchlistCardRow: View {
-    let item: WatchlistItem
-    var showsDivider: Bool = false
+private struct HoldingsUpgradeSheet: View {
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(alignment: .center, spacing: 12) {
-                GradeBadge(grade: item.resolvedGrade ?? "—")
-
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(item.ticker)
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(.textPrimary)
-
-                    Text(item.resolvedCompanyName ?? "Tracked symbol")
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.textSecondary)
-                        .lineLimit(2)
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
+                    ClavisStandardCard(fill: .surface) {
+                        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
+                            Text("Free vs Pro")
+                                .font(ClavisTypography.h2)
+                                .foregroundColor(.textPrimary)
+                            Text("Free includes up to 3 holdings. Upgrade to Pro for unlimited holdings, CSV import, and brokerage sync.")
+                                .font(ClavisTypography.body)
+                                .foregroundColor(.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            ClavisPrimaryButton(title: "Start 14-day trial", action: {})
+                        }
+                    }
                 }
-
-                Spacer(minLength: 12)
-
-                Text(item.resolvedSafetyScore.map { "\(Int($0.rounded()))" } ?? "--")
-                    .font(.system(size: 15, weight: .semibold, design: .monospaced))
-                    .foregroundColor(.textPrimary)
-                    .monospacedDigit()
+                .padding(.horizontal, ClavisTheme.screenPadding)
+                .padding(.vertical, ClavisTheme.sectionSpacing)
             }
-
-            if showsDivider {
-                Divider()
-                    .overlay(Color.border)
+            .background(ClavisAtmosphereBackground())
+            .navigationTitle("Upgrade")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                        .foregroundColor(.textSecondary)
+                }
             }
         }
-        .padding(.vertical, 10)
     }
 }

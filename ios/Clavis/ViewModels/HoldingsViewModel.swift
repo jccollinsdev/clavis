@@ -18,6 +18,7 @@ class HoldingsViewModel: ObservableObject {
     @Published var createdPositionId: String?
     @Published var lastRefreshedAt: Date?
     @Published var brokerageLastSyncedAt: Date?
+    @Published var subscriptionTier: String = "free"
 
     private let api = APIService.shared
     private var analysisTask: Task<Void, Never>?
@@ -36,9 +37,12 @@ class HoldingsViewModel: ObservableObject {
         do {
             async let fetchedHoldings = api.fetchHoldings()
             async let fetchedWatchlists = api.fetchWatchlists()
+            async let fetchedPreferences = api.fetchPreferences()
             holdings = try await fetchedHoldings
             let watchlists = try await fetchedWatchlists
+            let preferences = try await fetchedPreferences
             watchlistItems = watchlists.first?.items ?? []
+            subscriptionTier = preferences.subscriptionTier?.lowercased() ?? "free"
             lastRefreshedAt = Date()
             if let brokerageStatus = try? await api.fetchBrokerageStatus() {
                 applyBrokerageStatus(brokerageStatus)
@@ -75,7 +79,7 @@ class HoldingsViewModel: ObservableObject {
         }
     }
 
-    func addHolding(ticker: String, shares: Double, purchasePrice: Double, archetype: Archetype) async {
+    func addHolding(ticker: String, shares: Double, purchasePrice: Double) async {
         errorMessage = nil
         showError = false
         showAddSheet = false
@@ -89,8 +93,7 @@ class HoldingsViewModel: ObservableObject {
             let workflow = try await api.createHolding(
                 ticker: ticker.uppercased(),
                 shares: shares,
-                purchasePrice: purchasePrice,
-                archetype: archetype
+                purchasePrice: purchasePrice
             )
             if let createdPosition = workflow.position {
                 createdPositionId = createdPosition.id

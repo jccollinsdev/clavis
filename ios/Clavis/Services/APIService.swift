@@ -128,7 +128,6 @@ class APIService {
         let ticker: String
         let shares: Double
         let purchase_price: Double
-        let archetype: String
     }
 
     struct HoldingWorkflowResponse: Codable {
@@ -183,8 +182,8 @@ class APIService {
         return try decoder.decode(DashboardResponse.self, from: data)
     }
 
-    func createHolding(ticker: String, shares: Double, purchasePrice: Double, archetype: Archetype) async throws -> HoldingWorkflowResponse {
-        let req = CreateHoldingRequest(ticker: ticker, shares: shares, purchase_price: purchasePrice, archetype: archetype.rawValue)
+    func createHolding(ticker: String, shares: Double, purchasePrice: Double) async throws -> HoldingWorkflowResponse {
+        let req = CreateHoldingRequest(ticker: ticker, shares: shares, purchase_price: purchasePrice)
         let body = try JSONEncoder().encode(req)
         let data = try await makeRequest(path: "/holdings", method: "POST", body: body)
         return try decoder.decode(HoldingWorkflowResponse.self, from: data)

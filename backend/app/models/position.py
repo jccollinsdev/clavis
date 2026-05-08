@@ -9,7 +9,7 @@ class PositionBase(BaseModel):
     ticker: str
     shares: float
     purchase_price: float
-    archetype: str  # growth | value | cyclical | defensive | small_cap
+    archetype: Optional[str] = None
 
 
 class PositionCreate(PositionBase):

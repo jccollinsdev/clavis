@@ -765,7 +765,7 @@ private struct TickerAddHoldingSheet: View {
                     }
 
                     ClavisStandardCard(fill: .surfaceElevated) {
-                        // TODO: backend still requires archetype for holding creation; remove once the add-holding API matches V2.
+                        // TODO: backend add-holding contract does not yet accept purchase_date; send it once supported.
                         Text("The purchase date is collected for the V2 flow and will be sent once the backend add-holding contract is updated.")
                             .font(ClavisTypography.footnote)
                             .foregroundColor(.textSecondary)
@@ -818,8 +818,7 @@ private struct TickerAddHoldingSheet: View {
             _ = try await APIService.shared.createHolding(
                 ticker: ticker,
                 shares: sharesValue,
-                purchasePrice: costBasisValue,
-                archetype: .growth
+                purchasePrice: costBasisValue
             )
             onComplete()
         } catch {

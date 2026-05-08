@@ -86,7 +86,7 @@ async def create_holding(
         )
 
     data = {
-        **position.model_dump(),
+        **position.model_dump(exclude_none=True),
         "ticker": normalized_ticker,
         "user_id": user_id,
         "current_price": None,
