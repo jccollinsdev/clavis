@@ -4,7 +4,7 @@ import SwiftUI
 enum SummaryLength: String, CaseIterable {
     case brief = "Brief"
     case standard = "Standard"
-    case full = "Full"
+    case verbose = "Verbose"
 }
 
 @MainActor
@@ -21,6 +21,8 @@ class SettingsViewModel: ObservableObject {
     @Published var quietHoursStart = Calendar.current.date(from: DateComponents(hour: 22, minute: 0)) ?? Date()
     @Published var quietHoursEnd = Calendar.current.date(from: DateComponents(hour: 7, minute: 0)) ?? Date()
     @Published var userEmail: String = "Loading..."
+    @Published var userName: String = ""
+    @Published var subscriptionTier: String = "free"
     @Published var isLoading = false
     @Published var accountMessage: String?
     @Published var isExportingAccount = false
@@ -51,6 +53,8 @@ class SettingsViewModel: ObservableObject {
             if let enabled = prefs.notificationsEnabled {
                 notificationsEnabled = enabled
             }
+            userName = prefs.name ?? ""
+            subscriptionTier = prefs.subscriptionTier?.lowercased() ?? "free"
             if let sl = prefs.summaryLength, let length = SummaryLength(rawValue: sl.capitalized) {
                 summaryLength = length
             }

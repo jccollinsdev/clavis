@@ -6,70 +6,36 @@ struct SettingsView: View {
     @StateObject private var brokerageViewModel = BrokerageViewModel()
     @State private var hasLoaded = false
     @State private var showDeleteAccountConfirmation = false
+    @State private var showUpgradeSheet = false
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    if NetworkStatusMonitor.shared.isOffline {
-                        OfflineStatusBanner()
-                    }
-
-                    DigestSettingsGroup(viewModel: viewModel)
-
-                    BrokerageSettingsGroup(viewModel: brokerageViewModel)
-
-                    AlertsSettingsGroup(viewModel: viewModel)
-
-                    NotificationSettingsGroup(viewModel: viewModel)
-
-                    AccountSettingsGroup(
-                        email: viewModel.userEmail,
-                        planLabel: planLabel,
-                        accountMessage: viewModel.accountMessage,
-                        isExporting: viewModel.isExportingAccount,
-                        isDeleting: viewModel.isDeletingAccount,
-                        onExport: { Task { await viewModel.exportAccount() } },
-                        onDelete: { showDeleteAccountConfirmation = true }
-                    )
-
-                    AboutSection()
-
-                    SettingsDisclaimerCard()
-
-                    SignOutGroup {
-                        Task { await authViewModel.signOut() }
-                    }
+                VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
+                    accountHeader
+                    digestSection
+                    alertsSection
+                    quietHoursSection
+                    brokerageSection
+                    dataSection
+                    legalSection
+                    methodologyLinks
+                    versionFooter
                 }
                 .padding(.horizontal, ClavisTheme.screenPadding)
-                .padding(.top, 0)
-                .padding(.bottom, ClavisTheme.largeSpacing)
-            }
-            .safeAreaInset(edge: .top, spacing: 0) {
-                ClavixPageHeader(title: "Settings")
-                    .padding(.horizontal, ClavisTheme.screenPadding)
-                    .padding(.top, 8)
-                    .padding(.bottom, 6)
-                    .background(
-                        Color.backgroundPrimary.opacity(0.9)
-                            .background(.ultraThinMaterial)
-                            .ignoresSafeArea(edges: .top)
-                    )
-                    .overlay(alignment: .bottom) {
-                        Rectangle()
-                            .fill(Color.border.opacity(0.5))
-                            .frame(height: 0.5)
-                    }
+                .padding(.top, ClavisTheme.sectionSpacing)
+                .padding(.bottom, ClavisTheme.extraLargeSpacing)
             }
             .background(ClavisAtmosphereBackground())
+            .safeAreaInset(edge: .top, spacing: 0) {
+                topHeader
+            }
             .toolbar(.hidden, for: .navigationBar)
-            .onAppear {
+            .task {
                 guard !hasLoaded else { return }
                 hasLoaded = true
-                Task {
-                    await viewModel.load()
-                    await brokerageViewModel.loadStatus()
-                }
+                await viewModel.load()
+                await brokerageViewModel.loadStatus()
             }
             .sheet(
                 isPresented: Binding(
@@ -80,6 +46,9 @@ struct SettingsView: View {
                 if let url = brokerageViewModel.presentedURL {
                     SafariView(url: url)
                 }
+            }
+            .sheet(isPresented: $showUpgradeSheet) {
+                SettingsUpgradeSheet()
             }
             .onReceive(NotificationCenter.default.publisher(for: .snapTradeCallbackReceived)) { notification in
                 guard let url = notification.object as? URL else { return }
@@ -100,549 +69,326 @@ struct SettingsView: View {
         }
     }
 
-    private var planLabel: String? {
-        switch authViewModel.subscriptionTier.lowercased() {
-        case "pro":
-            return "Clavix Pro"
-        case "admin":
-            return "Admin"
-        default:
-            return nil
-        }
-    }
-}
-
-struct BrokerageSettingsGroup: View {
-    @ObservedObject var viewModel: BrokerageViewModel
-
-    var body: some View {
-        SettingsGroupCard(
-            title: "Brokerage",
-            footnote: "Brokerage connections are read-only. Clavix imports holdings and lets you choose between manual and automatic sync."
-        ) {
-            if let infoMessage = viewModel.infoMessage {
-                SettingsMessageRow(message: infoMessage, color: .informational)
-            }
-
-            if let errorMessage = viewModel.errorMessage {
-                SettingsMessageRow(message: errorMessage, color: .riskF)
-            }
-
-            SettingsStaticRow(
-                label: "Status",
-                value: viewModel.isConnected ? "Connected" : "Not connected"
+    private var topHeader: some View {
+        ClavixPageHeader(title: "Settings")
+            .padding(.horizontal, ClavisTheme.screenPadding)
+            .padding(.top, ClavisTheme.smallSpacing)
+            .padding(.bottom, 6)
+            .background(
+                Color.backgroundPrimary.opacity(0.9)
+                    .background(.ultraThinMaterial)
+                    .ignoresSafeArea(edges: .top)
             )
-
-            if let connection = viewModel.primaryConnection {
-                SettingsStaticRow(
-                    label: "Institution",
-                    value: connection.institutionName ?? "Connected brokerage"
-                )
+            .overlay(alignment: .bottom) {
+                Rectangle()
+                    .fill(Color.border.opacity(0.5))
+                    .frame(height: 0.5)
             }
+    }
 
-            if viewModel.isConnected {
-                SettingsStaticRow(label: "Sync mode", value: viewModel.autoSyncEnabled ? "Automatic" : "Manual")
-
-                if let lastSyncAt = viewModel.status?.lastSyncAt {
-                    SettingsStaticRow(
-                        label: "Last sync",
-                        value: lastSyncAt.formatted(date: .abbreviated, time: .shortened)
-                    )
-                }
-
-                if let firstAccount = viewModel.status?.accounts.first {
-                    SettingsStaticRow(
-                        label: "Account",
-                        value: [firstAccount.name, firstAccount.numberMasked].compactMap { $0 }.joined(separator: " · ")
-                    )
-                }
-
-                SettingsActionRow(
-                    title: viewModel.autoSyncEnabled ? "Use manual sync" : "Use automatic sync",
-                    tint: .informational
-                ) {
-                    Task { await viewModel.setAutoSyncEnabled(!viewModel.autoSyncEnabled) }
-                }
-
-                if viewModel.primaryConnection?.disabled == true {
-                    SettingsActionRow(title: "Reconnect brokerage", tint: .informational) {
-                        Task { await viewModel.startConnect(reconnectConnectionId: viewModel.primaryConnection?.id) }
+    private var accountHeader: some View {
+        ClavisStandardCard(fill: .surface) {
+            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                Text(viewModel.userName.isEmpty ? viewModel.userEmail : viewModel.userName)
+                    .font(ClavisTypography.cardTitle)
+                    .foregroundColor(.textPrimary)
+                Text(viewModel.userEmail)
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textSecondary)
+                HStack(spacing: ClavisTheme.smallSpacing) {
+                    tierBadge
+                    Spacer()
+                    Button("Manage subscription") {
+                        if isFreeTier {
+                            showUpgradeSheet = true
+                        }
                     }
-                }
-
-                SettingsActionRow(
-                    title: viewModel.isSyncing ? "Syncing holdings..." : "Sync holdings now",
-                    tint: .informational,
-                    disabled: viewModel.isSyncing
-                ) {
-                    Task { await viewModel.syncNow(refreshRemote: true) }
-                }
-
-                SettingsActionRow(
-                    title: viewModel.isDisconnecting ? "Disconnecting..." : "Disconnect brokerage",
-                    tint: .riskF,
-                    disabled: viewModel.isDisconnecting,
-                    last: true
-                ) {
-                    Task { await viewModel.disconnect() }
-                }
-            } else {
-                SettingsActionRow(
-                    title: viewModel.isLoading ? "Loading..." : "Connect brokerage",
-                    tint: .informational,
-                    disabled: viewModel.isLoading,
-                    last: true
-                ) {
-                    Task { await viewModel.startConnect() }
+                    .font(ClavisTypography.footnoteEmphasis)
+                    .foregroundColor(.accentBurnt)
+                    .buttonStyle(.plain)
                 }
             }
         }
     }
-}
 
-struct DigestSettingsGroup: View {
-    @ObservedObject var viewModel: SettingsViewModel
-
-    var body: some View {
-        SettingsGroupCard(
-            title: "Rating",
-            footnote: "Morning rating is generated from overnight data. Changes save automatically."
-        ) {
-            SettingsValueRow(label: "Rating time") {
-                DatePicker("", selection: $viewModel.digestTime, displayedComponents: .hourAndMinute)
+    private var digestSection: some View {
+        settingsGroup(title: "Digest preferences") {
+            settingsRow(title: "Delivery time") {
+                DatePicker("Delivery time", selection: $viewModel.digestTime, displayedComponents: .hourAndMinute)
                     .labelsHidden()
+                    .tint(.accentBurnt)
                     .onChange(of: viewModel.digestTime) { _ in
                         Task { await viewModel.saveDigestTime() }
                     }
             }
 
-            SettingsToggleListRow(
-                label: "Weekday only",
-                subtitle: "Skip weekend rating delivery",
-                isOn: $viewModel.weekdayOnly,
-                onChange: { Task { await viewModel.saveWeekdayOnly() } },
-                last: true
-            )
-        }
-    }
-}
-
-struct AlertsSettingsGroup: View {
-    @ObservedObject var viewModel: SettingsViewModel
-
-    var body: some View {
-        SettingsGroupCard(
-            title: "Alerts",
-            footnote: "Alert rows cover grade changes, major events, portfolio risk shifts, and large price moves."
-        ) {
-            SettingsToggleListRow(
-                label: "Grade changes",
-                subtitle: "Any upgrade or downgrade",
-                isOn: $viewModel.alertsGradeChanges,
-                onChange: { Task { await viewModel.saveAlertSettings() } }
-            )
-
-            SettingsToggleListRow(
-                label: "Major events",
-                subtitle: "Holdings only",
-                isOn: $viewModel.alertsMajorEvents,
-                onChange: { Task { await viewModel.saveAlertSettings() } }
-            )
-
-            SettingsToggleListRow(
-                label: "Portfolio risk changes",
-                subtitle: "Composite portfolio score moves",
-                isOn: $viewModel.alertsPortfolioRisk,
-                onChange: { Task { await viewModel.saveAlertSettings() } }
-            )
-
-            SettingsToggleListRow(
-                label: "Large price moves",
-                subtitle: "Significant daily moves in your holdings",
-                isOn: $viewModel.alertsLargePriceMoves,
-                onChange: { Task { await viewModel.saveAlertSettings() } }
-            )
-
-            SettingsToggleListRow(
-                label: "Quiet hours",
-                subtitle: "Suppress alerts overnight",
-                isOn: $viewModel.quietHoursEnabled,
-                onChange: { Task { await viewModel.saveAlertSettings() } },
-                last: viewModel.quietHoursEnabled == false
-            )
-
-            if viewModel.quietHoursEnabled {
-                SettingsValueRow(label: "From") {
-                    DatePicker("", selection: $viewModel.quietHoursStart, displayedComponents: .hourAndMinute)
-                        .labelsHidden()
-                        .onChange(of: viewModel.quietHoursStart) { _ in
-                            Task { await viewModel.saveAlertSettings() }
-                        }
-                }
-
-                SettingsValueRow(label: "To", last: true) {
-                    DatePicker("", selection: $viewModel.quietHoursEnd, displayedComponents: .hourAndMinute)
-                        .labelsHidden()
-                        .onChange(of: viewModel.quietHoursEnd) { _ in
-                            Task { await viewModel.saveAlertSettings() }
-                        }
-                }
-            }
-        }
-    }
-}
-
-struct NotificationSettingsGroup: View {
-    @ObservedObject var viewModel: SettingsViewModel
-
-    var body: some View {
-        SettingsGroupCard(title: "Notifications") {
-            SettingsToggleListRow(
-                label: "Push notifications",
-                subtitle: "Controls whether the app sends rating and alert pushes",
-                isOn: $viewModel.notificationsEnabled,
-                onChange: { Task { await viewModel.saveNotifications() } },
-                last: true
-            )
-        }
-    }
-}
-
-struct AccountSettingsGroup: View {
-    let email: String
-    let planLabel: String?
-    let accountMessage: String?
-    let isExporting: Bool
-    let isDeleting: Bool
-    let onExport: () -> Void
-    let onDelete: () -> Void
-
-    var body: some View {
-        SettingsGroupCard(title: "Account") {
-            SettingsStaticRow(label: "Email", value: email)
-
-            if let planLabel {
-                SettingsStaticRow(label: "Plan", value: planLabel)
-            }
-
-            if let accountMessage {
-                SettingsMessageRow(message: accountMessage, color: .informational)
-            }
-
-            SettingsActionRow(
-                title: isExporting ? "Exporting..." : "Export my data",
-                tint: .informational,
-                disabled: isExporting
-            ) {
-                onExport()
-            }
-
-            SettingsActionRow(
-                title: isDeleting ? "Deleting..." : "Delete account",
-                tint: .riskF,
-                disabled: isDeleting,
-                last: true
-            ) {
-                onDelete()
-            }
-        }
-    }
-}
-
-struct SettingsGroupCard<Content: View>: View {
-    let title: String?
-    let footnote: String?
-    @ViewBuilder let content: Content
-
-    init(title: String? = nil, footnote: String? = nil, @ViewBuilder content: () -> Content) {
-        self.title = title
-        self.footnote = footnote
-        self.content = content()
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let title, !title.isEmpty {
-                CX2SectionLabel(text: title)
-                    .foregroundColor(.textSecondary)
-                    .padding(.leading, 2)
-            }
-
-            ClavisStandardCard(fill: .surface, padding: 14) {
-                content
-            }
-
-            if let footnote, !footnote.isEmpty {
-                Text(footnote)
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.textSecondary)
-                    .padding(.leading, 2)
-            }
-        }
-    }
-}
-
-struct SettingsToggleListRow: View {
-    let label: String
-    let subtitle: String?
-    @Binding var isOn: Bool
-    let onChange: () -> Void
-    var last: Bool = false
-
-    var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(label)
-                    .font(ClavisTypography.body)
+            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                Text("Length")
+                    .font(ClavisTypography.bodyEmphasis)
                     .foregroundColor(.textPrimary)
-
-                if let subtitle, !subtitle.isEmpty {
-                    Text(subtitle)
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.textSecondary)
-                }
-            }
-
-            Spacer()
-
-            Button {
-                isOn.toggle()
-                onChange()
-            } label: {
-                CX2Toggle(isOn: $isOn)
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.vertical, 13)
-        .overlay(alignment: .bottom) {
-            if !last {
-                Rectangle()
-                    .fill(Color.border)
-                    .frame(height: 1)
-            }
-        }
-    }
-}
-
-struct SettingsValueRow<ValueView: View>: View {
-    let label: String
-    var last: Bool = false
-    @ViewBuilder let valueView: ValueView
-
-    init(label: String, last: Bool = false, @ViewBuilder valueView: () -> ValueView) {
-        self.label = label
-        self.last = last
-        self.valueView = valueView()
-    }
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Text(label)
-                .font(ClavisTypography.body)
-                .foregroundColor(.textPrimary)
-
-            Spacer()
-
-            valueView
-        }
-        .padding(.vertical, 13)
-        .overlay(alignment: .bottom) {
-            if !last {
-                Rectangle()
-                    .fill(Color.border)
-                    .frame(height: 1)
-            }
-        }
-    }
-}
-
-struct SettingsStaticRow: View {
-    let label: String
-    let value: String
-    var last: Bool = false
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Text(label)
-                .font(ClavisTypography.body)
-                .foregroundColor(.textPrimary)
-
-            Spacer()
-
-            Text(value)
-                .font(.system(size: 14, weight: .regular))
-                .foregroundColor(.textSecondary)
-        }
-        .padding(.vertical, 13)
-        .overlay(alignment: .bottom) {
-            if !last {
-                Rectangle()
-                    .fill(Color.border)
-                    .frame(height: 1)
-            }
-        }
-    }
-}
-
-struct SettingsMessageRow: View {
-    let message: String
-    let color: Color
-    var last: Bool = false
-
-    var body: some View {
-        Text(message)
-            .font(ClavisTypography.footnote)
-            .foregroundColor(color)
-            .padding(.vertical, 13)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .overlay(alignment: .bottom) {
-                if !last {
-                    Rectangle()
-                        .fill(Color.border)
-                        .frame(height: 1)
-                }
-            }
-    }
-}
-
-struct SettingsActionRow: View {
-    let title: String
-    let tint: Color
-    var disabled: Bool = false
-    var last: Bool = false
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack {
-                Text(title)
-                    .font(ClavisTypography.body)
-                    .foregroundColor(disabled ? .textTertiary : tint)
-                Spacer()
-                CX2Chevron()
-            }
-            .padding(.vertical, 13)
-        }
-        .buttonStyle(.plain)
-        .disabled(disabled)
-        .overlay(alignment: .bottom) {
-            if !last {
-                Rectangle()
-                    .fill(Color.border)
-                    .frame(height: 1)
-            }
-        }
-    }
-}
-
-struct AboutSection: View {
-    var body: some View {
-        SettingsGroupCard(title: "About") {
-            SettingsStaticRow(label: "Version", value: ClavisCopy.appVersionString)
-
-            NavigationLink(destination: ScoreExplanationView()) {
-                SettingsNavigationRow(title: "Score explanation")
-            }
-            .buttonStyle(.plain)
-
-            NavigationLink(destination: MethodologyView()) {
-                SettingsNavigationRow(title: "Data sources & methodology")
-            }
-            .buttonStyle(.plain)
-
-            SettingsLinkRow(title: "Privacy policy", urlString: "https://getclavix.com/privacy")
-            SettingsLinkRow(title: "Terms of service", urlString: "https://getclavix.com/terms")
-            SettingsLinkRow(title: "Refund policy", urlString: "https://getclavix.com/refund", last: true)
-        }
-    }
-}
-
-struct SettingsNavigationRow: View {
-    let title: String
-    var last: Bool = false
-
-    var body: some View {
-        HStack {
-            Text(title)
-                .font(ClavisTypography.body)
-                .foregroundColor(.textPrimary)
-            Spacer()
-            Image(systemName: "chevron.right")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(.textTertiary)
-        }
-        .padding(.vertical, 13)
-        .overlay(alignment: .bottom) {
-            if !last {
-                Rectangle()
-                    .fill(Color.border)
-                    .frame(height: 1)
-            }
-        }
-    }
-}
-
-struct SettingsLinkRow: View {
-    let title: String
-    let urlString: String
-    var last: Bool = false
-
-    var body: some View {
-        if let url = URL(string: urlString) {
-            Link(destination: url) {
-                HStack {
-                    Text(title)
-                        .font(ClavisTypography.body)
-                        .foregroundColor(.textPrimary)
-                    Spacer()
-                    Image(systemName: "arrow.up.right")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(.textTertiary)
-                }
-                .padding(.vertical, 13)
-                .overlay(alignment: .bottom) {
-                    if !last {
-                        Rectangle()
-                            .fill(Color.border)
-                            .frame(height: 1)
+                HStack(spacing: ClavisTheme.smallSpacing) {
+                    ForEach(SummaryLength.allCases, id: \.rawValue) { option in
+                        Button(action: { selectDigestLength(option) }) {
+                            HStack(spacing: 4) {
+                                Text(option.rawValue)
+                                if option == .verbose {
+                                    Text("Pro")
+                                        .font(ClavisTypography.label)
+                                }
+                            }
+                            .font(ClavisTypography.footnoteEmphasis)
+                            .foregroundColor(viewModel.summaryLength == option ? .accentInk : .textSecondary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                            .background(viewModel.summaryLength == option ? Color.accentBurnt : Color.surfaceElevated)
+                            .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }
         }
     }
-}
-struct SettingsDisclaimerCard: View {
-    var body: some View {
-        ClavisStandardCard(fill: .surfaceElevated) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Informational only")
-                    .font(ClavisTypography.label)
-                    .foregroundColor(.textSecondary)
 
-                Text(ClavisCopy.settingsDisclaimer)
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+    private var alertsSection: some View {
+        settingsGroup(title: "Alert preferences") {
+            toggleRow(title: "Grade changes", isOn: $viewModel.alertsGradeChanges)
+            toggleRow(title: "Major news", isOn: $viewModel.alertsMajorEvents)
+            toggleRow(title: "Portfolio grade", isOn: $viewModel.alertsPortfolioRisk)
+        }
+    }
+
+    private var quietHoursSection: some View {
+        settingsGroup(title: "Quiet hours") {
+            toggleRow(title: "Quiet hours enabled", isOn: $viewModel.quietHoursEnabled)
+
+            settingsRow(title: "Start") {
+                DatePicker("Start", selection: $viewModel.quietHoursStart, displayedComponents: .hourAndMinute)
+                    .labelsHidden()
+                    .tint(.accentBurnt)
+                    .onChange(of: viewModel.quietHoursStart) { _ in
+                        Task { await viewModel.saveAlertSettings() }
+                    }
+            }
+
+            settingsRow(title: "End") {
+                DatePicker("End", selection: $viewModel.quietHoursEnd, displayedComponents: .hourAndMinute)
+                    .labelsHidden()
+                    .tint(.accentBurnt)
+                    .onChange(of: viewModel.quietHoursEnd) { _ in
+                        Task { await viewModel.saveAlertSettings() }
+                    }
             }
         }
     }
-}
 
-struct SignOutGroup: View {
-    let onSignOut: () -> Void
-    @State private var showConfirmation = false
+    private var brokerageSection: some View {
+        settingsGroup(title: "Brokerage") {
+            settingsStaticRow(title: "Status", value: brokerageViewModel.isConnected ? "Connected" : "Not connected")
+            settingsStaticRow(title: "Sync status", value: brokerageViewModel.autoSyncEnabled ? "Automatic" : "Manual")
+            settingsStaticRow(title: "Last synced", value: brokerageViewModel.status?.lastSyncAt?.formatted(date: .abbreviated, time: .shortened) ?? "Never")
 
-    var body: some View {
-        SettingsGroupCard {
-            SettingsActionRow(title: "Sign out", tint: .riskF, last: true) {
-                showConfirmation = true
+            if brokerageViewModel.isConnected {
+                settingsActionRow(title: brokerageViewModel.isSyncing ? "Syncing holdings..." : "Sync holdings now") {
+                    Task { await brokerageViewModel.syncNow(refreshRemote: true) }
+                }
+                settingsActionRow(title: brokerageViewModel.isDisconnecting ? "Disconnecting..." : "Disconnect brokerage", destructive: true) {
+                    Task { await brokerageViewModel.disconnect() }
+                }
+            } else {
+                settingsActionRow(title: "Connect brokerage") {
+                    Task { await brokerageViewModel.startConnect() }
+                }
             }
         }
-        .alert("Sign out of Clavix?", isPresented: $showConfirmation) {
-            Button("Sign out", role: .destructive, action: onSignOut)
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("You'll need to sign in again to access your portfolio.")
+    }
+
+    private var dataSection: some View {
+        settingsGroup(title: "Data") {
+            settingsActionRow(title: viewModel.isExportingAccount ? "Exporting..." : "Export account data") {
+                Task { await viewModel.exportAccount() }
+            }
+            settingsActionRow(title: viewModel.isDeletingAccount ? "Deleting..." : "Delete account", destructive: true) {
+                showDeleteAccountConfirmation = true
+            }
+        }
+    }
+
+    private var legalSection: some View {
+        settingsGroup(title: "Legal") {
+            linkRow(title: "Privacy Policy", urlString: "https://getclavix.com/privacy")
+            linkRow(title: "Terms of Service", urlString: "https://getclavix.com/terms")
+        }
+    }
+
+    private var methodologyLinks: some View {
+        settingsGroup(title: "Methodology") {
+            NavigationLink(destination: MethodologyView()) {
+                settingsChevronRow(title: "Data sources & methodology")
+            }
+            .buttonStyle(.plain)
+            NavigationLink(destination: ScoreExplanationView()) {
+                settingsChevronRow(title: "Score explanation")
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private var versionFooter: some View {
+        VStack(alignment: .center, spacing: ClavisTheme.smallSpacing) {
+            Text(ClavisCopy.appVersionString)
+                .font(ClavisTypography.footnote)
+                .foregroundColor(.textSecondary)
+            Button("Sign out") {
+                Task { await authViewModel.signOut() }
+            }
+            .font(ClavisTypography.footnoteEmphasis)
+            .foregroundColor(.textSecondary)
+            .buttonStyle(.plain)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var tierBadge: some View {
+        Text(isFreeTier ? "Free" : viewModel.subscriptionTier.capitalized)
+            .font(ClavisTypography.label)
+            .foregroundColor(isFreeTier ? .textSecondary : .accentInk)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(isFreeTier ? Color.surfaceElevated : Color.accentBurnt)
+            .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous))
+    }
+
+    private var isFreeTier: Bool {
+        viewModel.subscriptionTier == "free"
+    }
+
+    private func settingsGroup<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+            Text(title)
+                .font(ClavisTypography.label)
+                .foregroundColor(.textSecondary)
+            ClavisStandardCard(fill: .surface) {
+                VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
+                    content()
+                }
+            }
+        }
+    }
+
+    private func settingsRow<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+        HStack {
+            Text(title)
+                .font(ClavisTypography.bodyEmphasis)
+                .foregroundColor(.textPrimary)
+            Spacer()
+            content()
+        }
+    }
+
+    private func settingsStaticRow(title: String, value: String) -> some View {
+        HStack {
+            Text(title)
+                .font(ClavisTypography.bodyEmphasis)
+                .foregroundColor(.textPrimary)
+            Spacer()
+            Text(value)
+                .font(ClavisTypography.footnote)
+                .foregroundColor(.textSecondary)
+        }
+    }
+
+    private func settingsActionRow(title: String, destructive: Bool = false, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(ClavisTypography.bodyEmphasis)
+                .foregroundColor(destructive ? .bad : .accentBurnt)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func settingsChevronRow(title: String) -> some View {
+        HStack {
+            Text(title)
+                .font(ClavisTypography.bodyEmphasis)
+                .foregroundColor(.textPrimary)
+            Spacer()
+            Image(systemName: "chevron.right")
+                .foregroundColor(.textSecondary)
+        }
+    }
+
+    private func toggleRow(title: String, isOn: Binding<Bool>) -> some View {
+        HStack {
+            Text(title)
+                .font(ClavisTypography.bodyEmphasis)
+                .foregroundColor(.textPrimary)
+            Spacer()
+            Button(action: {
+                isOn.wrappedValue.toggle()
+                Task { await viewModel.saveAlertSettings() }
+            }) {
+                CX2Toggle(isOn: isOn)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func linkRow(title: String, urlString: String) -> some View {
+        Link(destination: URL(string: urlString)!) {
+            HStack {
+                Text(title)
+                    .font(ClavisTypography.bodyEmphasis)
+                    .foregroundColor(.textPrimary)
+                Spacer()
+                Image(systemName: "arrow.up.right")
+                    .foregroundColor(.textSecondary)
+            }
+        }
+    }
+
+    private func selectDigestLength(_ option: SummaryLength) {
+        if option == .verbose && isFreeTier {
+            showUpgradeSheet = true
+            return
+        }
+        viewModel.summaryLength = option
+        Task { await viewModel.saveSummaryLength() }
+    }
+}
+
+struct SettingsUpgradeSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
+                    ClavisStandardCard(fill: .surface) {
+                        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
+                            Text("Upgrade to Pro")
+                                .font(ClavisTypography.h2)
+                                .foregroundColor(.textPrimary)
+                            Text("Verbose digest, brokerage sync, and CSV import are part of Clavix Pro.")
+                                .font(ClavisTypography.body)
+                                .foregroundColor(.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            ClavisPrimaryButton(title: "Start 14-day trial", action: {})
+                        }
+                    }
+                }
+                .padding(.horizontal, ClavisTheme.screenPadding)
+                .padding(.vertical, ClavisTheme.sectionSpacing)
+            }
+            .background(ClavisAtmosphereBackground())
+            .navigationTitle("Upgrade")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                        .foregroundColor(.textSecondary)
+                }
+            }
         }
     }
 }
@@ -662,21 +408,17 @@ struct ScoreExplanationView: View {
                 }
 
                 VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-                    ScoreBandRow(grade: "AAA", range: "90\u{2013}100", description: "Investment Grade \u{2014} minimum risk", color: .gradeCAAA)
-                    ScoreBandRow(grade: "AA", range: "80\u{2013}89", description: "Strong \u{2014} low risk", color: .gradeCAA)
-                    ScoreBandRow(grade: "A", range: "70\u{2013}79", description: "Sound \u{2014} moderate-low risk", color: .gradeCA)
-                    ScoreBandRow(grade: "BBB", range: "60\u{2013}69", description: "Adequate \u{2014} moderate risk", color: .gradeCBBB)
-                    ScoreBandRow(grade: "BB", range: "50\u{2013}59", description: "Speculative \u{2014} elevated risk", color: .gradeCBB)
-                    ScoreBandRow(grade: "B", range: "40\u{2013}49", description: "Vulnerable \u{2014} high risk", color: .gradeCB)
-                    ScoreBandRow(grade: "CCC", range: "30\u{2013}39", description: "Weak \u{2014} very high risk", color: .gradeCCCC)
-                    ScoreBandRow(grade: "CC", range: "20\u{2013}29", description: "Distressed \u{2014} extreme risk", color: .gradeCCC)
-                    ScoreBandRow(grade: "C", range: "10\u{2013}19", description: "Near Default \u{2014} severe risk", color: .gradeCC)
-                    ScoreBandRow(grade: "F", range: "0\u{2013}9", description: "Default \u{2014} critical risk", color: .gradeCF)
+                    ScoreBandRow(grade: "AAA", range: "90–100", description: "Investment Grade — minimum risk", color: .gradeCAAA)
+                    ScoreBandRow(grade: "AA", range: "80–89", description: "Strong — low risk", color: .gradeCAA)
+                    ScoreBandRow(grade: "A", range: "70–79", description: "Sound — moderate-low risk", color: .gradeCA)
+                    ScoreBandRow(grade: "BBB", range: "60–69", description: "Adequate — moderate risk", color: .gradeCBBB)
+                    ScoreBandRow(grade: "BB", range: "50–59", description: "Speculative — elevated risk", color: .gradeCBB)
+                    ScoreBandRow(grade: "B", range: "40–49", description: "Vulnerable — high risk", color: .gradeCB)
+                    ScoreBandRow(grade: "CCC", range: "30–39", description: "Weak — very high risk", color: .gradeCCCC)
+                    ScoreBandRow(grade: "CC", range: "20–29", description: "Distressed — extreme risk", color: .gradeCCC)
+                    ScoreBandRow(grade: "C", range: "10–19", description: "Near Default — severe risk", color: .gradeCC)
+                    ScoreBandRow(grade: "F", range: "0–9", description: "Default — critical risk", color: .gradeCF)
                 }
-
-                Text("Informational only. Scores reflect model output based on available data. They do not constitute financial advice.")
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.textTertiary)
             }
             .padding(.horizontal, ClavisTheme.screenPadding)
             .padding(.vertical, ClavisTheme.largeSpacing)
@@ -696,7 +438,6 @@ struct ScoreBandRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: ClavisTheme.mediumSpacing) {
             GradeBadge(grade: grade)
-
             VStack(alignment: .leading, spacing: 2) {
                 Text(range)
                     .font(ClavisTypography.bodyEmphasis)
@@ -720,40 +461,36 @@ struct MethodologyView: View {
                     Text("Methodology Overview")
                         .font(ClavisTypography.sectionTitle)
                         .foregroundColor(.textPrimary)
-
-                    Text("Clavix evaluates holdings across multiple risk dimensions including market structure, macro sensitivity, news risk signals, and catalyst quality.")
+                    Text("Clavix rates the risk of each tracked ticker across five dimensions. Each dimension is scored from 0 to 100, where higher means lower observed risk.")
                         .font(ClavisTypography.body)
                         .foregroundColor(.textSecondary)
                 }
 
                 VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-                    MethodologyStepRow(number: "01", title: "Data Collection", description: "Real-time price, news, and market structure signals are gathered for each holding.")
-                    MethodologyStepRow(number: "02", title: "Relevance Filtering", description: "Market noise is filtered out so only holding-relevant stories move forward.")
-                    MethodologyStepRow(number: "03", title: "Risk Analysis", description: "Each holding is scored across five dimensions: Financial Health, News Sentiment, Macro Exposure, Sector Exposure, and Volatility.")
-                    MethodologyStepRow(number: "04", title: "Grade Assignment", description: "Composite scores are mapped to bond-rating-style grades with fixed boundaries.")
+                    MethodologyStepRow(number: "01", title: "Financial Health", description: "Balance-sheet and cash-flow strength, updated quarterly.")
+                    MethodologyStepRow(number: "02", title: "News Sentiment", description: "Seven-day article scoring with recency and source weighting.")
+                    MethodologyStepRow(number: "03", title: "Macro Exposure", description: "Observed sensitivity to rates, dollar, crude, VIX, and the S&P 500.")
+                    MethodologyStepRow(number: "04", title: "Sector Exposure", description: "Sector beta, sector momentum, sector breadth, and sector-specific news.")
+                    MethodologyStepRow(number: "05", title: "Volatility", description: "Realized volatility, volatility ratio, drawdown, and beta.")
                 }
 
                 VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
                     NavigationLink(destination: FinancialHealthAuditView(ticker: "Sample", methodology: nil)) {
-                        SettingsNavigationRow(title: "Financial Health audit")
+                        settingsAuditLink("Financial Health audit")
                     }
                     NavigationLink(destination: NewsSentimentAuditView(ticker: "Sample", methodology: nil)) {
-                        SettingsNavigationRow(title: "News Sentiment audit")
+                        settingsAuditLink("News Sentiment audit")
                     }
                     NavigationLink(destination: MacroExposureAuditView(ticker: "Sample", methodology: nil)) {
-                        SettingsNavigationRow(title: "Macro Exposure audit")
+                        settingsAuditLink("Macro Exposure audit")
                     }
                     NavigationLink(destination: SectorExposureAuditView(ticker: "Sample", methodology: nil)) {
-                        SettingsNavigationRow(title: "Sector Exposure audit")
+                        settingsAuditLink("Sector Exposure audit")
                     }
                     NavigationLink(destination: VolatilityAuditView(ticker: "Sample", methodology: nil, scoreHistory: [])) {
-                        SettingsNavigationRow(title: "Volatility audit", last: true)
+                        settingsAuditLink("Volatility audit")
                     }
                 }
-
-                Text("All scores are informational model outputs only. They do not constitute financial advice and should not be used as the sole basis for investment decisions.")
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.textTertiary)
             }
             .padding(.horizontal, ClavisTheme.screenPadding)
             .padding(.vertical, ClavisTheme.largeSpacing)
@@ -761,6 +498,19 @@ struct MethodologyView: View {
         .background(ClavisAtmosphereBackground())
         .navigationTitle("Methodology")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func settingsAuditLink(_ title: String) -> some View {
+        HStack {
+            Text(title)
+                .font(ClavisTypography.bodyEmphasis)
+                .foregroundColor(.textPrimary)
+            Spacer()
+            Image(systemName: "chevron.right")
+                .foregroundColor(.textSecondary)
+        }
+        .padding(ClavisTheme.cardPadding)
+        .clavisSecondaryCardStyle(fill: .surfaceElevated)
     }
 }
 
@@ -775,7 +525,6 @@ struct MethodologyStepRow: View {
                 .font(ClavisTypography.label)
                 .foregroundColor(.textTertiary)
                 .frame(width: 24, alignment: .leading)
-
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(ClavisTypography.bodyEmphasis)
