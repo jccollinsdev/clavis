@@ -55,9 +55,9 @@ struct MainTabView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            DashboardView(selectedTab: $selectedTab)
+            DigestView(selectedTab: $selectedTab)
                 .tabItem {
-                    Label("Home", systemImage: "house")
+                    Label("Today", systemImage: "doc.text")
                 }
                 .tag(0)
 
@@ -67,9 +67,9 @@ struct MainTabView: View {
                 }
                 .tag(1)
 
-            DigestView(selectedTab: $selectedTab)
+            SearchView()
                 .tabItem {
-                    Label("Rating", systemImage: "doc.text")
+                    Label("Search", systemImage: "magnifyingglass")
                 }
                 .tag(2)
 
@@ -87,7 +87,7 @@ struct MainTabView: View {
         }
         .tint(Color.textPrimary)
         .onReceive(NotificationCenter.default.publisher(for: .openDigest)) { _ in
-            selectedTab = 2
+            selectedTab = 0
         }
         .onReceive(NotificationCenter.default.publisher(for: .openPositionDetail)) { notification in
             selectedTab = 1

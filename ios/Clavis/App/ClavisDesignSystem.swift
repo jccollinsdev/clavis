@@ -1100,6 +1100,26 @@ struct ClavisLoadingCard: View {
     }
 }
 
+// MARK: - Shared Error Card
+
+struct DashboardErrorCard: View {
+    let message: String
+
+    var body: some View {
+        ClavisStandardCard(fill: .surface) {
+            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                Text("Something went wrong")
+                    .font(ClavisTypography.cardTitle)
+                    .foregroundColor(.textPrimary)
+                Text(message)
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+}
+
 // MARK: - Metric Label
 
 struct ClavisMetricLabel: View {

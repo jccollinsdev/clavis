@@ -66,7 +66,7 @@ struct AlertsView: View {
     private func handleAlertTap(_ alert: Alert) {
         switch alertDestination(for: alert) {
         case .digest:
-            selectedTab = 2
+            selectedTab = 0
         case .home:
             selectedTab = 0
         case .ticker(let ticker):

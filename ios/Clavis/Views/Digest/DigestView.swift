@@ -75,13 +75,13 @@ struct DigestView: View {
             .background(ClavisAtmosphereBackground())
             .toolbar(.hidden, for: .navigationBar)
             .onAppear {
-                if selectedTab == 2, !hasLoaded {
+                if selectedTab == 0, !hasLoaded {
                     hasLoaded = true
                     Task { await viewModel.loadDigest() }
                 }
             }
             .onChange(of: selectedTab) { newValue in
-                if newValue == 2 && !hasLoaded && !viewModel.isLoading {
+                if newValue == 0 && !hasLoaded && !viewModel.isLoading {
                     hasLoaded = true
                     Task { await viewModel.loadDigest() }
                 }
