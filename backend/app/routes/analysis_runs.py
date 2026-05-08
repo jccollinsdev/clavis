@@ -1,3 +1,4 @@
+from __future__ import annotations
 from fastapi import APIRouter, Request, HTTPException, Depends
 
 from ..services.supabase import get_supabase

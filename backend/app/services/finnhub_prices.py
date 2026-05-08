@@ -1,3 +1,4 @@
+from __future__ import annotations
 import requests
 
 from ..config import get_settings
