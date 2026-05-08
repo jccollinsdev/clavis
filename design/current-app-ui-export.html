@@ -1,0 +1,1577 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Clavix · Current Shipped iOS UI Export (read-only)</title>
+<style>
+  /* =========================================================
+     CURRENT APP UI EXPORT
+     This file recreates the CURRENTLY shipped iOS SwiftUI design.
+     It is an inspection artefact — NOT the V2 wireframe.
+     Colors and components are pulled from
+     ios/Clavis/App/ClavisDesignSystem.swift and the Views.
+     ========================================================= */
+
+  :root{
+    --bg:#0B0D12;
+    --surface:#14171E;
+    --surfaceElevated:#1B1F28;
+    --surfaceMuted:#101319;
+    --border:#242934;
+    --borderSubtle:#1E232D;
+    --textPrimary:#EEF1F5;
+    --textSecondary:#8A93A3;
+    --textTertiary:#5A6374;
+    --brandCream:#D4C49B;
+    --informational:#3B82C4;
+    --gold:#F0C76C;
+    --goldHi:#F3D58C;
+
+    --riskAAA-bg:#D4EFE3; --riskAAA-tx:#085041;
+    --riskAA-bg:#DBE9D6;  --riskAA-tx:#1F4A24;
+    --riskA-bg:#E5EDD2;   --riskA-tx:#2C5320;
+    --riskBBB-bg:#E1E9D4; --riskBBB-tx:#3F5418;
+    --riskBB-bg:#F4E6BC;  --riskBB-tx:#664A0E;
+    --riskB-bg:#F4D9A5;   --riskB-tx:#6F3D10;
+    --riskCCC-bg:#F4C39E; --riskCCC-tx:#6E2D10;
+    --riskCC-bg:#F2A78D;  --riskCC-tx:#7A1F10;
+    --riskC-bg:#E6826F;   --riskC-tx:#5C0F0F;
+    --riskF-bg:#B53A35;   --riskF-tx:#FFFFFF;
+
+    --ink-positive:#24bf86;
+    --ink-warn:#F4A23E;
+    --ink-danger:#E6826F;
+
+    --mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, monospace;
+    --ui:    -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#1c1d22;color:#cdd2dc;font-family:var(--ui)}
+  body{padding:48px 24px 96px}
+
+  /* Page header strip */
+  .docHead{max-width:1400px;margin:0 auto 48px;padding:24px 28px;background:#101218;border:1px solid #2a2f3a;border-radius:12px}
+  .docHead h1{margin:0 0 4px;font-size:24px;color:#fff;letter-spacing:-0.4px}
+  .docHead p{margin:0;color:#9aa1ad;font-size:13px;line-height:1.55}
+  .docHead code{background:#1c2029;color:#d6d9e0;padding:2px 6px;border-radius:4px;font-family:var(--mono);font-size:12px}
+
+  /* Frames */
+  .row{display:flex;gap:32px;flex-wrap:wrap;justify-content:center;max-width:1400px;margin:0 auto 64px}
+  .col{display:flex;flex-direction:column;gap:12px;align-items:center}
+  .meta{max-width:390px;width:100%}
+  .meta h2{margin:0 0 4px;font-size:15px;color:#fff;letter-spacing:0.5px;text-transform:uppercase;font-family:var(--mono)}
+  .meta .src{font-family:var(--mono);font-size:11px;color:#7e8493;background:#15171c;border:1px solid #262a32;padding:8px 10px;border-radius:6px;line-height:1.55}
+  .meta .notes{font-size:12px;color:#cdd2dc;background:#2a2110;border-left:3px solid #c2410c;padding:10px 12px;line-height:1.55;border-radius:0 6px 6px 0}
+  .meta .notes b{color:#f0a060}
+
+  .phone{
+    width:390px; height:844px; overflow:hidden; position:relative;
+    background:var(--bg); color:var(--textPrimary);
+    border-radius:42px; border:8px solid #1a1a1a; box-shadow:0 0 0 1px #2a2a2a, 0 14px 40px rgba(0,0,0,.45);
+    font-family:var(--ui);
+  }
+  .phone.tall{height:1280px}
+  .phone.xtall{height:1480px}
+
+  .scroll{height:100%;overflow:hidden;padding:14px 16px 90px;}
+  .statusbar{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#fff;padding:6px 18px 4px;font-family:var(--ui)}
+  .statusbar .right{display:flex;gap:6px;align-items:center}
+  .notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:120px;height:28px;background:#000;border-radius:14px}
+
+  /* Tab bar */
+  .tabbar{position:absolute;left:0;right:0;bottom:0;height:74px;background:rgba(13,15,21,.95);border-top:1px solid var(--border);display:flex;justify-content:space-around;align-items:center;font-family:var(--ui);font-size:10px}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--textSecondary)}
+  .tab.active{color:var(--textPrimary)}
+  .tab .ic{width:22px;height:22px;border:1.6px solid currentColor;border-radius:5px;position:relative}
+  .tab .ic.house::after{content:"";position:absolute;inset:4px 4px auto 4px;height:6px;border:1.5px solid currentColor;border-bottom:none;transform:rotate(0)}
+  .tab .ic.brief{border-radius:4px;border-top:5px solid currentColor;border-bottom-width:3px}
+  .tab .ic.doc::before{content:"";position:absolute;inset:3px 6px;border-top:1.5px solid currentColor;border-bottom:1.5px solid currentColor}
+  .tab .ic.bell{border:none;background:radial-gradient(circle at 50% 70%, currentColor 18%, transparent 19%);box-shadow:inset 0 0 0 1.6px currentColor;border-radius:50% 50% 30% 30% / 60% 60% 40% 40%}
+  .tab .ic.gear{border-radius:50%;box-shadow:0 0 0 4px transparent;background:radial-gradient(circle at 50% 50%, transparent 30%, currentColor 31% 36%, transparent 37%)}
+
+  /* Headers */
+  .pageHead{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .monogram{width:36px;height:36px;background:var(--surface);border-radius:9px;display:grid;place-items:center;font-family:var(--mono);color:var(--brandCream);font-weight:800;font-size:18px;border:1px solid var(--border)}
+  .pageHead .title{font-size:28px;font-weight:600;letter-spacing:-0.4px;color:#fff;line-height:1.1}
+  .pageHead .sub{font-size:13px;color:var(--textSecondary)}
+  .pageHead .acc{margin-left:auto;display:flex;gap:8px}
+  .iconBtn{width:34px;height:34px;border:1px solid var(--border);background:var(--surface);border-radius:8px;display:grid;place-items:center;color:var(--textSecondary);font-size:14px}
+
+  .wordmark{font-family:var(--ui);font-weight:800;font-size:18px;color:var(--brandCream);letter-spacing:4px}
+
+  /* Cards */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px}
+  .card.flush{padding:2px 0}
+  .card.elev{background:var(--surfaceElevated)}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.8px;text-transform:uppercase;color:var(--textSecondary);font-weight:600;margin-bottom:8px}
+  .label{font-size:11px;letter-spacing:0.8px;text-transform:uppercase;color:var(--textSecondary)}
+  .h1{font-size:22px;font-weight:700;color:#fff;margin:0 0 4px}
+  .h2{font-size:18px;font-weight:600;color:#fff;margin:0 0 4px}
+  .h3{font-size:15px;font-weight:600;color:#fff;margin:0 0 2px}
+  .p{font-size:14px;line-height:1.5;color:var(--textPrimary);margin:0}
+  .small{font-size:12px;color:var(--textSecondary);line-height:1.45}
+  .mono{font-family:var(--mono)}
+
+  /* Grade badge: AAA…F bond rating pill */
+  .grade{display:inline-grid;place-items:center;font-family:var(--mono);font-weight:800;border-radius:4px;letter-spacing:0;padding:0 6px;line-height:1}
+  .grade.compact{height:20px;min-width:26px;font-size:11px}
+  .grade.standard{height:26px;min-width:34px;font-size:13px}
+  .grade.large{width:76px;height:76px;font-size:32px}
+  .grade.hero{width:90px;height:90px;font-size:42px;border-radius:6px;background:linear-gradient(155deg,var(--g-bg-light),var(--g-bg-dark))}
+
+  .gAAA{background:var(--riskAAA-bg);color:var(--riskAAA-tx)}
+  .gAA {background:var(--riskAA-bg); color:var(--riskAA-tx)}
+  .gA  {background:var(--riskA-bg);  color:var(--riskA-tx)}
+  .gBBB{background:var(--riskBBB-bg);color:var(--riskBBB-tx)}
+  .gBB {background:var(--riskBB-bg); color:var(--riskBB-tx)}
+  .gB  {background:var(--riskB-bg);  color:var(--riskB-tx)}
+  .gCCC{background:var(--riskCCC-bg);color:var(--riskCCC-tx)}
+  .gCC {background:var(--riskCC-bg); color:var(--riskCC-tx)}
+  .gC  {background:var(--riskC-bg); color:var(--riskC-tx)}
+  .gF  {background:var(--riskF-bg); color:var(--riskF-tx)}
+
+  /* Trend / chips */
+  .trend{font-size:12px}
+  .trend.up{color:var(--ink-danger)}
+  .trend.down{color:var(--ink-positive)}
+  .trend.flat{color:var(--textSecondary)}
+
+  .chip{display:inline-block;font-family:var(--mono);font-size:10px;color:var(--textSecondary);background:var(--surfaceElevated);border:1px solid var(--border);padding:2px 7px;border-radius:999px;letter-spacing:0.4px}
+  .chip.solid{background:var(--surface);color:var(--textPrimary)}
+
+  /* Risk bar - flat by spec, but TickerDetailView uses pill-ended bars */
+  .bar{height:4px;background:var(--surfaceElevated);overflow:hidden;border-radius:0}
+  .bar.pill{border-radius:999px;background:#9ba4b3}
+  .bar > i{display:block;height:100%}
+
+  /* Buttons */
+  .btn{display:inline-flex;align-items:center;justify-content:center;font-family:var(--ui);font-weight:600;font-size:14px;padding:11px 16px;border-radius:12px;cursor:pointer;border:1px solid transparent}
+  .btn.primary{background:#fff;color:#14171d}
+  .btn.primary.full{width:100%;height:50px}
+  .btn.outline{background:transparent;color:var(--textPrimary);border-color:var(--border)}
+  .btn.danger{color:#ff8178}
+  .btn.gold{background:var(--gold);color:#121313}
+  .btn.pillpale{background:#f3f5f8;color:#14171d;border-radius:999px;padding:8px 14px}
+
+  /* Toggle pill */
+  .togglepill{width:40px;height:24px;background:#2a2f3a;border-radius:999px;position:relative}
+  .togglepill::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%}
+  .togglepill.on{background:#3aa56b}
+  .togglepill.on::after{left:18px}
+
+  /* Tab pills (filter row) */
+  .pillrow{display:flex;gap:8px;overflow-x:auto;margin:6px 0 12px}
+  .pill{font-family:var(--mono);font-size:11px;padding:7px 12px;border-radius:999px;border:1px solid var(--border);color:var(--textSecondary);background:transparent;white-space:nowrap}
+  .pill.active{background:linear-gradient(180deg,#FFE8A8,#EABF57);color:#121313;border-color:transparent;font-weight:700}
+
+  /* Risk bond badge inline */
+  .gradeRow{display:flex;align-items:center;gap:10px}
+
+  /* Hero number */
+  .heroScore{font-family:var(--mono);font-size:52px;font-weight:500;color:#fff;line-height:1}
+
+  /* Position row */
+  .posrow{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--borderSubtle)}
+  .posrow:last-child{border-bottom:none}
+  .posrow .ticker{font-family:var(--mono);font-weight:700;font-size:15px;color:var(--gold)}
+  .posrow .name{font-size:12px;color:var(--textSecondary)}
+  .posrow .right{margin-left:auto;text-align:right;font-family:var(--mono)}
+
+  /* Sparkline */
+  .spark{height:112px;background:linear-gradient(180deg, rgba(36,191,134,.18), rgba(36,191,134,0));border-bottom:2px solid var(--ink-positive);position:relative;border-radius:4px}
+  .spark::before{content:"";position:absolute;left:0;right:0;bottom:0;height:50%;background:radial-gradient(60% 100% at 25% 100%, rgba(36,191,134,.4) 0%, transparent 70%)}
+  .spark.red{background:linear-gradient(180deg, rgba(230,130,111,.18), rgba(230,130,111,0));border-color:var(--ink-danger)}
+
+  /* Forms */
+  .field{background:var(--surfaceElevated);border:1px solid var(--border);border-radius:12px;padding:13px 14px;color:var(--textPrimary);font-family:var(--ui);font-size:15px;width:100%}
+  .field::placeholder{color:var(--textTertiary)}
+
+  /* Settings rows */
+  .setRow{display:flex;align-items:center;gap:10px;padding:14px 14px;border-bottom:1px solid var(--borderSubtle)}
+  .setRow:last-child{border-bottom:none}
+  .setRow .lbl{font-size:14px;color:var(--textPrimary)}
+  .setRow .sub{font-size:12px;color:var(--textSecondary)}
+  .setRow .right{margin-left:auto;color:var(--textSecondary);font-size:13px}
+
+  /* List card heading */
+  .secHead{display:flex;align-items:center;gap:8px;margin:18px 4px 8px}
+  .secHead .name{font-weight:700;color:#fff;font-size:16px}
+  .secHead .count{margin-left:auto;background:var(--surfaceElevated);border:1px solid var(--border);color:var(--textSecondary);font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:999px}
+
+  /* Disclaimer / annotation in screen body */
+  .ann{font-size:11px;color:#a1a8b3;background:#1d1f26;border:1px dashed #313641;border-radius:6px;padding:6px 8px;margin:6px 0;font-family:var(--mono)}
+
+  /* progress mini */
+  .prog{height:4px;background:var(--surfaceElevated);border-radius:999px;overflow:hidden}
+  .prog>i{display:block;height:100%;background:var(--informational)}
+
+  /* Onboarding tick row */
+  .ticks{display:flex;gap:6px;margin:16px 0 4px}
+  .ticks i{flex:1;height:3px;background:#2a2f3a;border-radius:2px}
+  .ticks i.done{background:var(--informational)}
+
+  /* Two col layout shortcut */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .grid2 > div{padding:14px;border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .grid2 > div:nth-child(2n){border-right:none}
+  .grid2 > div:nth-last-child(-n+2){border-bottom:none}
+
+  /* Stat strip 3 cols */
+  .stat3{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .stat3 > div{flex:1;padding:14px;border-right:1px solid var(--border)}
+  .stat3 > div:last-child{border-right:none}
+
+  /* Light-theme add-position sheet (Form default) */
+  .lightForm{background:#1c1d22;border-radius:14px;padding:16px;color:#cdd2dc;font-family:var(--ui)}
+  .lightForm .grp{background:#2c2f37;border-radius:10px;padding:14px;margin-bottom:14px}
+  .lightForm .grp h4{margin:0 0 10px;font-size:11px;letter-spacing:0.8px;text-transform:uppercase;color:#9aa1ad}
+  .lightForm .lr{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid #3a3e48}
+  .lightForm .lr:first-of-type{border-top:none}
+
+  /* Anchor links / TOC */
+  .toc{max-width:1400px;margin:0 auto 32px;font-family:var(--mono);font-size:12px;color:#a8aebb}
+  .toc a{color:#a8aebb;margin-right:14px;text-decoration:none}
+  .toc a:hover{color:#fff}
+</style>
+</head>
+<body>
+
+<div class="docHead">
+  <h1>Clavix · Current Shipped iOS UI Export</h1>
+  <p>
+    This document is a static HTML approximation of the <b>currently shipped</b> SwiftUI iOS app
+    (working tree at <code>ios/Clavis/</code>). It does <b>NOT</b> represent the V2 wireframe target
+    in <code>design/clavix-wireframes-v2.html</code>. Use it side-by-side with the wireframe to
+    drive the Phase 6 screen-by-screen rebuild. Annotations call out broken states, dead code,
+    duplicated UI, and mismatches with <code>docs/CLAVIX_TRUTH.md</code>.
+  </p>
+</div>
+
+<div class="toc">
+  <a href="#auth">01 Auth</a>
+  <a href="#onboarding">02 Onboarding</a>
+  <a href="#dashboard">03 Dashboard (Home)</a>
+  <a href="#digest">04 Daily Digest (Rating)</a>
+  <a href="#holdings">05 Holdings + Watchlist + Search</a>
+  <a href="#ticker">06 Ticker Detail</a>
+  <a href="#methodology">07 Methodology Drawer</a>
+  <a href="#article">08 Article Detail</a>
+  <a href="#alerts">09 Alerts</a>
+  <a href="#settings">10 Settings</a>
+  <a href="#methAbout">11 Settings → Methodology / Score Explanation</a>
+  <a href="#paywall">12 Paywall (MISSING)</a>
+  <a href="#dead">13 Dead / orphan UI</a>
+  <a href="#addsheet">14 Add Position sheet</a>
+</div>
+
+<!-- =========================================================
+     01 · AUTH
+========================================================= -->
+<section id="auth" class="row">
+  <div class="col">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="scroll">
+        <div class="statusbar"><span>9:41</span><span class="right">●●●● 5G ▮</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:48px 0 24px">
+          <div class="monogram" style="width:56px;height:56px;font-size:26px;border-radius:14px">C</div>
+          <div class="wordmark" style="margin-top:14px">CLAVIX</div>
+          <div class="small" style="text-align:center;max-width:260px;margin-top:8px">Portfolio intelligence for self-directed investors</div>
+        </div>
+        <div style="max-width:420px;margin:24px auto 0">
+          <input class="field" placeholder="you@email.com" value="bipul@andoverdigital.com" style="margin-bottom:12px"/>
+          <input class="field" type="password" placeholder="Password" value="••••••••" />
+          <div style="text-align:right;margin:8px 2px"><a class="small" style="color:var(--informational)">Forgot password?</a></div>
+          <button class="btn primary full" style="margin-top:6px">Sign in</button>
+          <div class="small" style="text-align:center;margin-top:24px">Don’t have an account? <span style="color:var(--informational)">Sign up</span></div>
+        </div>
+        <div class="small" style="position:absolute;left:0;right:0;bottom:24px;text-align:center;color:var(--textTertiary);font-size:11px">
+          By continuing you agree to our
+          <span style="color:var(--informational)">Terms of Service</span> and
+          <span style="color:var(--informational)">Privacy Policy</span>.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="meta">
+    <h2>01 · Auth / Login</h2>
+    <div class="src">
+      ios/Clavis/Views/Auth/LoginView.swift<br>
+      ios/Clavis/ViewModels/AuthViewModel.swift<br>
+      ios/Clavis/Services/SupabaseAuthService.swift
+    </div>
+    <div class="notes">
+      <b>Current state:</b> credential-first sign-in. No product-first welcome screen, no value-prop
+      slides, no trial framing — V2 wireframe (<code>OnboardA</code>) calls for a "Portfolio risk,
+      measured." hero with three value propositions before any login fields.<br><br>
+      <b>Note:</b> Errors render in <code>riskF</code> (legacy A–F red token); spec is dark/paper.
+      Password rules: validated by Supabase only.<br><br>
+      <b>Mismatch:</b> No Apple/Google SSO buttons. Acceptable for v1 (per CLAVIX_TRUTH §2).
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     02 · ONBOARDING (5 steps)
+========================================================= -->
+<section id="onboarding" class="row">
+
+  <div class="col">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="scroll">
+        <div class="statusbar"><span>9:41</span><span class="right">●●●● 5G ▮</span></div>
+        <div style="padding:8px 0 0">
+          <div class="ticks"><i class="done"></i><i></i><i></i><i></i><i></i></div>
+          <div class="small mono" style="margin-bottom:18px">STEP 1 OF 5</div>
+        </div>
+        <div class="monogram" style="width:64px;height:64px;font-size:30px;margin-bottom:24px">C</div>
+        <h1 style="font-size:30px;letter-spacing:-0.4px;color:#fff;margin:0 0 12px">Portfolio risk, measured.</h1>
+        <p class="p" style="color:var(--textSecondary);margin-bottom:28px">
+          Clavix helps you answer three questions every morning: how risky is my portfolio,
+          what changed, and what should I look at first.
+        </p>
+        <div class="label" style="margin-bottom:6px">YOUR NAME</div>
+        <input class="field" placeholder="First name" value="Sansar" />
+        <div style="position:absolute;left:16px;right:16px;bottom:120px"><button class="btn primary full">Continue</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="scroll">
+        <div class="statusbar"><span>9:41</span></div>
+        <div class="ticks"><i class="done"></i><i class="done"></i><i></i><i></i><i></i></div>
+        <div class="small mono" style="margin-bottom:18px">STEP 2 OF 5</div>
+        <h1 class="h1" style="font-size:28px;margin-bottom:14px">Date of birth</h1>
+        <p class="small">Required to confirm you meet minimum age requirements in your jurisdiction.</p>
+        <div class="card elev" style="margin-top:22px">
+          <div class="small">Date</div>
+          <div class="mono" style="font-size:18px;color:#fff;margin-top:4px">May 14, 1968</div>
+        </div>
+        <div class="card" style="background:var(--surfaceElevated)">
+          <div class="small">You must be at least 18 to use Clavix. Date of birth is verified once and never displayed back to you.</div>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;bottom:120px;display:flex;gap:10px">
+          <button class="btn outline" style="flex:1">Back</button>
+          <button class="btn primary" style="flex:2">Continue</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="scroll">
+        <div class="statusbar"><span>9:41</span></div>
+        <div class="ticks"><i class="done"></i><i class="done"></i><i class="done"></i><i></i><i></i></div>
+        <div class="small mono" style="margin-bottom:14px">STEP 3 OF 5</div>
+        <h1 class="h1" style="font-size:26px">One thing before we begin.</h1>
+        <p class="p" style="margin:8px 0 14px">Clavix is informational only. It is not financial advice.</p>
+        <div class="card">
+          <div class="eyebrow">Risk acknowledgement</div>
+          <p class="small">Past scores do not predict future results. Risk grades change daily and are not buy/sell signals. You are solely responsible for your decisions.</p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;padding:8px 4px">
+          <div style="width:22px;height:22px;border:1.5px solid var(--informational);background:var(--informational);border-radius:5px;display:grid;place-items:center;color:#fff;font-size:13px">✓</div>
+          <div class="small" style="color:var(--textPrimary)">
+            I understand Clavix provides information only, and that I am solely responsible for my investment decisions.
+          </div>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;bottom:120px;display:flex;gap:10px">
+          <button class="btn outline" style="flex:1">Back</button>
+          <button class="btn primary" style="flex:2">Agree &amp; continue</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="scroll">
+        <div class="statusbar"><span>9:41</span></div>
+        <div class="ticks"><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i></i></div>
+        <div class="small mono">STEP 4 OF 5</div>
+        <h1 class="h1" style="font-size:26px;margin-top:8px">Pick what wakes you up.</h1>
+        <p class="small" style="margin-bottom:14px">Adjust any of these later in Settings.</p>
+        <div class="card"><div style="display:flex;align-items:center"><div><div class="h3">Morning rating</div><div class="small">Daily portfolio summary at your configured rating time</div></div><div style="margin-left:auto"><span class="togglepill on"></span></div></div></div>
+        <div class="card"><div style="display:flex;align-items:center"><div><div class="h3">Grade changes</div><div class="small">Any upgrade or downgrade in your holdings</div></div><div style="margin-left:auto"><span class="togglepill on"></span></div></div></div>
+        <div class="card"><div style="display:flex;align-items:center"><div><div class="h3">Major events</div><div class="small">Earnings, regulatory actions, and major news</div></div><div style="margin-left:auto"><span class="togglepill on"></span></div></div></div>
+        <div class="card"><div style="display:flex;align-items:center"><div><div class="h3">Large price moves</div><div class="small">Significant daily moves across your portfolio</div></div><div style="margin-left:auto"><span class="togglepill"></span></div></div></div>
+        <div style="position:absolute;left:16px;right:16px;bottom:120px;display:flex;gap:10px">
+          <button class="btn outline" style="flex:1">Back</button>
+          <button class="btn primary" style="flex:2">Continue</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="scroll">
+        <div class="statusbar"><span>9:41</span></div>
+        <div class="ticks"><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i></div>
+        <div class="small mono">STEP 5 OF 5</div>
+        <h1 class="h1" style="font-size:26px;margin-top:8px">Connect your brokerage</h1>
+        <p class="small" style="margin-bottom:14px">Optional. Brokerage connections are read-only and only import holdings, so you can keep manual entries when you want to.</p>
+        <div class="card">
+          <div class="eyebrow">Why connect now?</div>
+          <p class="small">Auto-import current holdings and keep them up to date. We never see balances, statements, or transfer permissions.</p>
+        </div>
+        <div style="position:absolute;left:16px;right:16px;bottom:60px;display:flex;flex-direction:column;gap:10px">
+          <button class="btn primary full">Connect brokerage</button>
+          <button class="btn outline">Continue without brokerage</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="meta" style="max-width:560px">
+    <h2>02 · Onboarding (5 steps)</h2>
+    <div class="src">
+      ios/Clavis/Views/Onboarding/OnboardingContainerView.swift<br>
+      ios/Clavis/ViewModels/OnboardingViewModel.swift<br>
+      ios/Clavis/ViewModels/BrokerageViewModel.swift
+    </div>
+    <div class="notes">
+      <b>Current state vs. CLAVIX_TRUTH:</b> 5 sequential modal steps (Welcome → DOB → Risk
+      acknowledgement → Notification preferences → Brokerage). Wireframe v2 has only 2 screens
+      (Welcome + Add Portfolio). Step 5 conflates SnapTrade flow into onboarding rather than the
+      Wireframe’s “three-paths” add-portfolio screen (Brokerage / CSV / Manual).<br><br>
+      <b>Missing:</b> trial framing (“14 days of Pro free, no credit card”) appears nowhere; the
+      wireframe puts it on Welcome and on Add Portfolio. CSV import path is not exposed.<br><br>
+      <b>Banned strings:</b> none surfaced — copy says “brokerage”, but underlying VM is named
+      <code>BrokerageViewModel</code> + still keys redirect URI on <code>clavix://snaptrade/callback</code>.
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     03 · DASHBOARD / HOME
+========================================================= -->
+<section id="dashboard" class="row">
+  <div class="col">
+    <div class="phone tall">
+      <div class="notch"></div>
+      <div class="scroll" style="height:100%;overflow:auto">
+        <div class="statusbar"><span>9:41</span></div>
+
+        <div class="pageHead">
+          <div class="monogram">C</div>
+          <div>
+            <div class="title">Good morning</div>
+            <div class="sub">Thursday, May 8</div>
+          </div>
+          <div class="acc"><div class="iconBtn">⟳</div></div>
+        </div>
+
+        <!-- Hero -->
+        <div style="padding:6px 2px 18px">
+          <div class="eyebrow">PORTFOLIO SCORE</div>
+          <div class="gradeRow" style="margin:8px 0">
+            <span class="grade large gAA">AA</span>
+            <div>
+              <div class="trend down" style="font-size:13px">↓ improving</div>
+              <div class="mono" style="font-size:34px;color:#fff;font-weight:700;line-height:1">82</div>
+              <div class="small">Score · was 79</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <span class="chip">In portfolio</span>
+            <span class="chip">Updated 18m ago</span>
+          </div>
+          <p class="p" style="color:var(--textPrimary);font-size:14px">
+            Tech sector held overnight as CPI came in soft. AAPL and MSFT are stable. NVDA
+            shows widening news volume — see Needs Attention.
+          </p>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn outline">Refresh</button>
+            <button class="btn primary">Run analysis</button>
+          </div>
+          <div class="small mono" style="margin-top:10px">Updated 9:42 AM · Next 8:00 AM</div>
+        </div>
+
+        <!-- Stat strip -->
+        <div class="stat3">
+          <div><div class="small">At risk</div><div class="mono" style="font-size:22px;color:#fff;font-weight:700;margin-top:4px">1</div><div class="small">of 5 holdings</div></div>
+          <div><div class="small">Alerts</div><div class="mono" style="font-size:22px;color:#fff;font-weight:700;margin-top:4px">3</div><div class="small">this week</div></div>
+          <div><div class="small">Watchlist</div><div class="mono" style="font-size:22px;color:#fff;font-weight:700;margin-top:4px">4</div><div class="small">items tracked</div></div>
+        </div>
+
+        <!-- Needs Attention -->
+        <div class="card" style="margin-top:14px">
+          <div class="eyebrow">NEEDS ATTENTION</div>
+          <div class="card elev" style="margin:8px 0 0;padding:12px">
+            <div style="display:flex;gap:10px;align-items:flex-start">
+              <span class="grade compact gBB">BB</span>
+              <div style="flex:1">
+                <div class="h3" style="font-size:14px">NVDA — News volume +210% wk/wk</div>
+                <div class="small">Coverage spike on AI accelerator regulation. Sentiment skewing negative.</div>
+              </div>
+              <div style="text-align:right">
+                <div class="trend up">↑ worsening</div>
+                <div class="mono" style="color:#fff;font-weight:700">54</div>
+              </div>
+            </div>
+            <div class="bar" style="margin-top:10px"><i style="width:54%;background:var(--riskBB-bg)"></i></div>
+          </div>
+        </div>
+
+        <!-- What changed -->
+        <div class="card">
+          <div style="display:flex;align-items:center"><div class="eyebrow">WHAT CHANGED · 3</div><div style="margin-left:auto"><span class="small" style="color:var(--informational)">See all</span></div></div>
+          <div style="padding:6px 0">
+            <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--borderSubtle)"><span class="grade compact gA">A</span><div style="flex:1"><div class="small" style="color:#fff;font-weight:600">AAPL · grade reaffirmed</div><div class="small">Q2 transcripts unchanged drivers</div></div><div class="small mono" style="margin-left:auto">2h</div></div>
+            <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--borderSubtle)"><span class="grade compact gBB">BB</span><div style="flex:1"><div class="small" style="color:#fff;font-weight:600">NVDA · downgraded</div><div class="small">News sentiment shifted negative</div></div><div class="small mono" style="margin-left:auto">5h</div></div>
+            <div style="display:flex;gap:10px;padding:8px 0"><span class="grade compact gAA">AA</span><div style="flex:1"><div class="small" style="color:#fff;font-weight:600">JPM · stable</div><div class="small">No material news overnight</div></div><div class="small mono" style="margin-left:auto">8h</div></div>
+          </div>
+        </div>
+
+        <!-- Risk contributors -->
+        <div class="card">
+          <div class="eyebrow">PORTFOLIO RISK CONTRIBUTORS</div>
+          <div style="padding:8px 0;display:flex;flex-direction:column;gap:8px">
+            <div class="small"><span style="color:var(--ink-danger)">●</span> Single-name concentration: NVDA 22% of portfolio</div>
+            <div class="small"><span style="color:var(--ink-danger)">●</span> Sector concentration: Tech 64%</div>
+            <div class="small"><span style="color:var(--textSecondary)">●</span> Macro sensitivity: high to 10Y yields</div>
+          </div>
+        </div>
+
+        <!-- Digest teaser -->
+        <div class="card">
+          <div style="display:flex;align-items:flex-start;gap:10px">
+            <div style="flex:1">
+              <div class="eyebrow">MORNING RATING</div>
+              <p class="p" style="font-size:13px;margin-top:6px">
+                CPI cooler than consensus. Tech holds despite NVDA news swing. Cap-stack risk
+                stable. Read the rating for sector-by-sector commentary.
+              </p>
+              <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+                <span class="chip">Updated 18m ago</span>
+                <span class="small mono">Today</span>
+                <span class="small" style="color:var(--informational);margin-left:auto">Read rating →</span>
+              </div>
+            </div>
+            <span class="grade compact gAA">AA</span>
+          </div>
+        </div>
+
+      </div>
+      <div class="tabbar">
+        <div class="tab active"><div class="ic house"></div>Home</div>
+        <div class="tab"><div class="ic brief"></div>Holdings</div>
+        <div class="tab"><div class="ic doc"></div>Rating</div>
+        <div class="tab"><div class="ic bell"></div>Alerts</div>
+        <div class="tab"><div class="ic gear"></div>Settings</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="meta">
+    <h2>03 · Dashboard (Home tab)</h2>
+    <div class="src">
+      ios/Clavis/Views/Dashboard/DashboardView.swift<br>
+      ios/Clavis/ViewModels/DashboardViewModel.swift<br>
+      ios/Clavis/Models/Dashboard.swift
+    </div>
+    <div class="notes">
+      <b>EXISTS BUT V2 SAYS REMOVE:</b> Wireframe v2 deletes the Dashboard tab — Today/Digest is the
+      first tab. Currently Dashboard stays as <code>tab 0</code> with Digest at <code>tab 2</code>
+      and Holdings at <code>tab 1</code>.<br><br>
+      <b>Sections shipped:</b> sticky greeting header, hero score+grade with “was N” delta,
+      stat-strip (At risk / Alerts / Watchlist), Needs Attention, What Changed, Portfolio Risk
+      Contributors, Morning Rating teaser. Lots of overlap with the Digest/Rating tab below.<br><br>
+      <b>Quirks:</b><br>
+      • <code>DashboardStatStrip</code> "Watchlist" cell uses <code>morningFocusItems.count</code>
+      — variable name doesn’t match the user-visible label.<br>
+      • Hero shows <code>previousScore</code>; check VM for fabricated values (per CLAVIX_TRUTH §8
+      banning <code>current - 8</code> patterns).<br>
+      • Tab is labelled “Home” but content is more like an Executive Briefing card stack.
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     04 · DAILY DIGEST (RATING TAB)
+========================================================= -->
+<section id="digest" class="row">
+  <div class="col">
+    <div class="phone tall">
+      <div class="notch"></div>
+      <div class="scroll" style="height:100%;overflow:auto">
+        <div class="statusbar"><span>9:41</span></div>
+        <div class="pageHead">
+          <div class="monogram">C</div>
+          <div>
+            <div class="title">Morning Rating</div>
+            <div class="sub">Thursday, May 8</div>
+          </div>
+          <div class="acc"><div class="iconBtn">▤</div></div>
+        </div>
+
+        <div class="card">
+          <div class="eyebrow">RATING · 7:45 AM</div>
+          <div class="gradeRow" style="margin:8px 0">
+            <span class="grade large gAA">AA</span>
+            <div>
+              <div class="trend flat" style="font-size:13px">→ stable</div>
+              <div class="mono" style="font-size:34px;color:#fff;font-weight:700;line-height:1">82</div>
+              <div class="small">Score · was 82</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px"><span class="chip">In portfolio</span><span class="chip">Updated 1h ago</span></div>
+          <ul style="padding-left:18px;margin:10px 0 0">
+            <li class="small">AAPL: services revenue resilient, neutral on hardware tariff exposure</li>
+            <li class="small">NVDA: news volume +210% wk/wk on regulatory tape</li>
+          </ul>
+          <p class="p" style="margin-top:8px">
+            Portfolio rated AA today, unchanged from yesterday. Macro tone is calm post-CPI. Tech
+            holding. NVDA the only single-name with material news.
+          </p>
+          <div style="display:flex;justify-content:space-between;margin-top:10px"><span class="small mono">5 holdings · Stable</span><button class="btn outline" style="padding:6px 10px;font-size:12px">Refresh</button></div>
+        </div>
+
+        <div class="card">
+          <div class="eyebrow">OVERNIGHT MACRO</div>
+          <p class="p" style="font-size:13px;margin:6px 0">CPI prints +0.2% MoM, two-tenths cooler than consensus. 10Y yields ease 6 bps. DXY softens. Crude flat.</p>
+          <div class="small" style="color:var(--textTertiary)">Inflation data · Fed comms · Treasury auction</div>
+          <ul class="small" style="padding-left:18px;margin-top:8px">
+            <li>WSJ: CPI miss reignites rate-cut bets</li>
+            <li>FT: ECB watching for second-round effects</li>
+          </ul>
+        </div>
+
+        <div class="card flush">
+          <div class="eyebrow" style="padding:6px 14px 0">SECTOR OVERVIEW</div>
+          <div class="posrow"><span style="width:8px;height:8px;border-radius:50%;background:var(--ink-positive);margin-right:8px"></span><div><div class="h3" style="font-size:14px">Technology</div><div class="small">Soft CPI risk-on; AI cap-ex narrative intact</div></div></div>
+          <div class="posrow"><span style="width:8px;height:8px;border-radius:50%;background:var(--textSecondary);margin-right:8px"></span><div><div class="h3" style="font-size:14px">Financials</div><div class="small">Yield-curve flatten favors universals</div></div></div>
+        </div>
+
+        <div class="card flush">
+          <div class="eyebrow" style="padding:6px 14px 0">POSITION IMPACTS</div>
+          <div class="posrow">
+            <span class="grade compact gA">A</span>
+            <div style="flex:1">
+              <div class="ticker">AAPL</div>
+              <div class="small">Services line resilient; iPhone tariff exposure neutral</div>
+              <div class="small">Watch: WWDC keynote tone · Risks: tariffs, China demand</div>
+              <div class="mono small" style="color:var(--textSecondary)">FH 78 · NS 70 · MX 68 · SX 75 · V 80</div>
+            </div>
+            <div class="small mono" style="color:var(--textSecondary);text-align:right">Direct<br><span style="color:var(--informational)">Open ticker</span></div>
+          </div>
+          <div class="posrow">
+            <span class="grade compact gBB">BB</span>
+            <div style="flex:1">
+              <div class="ticker">NVDA</div>
+              <div class="small">News volume +210% wk/wk; sentiment negative on regulation</div>
+              <div class="small">Watch: BIS rule clarification · Risks: export rules, supply</div>
+              <div class="mono small" style="color:var(--textSecondary)">FH 70 · NS 38 · MX 55 · SX 55 · V 52</div>
+            </div>
+            <div class="small mono" style="color:var(--textSecondary);text-align:right">Direct<br><span style="color:var(--informational)">Open ticker</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="eyebrow">WATCHLIST ALERTS</div>
+          <div class="small" style="padding:8px 0"><span style="color:var(--ink-danger)">●</span> ASML — guidance reset triggers grade review</div>
+        </div>
+
+        <div class="card">
+          <div class="eyebrow">WHAT MATTERS TODAY</div>
+          <div class="small" style="padding:8px 0">● Fed minutes 2 PM ET · <i>Medium urgency</i> · impacts: AAPL, MSFT</div>
+          <div class="small" style="padding:8px 0">● JPM annual meeting · <i>Low urgency</i> · impacts: JPM</div>
+        </div>
+
+      </div>
+      <div class="tabbar">
+        <div class="tab"><div class="ic house"></div>Home</div>
+        <div class="tab"><div class="ic brief"></div>Holdings</div>
+        <div class="tab active"><div class="ic doc"></div>Rating</div>
+        <div class="tab"><div class="ic bell"></div>Alerts</div>
+        <div class="tab"><div class="ic gear"></div>Settings</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="meta">
+    <h2>04 · Daily Digest (“Rating” tab)</h2>
+    <div class="src">
+      ios/Clavis/Views/Digest/DigestView.swift<br>
+      ios/Clavis/ViewModels/DigestViewModel.swift<br>
+      ios/Clavis/Models/Digest.swift
+    </div>
+    <div class="notes">
+      <b>Mismatch with CLAVIX_TRUTH §9:</b> spec calls for 6 sections in this exact order
+      (Header → Overnight Macro → Sector Heat → Your Positions → Watchlist Updates → What to
+      Watch Today). Current screen renders Hero → Macro → Sector Overview → Position Impacts →
+      Watchlist Alerts → What Matters Today. <i>Close-ish but section names don’t match
+      the contract</i>.<br><br>
+      <b>Mixed terminology in shipped UI:</b> "Morning Rating" / "Morning Digest" /
+      "Generate Morning Digest" all appear within the same screen. Empty-state CTA reads
+      "Generate Morning Digest" while the heading says "Morning Rating".<br><br>
+      <b>Banned-string risk:</b> position-impact rows use <code>impact.macroRelevance.capitalized</code>
+      and <code>item.urgency.capitalized</code> — surfaces backend strings.<br><br>
+      <b>Endpoint:</b> Digest VM still calls <code>/dashboard</code> at the bundle level
+      (per AGENTS.md pitfall #1).<br><br>
+      <b>Missing per V2:</b> portfolio-grade hero with weighted composite; quiet-holdings collapsed
+      group; explicit per-position score deltas; "what to look for today" calendar items
+      (earnings/Fed/economic prints) sourced from a calendar.
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     05 · HOLDINGS + WATCHLIST + SEARCH (combined screen)
+========================================================= -->
+<section id="holdings" class="row">
+  <div class="col">
+    <div class="phone tall">
+      <div class="notch"></div>
+      <div class="scroll" style="height:100%;overflow:auto">
+        <div class="statusbar"><span>9:41</span></div>
+
+        <div class="pageHead">
+          <div class="monogram">C</div>
+          <div>
+            <div class="title">Holdings</div>
+            <div class="sub">Updated May 8 · Brokerage sync May 7</div>
+          </div>
+          <div class="acc">
+            <div class="iconBtn">+</div>
+            <div class="iconBtn">⟳</div>
+          </div>
+        </div>
+
+        <input class="field" placeholder="Search ticker or company" style="margin-bottom:10px" />
+
+        <!-- Filter pills + sort -->
+        <div class="pillrow">
+          <span class="pill active">All · 5</span>
+          <span class="pill">Needs attention · 1</span>
+          <span class="pill">Synced · 3</span>
+          <span class="pill">Manual · 2</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="small mono">Sort: Weight</span>
+          <button class="btn gold" style="padding:8px 14px;font-size:12px;border-radius:8px">Refresh</button>
+        </div>
+
+        <!-- Watchlist section -->
+        <div class="secHead"><span class="name">Watchlist</span><span class="count">4</span></div>
+        <div class="card flush">
+          <div class="posrow"><span class="grade standard gAA">AA</span><div><div class="ticker">ASML</div><div class="name">ASML Holding N.V.</div></div><div class="right"><div class="mono">81</div></div></div>
+          <div class="posrow"><span class="grade standard gA">A</span><div><div class="ticker">META</div><div class="name">Meta Platforms</div></div><div class="right"><div class="mono">76</div></div></div>
+          <div class="posrow"><span class="grade standard gBBB">BBB</span><div><div class="ticker">TSLA</div><div class="name">Tesla, Inc.</div></div><div class="right"><div class="mono">63</div></div></div>
+        </div>
+
+        <!-- Needs Attention -->
+        <div class="secHead"><span class="name">Needs Attention</span><span class="count" style="background:rgba(230,130,111,.15);color:var(--ink-danger);border-color:transparent">1</span></div>
+        <div class="card flush" style="border-left:3px solid var(--ink-danger)">
+          <div class="posrow">
+            <span class="grade standard gBB">BB</span>
+            <div>
+              <div class="ticker">NVDA</div>
+              <div class="name">NVIDIA Corporation</div>
+              <span class="chip" style="font-size:10px">Synced</span>
+            </div>
+            <div class="right"><div class="trend up">↑ worsening</div><div class="mono" style="color:#fff;font-weight:700">54</div></div>
+          </div>
+        </div>
+
+        <!-- All holdings -->
+        <div class="secHead"><span class="name">All Holdings</span><span class="count">5</span></div>
+        <div class="card flush">
+          <div class="posrow"><span class="grade standard gAAA">AAA</span><div><div class="ticker">SPY</div><div class="name">SPDR S&amp;P 500 ETF</div></div><div class="right"><div class="trend flat">→ stable</div><div class="mono" style="color:#fff;font-weight:700">94</div></div></div>
+          <div class="posrow"><span class="grade standard gAA">AA</span><div><div class="ticker">AAPL</div><div class="name">Apple Inc.</div></div><div class="right"><div class="trend flat">→ stable</div><div class="mono" style="color:#fff;font-weight:700">82</div></div></div>
+          <div class="posrow"><span class="grade standard gAA">AA</span><div><div class="ticker">MSFT</div><div class="name">Microsoft Corporation</div></div><div class="right"><div class="trend flat">→ stable</div><div class="mono" style="color:#fff;font-weight:700">86</div></div></div>
+          <div class="posrow"><span class="grade standard gA">A</span><div><div class="ticker">JPM</div><div class="name">JPMorgan Chase</div></div><div class="right"><div class="trend flat">→ stable</div><div class="mono" style="color:#fff;font-weight:700">73</div></div></div>
+          <div class="posrow"><span class="grade standard gBB">BB</span><div><div class="ticker">NVDA</div><div class="name">NVIDIA Corporation</div></div><div class="right"><div class="trend up">↑ worsening</div><div class="mono" style="color:#fff;font-weight:700">54</div></div></div>
+        </div>
+
+      </div>
+      <div class="tabbar">
+        <div class="tab"><div class="ic house"></div>Home</div>
+        <div class="tab active"><div class="ic brief"></div>Holdings</div>
+        <div class="tab"><div class="ic doc"></div>Rating</div>
+        <div class="tab"><div class="ic bell"></div>Alerts</div>
+        <div class="tab"><div class="ic gear"></div>Settings</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="meta">
+    <h2>05 · Holdings + Watchlist + Search</h2>
+    <div class="src">
+      ios/Clavis/Views/Holdings/HoldingsListView.swift<br>
+      ios/Clavis/ViewModels/HoldingsViewModel.swift
+    </div>
+    <div class="notes">
+      <b>Embedded search:</b> there is no standalone Search screen — the search bar lives at the
+      top of Holdings. Wireframe v2 has Universal Search as a screen reachable from any tab.<br><br>
+      <b>Embedded watchlist:</b> watchlist is a section above Needs Attention. Matches V2 intent
+      ("Watchlist as inline section inside Holdings, saves a tab slot").<br><br>
+      <b>Visual mismatches:</b><br>
+      • Tickers render in <span style="color:var(--gold)">gold</span> <code>#F0C76C/#F3D58C</code> —
+      not in design system tokens; V2 spec is "burnt-orange accent for personalised data only".<br>
+      • Filter pills active state uses gold gradient; V2 says sharp boxes, no rounded ends, no
+      gradients.<br>
+      • Refresh button is a gold pill; V2 wants a lighter “paper” button.<br><br>
+      <b>Add holding flow:</b> opens <code>AddPositionSheet</code> — a SwiftUI <code>Form</code>
+      using default light styling, breaks the dark design language. See screen 14.<br><br>
+      <b>Free/Pro limits:</b> there is no client-side enforcement of the 3-holding Free cap or
+      "outside universe" warning banner.
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     06 · TICKER DETAIL
+========================================================= -->
+<section id="ticker" class="row">
+  <div class="col">
+    <div class="phone xtall">
+      <div class="notch"></div>
+      <div class="scroll" style="height:100%;overflow:auto">
+        <div class="statusbar"><span>9:41</span></div>
+
+        <!-- Custom sticky header -->
+        <div style="display:flex;align-items:center;height:54px;border-bottom:1px solid var(--border);padding:0 4px;margin-bottom:10px">
+          <a class="small" style="color:var(--informational);font-weight:600">← Holdings</a>
+          <div style="flex:1;text-align:center">
+            <div class="mono" style="color:var(--goldHi);font-weight:700;font-size:18px">AAPL</div>
+            <div class="small">Apple Inc.</div>
+          </div>
+          <div class="iconBtn" style="color:var(--informational)">★</div>
+        </div>
+
+        <!-- Hero card -->
+        <div class="card" style="padding:0">
+          <div style="display:flex;gap:14px;padding:14px">
+            <div class="grade" style="--g-bg-light:var(--riskAA-bg);--g-bg-dark:#a3c39c;width:90px;height:90px;font-size:42px;border-radius:6px;background:linear-gradient(155deg,var(--riskAA-bg),#a3c39c);color:var(--riskAA-tx)">AA</div>
+            <div style="flex:1">
+              <div class="mono" style="font-size:22px;font-weight:700;color:var(--goldHi)">AAPL</div>
+              <div class="small">Apple Inc.</div>
+              <div class="trend down" style="margin-top:4px">↓ improving</div>
+              <div class="eyebrow" style="margin-top:8px">RISK SCORE</div>
+              <div class="mono" style="font-size:34px;color:#fff;font-weight:700;line-height:1">82</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Executive summary teaser -->
+        <div class="card" style="display:flex;gap:10px;align-items:center">
+          <div style="width:36px;height:36px;border-radius:18px;background:linear-gradient(155deg,#9b3030,#6f1c1e);display:grid;place-items:center;color:#ffd7d3">📄</div>
+          <div style="flex:1">
+            <div class="h3">Executive Summary</div>
+            <div class="small">Services revenue resilient; iPhone tariff exposure neutral; Vision Pro adoption slow…</div>
+          </div>
+          <div style="color:var(--textSecondary)">›</div>
+        </div>
+
+        <!-- Price section -->
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-end">
+            <div>
+              <div class="mono" style="font-size:30px;color:#fff;font-weight:700">$214.32</div>
+              <div class="small">1Y</div>
+            </div>
+            <div style="text-align:right">
+              <div class="mono" style="font-size:14px;color:var(--ink-positive)">+1.42%</div>
+              <div class="small">Today</div>
+            </div>
+          </div>
+          <div class="pillrow" style="margin-top:6px">
+            <span class="pill">1W</span><span class="pill">1M</span><span class="pill">3M</span><span class="pill active">1Y</span>
+          </div>
+          <div class="spark"></div>
+        </div>
+
+        <!-- Position refresh -->
+        <div class="card">
+          <div class="eyebrow">POSITION ANALYSIS</div>
+          <p class="small" style="margin:6px 0 10px">Refresh the latest risk review for this holding.</p>
+          <button class="btn pillpale">Refresh analysis</button>
+        </div>
+
+        <!-- Fundamentals (V2 says: REMOVE) -->
+        <div class="eyebrow" style="margin:10px 4px 6px">FUNDAMENTALS</div>
+        <div class="grid2">
+          <div><div class="small">P/E</div><div class="mono" style="font-size:18px;color:#fff">29.4</div></div>
+          <div><div class="small">Mkt cap</div><div class="mono" style="font-size:18px;color:#fff">3.27T</div></div>
+          <div><div class="small">Volatility</div><div class="mono" style="font-size:18px;color:#fff">0.94</div></div>
+          <div><div class="small">Beta</div><div class="mono" style="font-size:18px;color:#fff">1.21</div></div>
+        </div>
+
+        <!-- Risk dimensions -->
+        <div class="eyebrow" style="margin:14px 4px 6px">RISK DIMENSIONS</div>
+        <div class="card flush">
+          <div class="setRow"><div class="lbl">Financial Health</div><div class="right mono">78</div><div style="color:var(--textSecondary);margin-left:6px">›</div></div>
+          <div class="setRow"><div class="lbl">News Sentiment</div><div class="right mono">70</div><div style="color:var(--textSecondary);margin-left:6px">›</div></div>
+          <div class="setRow"><div class="lbl">Macro Exposure</div><div class="right mono">68</div><div style="color:var(--textSecondary);margin-left:6px">›</div></div>
+          <div class="setRow"><div class="lbl">Sector Exposure</div><div class="right mono">75</div><div style="color:var(--textSecondary);margin-left:6px">›</div></div>
+          <div class="setRow"><div class="lbl">Volatility</div><div class="right mono">80</div><div style="color:var(--textSecondary);margin-left:6px">›</div></div>
+        </div>
+        <div class="bar pill" style="margin:6px 14px"><i style="width:78%;background:#9ba4b3"></i></div>
+
+        <!-- Key drivers -->
+        <div class="card">
+          <div style="display:flex;align-items:flex-start">
+            <div style="flex:1">
+              <div class="h3">Key Drivers</div>
+              <div class="small">Why AAPL receives this grade.</div>
+            </div>
+            <span class="chip" style="background:rgba(230,130,111,.13);color:#ff8178;border-color:transparent">MEDIUM RISK</span>
+          </div>
+          <div class="card elev" style="margin:10px 0;padding:10px">
+            <div style="display:flex;gap:10px"><div style="width:24px;height:24px;background:#1b2431;border-radius:6px;display:grid;place-items:center;color:var(--brandCream);font-family:var(--mono);font-weight:700;font-size:11px">1</div><div style="flex:1"><div class="h3" style="font-size:13px">Services revenue mix</div><div class="small">Recurring high-margin services partially offset hardware cyclicality.</div></div><div class="small mono" style="color:var(--ink-positive)">+ Strong</div></div>
+            <div style="display:flex;gap:8px;margin-top:8px"><span class="chip">Bloomberg</span><span class="chip">Apple 10-Q</span></div>
+          </div>
+          <div class="card elev" style="padding:10px">
+            <div style="display:flex;gap:10px"><div style="width:24px;height:24px;background:#1b2431;border-radius:6px;display:grid;place-items:center;color:var(--brandCream);font-family:var(--mono);font-weight:700;font-size:11px">2</div><div style="flex:1"><div class="h3" style="font-size:13px">China tariff exposure</div><div class="small">Asian production base implies ongoing tariff headline risk.</div></div><div class="small mono" style="color:var(--ink-danger)">− Material</div></div>
+          </div>
+        </div>
+
+        <!-- Event analysis -->
+        <div class="card">
+          <div class="h3">Event Analysis</div>
+          <div class="small">Analysis of recent events affecting the rating.</div>
+          <div class="setRow" style="padding-left:0;padding-right:0"><div class="lbl">CPI cooler than consensus</div><div class="right small">May 8</div></div>
+          <div class="setRow" style="padding-left:0;padding-right:0"><div class="lbl">Q2 earnings call beats</div><div class="right small">May 4</div></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="meta">
+    <h2>06 · Ticker Detail</h2>
+    <div class="src">
+      ios/Clavis/Views/Tickers/TickerDetailView.swift<br>
+      ios/Clavis/Views/Tickers/TickerDriverCardsSection.swift  (NOT INVOKED — orphan)<br>
+      ios/Clavis/Models/SharedTickerAnalysis.swift
+    </div>
+    <div class="notes">
+      <b>Closest the app gets to V2 — but several mismatches:</b><br>
+      • Hero is a square grade-tile + score column. <b>No radar chart</b> (V2 wireframe C is the
+      chosen direction with a 5-axis radar).<br>
+      • <b>Fundamentals section still shipped</b> — V2 explicitly says <i>“gone entirely”</i>.<br>
+      • Risk-dimension row bars use <code>cornerRadius: 999</code> (pill ends), violating spec
+      R-07 “sharp boxes / no pill ends”.<br>
+      • Trend arrows are inverted vs. <code>RiskDirectionLabel</code>: this view shows ↓ for
+      improving and ↑ for worsening; the shared component flips the convention. Inconsistent.<br>
+      • <b>Two parallel "Key Drivers" implementations:</b> the in-file one shown above is the
+      visible one. <code>TickerDriverCardsSection.swift</code> is dead.<br>
+      • <b>Score history chart is dead.</b> <code>ScoreHistoryChart.swift</code> is defined but
+      never mounted — and per V2, score history is out of v1 scope anyway.<br>
+      • Color literals <code>#F3D58C / #F0C76C / #f3f5f8</code> appear inline rather than via
+      design tokens.<br>
+      • No "Why this score?" disclosure under article rows (currently inside MethodologyDrawer).
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     07 · METHODOLOGY DRAWER
+========================================================= -->
+<section id="methodology" class="row">
+  <div class="col">
+    <div class="phone tall">
+      <div class="notch"></div>
+      <div class="scroll" style="height:100%;overflow:auto">
+        <div class="statusbar"><span>9:41</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:0 4px 14px">
+          <div class="h2" style="font-size:18px">AAPL Methodology</div>
+          <a class="small" style="color:var(--informational);font-weight:600">Done</a>
+        </div>
+
+        <div class="gradeRow card" style="gap:14px">
+          <span class="grade large gAA">AA</span>
+          <div>
+            <div class="eyebrow">COMPOSITE GRADE</div>
+            <div class="mono" style="font-size:32px;color:#fff;font-weight:700">82</div>
+            <div class="small">Methodology v1.0</div>
+          </div>
+        </div>
+
+        <!-- 5 accordions -->
+        <div class="card">
+          <div style="display:flex;align-items:center"><div class="mono" style="font-weight:700;width:32px;color:var(--ink-positive)">78</div><div style="flex:1"><div class="h3" style="font-size:14px">Financial Health</div><div class="small">Quarterly fundamentals</div></div><div style="color:var(--textSecondary)">▾</div></div>
+          <div class="card elev" style="margin-top:10px">
+            <div class="setRow" style="padding-left:0;padding-right:0"><div class="lbl">Debt / Equity</div><div class="right mono">1.94</div></div>
+            <div class="setRow" style="padding-left:0;padding-right:0"><div class="lbl">FCF Margin</div><div class="right mono">29.1%</div></div>
+            <div class="setRow" style="padding-left:0;padding-right:0"><div class="lbl">Interest Coverage</div><div class="right mono">28.3×</div></div>
+            <div class="setRow" style="padding-left:0;padding-right:0"><div class="lbl">Current Ratio</div><div class="right mono">0.91</div></div>
+            <div class="setRow" style="padding-left:0;padding-right:0"><div class="lbl">As Of</div><div class="right small">2026-04-30</div></div>
+            <div class="setRow" style="padding-left:0;padding-right:0"><div class="lbl">Source</div><div class="right small mono" style="text-transform:uppercase">FINNHUB</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;align-items:center"><div class="mono" style="font-weight:700;width:32px;color:var(--ink-warn)">70</div><div style="flex:1"><div class="h3" style="font-size:14px">News Sentiment</div><div class="small">14 articles, last 7 days · High Volume ↑</div></div><div style="color:var(--textSecondary)">▾</div></div>
+          <div class="card elev" style="margin-top:10px;padding:10px">
+            <div class="small" style="color:#fff;font-weight:600">CPI miss reignites rate-cut bets</div>
+            <div class="small">WSJ · May 8 · <span class="chip">+72</span> <span class="chip">T1</span> <span class="chip">3×</span></div>
+            <div class="small" style="margin-top:6px">Soft inflation print supports tech sentiment; AAPL services tone neutral-positive.</div>
+          </div>
+          <div class="card elev" style="padding:10px">
+            <div class="small" style="color:#fff;font-weight:600">Apple 10-Q services growth</div>
+            <div class="small">Bloomberg · May 4 · <span class="chip">+64</span> <span class="chip">T1</span> <span class="chip">2×</span></div>
+            <div class="small" style="margin-top:6px">Services revenue mix expanded YoY, partially offsetting hardware cyclicality.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;align-items:center"><div class="mono" style="font-weight:700;width:32px;color:var(--ink-warn)">68</div><div style="flex:1"><div class="h3" style="font-size:14px">Macro Exposure</div><div class="small">252-day regression</div></div><div style="color:var(--textSecondary)">▸</div></div>
+        </div>
+        <div class="card">
+          <div style="display:flex;align-items:center"><div class="mono" style="font-weight:700;width:32px;color:var(--ink-positive)">75</div><div style="flex:1"><div class="h3" style="font-size:14px">Sector Exposure</div><div class="small">Technology · XLK</div></div><div style="color:var(--textSecondary)">▸</div></div>
+        </div>
+        <div class="card">
+          <div style="display:flex;align-items:center"><div class="mono" style="font-weight:700;width:32px;color:var(--ink-positive)">80</div><div style="flex:1"><div class="h3" style="font-size:14px">Volatility</div><div class="small">30d · 90d · ratio</div></div><div style="color:var(--textSecondary)">▸</div></div>
+        </div>
+
+        <div class="small" style="text-align:center;margin:18px 0 0">All five dimensions are weighted equally (20% each) in the composite score.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="meta">
+    <h2>07 · Methodology Drawer</h2>
+    <div class="src">
+      ios/Clavis/Views/Tickers/MethodologyDrawerSheet.swift<br>
+      ios/Clavis/Models/Methodology.swift
+    </div>
+    <div class="notes">
+      <b>Surprisingly close to V2:</b> the drawer already implements the 5-dimension accordion
+      with composite hero, source labels, refresh dates, and per-article expansion. Inputs
+      shown match CLAVIX_TRUTH §6 — D/E, FCF margin, interest coverage, current ratio, etc.<br><br>
+      <b>Gaps vs. V2:</b><br>
+      • <b>No mini distribution chart</b> per dimension. V2 shows a histogram of article scores
+      and signal scores in each accordion.<br>
+      • <b>No "Full audit ↗" link</b> — V2 splits the drawer (quick) from full audit pages
+      (deep). Currently only the drawer exists.<br>
+      • Composite header lacks 7-day delta.<br>
+      • Article rows render sentiment in pill-shaped chips; V2 uses sharp boxes.<br><br>
+      <b>Note:</b> the drawer depends on backend dimension fields that the spec mandates but the
+      current backend may not always populate. Empty-data behavior shows blank rows rather than
+      the spec’s “Limited data” treatment.
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     08 · ARTICLE DETAIL
+========================================================= -->
+<section id="article" class="row">
+  <div class="col">
+    <div class="phone tall">
+      <div class="notch"></div>
+      <div class="scroll" style="height:100%;overflow:auto">
+        <div class="statusbar"><span>9:41</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:0 4px 14px">
+          <a class="small" style="color:var(--informational);font-weight:600">‹ Back</a>
+          <div class="h2" style="font-size:18px">Article Detail</div>
+          <span style="width:34px"></span>
+        </div>
+
+        <h2 class="h2" style="font-size:18px">CPI miss reignites rate-cut bets across markets</h2>
+        <div class="small" style="margin:6px 0 14px">WSJ · May 8 · <span class="chip" style="color:var(--ink-positive);border-color:transparent;background:rgba(36,191,134,.15)">T1</span></div>
+
+        <div class="card elev">
+          <div class="eyebrow">SENTIMENT</div>
+          <div style="display:flex;align-items:flex-end;justify-content:space-between">
+            <div class="mono" style="font-size:36px;color:var(--ink-positive);font-weight:700">+72</div>
+            <div class="small">Recency 3×</div>
+          </div>
+        </div>
+
+        <span class="chip" style="background:var(--riskCCC-bg);color:var(--riskCCC-tx);border-color:transparent;text-transform:uppercase">Macro</span>
+
+        <div class="card elev"><div class="eyebrow">TLDR</div><p class="small">CPI prints +0.2% MoM, two-tenths cooler than consensus. Markets rally on dovish repricing of Fed path. 10Y eases six bps.</p></div>
+
+        <div class="card elev"><div class="eyebrow">WHAT IT MEANS FOR AAPL</div><p class="small">Soft inflation supports rate-sensitive tech multiples. AAPL services revenue mix benefits modestly; hardware cyclicality unchanged.</p></div>
+
+        <div class="card elev">
+          <div class="eyebrow">KEY IMPLICATIONS</div>
+          <ul class="small" style="padding-left:18px;margin:6px 0 0">
+            <li>Tech multiples expand if curve steepens further</li>
+            <li>Discount-rate tailwind for long-duration tech</li>
+            <li>Watch: Fed minutes (2 PM ET) for confirmation</li>
+          </ul>
+        </div>
+
+        <div class="card elev">
+          <div class="eyebrow">WHY THIS SCORE? <span style="color:var(--informational)">▾</span></div>
+          <p class="small">Tier-1 source, top-of-cycle macro print, broad market reaction confirmed. Sentiment skewed positive due to clear dovish read-through; recency multiplier 3× because it published in the last 24h.</p>
+        </div>
+
+        <div style="margin-top:16px"><a class="small" style="color:var(--informational);font-weight:600">Read original article ↗</a></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="meta">
+    <h2>08 · Article Detail</h2>
+    <div class="src">
+      ios/Clavis/Views/Tickers/ArticleDetailSheet.swift
+    </div>
+    <div class="notes">
+      <b>Mostly aligned with V2:</b> headline + meta, sentiment block, impact tag, TLDR, “What
+      it means for &lt;TICKER&gt;”, Key Implications, collapsed “Why this score?”, link to source.<br><br>
+      <b>Quirks:</b><br>
+      • Impact tag uses <code>tag.replacingOccurrences(of:"-", with:" ").capitalized</code> —
+      surfaces backend-styled strings rather than mapped copy.<br>
+      • "Why this score?" exists but uses backend <code>sentiment_reason</code> verbatim, which
+      can include LLM voice (V2 says don’t label this "LLM reasoning").<br>
+      • <b>Personalised implication box</b> from V2 (orange-tinted "your X% position…" callout)
+      is missing — currently no overlay reflecting the user’s holding size or P&amp;L.
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     09 · ALERTS
+========================================================= -->
+<section id="alerts" class="row">
+  <div class="col">
+    <div class="phone tall">
+      <div class="notch"></div>
+      <div class="scroll" style="height:100%;overflow:auto">
+        <div class="statusbar"><span>9:41</span></div>
+
+        <div class="ann">AlertsTopHeader struct exists in source but is NOT mounted — Alerts tab has no top header.</div>
+
+        <!-- Summary 2x2 -->
+        <div class="grid2" style="margin-top:8px">
+          <div><div class="small">Critical</div><div class="mono" style="font-size:22px;color:#fff;font-weight:700;text-align:right">2</div><div style="height:2px;background:var(--ink-danger);margin-top:6px"></div></div>
+          <div><div class="small">High</div><div class="mono" style="font-size:22px;color:#fff;font-weight:700;text-align:right">1</div><div style="height:2px;background:var(--riskCCC-bg);margin-top:6px"></div></div>
+          <div><div class="small">Elevated</div><div class="mono" style="font-size:22px;color:#fff;font-weight:700;text-align:right">3</div><div style="height:2px;background:var(--riskBB-bg);margin-top:6px"></div></div>
+          <div><div class="small">Info</div><div class="mono" style="font-size:22px;color:#fff;font-weight:700;text-align:right">5</div><div style="height:2px;background:var(--textSecondary);margin-top:6px"></div></div>
+        </div>
+
+        <div class="pillrow">
+          <span class="pill active">All · 11</span>
+          <span class="pill">Critical · 2</span>
+          <span class="pill">Grade · 3</span>
+          <span class="pill">Events · 6</span>
+        </div>
+
+        <!-- Timeline -->
+        <div class="card flush">
+          <div class="posrow" style="align-items:flex-start">
+            <span class="grade compact gBB">BB</span>
+            <div style="flex:1">
+              <div class="eyebrow">GRADE CHANGE · <span class="mono" style="color:var(--textSecondary)">5h ago</span></div>
+              <div class="h3" style="font-size:14px;margin-top:4px">NVDA downgraded</div>
+              <div class="small">News sentiment shifted negative on regulation tape. Held 2 days at lower band.</div>
+              <div style="display:flex;gap:6px;align-items:center;margin-top:6px">
+                <span class="grade compact gA">A</span>
+                <span class="trend up">↑</span>
+                <span class="grade compact gBB">BB</span>
+                <span class="chip">−7 pts</span>
+              </div>
+            </div>
+          </div>
+          <div class="posrow" style="align-items:flex-start">
+            <span class="grade compact gAA">AA</span>
+            <div style="flex:1">
+              <div class="eyebrow">MAJOR EVENT · <span class="mono" style="color:var(--textSecondary)">8h ago</span></div>
+              <div class="h3" style="font-size:14px;margin-top:4px">JPM annual meeting tonight</div>
+              <div class="small">Calendar event flagged; possible commentary on yield curve.</div>
+            </div>
+          </div>
+          <div class="posrow" style="align-items:flex-start">
+            <span class="grade compact gA">A</span>
+            <div style="flex:1">
+              <div class="eyebrow">PORTFOLIO STABLE · <span class="mono" style="color:var(--textSecondary)">12h ago</span></div>
+              <div class="h3" style="font-size:14px;margin-top:4px">Composite holds AA</div>
+              <div class="small">No material change overnight.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="tabbar">
+        <div class="tab"><div class="ic house"></div>Home</div>
+        <div class="tab"><div class="ic brief"></div>Holdings</div>
+        <div class="tab"><div class="ic doc"></div>Rating</div>
+        <div class="tab active"><div class="ic bell"></div>Alerts</div>
+        <div class="tab"><div class="ic gear"></div>Settings</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="meta">
+    <h2>09 · Alerts</h2>
+    <div class="src">
+      ios/Clavis/Views/Alerts/AlertsView.swift<br>
+      ios/Clavis/ViewModels/AlertsViewModel.swift
+    </div>
+    <div class="notes">
+      <b>Header missing:</b> <code>AlertsTopHeader</code> is defined but never inserted via
+      <code>safeAreaInset</code>. Tab visually has no header bar, just the summary grid floats up.
+      <br><br>
+      <b>Has:</b> 2×2 severity summary, filter chips (All/Critical/Grade/Events), timeline rows
+      with grade transitions and reason. <br><br>
+      <b>Missing per V2:</b><br>
+      • <b>Destination badges</b> (V2: each row shows where the tap goes — "Open AAPL", "Open
+      digest", "Open settings"). Current rows just deep-link without surfacing destination.<br>
+      • <b>Quiet-hours callout</b> when alerts are queued for end-of-quiet-hours delivery.<br>
+      • <b>Digest-ready alert type</b> (added in V2).<br>
+      • Filter labels "Events" should be split into "News / Macro / Digest" per V2.
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     10 · SETTINGS
+========================================================= -->
+<section id="settings" class="row">
+  <div class="col">
+    <div class="phone xtall">
+      <div class="notch"></div>
+      <div class="scroll" style="height:100%;overflow:auto">
+        <div class="statusbar"><span>9:41</span></div>
+        <div class="pageHead"><div class="monogram">C</div><div class="title">Settings</div></div>
+
+        <div class="eyebrow" style="margin-top:8px">RATING</div>
+        <div class="card flush">
+          <div class="setRow"><div class="lbl">Rating time</div><div class="right mono">7:00 AM</div></div>
+          <div class="setRow"><div><div class="lbl">Weekday only</div><div class="sub">Skip weekend rating delivery</div></div><div style="margin-left:auto"><span class="togglepill on"></span></div></div>
+        </div>
+        <div class="small">Morning rating is generated from overnight data. Changes save automatically.</div>
+
+        <div class="eyebrow" style="margin-top:18px">BROKERAGE</div>
+        <div class="card flush">
+          <div class="setRow"><div class="lbl">Status</div><div class="right">Connected</div></div>
+          <div class="setRow"><div class="lbl">Institution</div><div class="right">Fidelity</div></div>
+          <div class="setRow"><div class="lbl">Sync mode</div><div class="right">Automatic</div></div>
+          <div class="setRow"><div class="lbl">Last sync</div><div class="right small">May 7 · 7:31 PM</div></div>
+          <div class="setRow"><div class="lbl">Account</div><div class="right small">Brokerage · ****1234</div></div>
+          <div class="setRow"><div class="lbl">Sync holdings now</div><div class="right" style="color:var(--informational)">›</div></div>
+          <div class="setRow"><div class="lbl" style="color:#ff8178">Disconnect brokerage</div><div class="right">›</div></div>
+        </div>
+        <div class="small">Brokerage connections are read-only. Clavix imports holdings and lets you choose between manual and automatic sync.</div>
+
+        <div class="eyebrow" style="margin-top:18px">ALERTS</div>
+        <div class="card flush">
+          <div class="setRow"><div><div class="lbl">Grade changes</div><div class="sub">Upgrades and downgrades</div></div><div style="margin-left:auto"><span class="togglepill on"></span></div></div>
+          <div class="setRow"><div><div class="lbl">Major events</div><div class="sub">Earnings, regulatory, leadership</div></div><div style="margin-left:auto"><span class="togglepill on"></span></div></div>
+          <div class="setRow"><div><div class="lbl">Portfolio risk changes</div><div class="sub">Composite grade movement</div></div><div style="margin-left:auto"><span class="togglepill on"></span></div></div>
+          <div class="setRow"><div><div class="lbl">Large price moves</div><div class="sub">Significant daily moves</div></div><div style="margin-left:auto"><span class="togglepill"></span></div></div>
+          <div class="setRow"><div><div class="lbl">Quiet hours</div><div class="sub">10:00 PM → 7:00 AM</div></div><div style="margin-left:auto"><span class="togglepill on"></span></div></div>
+        </div>
+
+        <div class="eyebrow" style="margin-top:18px">NOTIFICATIONS</div>
+        <div class="card flush"><div class="setRow"><div class="lbl">Push notifications</div><div style="margin-left:auto"><span class="togglepill on"></span></div></div></div>
+
+        <div class="eyebrow" style="margin-top:18px">ACCOUNT</div>
+        <div class="card flush">
+          <div class="setRow"><div class="lbl">Email</div><div class="right small">bipul@andoverdigital.com</div></div>
+          <div class="setRow"><div class="lbl">Plan</div><div class="right">Free</div></div>
+          <div class="setRow"><div class="lbl">Export my data</div><div class="right">›</div></div>
+          <div class="setRow"><div class="lbl" style="color:#ff8178">Delete account</div><div class="right">›</div></div>
+        </div>
+
+        <div class="eyebrow" style="margin-top:18px">ABOUT</div>
+        <div class="card flush">
+          <div class="setRow"><div class="lbl">Version</div><div class="right small mono">1.0.0 (24)</div></div>
+          <div class="setRow"><div class="lbl">Score explanation</div><div class="right">›</div></div>
+          <div class="setRow"><div class="lbl">Data sources &amp; methodology</div><div class="right">›</div></div>
+          <div class="setRow"><div class="lbl">Privacy policy</div><div class="right">↗</div></div>
+          <div class="setRow"><div class="lbl">Terms of service</div><div class="right">↗</div></div>
+          <div class="setRow"><div class="lbl">Refund policy</div><div class="right">↗</div></div>
+        </div>
+
+        <div class="card" style="margin-top:18px">
+          <div class="eyebrow">INFORMATIONAL ONLY</div>
+          <p class="small">Clavix is informational only. It is not financial advice.</p>
+        </div>
+
+        <div class="card flush" style="margin-top:18px">
+          <div class="setRow"><div class="lbl" style="color:#ff8178">Sign out</div><div class="right">›</div></div>
+        </div>
+
+      </div>
+      <div class="tabbar">
+        <div class="tab"><div class="ic house"></div>Home</div>
+        <div class="tab"><div class="ic brief"></div>Holdings</div>
+        <div class="tab"><div class="ic doc"></div>Rating</div>
+        <div class="tab"><div class="ic bell"></div>Alerts</div>
+        <div class="tab active"><div class="ic gear"></div>Settings</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="meta">
+    <h2>10 · Settings</h2>
+    <div class="src">
+      ios/Clavis/Views/Settings/SettingsView.swift<br>
+      ios/Clavis/ViewModels/SettingsViewModel.swift<br>
+      ios/Clavis/Models/UserPreferences.swift
+    </div>
+    <div class="notes">
+      <b>Sections shipped:</b> Rating, Brokerage, Alerts, Notifications, Account, About, Sign out.<br><br>
+      <b>Missing per V2:</b><br>
+      • <b>Trial day countdown</b> ("Day 3 of 14") — not surfaced anywhere.<br>
+      • <b>Verbose digest mode toggle</b> (Pro-only).<br>
+      • <b>Digest-ready alert toggle</b>.<br>
+      • <b>Watchlist alerts toggle</b> (Pro state).<br>
+      • <b>Macro shock alerts toggle</b> (Pro state).<br>
+      • <b>Severity threshold picker</b> (Pro: "only alert me on AA→BBB or worse").<br>
+      • <b>Connected brokerage row</b> with friendly institution name (currently shows the
+      connection — but no display-name field per spec).<br><br>
+      <b>Should remove per V2:</b> Score history row → already absent (good).<br><br>
+      <b>Banned-string risk:</b> Plan label uses raw <code>subscriptionTier</code> mapped via copy
+      table; "Admin" tier is shown to admin users (acceptable).
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     11 · METHODOLOGY (about) + SCORE EXPLANATION
+========================================================= -->
+<section id="methAbout" class="row">
+  <div class="col">
+    <div class="phone tall">
+      <div class="notch"></div>
+      <div class="scroll" style="height:100%;overflow:auto">
+        <div class="statusbar"><span>9:41</span></div>
+        <div class="h1" style="margin-top:8px">Methodology Overview</div>
+        <p class="small">How Clavix translates raw market and news data into a daily letter grade for every holding.</p>
+
+        <div class="card"><div class="eyebrow">01 · DATA COLLECTION</div><p class="small" style="margin-top:6px">We aggregate price, fundamentals and curated news from Polygon, Finnhub, Google News RSS and CNBC.</p></div>
+        <div class="card"><div class="eyebrow">02 · RELEVANCE FILTERING</div><p class="small" style="margin-top:6px">Articles are deduplicated by canonical URL and filtered for ticker relevance before scoring.</p></div>
+        <div class="card">
+          <div class="eyebrow">03 · RISK ANALYSIS</div>
+          <p class="small" style="margin-top:6px">Each holding is scored across <b>four</b> dimensions: news sentiment, macro exposure, sector exposure, volatility.</p>
+          <div class="ann" style="margin-top:8px">⚠ Says <b>four</b> dimensions — CLAVIX_TRUTH §6 mandates <b>five</b> (Financial Health is missing here).</div>
+        </div>
+        <div class="card"><div class="eyebrow">04 · GRADE ASSIGNMENT</div><p class="small" style="margin-top:6px">Composite scores are mapped to a bond-rating-style letter (AAA → F) using fixed 10-point bands.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="phone tall">
+      <div class="notch"></div>
+      <div class="scroll" style="height:100%;overflow:auto">
+        <div class="statusbar"><span>9:41</span></div>
+        <div class="h1" style="margin-top:8px">How Risk Scores Work</div>
+        <p class="small">Composite scores are mapped to a 10-band bond grade.</p>
+
+        <div class="card flush">
+          <div class="setRow"><span class="grade standard gAAA">AAA</span><div style="margin-left:8px"><div class="lbl">90–100 · Treasury-grade</div><div class="sub">Major defensive blue chips, broad ETFs.</div></div></div>
+          <div class="setRow"><span class="grade standard gAA">AA</span><div style="margin-left:8px"><div class="lbl">80–89 · Investment-grade safe</div><div class="sub">Strong large caps, defensive sectors.</div></div></div>
+          <div class="setRow"><span class="grade standard gA">A</span><div style="margin-left:8px"><div class="lbl">70–79 · Solid</div><div class="sub">Healthy balance sheet, reasonable risk profile.</div></div></div>
+          <div class="setRow"><span class="grade standard gBBB">BBB</span><div style="margin-left:8px"><div class="lbl">60–69 · Stable but watch points</div></div></div>
+          <div class="setRow"><span class="grade standard gBB">BB</span><div style="margin-left:8px"><div class="lbl">50–59 · Mixed signals</div></div></div>
+          <div class="setRow"><span class="grade standard gB">B</span><div style="margin-left:8px"><div class="lbl">40–49 · Elevated risk</div></div></div>
+          <div class="setRow"><span class="grade standard gCCC">CCC</span><div style="margin-left:8px"><div class="lbl">30–39 · High risk</div></div></div>
+          <div class="setRow"><span class="grade standard gCC">CC</span><div style="margin-left:8px"><div class="lbl">20–29 · Severe risk</div></div></div>
+          <div class="setRow"><span class="grade standard gC">C</span><div style="margin-left:8px"><div class="lbl">10–19 · Distressed</div></div></div>
+          <div class="setRow"><span class="grade standard gF">F</span><div style="margin-left:8px"><div class="lbl">0–9 · Failure mode</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="meta">
+    <h2>11 · Settings → Methodology / Score Explanation</h2>
+    <div class="src">
+      ios/Clavis/Views/Settings/SettingsView.swift  (MethodologyView, ScoreExplanationView, ScoreBandRow)
+    </div>
+    <div class="notes">
+      <b>Two static info screens</b> linked from Settings → About.<br><br>
+      <b>Issue:</b> <code>MethodologyView</code> step 03 still says "four dimensions" — out of
+      sync with the 5-dimension drawer (screen 07) and CLAVIX_TRUTH §6.<br><br>
+      <b>Score Explanation</b> page already migrated to AAA…F bands — good.<br><br>
+      <b>Per V2:</b> these are not in the wireframe explicitly, but stay as Settings rows. The
+      drill-down audit pages (News Sentiment / Financial Health / Macro / Sector / Volatility,
+      one each) are <b>not implemented</b> — V2 has 5 dedicated pages.
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     12 · PAYWALL (MISSING)
+========================================================= -->
+<section id="paywall" class="row">
+  <div class="col">
+    <div class="phone tall">
+      <div class="notch"></div>
+      <div class="scroll" style="height:100%;overflow:auto;display:flex;align-items:center;justify-content:center;text-align:center">
+        <div>
+          <div class="monogram" style="margin:0 auto 16px">C</div>
+          <div class="h1" style="font-size:22px">No paywall implemented.</div>
+          <p class="small" style="max-width:280px;margin:8px auto 0">
+            There is no production StoreKit / RevenueCat surface in
+            <code>ios/Clavis/Views/</code>. Tier-gating relies on the backend
+            <code>subscription_tier</code> field. Free-3-holdings cap is not enforced client-side.
+          </p>
+          <div class="ann" style="margin-top:16px">DEFERRED · Phase 8 of REFACTOR_PLAN.md</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="meta">
+    <h2>12 · Paywall (NOT BUILT)</h2>
+    <div class="src">— No Swift file exists for a paywall surface —</div>
+    <div class="notes">
+      <b>State:</b> not implemented. V2 wireframe includes Paywall (Pro badge, $20/mo, 14-day
+      trial callout, Free/Pro comparison, restore/terms/privacy links).<br><br>
+      <b>Today’s tier mechanics:</b> backend reports <code>subscription_tier</code>; iOS shows
+      "Free" / "Clavix Pro" / "Admin" in Settings → Account but provides no upgrade path,
+      no trial countdown, no purchase flow, no entitlement events.<br><br>
+      <b>Blocker for launch:</b> Phase 8 in REFACTOR_PLAN — depends on RevenueCat or StoreKit
+      product configuration.
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     13 · DEAD / ORPHAN UI
+========================================================= -->
+<section id="dead" class="row">
+  <div class="col">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="scroll" style="height:100%;overflow:auto">
+        <div class="statusbar"><span>9:41</span></div>
+        <div class="h1">Dead / orphan UI inventory</div>
+
+        <div class="card">
+          <div class="h3">TickerDriverCardsSection.swift</div>
+          <div class="small">Standalone v2-styled "Key Drivers" card. <b>Not invoked</b> by TickerDetailView; that view re-implements its own driver UI inline with ad-hoc hex colors.</div>
+        </div>
+        <div class="card">
+          <div class="h3">ScoreHistoryChart.swift / HeroScoreSparkline</div>
+          <div class="small">Defined but never mounted. Per CLAVIX_TRUTH §18, score history screen is out of v1 scope.</div>
+        </div>
+        <div class="card">
+          <div class="h3">PriceChartView.swift (PositionDetail)</div>
+          <div class="small">Orphaned — TickerDetailView uses its private <code>TDSparkline</code> instead.</div>
+        </div>
+        <div class="card">
+          <div class="h3">FullNarrativeSection (DigestView)</div>
+          <div class="small">Defined but never used.</div>
+        </div>
+        <div class="card">
+          <div class="h3">AlertsTopHeader (AlertsView)</div>
+          <div class="small">Defined but never inserted into the hierarchy — Alerts tab has no header bar.</div>
+        </div>
+        <div class="card">
+          <div class="h3">ClavixGauge (ClavisDesignSystem)</div>
+          <div class="small">Semicircular arc gauge component. Not used anywhere.</div>
+        </div>
+        <div class="card">
+          <div class="h3">@deprecated tokens</div>
+          <div class="small"><code>ClavisCapsuleButton</code>, <code>ClavisStatPill</code>, <code>ClavisRingGauge</code>, <code>GradeTag</code> — kept "for backward compat" but no live callers.</div>
+        </div>
+        <div class="card">
+          <div class="h3">PositionDetailView.swift</div>
+          <div class="small">Now a thin wrapper that resolves <code>positionId → ticker</code> and shows TickerDetailView. Per V2, position detail is removed entirely; ticker detail with portfolio overlay replaces it.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="meta">
+    <h2>13 · Dead / orphan UI</h2>
+    <div class="src">Various — flagged during inspection</div>
+    <div class="notes">
+      Items in this list are compiled into the binary but never rendered. They’re safe deletion
+      candidates during Phase 6, but worth confirming before removal: some (like
+      <code>TickerDriverCardsSection</code>) appear to be the V2-correct component while the
+      visible UI is the legacy implementation — i.e. wire the component up rather than delete.
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     14 · ADD POSITION SHEET (light Form, breaks design language)
+========================================================= -->
+<section id="addsheet" class="row">
+  <div class="col">
+    <div class="phone tall">
+      <div class="notch"></div>
+      <div class="scroll" style="background:#1c1d22">
+        <div class="statusbar"><span>9:41</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 4px 14px">
+          <a class="small" style="color:var(--informational);font-weight:600">Cancel</a>
+          <div class="h2" style="font-size:18px">Add Position</div>
+          <a class="small" style="color:var(--informational);font-weight:600">Add</a>
+        </div>
+
+        <div class="lightForm">
+          <div class="grp">
+            <h4>POSITION</h4>
+            <div class="lr"><div>Ticker</div><div class="mono">NVDA</div></div>
+            <div class="lr"><div>Company</div><div>NVIDIA Corporation</div></div>
+            <div class="lr"><div>Shares</div><div class="mono">120</div></div>
+            <div class="lr"><div>Purchase price</div><div class="mono">$424.50</div></div>
+          </div>
+          <div class="grp">
+            <h4>ARCHETYPE</h4>
+            <div class="lr"><div>Type</div><div>Growth ›</div></div>
+          </div>
+          <div class="ann" style="background:transparent">Form uses default SwiftUI Form styling — light grey grouped rows on dark background. Visually inconsistent with rest of app.</div>
+        </div>
+
+        <div class="card" style="margin-top:24px">
+          <div class="eyebrow">Suggestions</div>
+          <div class="small">NVDA · NVIDIA Corporation</div>
+          <div class="small">NVDQ · Tradr 2X Short NVDA Daily ETF</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="scroll" style="height:100%;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
+        <div style="width:80px;height:80px;background:var(--surface);border:1px solid var(--border);border-radius:18px;display:grid;place-items:center;font-size:36px;margin:0 auto 16px">⏳</div>
+        <div class="eyebrow">ANALYSIS IN PROGRESS</div>
+        <div class="h1" style="margin-top:8px">Analyzing NVDA</div>
+        <p class="small" style="max-width:260px;margin:8px auto 18px">Pulling fundamentals, recent news, and the latest five-dimension snapshot.</p>
+        <div class="prog" style="width:240px;margin:0 auto"><i style="width:55%;background:var(--textSecondary)"></i></div>
+        <div class="ann" style="margin-top:16px">Bug: progress bar is always tinted grey — <code>progressGrade</code> returns the literal string "Analyzing…", which falls through <code>riskColor(for:)</code> to <code>textSecondary</code>.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="meta">
+    <h2>14 · Add Position sheet + Progress</h2>
+    <div class="src">
+      ios/Clavis/Views/Holdings/HoldingsListView.swift  (AddPositionSheet, AddPositionProgressView)
+    </div>
+    <div class="notes">
+      <b>Two screens triggered from Holdings <code>+</code>:</b> first a SwiftUI <code>Form</code>
+      (default light theme — visually breaks the dark UI), then a full-screen progress overlay.<br><br>
+      <b>Bug:</b> the progress bar tint is computed by <code>riskColor(for: progressGrade)</code>
+      where <code>progressGrade</code> is hard-coded to the string "Analyzing…", which never
+      matches a grade. So the bar is always default grey.<br><br>
+      <b>Per V2:</b> Add Portfolio is a dedicated screen showing three add-paths (Brokerage / CSV
+      / Manual) with Pro/Free badges. Currently only manual entry is reachable from Holdings;
+      brokerage onboarding lives in onboarding step 5 only.
+    </div>
+  </div>
+</section>
+
+<div class="docHead" style="margin-top:32px">
+  <p>End of current-app UI export. Cross-reference each phone with
+  <code>design/clavix-wireframes-v2.html</code> + <code>design/wf-screens.jsx</code> /
+  <code>wf-digest.jsx</code> / <code>wf-ticker.jsx</code> to drive the Phase 6 rebuild work.</p>
+</div>
+
+</body>
+</html>
