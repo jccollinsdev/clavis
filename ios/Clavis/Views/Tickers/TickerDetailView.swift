@@ -1,26 +1,24 @@
 import SwiftUI
 
-// MARK: - Main View
-
 struct TickerDetailView: View {
     let ticker: String
     let positionId: String?
 
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var authViewModel: AuthViewModel
     @State private var detail: TickerDetailResponse?
+    @State private var methodology: MethodologyResponse?
     @State private var priceHistory: [PricePoint] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
-    @State private var isMutatingWatchlist = false
-    @State private var isRefreshingTicker = false
-    @State private var selectedDays: Int = 30
     @State private var hasLoaded = false
-    @State private var showFullSummary = false
+    @State private var isRefreshingTicker = false
+    @State private var isMutatingWatchlist = false
     @State private var showMethodologyDrawer = false
-    @State private var selectedDimension: String = "financial_health"
-    @State private var methodology: MethodologyResponse?
-    @State private var selectedEvent: EventAnalysis?
+    @State private var selectedDimensionKey = "financial_health"
+    @State private var selectedArticle: MethodologyArticle?
+    @State private var showAddHoldingSheet = false
+    @State private var showAllArticles = false
+    @State private var toggledHistoryDimensions: Set<String> = []
 
     init(ticker: String, positionId: String? = nil) {
         self.ticker = ticker
@@ -30,27 +28,24 @@ struct TickerDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                if let errorMessage {
+                if let errorMessage, detail == nil {
                     DashboardErrorCard(message: errorMessage)
-                }
-
-                if isLoading && detail == nil {
-                    ClavisLoadingCard(
-                        title: "Loading \(ticker)",
-                        subtitle: "Pulling the latest market data and risk analysis."
-                    )
+                } else if isLoading && detail == nil {
+                    loadingState
                 } else if let detail {
-                    detailContent(detail)
+                    content(detail)
+                } else {
+                    DashboardErrorCard(message: "Ticker detail unavailable.")
                 }
             }
             .padding(.horizontal, ClavisTheme.screenPadding)
             .padding(.top, ClavisTheme.sectionSpacing)
-            .padding(.bottom, ClavisTheme.floatingTabHeight + ClavisTheme.floatingTabInset + ClavisTheme.extraLargeSpacing)
-        }
-        .safeAreaInset(edge: .top, spacing: 0) {
-            stickyHeader
+            .padding(.bottom, ClavisTheme.extraLargeSpacing)
         }
         .background(ClavisAtmosphereBackground())
+        .safeAreaInset(edge: .top, spacing: 0) {
+            topHeader
+        }
         .toolbar(.hidden, for: .navigationBar)
         .task {
             guard !hasLoaded else { return }
@@ -60,71 +55,64 @@ struct TickerDetailView: View {
         .refreshable {
             await reloadAll()
         }
-        .sheet(isPresented: $showFullSummary) {
-            if let analysis = detail?.currentAnalysis {
-                TDExecSummarySheet(
-                    ticker: ticker,
-                    analysis: analysis
-                )
-            }
-        }
         .sheet(isPresented: $showMethodologyDrawer) {
-            if let m = methodology {
+            if let methodology {
                 MethodologyDrawerSheet(
                     ticker: ticker,
-                    methodology: m,
-                    tappedDimension: selectedDimension
+                    methodology: methodology,
+                    tappedDimension: selectedDimensionKey
                 )
             }
         }
-        .sheet(item: $selectedEvent) { event in
-            TickerEventAnalysisDetailView(event: event)
+        .sheet(item: $selectedArticle) { article in
+            ArticleDetailSheet(article: article, ticker: ticker)
+        }
+        .sheet(isPresented: $showAddHoldingSheet) {
+            TickerAddHoldingSheet(
+                ticker: ticker,
+                companyName: detail?.profile.companyName,
+                onComplete: {
+                    showAddHoldingSheet = false
+                    Task { await reloadAll() }
+                }
+            )
         }
     }
 
-    // MARK: - Sticky Header
-
-    private var stickyHeader: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Button(action: { dismiss() }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 13, weight: .semibold))
-                        Text("Holdings")
-                            .font(ClavisTypography.inter(15, weight: .regular))
-                    }
-                    .foregroundColor(.informational)
-                }
-                .buttonStyle(.plain)
-
-                Spacer()
-
-                VStack(spacing: 3) {
-                    Text(ticker)
-                        .font(ClavisTypography.inter(17, weight: .bold))
-                        .foregroundColor(.accentBurnt)
-                    if let company = detail?.profile.companyName, !company.isEmpty {
-                        Text(company)
-                            .font(ClavisTypography.footnote)
-                            .foregroundColor(.textSecondary)
-                    }
-                }
-
-                Spacer()
-
-                Button(action: { Task { await toggleWatchlist() } }) {
-                    Image(systemName: isInWatchlist ? "star.fill" : "star")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(isInWatchlist ? .informational : .textSecondary)
-                }
-                .buttonStyle(.plain)
-                .frame(width: 44, height: 44)
+    private var topHeader: some View {
+        HStack(spacing: ClavisTheme.smallSpacing) {
+            Button(action: { dismiss() }) {
+                Image(systemName: "chevron.left")
+                    .foregroundColor(.textPrimary)
             }
-            .frame(height: 54)
-            .padding(.horizontal, ClavisTheme.screenPadding)
+            .buttonStyle(.plain)
 
+            VStack(alignment: .leading, spacing: 2) {
+                Text(detail?.profile.companyName ?? ticker)
+                    .font(ClavisTypography.cardTitle)
+                    .foregroundColor(.textPrimary)
+                    .lineLimit(1)
+                Text(ticker)
+                    .font(ClavisTypography.footnoteEmphasis)
+                    .foregroundColor(.accentBurnt)
+            }
+
+            Spacer()
+
+            Button(action: { Task { await toggleWatchlist() } }) {
+                if isMutatingWatchlist {
+                    ProgressView()
+                        .tint(.textPrimary)
+                } else {
+                    Image(systemName: isInWatchlist ? "star.fill" : "star")
+                        .foregroundColor(isInWatchlist ? .accentBurnt : .textPrimary)
+                }
+            }
+            .buttonStyle(.plain)
         }
+        .padding(.horizontal, ClavisTheme.screenPadding)
+        .padding(.top, ClavisTheme.smallSpacing)
+        .padding(.bottom, ClavisTheme.smallSpacing)
         .background(
             Color.backgroundPrimary.opacity(0.9)
                 .background(.ultraThinMaterial)
@@ -137,743 +125,346 @@ struct TickerDetailView: View {
         }
     }
 
-    // MARK: - Content Sections
-
     @ViewBuilder
-    private func detailContent(_ detail: TickerDetailResponse) -> some View {
-        heroCard(detail)
+    private func content(_ detail: TickerDetailResponse) -> some View {
+        heroSection(detail)
+        riskDimensionsSection(detail)
+        driversSection(detail)
+        recentNewsSection(detail)
+        scoreHistorySection(detail)
+        bottomCtas(detail)
+    }
 
-        if let analysis = detail.currentAnalysis {
-            executiveSummaryCard(analysis)
-        }
-
-        if detail.latestPrice.price != nil {
-            priceSection(detail)
-        }
-
-        positionRefreshCard()
-
-        let fundItems = fundamentalsItems(for: detail)
-        if fundItems.contains(where: { $0.value != "--" }) {
-            tdSectionLabel("FUNDAMENTALS")
-            fundamentalsGrid(fundItems)
-        }
-
-        if let dims = riskDimensions(for: detail) {
-            tdSectionLabel("RISK DIMENSIONS")
-            riskDimensionsList(dims)
-        }
-
-        let dCards = detail.currentAnalysis?.driverCards ?? []
-        let dState = detail.currentAnalysis?.driverCardsState ?? (dCards.isEmpty ? .pending : .ready)
-        if !dCards.isEmpty || dState == .limited {
-            keyDriversSection(detail, cards: dCards, state: dState)
-        }
-
-        let evidence = flatEvidence(from: detail)
-        if !evidence.isEmpty {
-            eventAnalysisSection(evidence)
+    private var loadingState: some View {
+        VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
+            ClavisLoadingCard(title: "Loading \(ticker)", subtitle: "Pulling the latest rating, dimensions, and news.")
+            ClavisLoadingCard(title: "Loading dimensions", subtitle: "Fetching methodology inputs and score components.")
+            ClavisLoadingCard(title: "Loading recent news", subtitle: "Scoring the latest article set for this ticker.")
+            ClavisLoadingCard(title: "Loading score history", subtitle: "Checking for prior composite snapshots.")
         }
     }
 
-    // MARK: - Hero Card
-
-    private func heroCard(_ detail: TickerDetailResponse) -> some View {
-        let grade = displayGrade(for: detail)
-        let score = displayScore(for: detail)
-        let trend = detail.position.riskTrend
-
-        return ClavisStandardCard(fill: .surface, padding: 0) {
-            VStack(spacing: 0) {
-                HStack(alignment: .center, spacing: 18) {
-                    gradeTile(grade)
-
-                    VStack(alignment: .leading, spacing: 14) {
+    private func heroSection(_ detail: TickerDetailResponse) -> some View {
+        ClavisStandardCard(fill: .surface) {
+            VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
+                HStack(alignment: .top, spacing: ClavisTheme.mediumSpacing) {
+                    VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                        Text(detail.profile.companyName ?? ticker)
+                            .font(ClavisTypography.h2)
+                            .foregroundColor(.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
                         Text(ticker)
-                            .font(.system(size: 22, weight: .bold, design: .monospaced))
+                            .font(ClavisTypography.footnoteEmphasis)
                             .foregroundColor(.accentBurnt)
 
-                        if let company = detail.profile.companyName, !company.isEmpty {
-                            Text(company)
-                                .font(ClavisTypography.footnote)
-                                .foregroundColor(.textSecondary)
-                                .lineLimit(1)
-                        }
-
-                        if let trend {
-                            HStack(spacing: 6) {
-                                Text(trendArrow(trend))
-                                    .font(.system(size: 18))
-                                Text(trend.displayName)
-                                    .font(ClavisTypography.inter(16, weight: .bold))
-                            }
-                            .foregroundColor(trendColor(trend))
-                        } else {
-                            Text("Updating")
-                                .font(ClavisTypography.inter(16, weight: .bold))
-                                .foregroundColor(.textTertiary)
-                        }
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Risk Score")
-                                .font(ClavisTypography.footnote)
-                                .foregroundColor(.textSecondary)
-                            Text("\(score)")
-                                .font(.system(size: 34, weight: .bold, design: .monospaced))
+                        HStack(alignment: .firstTextBaseline, spacing: ClavisTheme.smallSpacing) {
+                            Text(currency(latestPrice))
+                                .font(ClavisTypography.metric)
                                 .foregroundColor(.textPrimary)
+                            Text(dayChangeText(detail))
+                                .font(ClavisTypography.footnoteEmphasis)
+                                .foregroundColor(dayChangeColor(detail))
+                        }
+
+                        HStack(alignment: .center, spacing: ClavisTheme.smallSpacing) {
+                            Text(displayScoreText)
+                                .font(ClavisTypography.portfolioScore)
+                                .foregroundColor(.textPrimary)
+                            GradeBadge(grade: displayGrade, size: .standard)
                         }
                     }
 
-                    Spacer()
+                    Spacer(minLength: ClavisTheme.smallSpacing)
                 }
-                .padding(.horizontal, 17)
-                .padding(.vertical, 18)
+
+                if let score = displayScoreValue {
+                    HeroScoreSparkline(snapshots: scoreHistorySnapshots(referenceScore: score))
+                } else {
+                    ratingPendingCard
+                }
             }
         }
     }
 
-    private func gradeTile(_ grade: String) -> some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            ClavisGradeStyle.gradeBandBg(for: grade),
-                            ClavisGradeStyle.gradeBandBg(for: grade).opacity(0.75)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .frame(width: 90, height: 90)
-
-            Text(grade == "—" ? "—" : grade)
-                .font(.system(size: 52, weight: .medium, design: .monospaced))
-                .foregroundColor(ClavisGradeStyle.gradeBandText(for: grade))
+    private var ratingPendingCard: some View {
+        HStack(spacing: ClavisTheme.smallSpacing) {
+            Text("Rating pending — check back after market open")
+                .font(ClavisTypography.footnote)
+                .foregroundColor(.textSecondary)
+            Spacer()
         }
+        .padding(ClavisTheme.cardPadding)
+        .background(Color.surfaceElevated)
+        .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous))
     }
 
-    // MARK: - Executive Summary Card
+    private func riskDimensionsSection(_ detail: TickerDetailResponse) -> some View {
+        let dimensions = dimensionItems(detail)
 
-    private func executiveSummaryCard(_ analysis: PositionAnalysis) -> some View {
-        let teaser = (detail?.sharedAnalysis?.executiveSummary ?? analysis.summary ?? analysis.longReport ?? "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !teaser.isEmpty else { return AnyView(EmptyView()) }
-        return AnyView(
-            Button(action: { showFullSummary = true }) {
-                ClavisStandardCard(fill: .surface) {
-                    HStack(spacing: 13) {
-                        ZStack {
-                            Circle()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [Color(hex: "#9b3030"), Color(hex: "#6f1c1e")],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                            Image(systemName: "doc.text")
-                                .font(.system(size: 17, weight: .medium))
-                                .foregroundColor(Color(hex: "#ffd7d3"))
-                        }
-                        .frame(width: 40, height: 40)
+        return VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+            sectionHeader(title: "Risk Dimensions")
 
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Executive Summary")
-                                .font(ClavisTypography.inter(17, weight: .semibold))
-                                .foregroundColor(.textPrimary)
-                            Text(teaser.count > 100 ? String(teaser.prefix(100)) + "…" : teaser)
-                                .font(ClavisTypography.footnote)
-                                .foregroundColor(.textSecondary)
-                                .lineLimit(2)
-                        }
+            ClavisStandardCard(fill: .surface) {
+                VStack(spacing: 0) {
+                    ForEach(Array(dimensions.enumerated()), id: \.element.key) { index, dimension in
+                        VStack(spacing: 0) {
+                            Button(action: { openMethodology(dimension.key) }) {
+                                VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                                    HStack(alignment: .center, spacing: ClavisTheme.smallSpacing) {
+                                        Text(dimension.title)
+                                            .font(ClavisTypography.bodyEmphasis)
+                                            .foregroundColor(.textPrimary)
+                                        Spacer()
+                                        if dimension.isLimited {
+                                            dimensionBadge(text: "Limited Data", foreground: .warn, background: .warnSoft)
+                                        }
+                                        Text(dimension.scoreText)
+                                            .font(ClavisTypography.rowScore)
+                                            .foregroundColor(.textSecondary)
+                                    }
 
-                        Spacer(minLength: 4)
+                                    RiskBar(score: dimension.score ?? 0, grade: dimension.grade)
+                                        .frame(height: 4)
 
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.textTertiary)
-                    }
-                }
-            }
-            .buttonStyle(.plain)
-        )
-    }
-
-    // MARK: - Price Section
-
-    private func priceSection(_ detail: TickerDetailResponse) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(currency(detail.latestPrice.price))
-                        .font(.system(size: 30, weight: .bold, design: .monospaced))
-                        .foregroundColor(.textPrimary)
-                    Text(labelForDays(selectedDays))
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.textSecondary)
-                }
-
-                Spacer()
-
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text(priceChangeText(for: detail))
-                        .font(ClavisTypography.inter(17, weight: .bold))
-                        .foregroundColor(priceChangeColor(for: detail))
-                    Text("Today")
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.textSecondary)
-                }
-            }
-            .padding(.top, 4)
-
-            HStack(spacing: 0) {
-                ForEach([7, 30, 90, 365], id: \.self) { days in
-                    Button(action: {
-                        selectedDays = days
-                        Task { await loadPriceHistory(days: days) }
-                    }) {
-                        Text(labelForDays(days))
-                            .font(ClavisTypography.inter(13, weight: .semibold))
-                            .foregroundColor(selectedDays == days ? .textPrimary : .textSecondary)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 11)
-                            .background {
-                                if selectedDays == days {
-                                    RoundedRectangle(cornerRadius: 9, style: .continuous)
-                                        .fill(Color.surfaceElevated)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 9, style: .continuous)
-                                                .stroke(Color.border, lineWidth: 1)
-                                        )
+                                    HStack(spacing: ClavisTheme.smallSpacing) {
+                                        Text(dimension.subtitle)
+                                            .font(ClavisTypography.footnote)
+                                            .foregroundColor(.textSecondary)
+                                            .lineLimit(2)
+                                        Spacer()
+                                        Button(action: { openMethodology(dimension.key) }) {
+                                            Text("Full audit ↗")
+                                                .font(ClavisTypography.label)
+                                                .foregroundColor(.accentBurnt)
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
                                 }
+                                .padding(.vertical, ClavisTheme.mediumSpacing)
                             }
+                            .buttonStyle(.plain)
+
+                            if index < dimensions.count - 1 {
+                                Divider().overlay(Color.border)
+                            }
+                        }
                     }
+                }
+            }
+        }
+    }
+
+    private func driversSection(_ detail: TickerDetailResponse) -> some View {
+        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+            sectionHeader(title: "What's Driving It")
+
+            ClavisStandardCard(fill: .surface) {
+                VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
+                    Text(driverSummary(detail))
+                        .font(ClavisTypography.body)
+                        .foregroundColor(.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    TickerDriverCardsSection(analysis: detail.currentAnalysis)
+                }
+            }
+        }
+    }
+
+    private func recentNewsSection(_ detail: TickerDetailResponse) -> some View {
+        let articles = displayArticles(detail)
+        let visibleArticles = showAllArticles ? articles : Array(articles.prefix(10))
+
+        return VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+            HStack {
+                sectionHeader(title: "Recent News")
+                Spacer()
+                if articles.count > 10 {
+                    Button(showAllArticles ? "Show less" : "See all") {
+                        showAllArticles.toggle()
+                    }
+                    .font(ClavisTypography.footnoteEmphasis)
+                    .foregroundColor(.accentBurnt)
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.top, 16)
 
-            TDSparkline(priceHistory: priceHistory, direction: priceChangeDirection(for: detail))
-                .frame(height: 112)
-                .padding(.top, 4)
-        }
-    }
-
-    // MARK: - Position Refresh Card
-
-    private func positionRefreshCard() -> some View {
-        ClavisStandardCard(fill: .surface) {
-            HStack(alignment: .center, spacing: 14) {
-                VStack(alignment: .leading, spacing: 7) {
-                    Text("POSITION ANALYSIS")
-                        .font(ClavisTypography.label)
+            if visibleArticles.isEmpty {
+                ClavisStandardCard(fill: .surface) {
+                    Text("No recent news for this ticker")
+                        .font(ClavisTypography.body)
                         .foregroundColor(.textSecondary)
-                        .tracking(1.6)
-                    Text("Refresh the latest risk review for this holding.")
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
                 }
-
-                Spacer()
-
-                Button(action: { Task { await refreshTicker() } }) {
-                    Group {
-                        if isRefreshingTicker {
-                            HStack(spacing: 6) {
-                                ProgressView().scaleEffect(0.65).tint(Color(hex: "#14171d"))
-                                Text("Updating")
+            } else {
+                ClavisStandardCard(fill: .surface) {
+                    VStack(spacing: 0) {
+                        ForEach(Array(visibleArticles.enumerated()), id: \.element.id) { index, article in
+                            Button(action: { selectedArticle = article }) {
+                                newsCard(article)
                             }
-                        } else {
-                            Text("Refresh")
+                            .buttonStyle(.plain)
+
+                            if index < visibleArticles.count - 1 {
+                                Divider().overlay(Color.border)
+                            }
                         }
                     }
-                    .font(ClavisTypography.inter(14, weight: .bold))
-                    .foregroundColor(.accentInk)
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 11)
-                    .background(Color.accentBurnt)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
-                .buttonStyle(.plain)
-                .disabled(isRefreshingTicker)
             }
         }
     }
 
-    // MARK: - Section Label
+    private func newsCard(_ article: MethodologyArticle) -> some View {
+        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+            Text(article.title ?? "Untitled article")
+                .font(ClavisTypography.bodyEmphasis)
+                .foregroundColor(.textPrimary)
+                .multilineTextAlignment(.leading)
+                .lineLimit(2)
 
-    private func tdSectionLabel(_ text: String) -> some View {
-        Text(text)
-            .font(ClavisTypography.label)
-            .foregroundColor(.textSecondary)
-            .tracking(2)
-            .padding(.top, 8)
-            .padding(.bottom, 2)
+            HStack(spacing: ClavisTheme.smallSpacing) {
+                Text(article.source ?? "Unknown source")
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textSecondary)
+                Text("•")
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textTertiary)
+                Text(article.publishedAt ?? "Date unavailable")
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textTertiary)
+                Spacer()
+                sentimentPill(score: article.sentimentScore)
+                impactPill(text: article.impactTag?.humanizedTitleCasedDisplayText ?? "Limited Data")
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, ClavisTheme.mediumSpacing)
     }
 
-    // MARK: - Fundamentals Grid
+    private func scoreHistorySection(_ detail: TickerDetailResponse) -> some View {
+        let snapshots = scoreHistorySnapshots(referenceScore: displayScoreValue ?? 0)
 
-    private struct TDFundItem: Identifiable {
-        let id = UUID()
-        let label: String
-        let value: String
-        var isLast = false
-    }
+        return VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+            sectionHeader(title: "Score History")
 
-    private func fundamentalsItems(for detail: TickerDetailResponse) -> [TDFundItem] {
-        let pe = peDisplay(detail.profile.peRatio)
-        let cap = compactCurrency(detail.profile.marketCap)
-        let volScore = detail.currentScore?.factorBreakdown?.aiDimensions?.volatility
-            ?? detail.latestRiskSnapshot?.factorBreakdown?.volatilityScore
-        let vol = score(volScore)
-        return [
-            TDFundItem(label: "P/E", value: pe),
-            TDFundItem(label: "Mkt cap", value: cap),
-            TDFundItem(label: "Volatility", value: vol, isLast: true),
-        ]
-    }
+            ClavisStandardCard(fill: .surface) {
+                VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
+                    // TODO: backend expose real 90-day score history snapshots for ticker detail.
+                    ScoreHistoryChart(
+                        snapshots: snapshots,
+                        showAllDimensions: true,
+                        toggledDimensions: $toggledHistoryDimensions
+                    )
 
-    private func fundamentalsGrid(_ items: [TDFundItem]) -> some View {
-        ClavisStandardCard(fill: .surface, padding: 0) {
-            HStack(spacing: 0) {
-                ForEach(items) { item in
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(item.label)
+                    if snapshots.count < 2 {
+                        Text("Score history will appear once more daily snapshots are available.")
                             .font(ClavisTypography.footnote)
                             .foregroundColor(.textSecondary)
-                        Text(item.value)
-                            .font(.system(size: 18, weight: .semibold, design: .monospaced))
-                            .foregroundColor(.textPrimary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 13)
-                    .padding(.vertical, 15)
-
-                    if !item.isLast {
-                        Rectangle()
-                            .fill(Color.border)
-                            .frame(width: 1)
-                            .padding(.vertical, 10)
                     }
                 }
             }
         }
     }
 
-    // MARK: - Risk Dimensions
+    private func bottomCtas(_ detail: TickerDetailResponse) -> some View {
+        ClavisStandardCard(fill: .surface) {
+            VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
+                if isHeld {
+                    VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                        Text("In your holdings")
+                            .font(ClavisTypography.cardTitle)
+                            .foregroundColor(.textPrimary)
+                        Text(holdingSummary(detail))
+                            .font(ClavisTypography.body)
+                            .foregroundColor(.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                } else {
+                    HStack(spacing: ClavisTheme.smallSpacing) {
+                        ClavisPrimaryButton(title: "Add to Holdings", action: { showAddHoldingSheet = true })
+                        ClavisSecondaryButton(title: isInWatchlist ? "On Watchlist" : "Add to Watchlist") {
+                            Task { await toggleWatchlist() }
+                        }
+                    }
+                }
 
-    private struct TDDimItem: Identifiable {
-        let id = UUID()
-        let key: String
-        let title: String
-        let value: Double?
+                if isInWatchlist {
+                    Text("Watching")
+                        .font(ClavisTypography.footnoteEmphasis)
+                        .foregroundColor(.accentBurnt)
+                }
+            }
+        }
     }
 
-    private func riskDimensions(for detail: TickerDetailResponse) -> [TDDimItem]? {
-        var fh: Double?
-        var news: Double?
-        var macro: Double?
-        var sector: Double?
-        var vol: Double?
-
-        if let shared = detail.sharedAnalysis?.riskDimensions {
-            fh = shared.financialHealth
-            news = shared.newsSentiment
-            macro = shared.macroExposure
-            sector = shared.sectorExposure
-            vol = shared.volatility
-        } else if let ai = detail.currentScore?.factorBreakdown?.aiDimensions
-            ?? detail.latestRiskSnapshot?.factorBreakdown?.aiDimensions {
-            fh = ai.financialHealth; news = ai.newsSentiment
-            macro = ai.macroExposure; sector = ai.sectorExposure
-            vol = ai.volatility
-        } else if let sc = detail.currentScore {
-            fh = sc.financialHealth; news = sc.newsSentiment
-            macro = sc.macroExposure; sector = sc.sectorExposure
-            vol = sc.volatility
+    private func openMethodology(_ key: String) {
+        selectedDimensionKey = key
+        if methodology != nil {
+            showMethodologyDrawer = true
+            return
         }
 
-        guard fh != nil || news != nil || macro != nil || sector != nil || vol != nil else { return nil }
-
-        return [
-            TDDimItem(key: "financial_health", title: "Financial Health", value: fh),
-            TDDimItem(key: "news_sentiment", title: "News Sentiment", value: news),
-            TDDimItem(key: "macro_exposure", title: "Macro Exposure", value: macro),
-            TDDimItem(key: "sector_exposure", title: "Sector Exposure", value: sector),
-            TDDimItem(key: "volatility", title: "Volatility", value: vol),
-        ]
-    }
-
-    private func openMethodologyDrawer(dimension: String) {
         Task {
             do {
-                let m = try await APIService.shared.fetchTickerMethodology(ticker: ticker)
+                let response = try await APIService.shared.fetchTickerMethodology(ticker: ticker)
                 await MainActor.run {
-                    methodology = m
-                    selectedDimension = dimension
+                    methodology = response
                     showMethodologyDrawer = true
                 }
             } catch {
-                print("[Methodology] failed to load: \(error)")
-            }
-        }
-    }
-
-    private func riskDimensionsList(_ dims: [TDDimItem]) -> some View {
-        VStack(spacing: 12) {
-            ForEach(dims) { dim in
-                Button(action: { openMethodologyDrawer(dimension: dim.key) }) {
-                    VStack(spacing: 7) {
-                        HStack {
-                            Text(dim.title)
-                                .font(ClavisTypography.inter(14, weight: .regular))
-                                .foregroundColor(.textSecondary)
-                            Spacer()
-                            Text(dim.value.map { "\(Int($0.rounded()))" } ?? "\u{2014}")
-                                .font(ClavisTypography.inter(14, weight: .bold))
-                                .foregroundColor(.textPrimary)
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(.textTertiary)
-                        }
-                        GeometryReader { geo in
-                            ZStack(alignment: .leading) {
-                                RoundedRectangle(cornerRadius: 999, style: .continuous)
-                                    .fill(Color.surfaceElevated)
-                                    .frame(height: 4)
-                                if let v = dim.value {
-                                    RoundedRectangle(cornerRadius: 999, style: .continuous)
-                                        .fill(Color(hex: "#9ba4b3"))
-                                        .frame(width: max(0, geo.size.width * CGFloat(min(max(v, 0), 100) / 100.0)), height: 4)
-                                }
-                            }
-                        }
-                        .frame(height: 4)
-                    }
-                }
-                .buttonStyle(.plain)
-            }
-        }
-    }
-
-    // MARK: - Key Drivers
-
-    private func keyDriversSection(
-        _ detail: TickerDetailResponse,
-        cards: [DriverCard],
-        state: DriverCardsState
-    ) -> some View {
-        let grade = displayGrade(for: detail)
-
-        return ClavisStandardCard(fill: .surface, padding: 0) {
-            VStack(alignment: .leading, spacing: 0) {
-                HStack(alignment: .top, spacing: 8) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Key Drivers")
-                            .font(ClavisTypography.inter(18, weight: .semibold))
-                            .foregroundColor(.textPrimary)
-                        Text("Why \(ticker) receives this grade.")
-                            .font(ClavisTypography.inter(13, weight: .regular))
-                            .foregroundColor(.textSecondary)
-                    }
-                    Spacer()
-                    if grade != "—" {
-                        Text("\(grade) RISK")
-                            .font(.system(size: 11, weight: .heavy))
-                            .foregroundColor(Color(hex: "#ff8178"))
-                            .padding(.horizontal, 9)
-                            .padding(.vertical, 6)
-                            .background(Color(hex: "#ff665b").opacity(0.13))
-                            .clipShape(Capsule())
-                            .overlay(Capsule().stroke(Color(hex: "#ff665b").opacity(0.24), lineWidth: 1))
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 18)
-                .padding(.bottom, 14)
-
-                if state == .limited && cards.isEmpty {
-                    Divider().overlay(Color.border.opacity(0.6))
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("Limited data")
-                            .font(ClavisTypography.bodyEmphasis)
-                            .foregroundColor(.textPrimary)
-                        Text("Not enough coverage yet to build structured drivers for this holding.")
-                            .font(ClavisTypography.footnote)
-                            .foregroundColor(.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 14)
-                } else {
-                    ForEach(Array(cards.prefix(3).enumerated()), id: \.element.id) { _, card in
-                        Divider().overlay(Color.border.opacity(0.6))
-                        driverRow(card)
-                    }
+                await MainActor.run {
+                    errorMessage = error.localizedDescription
                 }
             }
-        }
-    }
-
-    private func driverRow(_ card: DriverCard) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top, spacing: 12) {
-                Text("\(card.rank)")
-                    .font(ClavisTypography.inter(14, weight: .semibold))
-                    .foregroundColor(Color(hex: "#cbd3df"))
-                    .frame(width: 30, height: 30)
-                    .background(Color(hex: "#1b2431"))
-                    .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
-
-                VStack(alignment: .leading, spacing: 4) {
-                    if !card.title.isEmpty {
-                        Text(card.title)
-                            .font(ClavisTypography.inter(15, weight: .semibold))
-                            .foregroundColor(.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    if !card.summary.isEmpty {
-                        Text(card.summary)
-                            .font(ClavisTypography.inter(13, weight: .regular))
-                            .foregroundColor(.textSecondary)
-                            .lineSpacing(3)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-
-                Text(card.strength.displayName)
-                    .font(ClavisTypography.inter(11, weight: .regular))
-                    .foregroundColor(.textSecondary)
-                    .fixedSize()
-            }
-
-            if !card.sourceChips.isEmpty {
-                HStack(spacing: 6) {
-                    ForEach(Array(card.sourceChips.prefix(3)), id: \.self) { chip in
-                        Text(chip)
-                            .font(.system(size: 11))
-                            .foregroundColor(Color(hex: "#aab3c2"))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 5)
-                            .background(Color.white.opacity(0.045))
-                            .clipShape(Capsule())
-                            .overlay(Capsule().stroke(Color.white.opacity(0.06), lineWidth: 1))
-                    }
-                }
-                .padding(.leading, 42)
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-    }
-
-    // MARK: - Supporting Evidence
-
-    private func flatEvidence(from detail: TickerDetailResponse) -> [EventAnalysis] {
-        Array(detail.latestEventAnalyses.prefix(5))
-    }
-
-    private func eventAnalysisSection(_ items: [EventAnalysis]) -> some View {
-        ClavisStandardCard(fill: .surface, padding: 0) {
-            VStack(alignment: .leading, spacing: 0) {
-                HStack(alignment: .bottom) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Event Analysis")
-                            .font(ClavisTypography.inter(18, weight: .semibold))
-                            .foregroundColor(.textPrimary)
-                        Text("Analysis of recent events affecting the rating.")
-                            .font(ClavisTypography.inter(12, weight: .regular))
-                            .foregroundColor(.textSecondary)
-                    }
-                    Spacer()
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 16)
-
-                ForEach(items) { item in
-                    Divider().overlay(Color.border.opacity(0.6))
-                    eventAnalysisRow(item)
-                        .contentShape(Rectangle())
-                        .onTapGesture { selectedEvent = item }
-                }
-            }
-        }
-    }
-
-    private func eventAnalysisRow(_ item: EventAnalysis) -> some View {
-        HStack(alignment: .center, spacing: 0) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(item.title)
-                    .font(ClavisTypography.inter(15, weight: .semibold))
-                    .foregroundColor(.textPrimary)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                if let tags = item.keyImplications, !tags.isEmpty {
-                    HStack(spacing: 6) {
-                        ForEach(Array(tags.prefix(3)), id: \.self) { tag in
-                            Text(tag)
-                                .font(.system(size: 11))
-                                .foregroundColor(Color(hex: "#aab3c2"))
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 5)
-                        }
-                    }
-                }
-
-                if let date = item.publishedAt {
-                    Text(date.formatted(date: .abbreviated, time: .omitted))
-                        .font(ClavisTypography.inter(11, weight: .regular))
-                        .foregroundColor(Color(hex: "#5a6470"))
-                }
-            }
-
-            Spacer(minLength: 8)
-
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(.textTertiary)
-                .padding(.trailing, 4)
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-    }
-
-    // MARK: - Helpers
-
-    private var isInWatchlist: Bool { detail?.userContext.isInWatchlist ?? false }
-
-    private func displayScore(for detail: TickerDetailResponse) -> Int {
-        Int((detail.sharedAnalysis?.summary.displayScore ?? detail.currentScore?.displayScore ?? detail.position.resolvedTotalScore ?? 50).rounded())
-    }
-
-    private func displayGrade(for detail: TickerDetailResponse) -> String {
-        detail.sharedAnalysis?.summary.displayGrade ?? detail.currentScore?.displayGrade ?? detail.position.resolvedRiskGrade ?? "—"
-    }
-
-    private func priceChangePercent(for detail: TickerDetailResponse) -> Double? {
-        guard let price = detail.latestPrice.price,
-              let previous = detail.latestPrice.previousClose,
-              previous != 0 else { return nil }
-        return ((price - previous) / previous) * 100
-    }
-
-    private func priceChangeText(for detail: TickerDetailResponse) -> String {
-        guard let change = priceChangePercent(for: detail) else { return "--" }
-        return String(format: "%@%.1f%%", change >= 0 ? "+" : "", change)
-    }
-
-    private func priceChangeDirection(for detail: TickerDetailResponse) -> TDChangeDir {
-        guard let change = priceChangePercent(for: detail) else { return .flat }
-        if change > 0 { return .up }
-        if change < 0 { return .down }
-        return .flat
-    }
-
-    private func priceChangeColor(for detail: TickerDetailResponse) -> Color {
-        switch priceChangeDirection(for: detail) {
-        case .up:   return Color(hex: "#25c58a")
-        case .down: return .riskD
-        case .flat: return .textSecondary
-        }
-    }
-
-    private func trendColor(_ trend: RiskTrend) -> Color {
-        switch trend {
-        case .worsening: return .riskF
-        case .improving: return .riskA
-        case .stable:    return .textSecondary
-        }
-    }
-
-    private func trendArrow(_ trend: RiskTrend) -> String {
-        switch trend {
-        case .worsening: return "↓"
-        case .improving: return "↑"
-        case .stable:    return "→"
-        }
-    }
-
-    private func labelForDays(_ days: Int) -> String {
-        switch days {
-        case 1: return "1D"
-        case 7: return "1W"
-        case 30: return "1M"
-        case 90: return "3M"
-        default: return "1Y"
-        }
-    }
-
-    // MARK: - Formatters
-
-    private func currency(_ value: Double?) -> String {
-        guard let value else { return "--" }
-        let f = NumberFormatter()
-        f.numberStyle = .currency
-        f.maximumFractionDigits = 2
-        return f.string(from: NSNumber(value: value)) ?? "--"
-    }
-
-    private func peDisplay(_ value: Double?) -> String {
-        guard let value, value > 0 else { return "--" }
-        return String(format: "%.1f", value)
-    }
-
-    private func compactCurrency(_ value: Double?) -> String {
-        guard let value else { return "--" }
-        let abs = Swift.abs(value)
-        if abs >= 1_000_000_000_000 { return String(format: "$%.1fT", value / 1_000_000_000_000) }
-        if abs >= 1_000_000_000 { return String(format: "$%.1fB", value / 1_000_000_000) }
-        if abs >= 1_000_000 { return String(format: "$%.1fM", value / 1_000_000) }
-        return currency(value)
-    }
-
-    private func score(_ value: Double?) -> String {
-        guard let value else { return "--" }
-        return "\(Int(value.rounded()))"
-    }
-
-    // MARK: - Networking
-
-    private func loadDetail() async {
-        isLoading = true
-        defer { isLoading = false }
-        do {
-            detail = try await APIService.shared.fetchTickerDetail(ticker: ticker, positionId: positionId)
-            errorMessage = nil
-        } catch {
-            errorMessage = ClavisCopy.Errors.tickerLoad(ticker: ticker, error: error)
-        }
-    }
-
-    private func loadPriceHistory(days: Int = 30) async {
-        do {
-            let response = try await APIService.shared.fetchPriceHistory(ticker: ticker, days: days)
-            priceHistory = response.prices
-            errorMessage = nil
-        } catch {
-            if priceHistory.isEmpty { errorMessage = nil }
         }
     }
 
     private func reloadAll() async {
-        await loadDetail()
-        await loadPriceHistory(days: selectedDays)
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            async let detailResponse = APIService.shared.fetchTickerDetail(ticker: ticker, positionId: positionId)
+            async let priceResponse = APIService.shared.fetchPriceHistory(ticker: ticker, days: 30)
+
+            let loadedDetail = try await detailResponse
+            let loadedPrice = try await priceResponse
+
+            await MainActor.run {
+                detail = loadedDetail
+                priceHistory = loadedPrice.prices
+                errorMessage = nil
+            }
+
+            do {
+                let loadedMethodology = try await APIService.shared.fetchTickerMethodology(ticker: ticker)
+                await MainActor.run {
+                    methodology = loadedMethodology
+                }
+            } catch {
+                // TODO: backend should always return methodology payloads for rated tickers.
+                await MainActor.run {
+                    methodology = nil
+                }
+            }
+        } catch {
+            await MainActor.run {
+                errorMessage = ClavisCopy.Errors.tickerLoad(ticker: ticker, error: error)
+            }
+        }
     }
 
     private func toggleWatchlist() async {
         isMutatingWatchlist = true
         defer { isMutatingWatchlist = false }
+
         do {
             if isInWatchlist {
                 _ = try await APIService.shared.removeFromWatchlist(ticker: ticker)
-                await loadDetail()
             } else {
                 _ = try await APIService.shared.addToWatchlist(ticker: ticker)
-                dismiss()
             }
+            await reloadAll()
         } catch {
             errorMessage = ClavisCopy.Errors.watchlistUpdate(error)
         }
@@ -882,6 +473,7 @@ struct TickerDetailView: View {
     private func refreshTicker() async {
         isRefreshingTicker = true
         defer { isRefreshingTicker = false }
+
         do {
             _ = try await APIService.shared.refreshTicker(ticker: ticker)
             try? await Task.sleep(nanoseconds: 1_000_000_000)
@@ -890,288 +482,348 @@ struct TickerDetailView: View {
             errorMessage = ClavisCopy.Errors.tickerRefresh(error)
         }
     }
-}
 
-// MARK: - Sparkline
-
-private enum TDChangeDir { case up, down, flat }
-
-private struct TDSparkline: View {
-    let priceHistory: [PricePoint]
-    let direction: TDChangeDir
-
-    private var ordered: [PricePoint] {
-        priceHistory.sorted { $0.recordedAt < $1.recordedAt }
+    private func sectionHeader(title: String) -> some View {
+        Text(title)
+            .font(ClavisTypography.label)
+            .foregroundColor(.textSecondary)
     }
 
-    var body: some View {
-        GeometryReader { geo in
-            let pts = normalized(in: geo.size)
-            if pts.count > 1 {
-                ZStack {
-                    Path { path in
-                        path.move(to: CGPoint(x: pts[0].x, y: geo.size.height))
-                        for p in pts { path.addLine(to: p) }
-                        if let last = pts.last {
-                            path.addLine(to: CGPoint(x: last.x, y: geo.size.height))
-                        }
-                        path.closeSubpath()
-                    }
-                    .fill(
-                        LinearGradient(
-                            colors: [lineColor.opacity(0.28), lineColor.opacity(0)],
-                            startPoint: .top, endPoint: .bottom
-                        )
-                    )
+    private func dimensionItems(_ detail: TickerDetailResponse) -> [TickerDimensionItem] {
+        let shared = detail.sharedAnalysis?.riskDimensions
+        let ai = detail.currentScore?.factorBreakdown?.aiDimensions
+        let current = detail.currentScore
 
-                    Path { path in
-                        path.move(to: pts[0])
-                        for p in pts.dropFirst() { path.addLine(to: p) }
-                    }
-                    .stroke(lineColor, style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
-                }
-            }
-        }
-    }
-
-    private var lineColor: Color {
-        switch direction {
-        case .up:   return Color(hex: "#24bf86")
-        case .down: return .riskD
-        case .flat: return .textSecondary
-        }
-    }
-
-    private func normalized(in size: CGSize) -> [CGPoint] {
-        let values = ordered.map(\.price)
-        guard values.count > 1,
-              let minV = values.min(), let maxV = values.max() else {
-            return []
-        }
-        let range = max(maxV - minV, 0.001)
-        return values.enumerated().map { i, v in
-            CGPoint(
-                x: CGFloat(i) / CGFloat(max(values.count - 1, 1)) * size.width,
-                y: size.height - ((CGFloat(v - minV) / CGFloat(range)) * (size.height - 6)) - 3
+        return [
+            TickerDimensionItem(
+                key: "financial_health",
+                title: "Financial Health",
+                score: shared?.financialHealth ?? ai?.financialHealth ?? current?.financialHealth,
+                subtitle: methodology?.dimensions.financialHealth.dataSource ?? "Quarterly fundamentals",
+                isLimited: (shared?.financialHealth ?? ai?.financialHealth ?? current?.financialHealth) == nil
+            ),
+            TickerDimensionItem(
+                key: "news_sentiment",
+                title: "News Sentiment",
+                score: shared?.newsSentiment ?? ai?.newsSentiment ?? current?.newsSentiment,
+                subtitle: newsSubtitle,
+                isLimited: (methodology?.dimensions.newsSentiment.articleCount7d ?? 0) < 3
+            ),
+            TickerDimensionItem(
+                key: "macro_exposure",
+                title: "Macro Exposure",
+                score: shared?.macroExposure ?? ai?.macroExposure ?? current?.macroExposure,
+                subtitle: methodology?.dimensions.macroExposure.asOfDate ?? "Macro regression",
+                isLimited: methodology?.dimensions.macroExposure.limitedData ?? false
+            ),
+            TickerDimensionItem(
+                key: "sector_exposure",
+                title: "Sector Exposure",
+                score: shared?.sectorExposure ?? ai?.sectorExposure ?? current?.sectorExposure,
+                subtitle: methodology?.dimensions.sectorExposure.sector ?? detail.profile.sector ?? "Sector state",
+                isLimited: (shared?.sectorExposure ?? ai?.sectorExposure ?? current?.sectorExposure) == nil
+            ),
+            TickerDimensionItem(
+                key: "volatility",
+                title: "Volatility",
+                score: shared?.volatility ?? ai?.volatility ?? current?.volatility,
+                subtitle: methodology?.dimensions.volatility.asOfDate ?? "Daily price action",
+                isLimited: (shared?.volatility ?? ai?.volatility ?? current?.volatility) == nil
             )
+        ]
+    }
+
+    private var newsSubtitle: String {
+        if let methodology {
+            return "\(methodology.dimensions.newsSentiment.articleCount7d) articles · 7d"
+        }
+        return "Recent article set"
+    }
+
+    private func displayArticles(_ detail: TickerDetailResponse) -> [MethodologyArticle] {
+        if let methodologyArticles = methodology?.dimensions.newsSentiment.articles, !methodologyArticles.isEmpty {
+            return methodologyArticles
+        }
+        return []
+    }
+
+    private func scoreHistorySnapshots(referenceScore: Double) -> [ScoreSnapshot] {
+        guard let detail else { return [] }
+
+        let date = detail.currentScore?.scoreAsOf
+            ?? detail.latestRiskSnapshot?.analysisAsOf
+            ?? detail.freshness.analysisAsOf
+            ?? Date()
+
+        return [
+            ScoreSnapshot(
+                id: "current",
+                date: date,
+                composite: referenceScore,
+                financialHealth: dimensionItems(detail).first(where: { $0.key == "financial_health" })?.score,
+                newsSentiment: dimensionItems(detail).first(where: { $0.key == "news_sentiment" })?.score,
+                macroExposure: dimensionItems(detail).first(where: { $0.key == "macro_exposure" })?.score,
+                sectorExposure: dimensionItems(detail).first(where: { $0.key == "sector_exposure" })?.score,
+                volatility: dimensionItems(detail).first(where: { $0.key == "volatility" })?.score
+            )
+        ]
+    }
+
+    private func driverSummary(_ detail: TickerDetailResponse) -> String {
+        let summary = detail.sharedAnalysis?.executiveSummary
+            ?? detail.currentAnalysis?.summary
+            ?? detail.currentScore?.reasoning
+            ?? detail.sharedAnalysis?.detailedReport
+            ?? "This rating is waiting on a fuller driver summary from the backend."
+
+        return summary.sanitizedDisplayText
+    }
+
+    private func dayChangeText(_ detail: TickerDetailResponse) -> String {
+        guard let price = latestPrice, let previousClose = detail.latestPrice.previousClose, previousClose != 0 else {
+            return "Day change unavailable"
+        }
+
+        let delta = price - previousClose
+        let pct = (delta / previousClose) * 100
+        return String(format: "%@%@ (%.2f%%)", delta >= 0 ? "+" : "", currency(delta), pct)
+    }
+
+    private func dayChangeColor(_ detail: TickerDetailResponse) -> Color {
+        guard let price = latestPrice, let previousClose = detail.latestPrice.previousClose else {
+            return .textSecondary
+        }
+        if price > previousClose { return .good }
+        if price < previousClose { return .bad }
+        return .textSecondary
+    }
+
+    private func sentimentPill(score: Double?) -> some View {
+        dimensionBadge(
+            text: score.map { "\(Int($0.rounded()))" } ?? "—",
+            foreground: sentimentColor(score),
+            background: sentimentBackground(score)
+        )
+    }
+
+    private func impactPill(text: String) -> some View {
+        dimensionBadge(text: text, foreground: .accentInk, background: .accentSoft)
+    }
+
+    private func dimensionBadge(text: String, foreground: Color, background: Color) -> some View {
+        Text(text)
+            .font(ClavisTypography.label)
+            .foregroundColor(foreground)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 4)
+            .background(background)
+            .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous))
+    }
+
+    private func sentimentColor(_ score: Double?) -> Color {
+        guard let score else { return .textSecondary }
+        if score >= 70 { return .good }
+        if score >= 50 { return .warn }
+        return .bad
+    }
+
+    private func sentimentBackground(_ score: Double?) -> Color {
+        guard let score else { return .surfaceElevated }
+        if score >= 70 { return .goodSoft }
+        if score >= 50 { return .warnSoft }
+        return .badSoft
+    }
+
+    private func holdingSummary(_ detail: TickerDetailResponse) -> String {
+        let sharesText = detail.portfolioOverlay?.shares ?? detail.position.shares
+        let valueText = detail.portfolioOverlay?.marketValue ?? detail.position.currentValue
+        let parts = [
+            sharesText > 0 ? "\(sharesText.formatted()) shares" : nil,
+            valueText.map { currency($0) }
+        ].compactMap { $0 }
+
+        if parts.isEmpty {
+            return "Holding data is available in your portfolio."
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    private func currency(_ value: Double?) -> String {
+        guard let value else { return "—" }
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.maximumFractionDigits = 2
+        return formatter.string(from: NSNumber(value: value)) ?? "—"
+    }
+
+    private var latestPrice: Double? {
+        detail?.latestPrice.price ?? detail?.portfolioOverlay?.currentPrice
+    }
+
+    private var displayScoreValue: Double? {
+        detail?.sharedAnalysis?.summary.currentScore
+            ?? detail?.currentScore?.totalScore
+            ?? detail?.currentScore?.safetyScore
+            ?? detail?.position.totalScore
+    }
+
+    private var displayScoreText: String {
+        displayScoreValue.map { "\(Int($0.rounded()))" } ?? "—"
+    }
+
+    private var displayGrade: String {
+        detail?.sharedAnalysis?.summary.currentGrade
+            ?? detail?.currentScore?.grade
+            ?? detail?.position.riskGrade
+            ?? "—"
+    }
+
+    private var isHeld: Bool {
+        detail?.portfolioOverlay?.isHeld ?? detail?.userContext.isHeld ?? false
+    }
+
+    private var isInWatchlist: Bool {
+        detail?.portfolioOverlay?.isInWatchlist ?? detail?.userContext.isInWatchlist ?? false
+    }
+}
+
+private struct TickerDimensionItem {
+    let key: String
+    let title: String
+    let score: Double?
+    let subtitle: String
+    let isLimited: Bool
+
+    var scoreText: String {
+        score.map { "\(Int($0.rounded()))" } ?? "—"
+    }
+
+    var grade: String {
+        guard let score else { return "F" }
+        switch score {
+        case 90...100: return "AAA"
+        case 80..<90: return "AA"
+        case 70..<80: return "A"
+        case 60..<70: return "BBB"
+        case 50..<60: return "BB"
+        case 40..<50: return "B"
+        case 30..<40: return "CCC"
+        case 20..<30: return "CC"
+        case 10..<20: return "C"
+        default: return "F"
         }
     }
 }
 
-// MARK: - Executive Summary Sheet
-
-private struct TDExecSummarySheet: View {
+private struct TickerAddHoldingSheet: View {
     let ticker: String
-    let analysis: PositionAnalysis
-    @Environment(\.dismiss) private var dismiss
+    let companyName: String?
+    let onComplete: () -> Void
 
-    private var positiveCards: [DriverCard] {
-        analysis.driverCards.filter { $0.direction == .positive }
-    }
-    private var negativeCards: [DriverCard] {
-        analysis.driverCards.filter { $0.direction == .negative }
-    }
-    private var headwinds: [String] {
-        if let r = analysis.topRisks, !r.isEmpty { return r }
-        return negativeCards.map(\.title)
-    }
-    private var tailwinds: [String] {
-        if let t = analysis.topTailwinds, !t.isEmpty { return t }
-        return positiveCards.map(\.title)
+    @Environment(\.dismiss) private var dismiss
+    @State private var shares = ""
+    @State private var costBasis = ""
+    @State private var purchaseDate = Date()
+    @State private var isSubmitting = false
+    @State private var errorMessage: String?
+
+    private var isValid: Bool {
+        (Double(shares) ?? 0) > 0 && (Double(costBasis) ?? 0) >= 0
     }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    if let tldr = analysis.summary, !tldr.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        execSection(label: "TL;DR", body: tldr)
+                    ClavisStandardCard(fill: .surface) {
+                        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                            Text(companyName ?? ticker)
+                                .font(ClavisTypography.cardTitle)
+                                .foregroundColor(.textPrimary)
+                            Text(ticker)
+                                .font(ClavisTypography.footnoteEmphasis)
+                                .foregroundColor(.accentBurnt)
+                        }
                     }
-                    if !tailwinds.isEmpty {
-                        execBullets(label: "Bullish Tailwinds", items: tailwinds)
-                    }
-                    if !headwinds.isEmpty {
-                        execBullets(label: "Bearish Headwinds", items: headwinds)
-                    }
-                    if let watchItems = analysis.watchItems, !watchItems.isEmpty {
-                        execBullets(label: "What Would Change the Rating", items: watchItems)
-                    }
-                }
-                .padding(ClavisTheme.screenPadding)
-                .padding(.bottom, ClavisTheme.largeSpacing)
-            }
-            .background(ClavisAtmosphereBackground())
-            .navigationTitle("\(ticker) — Executive Summary")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
-                        .foregroundColor(.informational)
-                }
-            }
-        }
-    }
 
-    @ViewBuilder
-    private func execSection(label: String, body: String) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(label.uppercased())
-                .font(ClavisTypography.inter(11, weight: .semibold))
-                .foregroundColor(.textTertiary)
-                .tracking(0.6)
-            Text(body)
-                .font(ClavisTypography.body)
-                .foregroundColor(.textSecondary)
-                .lineSpacing(5)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surface)
-    }
+                    field(title: "Shares", text: $shares)
+                    field(title: "Cost basis per share", text: $costBasis)
 
-    @ViewBuilder
-    private func execBullets(label: String, items: [String]) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(label.uppercased())
-                .font(ClavisTypography.inter(11, weight: .semibold))
-                .foregroundColor(.textTertiary)
-                .tracking(0.6)
-            VStack(alignment: .leading, spacing: 10) {
-                ForEach(items, id: \.self) { item in
-                    HStack(alignment: .top, spacing: 10) {
-                        Text("•")
-                            .font(ClavisTypography.body)
-                            .foregroundColor(.textTertiary)
-                            .frame(width: 8)
-                        Text(item)
-                            .font(ClavisTypography.body)
+                    ClavisStandardCard(fill: .surface) {
+                        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                            Text("Purchase date")
+                                .font(ClavisTypography.label)
+                                .foregroundColor(.textSecondary)
+                            DatePicker("Purchase date", selection: $purchaseDate, displayedComponents: .date)
+                                .datePickerStyle(.compact)
+                                .labelsHidden()
+                        }
+                    }
+
+                    if let errorMessage {
+                        DashboardErrorCard(message: errorMessage)
+                    }
+
+                    ClavisStandardCard(fill: .surfaceElevated) {
+                        // TODO: backend still requires archetype for holding creation; remove once the add-holding API matches V2.
+                        Text("The purchase date is collected for the V2 flow and will be sent once the backend add-holding contract is updated.")
+                            .font(ClavisTypography.footnote)
                             .foregroundColor(.textSecondary)
-                            .lineSpacing(3)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                }
-            }
-        }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surface)
-    }
-}
-
-// MARK: - Preserved for Event Detail Navigation
-
-private struct TDAnalysisDetailSection: View {
-    let title: String
-    let text: String
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(ClavisTypography.label)
-                .foregroundColor(.textSecondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            Text(text)
-                .font(ClavisTypography.body)
-                .foregroundColor(.textSecondary)
-                .multilineTextAlignment(.leading)
-                .lineSpacing(4)
-        }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surface)
-    }
-}
-
-private struct TDAnalysisListSection: View {
-    let title: String
-    let items: [String]
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(ClavisTypography.label)
-                .foregroundColor(.textSecondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(items, id: \.self) {
-                    Text("• \($0)")
-                        .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
-                        .multilineTextAlignment(.leading)
-                }
-            }
-        }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surface)
-    }
-}
-
-struct TickerEventAnalysisDetailView: View {
-    @Environment(\.dismiss) private var dismiss
-    let event: EventAnalysis
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(event.title)
-                            .font(ClavisTypography.h2)
-                            .foregroundColor(.textPrimary)
-                            .multilineTextAlignment(.leading)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        HStack(alignment: .firstTextBaseline) {
-                            if let source = event.source, !source.isEmpty {
-                                Text(source)
-                                    .font(ClavisTypography.footnote)
-                                    .foregroundColor(.textSecondary)
-                            }
-                            Spacer()
-                            if let date = event.publishedAt {
-                                Text(date.formatted(date: .abbreviated, time: .shortened))
-                                    .font(ClavisTypography.footnote)
-                                    .foregroundColor(.textSecondary)
-                            }
-                        }
-                    }
-                    .padding(ClavisTheme.cardPadding)
-                    .clavisCardStyle(fill: .surface)
-
-                    if let tldr = event.tldr?.trimmingCharacters(in: .whitespacesAndNewlines), !tldr.isEmpty {
-                        TDAnalysisDetailSection(title: "TLDR", text: tldr)
-                    }
-                    if let whatItMeans = event.whatItMeans?.trimmingCharacters(in: .whitespacesAndNewlines), !whatItMeans.isEmpty {
-                        TDAnalysisDetailSection(title: "What It Means", text: whatItMeans)
-                    }
-                    if let keyImplications = event.keyImplications, !keyImplications.isEmpty {
-                        TDAnalysisListSection(title: "Key Implications", items: keyImplications)
-                    }
-                    if let urlStr = event.sourceURL, let url = URL(string: urlStr) {
-                        Link(destination: url) {
-                            HStack {
-                                Text("Source Article Link")
-                                    .font(ClavisTypography.bodyEmphasis)
-                                    .foregroundColor(.informational)
-                                Spacer()
-                                Image(systemName: "arrow.up.right")
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundColor(.informational)
-                            }
-                        }
-                        .padding(ClavisTheme.cardPadding)
-                        .clavisCardStyle(fill: .surfaceElevated)
-                    }
-                    if let notes = event.recommendedFollowups, !notes.isEmpty {
-                        TDAnalysisListSection(title: "Follow-Up Notes", items: notes)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 .padding(.horizontal, ClavisTheme.screenPadding)
-                .padding(.vertical, ClavisTheme.largeSpacing)
-                .padding(.bottom, ClavisTheme.largeSpacing)
+                .padding(.vertical, ClavisTheme.sectionSpacing)
             }
             .background(ClavisAtmosphereBackground())
+            .navigationTitle("Add to Holdings")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
-                        .foregroundColor(.informational)
+                    Button("Cancel") { dismiss() }
+                        .foregroundColor(.textSecondary)
+                }
+
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(isSubmitting ? "Adding..." : "Add") {
+                        Task { await submit() }
+                    }
+                    .foregroundColor(isValid ? .accentBurnt : .textTertiary)
+                    .disabled(!isValid || isSubmitting)
                 }
             }
+        }
+    }
+
+    private func field(title: String, text: Binding<String>) -> some View {
+        ClavisStandardCard(fill: .surface) {
+            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                Text(title)
+                    .font(ClavisTypography.label)
+                    .foregroundColor(.textSecondary)
+                TextField(title, text: text)
+                    .keyboardType(.decimalPad)
+                    .font(ClavisTypography.body)
+                    .foregroundColor(.textPrimary)
+            }
+        }
+    }
+
+    private func submit() async {
+        guard let sharesValue = Double(shares), let costBasisValue = Double(costBasis) else { return }
+        isSubmitting = true
+        defer { isSubmitting = false }
+
+        do {
+            _ = try await APIService.shared.createHolding(
+                ticker: ticker,
+                shares: sharesValue,
+                purchasePrice: costBasisValue,
+                archetype: .growth
+            )
+            onComplete()
+        } catch {
+            errorMessage = ClavisCopy.Errors.holdingAdd(error)
         }
     }
 }
