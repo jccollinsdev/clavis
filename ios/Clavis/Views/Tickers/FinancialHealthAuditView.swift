@@ -1,0 +1,165 @@
+import SwiftUI
+
+struct FinancialHealthAuditView: View {
+    let ticker: String
+    let methodology: MethodologyResponse?
+
+    private var dimension: MethodologyFinancialHealth? { methodology?.dimensions.financialHealth }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
+                AuditHeaderCard(
+                    title: "Financial Health",
+                    ticker: ticker,
+                    score: dimension?.score,
+                    subtitle: "Source: Finnhub, updated \(dimension?.asOfDate ?? "Date unavailable")"
+                )
+
+                AuditSectionCard(title: "Ratio Table") {
+                    AuditValueRow(label: "D/E", value: decimal(dimension?.debtToEquity), status: status(for: dimension?.debtToEquity, lowIsGood: true))
+                    AuditValueRow(label: "FCF Margin", value: percent(dimension?.fcfMargin), status: status(for: dimension?.fcfMargin, lowIsGood: false))
+                    AuditValueRow(label: "Interest Coverage", value: decimal(dimension?.interestCoverage), status: status(for: dimension?.interestCoverage, lowIsGood: false))
+                    AuditValueRow(label: "Current Ratio", value: decimal(dimension?.currentRatio), status: status(for: dimension?.currentRatio, lowIsGood: false))
+                    AuditValueRow(label: "Revenue Growth Trend", value: dimension?.revenueGrowthTrend?.humanizedTitleCasedDisplayText ?? "Unavailable", status: "Trend")
+                    AuditValueRow(label: "Profitability Trend", value: dimension?.profitabilityTrend?.humanizedTitleCasedDisplayText ?? "Unavailable", status: "Trend")
+                }
+
+                AuditSectionCard(title: "Industry Comparison") {
+                    Text("Your ticker is shown against its sector median when comparative data is available.")
+                        .font(ClavisTypography.footnote)
+                        .foregroundColor(.textSecondary)
+                    // TODO: backend expose sector median comparisons for financial health ratios.
+                    Text("Sector median comparison unavailable.")
+                        .font(ClavisTypography.footnoteEmphasis)
+                        .foregroundColor(.textPrimary)
+                }
+
+                AuditSectionCard(title: "Methodology") {
+                    Text("Financial Health measures the structural strength of the company. It uses balance-sheet and cash-flow inputs such as debt-to-equity ratio, free cash flow margin, interest coverage, current ratio, revenue growth trend, and profitability trend.")
+                        .font(ClavisTypography.body)
+                        .foregroundColor(.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .padding(.horizontal, ClavisTheme.screenPadding)
+            .padding(.vertical, ClavisTheme.sectionSpacing)
+        }
+        .background(ClavisAtmosphereBackground())
+        .navigationTitle("Financial Health")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func decimal(_ value: Double?) -> String {
+        guard let value else { return "Unavailable" }
+        return String(format: "%.2f", value)
+    }
+
+    private func percent(_ value: Double?) -> String {
+        guard let value else { return "Unavailable" }
+        return String(format: "%.1f%%", value * 100)
+    }
+
+    private func status(for value: Double?, lowIsGood: Bool) -> String {
+        guard let value else { return "Unavailable" }
+        if lowIsGood {
+            return value < 1 ? "Healthy" : value < 2 ? "Watch" : "Stressed"
+        }
+        return value > 1 ? "Healthy" : value > 0.5 ? "Watch" : "Stressed"
+    }
+}
+
+struct AuditHeaderCard: View {
+    let title: String
+    let ticker: String
+    let score: Double?
+    let subtitle: String
+
+    var body: some View {
+        ClavisStandardCard(fill: .surface) {
+            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                Text(title)
+                    .font(ClavisTypography.h2)
+                    .foregroundColor(.textPrimary)
+                Text(ticker)
+                    .font(ClavisTypography.footnoteEmphasis)
+                    .foregroundColor(.accentBurnt)
+                HStack(alignment: .center, spacing: ClavisTheme.smallSpacing) {
+                    Text(score.map { "\(Int($0.rounded()))" } ?? "—")
+                        .font(ClavisTypography.portfolioScore)
+                        .foregroundColor(.textPrimary)
+                    GradeBadge(grade: grade(for: score), size: .standard)
+                }
+                Text(subtitle)
+                    .font(ClavisTypography.footnote)
+                    .foregroundColor(.textSecondary)
+            }
+        }
+    }
+
+    private func grade(for score: Double?) -> String {
+        guard let score else { return "—" }
+        switch score {
+        case 90...100: return "AAA"
+        case 80..<90: return "AA"
+        case 70..<80: return "A"
+        case 60..<70: return "BBB"
+        case 50..<60: return "BB"
+        case 40..<50: return "B"
+        case 30..<40: return "CCC"
+        case 20..<30: return "CC"
+        case 10..<20: return "C"
+        default: return "F"
+        }
+    }
+}
+
+struct AuditSectionCard<Content: View>: View {
+    let title: String
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        ClavisStandardCard(fill: .surface) {
+            VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
+                Text(title)
+                    .font(ClavisTypography.label)
+                    .foregroundColor(.textSecondary)
+                content
+            }
+        }
+    }
+}
+
+struct AuditValueRow: View {
+    let label: String
+    let value: String
+    let status: String
+
+    var body: some View {
+        HStack(alignment: .center, spacing: ClavisTheme.smallSpacing) {
+            Text(label)
+                .font(ClavisTypography.bodyEmphasis)
+                .foregroundColor(.textPrimary)
+            Spacer()
+            Text(value)
+                .font(ClavisTypography.footnoteEmphasis)
+                .foregroundColor(.textSecondary)
+            Text(status)
+                .font(ClavisTypography.label)
+                .foregroundColor(.accentBurnt)
+        }
+    }
+}
+
+struct AuditLimitedDataView: View {
+    let message: String
+
+    var body: some View {
+        ClavisStandardCard(fill: .surface) {
+            Text(message)
+                .font(ClavisTypography.body)
+                .foregroundColor(.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}

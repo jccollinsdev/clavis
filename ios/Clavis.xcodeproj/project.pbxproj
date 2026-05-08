@@ -17,6 +17,7 @@
 		2D0A2D28435796BB5DF7C2ED /* PushNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 473421A47E2CCB53FC0AEAF7 /* PushNotificationManager.swift */; };
 		2E5B0458654B424B86CC9561 /* DisplayText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DE04452D246D5FAAB52974D /* DisplayText.swift */; };
 		3EAE8B2B99CE87F9C797C551 /* PositionAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = E435B87D2019D238DB264C8B /* PositionAnalysis.swift */; };
+		3FF5D7328FC66209E1592256 /* NewsSentimentAuditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAAB6D2108AEDFE74E487806 /* NewsSentimentAuditView.swift */; };
 		43838696AA2414C499640B61 /* SupabaseAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 907D204F5C1EFC6857CFA92B /* SupabaseAuthService.swift */; };
 		4541BC98D2D1F6C144CF8016 /* HoldingsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B47422C72E57F1AD65337925 /* HoldingsListView.swift */; };
 		47F6465272C3A8E4EE32DDA1 /* NetworkStatusMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9027BA75CB22430CF3A61B46 /* NetworkStatusMonitor.swift */; };
@@ -30,6 +31,7 @@
 		6953499DF9BAA30FB978D436 /* Digest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53555B360591C580A0CD8C63 /* Digest.swift */; };
 		6F0B803D54BA6BD919253616 /* PricePoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13D5D4E31318BDF9E836901 /* PricePoint.swift */; };
 		6FE547B9F353AA87A205A35E /* OnboardingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B87D91420FBAE5F914EE15EB /* OnboardingViewModel.swift */; };
+		72E14DCEDD111155031FDFF8 /* MacroExposureAuditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C975E3EE7708580754A98684 /* MacroExposureAuditView.swift */; };
 		73387BE641F1871C6247C3E6 /* MethodologyDrawerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5FB222F969A57C25732D4483 /* MethodologyDrawerSheet.swift */; };
 		742AAB5C90C711E72FFB0B34 /* BrokerageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11A8924CBD4DBD5E9A3884E /* BrokerageViewModel.swift */; };
 		7A973E99EEC456F3A7A4BA25 /* Methodology.swift in Sources */ = {isa = PBXBuildFile; fileRef = F69D9B95550A0BD3EBCB6A2F /* Methodology.swift */; };
@@ -42,6 +44,7 @@
 		A2374B88B846298636A93F5B /* NewsItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D8545E60D1223D1BE1CAC01 /* NewsItem.swift */; };
 		A6D86F7D83B09AC32F18B799 /* ClavisCardComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C7B7E052980D0A7FF3CFA16 /* ClavisCardComponents.swift */; };
 		AC8980659B3AB2CCC50D1CC8 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FBC158DBA1385D691EFFC37 /* AuthViewModel.swift */; };
+		B0A03A537A52EE3C010E5F19 /* VolatilityAuditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AC2D955DCE622C5A1EF3D15 /* VolatilityAuditView.swift */; };
 		B132E9643F3BA783E542C73C /* NewsFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 417DBD36968B87DE7233E51A /* NewsFeed.swift */; };
 		B17527C480F9282C275C623A /* DigestViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C6F0F05198A0A2B6FCFBAC5 /* DigestViewModel.swift */; };
 		B1DCA91EDA51D1BC794CC012 /* SearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 333BA210B878B8BC3EBDB2A4 /* SearchView.swift */; };
@@ -53,8 +56,10 @@
 		B9DD10F0D12C47D0C61BEF8D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5856048E7E14BD3C2E4B76B9 /* SettingsView.swift */; };
 		C188EBCA0860A8809B63399B /* ScoreHistoryChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F4AFF75B6690F2AA1FC9C9F /* ScoreHistoryChart.swift */; };
 		C3B908BF8D2C24F59E42F8D6 /* PositionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1FCE7F1240CC9D1BB5D9A91 /* PositionDetailView.swift */; };
+		C6155195A47362A5F9785E89 /* SectorExposureAuditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5950AE0D54F23F38C9E21204 /* SectorExposureAuditView.swift */; };
 		C8D02AC324342D1EFF715A53 /* TickerDriverCardsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F42FE9D494BEF219ED81FD /* TickerDriverCardsSection.swift */; };
 		D6CE6DA725D651B0796E0F78 /* AnalysisRun.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11006E9F2139120F0114C419 /* AnalysisRun.swift */; };
+		E1BBCBA422C31F86357EF401 /* FinancialHealthAuditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D738964EAB3374EE58B76452 /* FinancialHealthAuditView.swift */; };
 		E9D835436887C65DC61A0B7C /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = A5451017CC31874BF6BE7AAD /* Supabase */; };
 		F0F488E4218A118D1566EB56 /* ClavisCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C8B94F66156A937403DBA44 /* ClavisCopy.swift */; };
 		F3F9830BF143FBD22392D3C7 /* ArticleDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 723C913265F4BD04FE9F014C /* ArticleDetailSheet.swift */; };
@@ -69,6 +74,7 @@
 		109D64880EF83D2FC224A3F4 /* DigestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DigestView.swift; sourceTree = "<group>"; };
 		11006E9F2139120F0114C419 /* AnalysisRun.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalysisRun.swift; sourceTree = "<group>"; };
 		15B66612E5443B430352FAAB /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		1AC2D955DCE622C5A1EF3D15 /* VolatilityAuditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolatilityAuditView.swift; sourceTree = "<group>"; };
 		1C6F0F05198A0A2B6FCFBAC5 /* DigestViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DigestViewModel.swift; sourceTree = "<group>"; };
 		1F46151C0C929856200978D9 /* PriceChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceChartView.swift; sourceTree = "<group>"; };
 		2179397FC5DAEEF86E5A5C71 /* JetBrainsMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "JetBrainsMono-Regular.ttf"; sourceTree = "<group>"; };
@@ -85,6 +91,7 @@
 		53555B360591C580A0CD8C63 /* Digest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Digest.swift; sourceTree = "<group>"; };
 		5854505856CBD1CDCBC4D3B7 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
 		5856048E7E14BD3C2E4B76B9 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		5950AE0D54F23F38C9E21204 /* SectorExposureAuditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectorExposureAuditView.swift; sourceTree = "<group>"; };
 		5D2D5EF09E956F001BB97806 /* Clavis.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Clavis.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D8545E60D1223D1BE1CAC01 /* NewsItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsItem.swift; sourceTree = "<group>"; };
 		5FB222F969A57C25732D4483 /* MethodologyDrawerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MethodologyDrawerSheet.swift; sourceTree = "<group>"; };
@@ -111,8 +118,11 @@
 		BE607541546CE04B5295937C /* ClavisDesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClavisDesignSystem.swift; sourceTree = "<group>"; };
 		C13D5D4E31318BDF9E836901 /* PricePoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PricePoint.swift; sourceTree = "<group>"; };
 		C30AAE01DC38DF049E30EA36 /* RiskEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiskEnums.swift; sourceTree = "<group>"; };
+		C975E3EE7708580754A98684 /* MacroExposureAuditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroExposureAuditView.swift; sourceTree = "<group>"; };
 		CA68D051F7E6B3D8396319F1 /* Position.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Position.swift; sourceTree = "<group>"; };
 		D12E13C8D040E91F932034B3 /* TickerDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TickerDetailView.swift; sourceTree = "<group>"; };
+		D738964EAB3374EE58B76452 /* FinancialHealthAuditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinancialHealthAuditView.swift; sourceTree = "<group>"; };
+		DAAB6D2108AEDFE74E487806 /* NewsSentimentAuditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsSentimentAuditView.swift; sourceTree = "<group>"; };
 		DB1A7BF18764341D7867CC44 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		E1FCE7F1240CC9D1BB5D9A91 /* PositionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositionDetailView.swift; sourceTree = "<group>"; };
 		E39592197B205D7C5872DC4B /* OnboardingContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingContainerView.swift; sourceTree = "<group>"; };
@@ -181,10 +191,15 @@
 			isa = PBXGroup;
 			children = (
 				723C913265F4BD04FE9F014C /* ArticleDetailSheet.swift */,
+				D738964EAB3374EE58B76452 /* FinancialHealthAuditView.swift */,
+				C975E3EE7708580754A98684 /* MacroExposureAuditView.swift */,
 				5FB222F969A57C25732D4483 /* MethodologyDrawerSheet.swift */,
+				DAAB6D2108AEDFE74E487806 /* NewsSentimentAuditView.swift */,
 				9F4AFF75B6690F2AA1FC9C9F /* ScoreHistoryChart.swift */,
+				5950AE0D54F23F38C9E21204 /* SectorExposureAuditView.swift */,
 				D12E13C8D040E91F932034B3 /* TickerDetailView.swift */,
 				33F42FE9D494BEF219ED81FD /* TickerDriverCardsSection.swift */,
+				1AC2D955DCE622C5A1EF3D15 /* VolatilityAuditView.swift */,
 			);
 			path = Tickers;
 			sourceTree = "<group>";
@@ -479,15 +494,18 @@
 				B17527C480F9282C275C623A /* DigestViewModel.swift in Sources */,
 				2E5B0458654B424B86CC9561 /* DisplayText.swift in Sources */,
 				B8FD67DC3FC7417BE2109D6F /* DriverCard.swift in Sources */,
+				E1BBCBA422C31F86357EF401 /* FinancialHealthAuditView.swift in Sources */,
 				4541BC98D2D1F6C144CF8016 /* HoldingsListView.swift in Sources */,
 				1BCA71D523BEDF92D78F7089 /* HoldingsViewModel.swift in Sources */,
 				A07E209B16067F077DE89AB7 /* LoginView.swift in Sources */,
+				72E14DCEDD111155031FDFF8 /* MacroExposureAuditView.swift in Sources */,
 				9112C7EA91240C472D69C7AC /* MainTabView.swift in Sources */,
 				7A973E99EEC456F3A7A4BA25 /* Methodology.swift in Sources */,
 				73387BE641F1871C6247C3E6 /* MethodologyDrawerSheet.swift in Sources */,
 				47F6465272C3A8E4EE32DDA1 /* NetworkStatusMonitor.swift in Sources */,
 				B132E9643F3BA783E542C73C /* NewsFeed.swift in Sources */,
 				A2374B88B846298636A93F5B /* NewsItem.swift in Sources */,
+				3FF5D7328FC66209E1592256 /* NewsSentimentAuditView.swift in Sources */,
 				5325BE30E38E60F995043C32 /* OnboardingContainerView.swift in Sources */,
 				6FE547B9F353AA87A205A35E /* OnboardingViewModel.swift in Sources */,
 				10A597D9B89AF751C8F6220F /* Position.swift in Sources */,
@@ -501,6 +519,7 @@
 				59E27730391F02665109EBB6 /* SafariView.swift in Sources */,
 				C188EBCA0860A8809B63399B /* ScoreHistoryChart.swift in Sources */,
 				B1DCA91EDA51D1BC794CC012 /* SearchView.swift in Sources */,
+				C6155195A47362A5F9785E89 /* SectorExposureAuditView.swift in Sources */,
 				B9DD10F0D12C47D0C61BEF8D /* SettingsView.swift in Sources */,
 				8FA2D2834E7E84E515B83A7F /* SettingsViewModel.swift in Sources */,
 				260312ED46C93D4855AA49AF /* SharedTickerAnalysis.swift in Sources */,
@@ -508,6 +527,7 @@
 				FA0755FB18875171EAD7FFD7 /* TickerDetailView.swift in Sources */,
 				C8D02AC324342D1EFF715A53 /* TickerDriverCardsSection.swift in Sources */,
 				60A69B6B2A7CE1A438849371 /* UserPreferences.swift in Sources */,
+				B0A03A537A52EE3C010E5F19 /* VolatilityAuditView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

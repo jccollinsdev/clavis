@@ -729,8 +729,26 @@ struct MethodologyView: View {
                 VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
                     MethodologyStepRow(number: "01", title: "Data Collection", description: "Real-time price, news, and market structure signals are gathered for each holding.")
                     MethodologyStepRow(number: "02", title: "Relevance Filtering", description: "Market noise is filtered out so only holding-relevant stories move forward.")
-                    MethodologyStepRow(number: "03", title: "Risk Analysis", description: "Each holding is scored across four dimensions: news risk signals, macro exposure, position sizing, and volatility trend.")
-                    MethodologyStepRow(number: "04", title: "Grade Assignment", description: "Composite scores are mapped to letter grades with fixed boundaries.")
+                    MethodologyStepRow(number: "03", title: "Risk Analysis", description: "Each holding is scored across five dimensions: Financial Health, News Sentiment, Macro Exposure, Sector Exposure, and Volatility.")
+                    MethodologyStepRow(number: "04", title: "Grade Assignment", description: "Composite scores are mapped to bond-rating-style grades with fixed boundaries.")
+                }
+
+                VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                    NavigationLink(destination: FinancialHealthAuditView(ticker: "Sample", methodology: nil)) {
+                        SettingsNavigationRow(title: "Financial Health audit")
+                    }
+                    NavigationLink(destination: NewsSentimentAuditView(ticker: "Sample", methodology: nil)) {
+                        SettingsNavigationRow(title: "News Sentiment audit")
+                    }
+                    NavigationLink(destination: MacroExposureAuditView(ticker: "Sample", methodology: nil)) {
+                        SettingsNavigationRow(title: "Macro Exposure audit")
+                    }
+                    NavigationLink(destination: SectorExposureAuditView(ticker: "Sample", methodology: nil)) {
+                        SettingsNavigationRow(title: "Sector Exposure audit")
+                    }
+                    NavigationLink(destination: VolatilityAuditView(ticker: "Sample", methodology: nil, scoreHistory: [])) {
+                        SettingsNavigationRow(title: "Volatility audit", last: true)
+                    }
                 }
 
                 Text("All scores are informational model outputs only. They do not constitute financial advice and should not be used as the sole basis for investment decisions.")
