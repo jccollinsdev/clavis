@@ -299,19 +299,6 @@ class APIService {
         return try decoder.decode([Alert].self, from: data)
     }
 
-    // MARK: - News
-
-    func fetchNewsFeed(limit: Int = 30) async throws -> NewsFeedResponse {
-        let data = try await makeRequest(path: "/news?limit=\(limit)")
-        return try decoder.decode(NewsFeedResponse.self, from: data)
-    }
-
-    func fetchNewsArticle(id: String) async throws -> NewsArticleResponse {
-        let encoded = id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? id
-        let data = try await makeRequest(path: "/news/\(encoded)")
-        return try decoder.decode(NewsArticleResponse.self, from: data)
-    }
-
     // MARK: - Analysis Runs
 
     struct LatestAnalysisRunResponse: Codable {

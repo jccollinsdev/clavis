@@ -343,3 +343,65 @@ async def enrich_and_store_articles_batch(
 
     results = await asyncio.gather(*(_process(a) for a in articles))
     return [r for r in results if r is not None]
+
+
+async def ingest_and_enrich_ticker_news(
+    supabase,
+    tickers: list[str],
+    *,
+    limit_per_ticker: int = 10,
+    max_concurrency: int = 3,
+) -> dict[str, int]:
+    """Fetch Google News RSS for each ticker, extract article bodies, run LLM
+    sentiment + TLDR, and write to shared_ticker_events.
+
+    This is the direct ingest path (Layer 2 fix) — it does NOT require a full
+    analysis run.  Articles that already exist (by event_hash) are left alone
+    unless their LLM fields are missing.
+
+    Returns: dict of {ticker: articles_stored}.
+    """
+    from ..pipeline.rss_ingest import fetch_google_company_rss
+    from ..pipeline.news_normalizer import normalize_news_batch
+    from .ticker_cache_service import get_metadata_map
+
+    if not tickers:
+        return {}
+
+    metadata_map = get_metadata_map(supabase, tickers)
+
+    raw = await fetch_google_company_rss(
+        tickers,
+        ticker_metadata=metadata_map,
+        limit_per_ticker=limit_per_ticker,
+    )
+    normalized = normalize_news_batch(raw, "company_news")
+
+    # group by ticker so we can track per-ticker counts
+    by_ticker: dict[str, list[dict]] = {}
+    for article in normalized:
+        t = str(article.get("ticker") or "").strip().upper()
+        if t in tickers:
+            by_ticker.setdefault(t, []).append(article)
+
+    results: dict[str, int] = {}
+    sem = asyncio.Semaphore(max_concurrency)
+
+    async def _ingest_ticker(ticker: str, articles: list[dict]) -> int:
+        async with sem:
+            stored = await enrich_and_store_articles_batch(
+                supabase,
+                articles,
+                max_concurrency=2,
+                skip_existing=True,
+            )
+            return len(stored)
+
+    import asyncio as _asyncio
+    counts = await _asyncio.gather(
+        *(_ingest_ticker(t, arts) for t, arts in by_ticker.items())
+    )
+    for ticker, count in zip(by_ticker.keys(), counts):
+        results[ticker] = count
+
+    return results

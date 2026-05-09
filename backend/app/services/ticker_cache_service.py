@@ -1610,6 +1610,37 @@ def build_portfolio_overlay(
     return sanitize_public_analysis_text(overlay)
 
 
+def _build_exec_summary_from_news_rows(
+    recent_news_rows: list[dict[str, Any]],
+    ticker: str,
+) -> str | None:
+    """Build a lightweight executive summary from the most recent article TLDRs when
+    no formal position_analyses or snapshot summary is available.
+
+    Returns None if there are no usable news rows so iOS can show a proper empty state.
+    """
+    usable = [
+        row for row in (recent_news_rows or [])
+        if row.get("tldr") or row.get("what_it_means") or row.get("summary")
+    ][:3]
+    if not usable:
+        return None
+
+    parts: list[str] = []
+    for row in usable:
+        snippet = sanitize_text_field(
+            row.get("tldr") or row.get("what_it_means") or row.get("summary") or "",
+            fallback="",
+        ).strip()
+        if snippet:
+            parts.append(snippet)
+
+    if not parts:
+        return None
+
+    return " ".join(parts)
+
+
 def build_shared_ticker_analysis_detail(
     *,
     ticker: str,
@@ -1689,7 +1720,8 @@ def build_shared_ticker_analysis_detail(
         "risk_dimensions": _shared_risk_dimensions(snapshot),
         "executive_summary": current_analysis.get("summary")
         or snapshot.get("news_summary")
-        or snapshot.get("reasoning"),
+        or snapshot.get("reasoning")
+        or _build_exec_summary_from_news_rows(recent_news_rows, ticker),
         "detailed_report": current_analysis.get("long_report"),
         "methodology_note": current_analysis.get("methodology"),
         "risk_drivers": risk_drivers,

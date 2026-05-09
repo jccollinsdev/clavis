@@ -13,6 +13,7 @@ from zoneinfo import ZoneInfo
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 
 from .analysis_utils import utcnow_iso, clamp_score, score_to_grade, sanitize_text_field, normalize_event_analysis_payload
 from .news_normalizer import normalize_news_batch, _evidence_quality
@@ -41,6 +42,8 @@ SP500_DAILY_JOB_ID = "system_sp500_daily_refresh"
 HOLDINGS_DAILY_AI_JOB_ID = "system_holdings_daily_ai_refresh"
 SP500_BACKFILL_JOB_ID = "system_sp500_backfill"
 NEWS_CLEANUP_JOB_ID = "system_news_cleanup"
+ACTIVE_TICKER_NEWS_REFRESH_JOB_ID = "system_active_ticker_news_refresh"
+BULK_SENTIMENT_ENRICHMENT_JOB_ID = "system_bulk_sentiment_enrichment"
 SYSTEM_SP500_USER_ID = "00000000-0000-0000-0000-000000000001"
 SP500_BACKFILL_TRIGGER = "sp500_backfill"
 MAJOR_PRIORITY_KEYWORDS = (
@@ -3858,8 +3861,8 @@ async def enqueue_sp500_backfill_run(
 
 async def trigger_structural_refresh(user_id: str):
     from ..services.supabase import get_supabase
-from ..services.ticker_metadata import upsert_ticker_metadata
-from ..services.news_enrichment import classify_source_tier, classify_recency_weight
+    from ..services.ticker_metadata import upsert_ticker_metadata
+    from ..services.news_enrichment import classify_source_tier, classify_recency_weight
 
     supabase = get_supabase()
 
@@ -5144,6 +5147,108 @@ def _cleanup_old_articles() -> None:
     supabase.table("shared_ticker_events").delete().lt("published_at", cutoff).execute()
 
 
+async def _run_active_ticker_news_refresh() -> None:
+    """Fetch Google News RSS for all active tickers (any user's portfolio/watchlist)
+    and write articles to shared_ticker_events with full LLM enrichment.
+
+    Per Clavix Truth §10 / §17: news articles for active tickers refresh every 4 hours.
+    This is the direct ingest path that does NOT require a full analysis pipeline run.
+    """
+    from ..services.supabase import get_supabase
+    from ..services.news_enrichment import ingest_and_enrich_ticker_news
+
+    supabase = get_supabase()
+    try:
+        # Collect all active tickers (in any user's portfolio or watchlist)
+        positions = supabase.table("positions").select("ticker").execute().data or []
+        watchlist_items = supabase.table("watchlist_items").select("ticker").execute().data or []
+        active_tickers = sorted({
+            str(r.get("ticker") or "").strip().upper()
+            for r in positions + watchlist_items
+            if r.get("ticker")
+        })
+        if not active_tickers:
+            logger.info("[NEWS_REFRESH] No active tickers found, skipping.")
+            return
+
+        logger.info("[NEWS_REFRESH] Refreshing news for %d active tickers.", len(active_tickers))
+        counts = await ingest_and_enrich_ticker_news(
+            supabase,
+            active_tickers,
+            limit_per_ticker=8,
+            max_concurrency=4,
+        )
+        total = sum(counts.values())
+        logger.info("[NEWS_REFRESH] Stored %d new articles across %d tickers.", total, len(counts))
+    except Exception as exc:
+        logger.error("[NEWS_REFRESH] Active ticker news refresh failed: %s", exc, exc_info=True)
+
+
+async def _run_bulk_sentiment_enrichment() -> None:
+    """Find shared_ticker_events rows missing LLM enrichment and backfill them.
+
+    Targets rows from the last 7 days where sentiment_score OR tldr OR what_it_means is NULL.
+    Runs every 6 hours so no article sits un-enriched for long.
+    """
+    from ..services.supabase import get_supabase
+    from ..services.news_enrichment import enrich_and_store_articles_batch
+
+    supabase = get_supabase()
+    try:
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+        rows = (
+            supabase.table("shared_ticker_events")
+            .select("*")
+            .gte("published_at", cutoff)
+            .is_("sentiment_score", "null")
+            .order("published_at", desc=True)
+            .limit(50)
+            .execute()
+            .data
+            or []
+        )
+        if not rows:
+            logger.info("[BULK_ENRICH] No unenriched articles found.")
+            return
+
+        logger.info("[BULK_ENRICH] Enriching %d articles missing sentiment.", len(rows))
+        stored = await enrich_and_store_articles_batch(
+            supabase,
+            rows,
+            max_concurrency=3,
+            skip_existing=False,
+        )
+        logger.info("[BULK_ENRICH] Enrichment complete: %d articles updated.", len(stored))
+    except Exception as exc:
+        logger.error("[BULK_ENRICH] Bulk sentiment enrichment failed: %s", exc, exc_info=True)
+
+
+def _schedule_active_ticker_news_refresh() -> None:
+    if scheduler.get_job(ACTIVE_TICKER_NEWS_REFRESH_JOB_ID):
+        scheduler.remove_job(ACTIVE_TICKER_NEWS_REFRESH_JOB_ID)
+    scheduler.add_job(
+        _run_active_ticker_news_refresh,
+        trigger=IntervalTrigger(hours=4),
+        id=ACTIVE_TICKER_NEWS_REFRESH_JOB_ID,
+        replace_existing=True,
+        misfire_grace_time=3600,
+        next_run_time=datetime.now(timezone.utc) + timedelta(minutes=5),
+    )
+
+
+def _schedule_bulk_sentiment_enrichment() -> None:
+    if scheduler.get_job(BULK_SENTIMENT_ENRICHMENT_JOB_ID):
+        scheduler.remove_job(BULK_SENTIMENT_ENRICHMENT_JOB_ID)
+    scheduler.add_job(
+        _run_bulk_sentiment_enrichment,
+        trigger=IntervalTrigger(hours=6),
+        id=BULK_SENTIMENT_ENRICHMENT_JOB_ID,
+        replace_existing=True,
+        misfire_grace_time=3600,
+        next_run_time=datetime.now(timezone.utc) + timedelta(minutes=10),
+    )
+
+
 def _schedule_news_cleanup() -> None:
     if scheduler.get_job(NEWS_CLEANUP_JOB_ID):
         scheduler.remove_job(NEWS_CLEANUP_JOB_ID)
@@ -5181,6 +5286,8 @@ def start_scheduler():
         _schedule_sp500_daily_refresh()
         _schedule_holdings_daily_ai_refresh()
     _schedule_news_cleanup()
+    _schedule_active_ticker_news_refresh()
+    _schedule_bulk_sentiment_enrichment()
 
     current_jobs = [
         job.id for job in scheduler.get_jobs() if job.id.startswith(JOB_PREFIX)

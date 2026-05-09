@@ -8,6 +8,7 @@ from .ticker_cache_service import (
     get_latest_risk_snapshot_history_map,
     get_latest_risk_snapshot_map,
     get_metadata_map,
+    get_or_create_default_watchlist,
 )
 from ..pipeline.analysis_utils import sanitize_text_field
 

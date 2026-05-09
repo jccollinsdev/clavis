@@ -104,15 +104,16 @@ async def get_ticker_methodology(
         if published_at and now - published_at <= timedelta(days=7):
             seven_day_articles.append(article)
 
-    if seven_day_articles and all(
-        article.get("sentiment_score") is None
-        and article.get("tldr") is None
-        and article.get("source_tier") is None
-        for article in seven_day_articles[:8]
-    ):
+    # Enrich any articles missing LLM-produced fields. skip_existing=False so the upsert
+    # patches existing rows (the caller already filtered to only unenriched articles).
+    unenriched = [
+        a for a in seven_day_articles[:8]
+        if a.get("tldr") is None or a.get("what_it_means") is None or a.get("sentiment_score") is None
+    ]
+    if unenriched:
         await enrich_and_store_articles_batch(
             supabase,
-            seven_day_articles[:8],
+            unenriched,
             analysis_run_id=snapshot.get("analysis_run_id"),
             max_concurrency=2,
             skip_existing=False,

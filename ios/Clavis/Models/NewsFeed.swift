@@ -1,56 +1,5 @@
 import Foundation
 
-struct NewsFeedResponse: Codable {
-    let heroStory: NewsStory?
-    let stories: [NewsStory]
-    let counts: NewsFeedCounts?
-    let updatedAt: Date?
-    let message: String?
-
-    enum CodingKeys: String, CodingKey {
-        case heroStory = "hero_story"
-        case stories
-        case counts
-        case updatedAt = "updated_at"
-        case message
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        heroStory = try container.decodeIfPresent(NewsStory.self, forKey: .heroStory)
-        stories = (try? container.decode([NewsStory].self, forKey: .stories)) ?? []
-        counts = try container.decodeIfPresent(NewsFeedCounts.self, forKey: .counts)
-        updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt)
-        message = try container.decodeIfPresent(String.self, forKey: .message)
-    }
-}
-
-struct NewsFeedCounts: Codable {
-    let portfolio: Int
-    let watchlist: Int
-    let market: Int
-    let major: Int
-}
-
-struct NewsArticleResponse: Codable {
-    let article: NewsStory?
-    let relatedAlerts: [Alert]
-    let message: String?
-
-    enum CodingKeys: String, CodingKey {
-        case article
-        case relatedAlerts = "related_alerts"
-        case message
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        article = try container.decodeIfPresent(NewsStory.self, forKey: .article)
-        relatedAlerts = (try? container.decode([Alert].self, forKey: .relatedAlerts)) ?? []
-        message = try container.decodeIfPresent(String.self, forKey: .message)
-    }
-}
-
 struct NewsStory: Identifiable, Codable, Hashable {
     let id: String
     let sourceTable: String
