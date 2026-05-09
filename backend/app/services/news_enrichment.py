@@ -249,9 +249,16 @@ async def enrich_and_store_article(
     what_it_means = None
     key_implications = None
 
-    if body and not is_paywalled and len(body.split()) >= 40:
+    # Score from full body when available; fall back to headline-only scoring per §10.
+    # Headline-only path: score sentiment from headline alone when body extraction failed.
+    body_has_content = body and not is_paywalled and not body.startswith("[No body extracted]") and len(body.split()) >= 40
+    headline_only = not body_has_content and bool(headline)
+
+    scoring_text = body if body_has_content else headline
+
+    if scoring_text and not is_paywalled and (body_has_content or headline_only):
         try:
-            sent = await _score_article_llm(ticker, headline, body)
+            sent = await _score_article_llm(ticker, headline, scoring_text)
             sentiment_score = sent.get("sentiment_score")
             sentiment_reason = sanitize_text_field(sent.get("sentiment_reason"), fallback="")
             impact_tag_val = (sent.get("impact_tag") or "").strip().lower()
@@ -260,18 +267,19 @@ async def enrich_and_store_article(
         except Exception as exc:
             logger.warning("Sentiment scoring failed for %s: %s", ticker, exc)
 
-        try:
-            tldr_result = await _generate_tldr_llm(ticker, headline, body)
-            tldr = sanitize_text_field(tldr_result.get("tldr"), fallback="")
-            what_it_means = sanitize_text_field(tldr_result.get("what_it_means"), fallback="")
-            raw_imp = tldr_result.get("key_implications")
-            if isinstance(raw_imp, list):
-                key_implications = [sanitize_text_field(item, fallback="") for item in raw_imp[:4]]
-                key_implications = [imp for imp in key_implications if imp]
-            else:
-                key_implications = []
-        except Exception as exc:
-            logger.warning("TLDR generation failed for %s: %s", ticker, exc)
+        if body_has_content:
+            try:
+                tldr_result = await _generate_tldr_llm(ticker, headline, scoring_text)
+                tldr = sanitize_text_field(tldr_result.get("tldr"), fallback="")
+                what_it_means = sanitize_text_field(tldr_result.get("what_it_means"), fallback="")
+                raw_imp = tldr_result.get("key_implications")
+                if isinstance(raw_imp, list):
+                    key_implications = [sanitize_text_field(item, fallback="") for item in raw_imp[:4]]
+                    key_implications = [imp for imp in key_implications if imp]
+                else:
+                    key_implications = []
+            except Exception as exc:
+                logger.warning("TLDR generation failed for %s: %s", ticker, exc)
 
     payload = {
         "ticker": ticker,

@@ -5202,7 +5202,7 @@ async def _run_bulk_sentiment_enrichment() -> None:
             .gte("published_at", cutoff)
             .is_("sentiment_score", "null")
             .order("published_at", desc=True)
-            .limit(50)
+            .limit(200)
             .execute()
             .data
             or []
@@ -5241,7 +5241,7 @@ def _schedule_bulk_sentiment_enrichment() -> None:
         scheduler.remove_job(BULK_SENTIMENT_ENRICHMENT_JOB_ID)
     scheduler.add_job(
         _run_bulk_sentiment_enrichment,
-        trigger=IntervalTrigger(hours=6),
+        trigger=IntervalTrigger(hours=2),
         id=BULK_SENTIMENT_ENRICHMENT_JOB_ID,
         replace_existing=True,
         misfire_grace_time=3600,
