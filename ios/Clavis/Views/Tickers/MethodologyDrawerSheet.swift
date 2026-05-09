@@ -121,10 +121,16 @@ struct MethodologyDrawerSheet: View {
                 VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
                     content()
                     NavigationLink(destination: destination) {
-                        Text("Full audit ↗")
-                            .font(ClavisTypography.footnoteEmphasis)
-                            .foregroundColor(.accentBurnt)
+                        HStack {
+                            Text("Full audit")
+                                .font(ClavisTypography.footnoteEmphasis)
+                                .foregroundColor(.accentBurnt)
+                            Image(systemName: "arrow.up.right")
+                                .font(ClavisTypography.footnote)
+                                .foregroundColor(.accentBurnt)
+                        }
                     }
+                    .buttonStyle(.plain)
                 }
                 .padding(.leading, ClavisTheme.smallSpacing)
             }
