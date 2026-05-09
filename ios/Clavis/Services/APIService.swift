@@ -567,7 +567,17 @@ class APIService {
     // MARK: - Onboarding
 
     func acknowledgeOnboarding() async throws {
-        _ = try await makeRequest(path: "/preferences/acknowledge", method: "POST", body: Data())
+        print("[API] POST /preferences/acknowledge — sending request")
+        do {
+            let data = try await makeRequest(path: "/preferences/acknowledge", method: "POST")
+            print("[API] POST /preferences/acknowledge — response: \(String(data: data, encoding: .utf8) ?? "<non-utf8>")")
+        } catch let error as APIError {
+            print("[API] POST /preferences/acknowledge — APIError: \(error)")
+            throw error
+        } catch {
+            print("[API] POST /preferences/acknowledge — error: \(error)")
+            throw error
+        }
     }
 
     struct ProfileUpdate: Encodable {

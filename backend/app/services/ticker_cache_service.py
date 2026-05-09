@@ -1103,6 +1103,13 @@ def _shared_freshness_status(
     return "ready"
 
 
+def _first_non_none(*values: Any) -> Any:
+    for v in values:
+        if v is not None:
+            return v
+    return None
+
+
 def _shared_risk_dimensions(snapshot: dict[str, Any] | None) -> dict[str, Any]:
     snapshot = snapshot or {}
     factor_breakdown = snapshot.get("factor_breakdown") or {}
@@ -1115,21 +1122,28 @@ def _shared_risk_dimensions(snapshot: dict[str, Any] | None) -> dict[str, Any]:
             factor_breakdown = {}
     ai_dims = (factor_breakdown or {}).get("ai_dimensions") or {}
     return {
-        "financial_health": snapshot.get("financial_health")
-        if snapshot.get("financial_health") is not None
-        else ai_dims.get("financial_health"),
-        "news_sentiment": snapshot.get("news_sentiment_dim")
-        if snapshot.get("news_sentiment_dim") is not None
-        else ai_dims.get("news_sentiment"),
-        "macro_exposure": snapshot.get("macro_exposure_dim")
-        if snapshot.get("macro_exposure_dim") is not None
-        else ai_dims.get("macro_exposure"),
-        "sector_exposure": snapshot.get("sector_exposure")
-        if snapshot.get("sector_exposure") is not None
-        else ai_dims.get("sector_exposure"),
-        "volatility": snapshot.get("volatility")
-        if snapshot.get("volatility") is not None
-        else ai_dims.get("volatility"),
+        "financial_health": _first_non_none(
+            snapshot.get("financial_health"),
+            ai_dims.get("financial_health"),
+            ai_dims.get("position_sizing"),
+        ),
+        "news_sentiment": _first_non_none(
+            snapshot.get("news_sentiment_dim"),
+            ai_dims.get("news_sentiment"),
+        ),
+        "macro_exposure": _first_non_none(
+            snapshot.get("macro_exposure_dim"),
+            ai_dims.get("macro_exposure"),
+        ),
+        "sector_exposure": _first_non_none(
+            snapshot.get("sector_exposure"),
+            ai_dims.get("sector_exposure"),
+        ),
+        "volatility": _first_non_none(
+            snapshot.get("volatility"),
+            ai_dims.get("volatility"),
+            ai_dims.get("volatility_trend"),
+        ),
     }
 
 
@@ -1148,14 +1162,17 @@ def _sanitize_factor_breakdown_payload(
 
     ai_dimensions = factor_breakdown.get("ai_dimensions") or {}
     sanitized_ai_dimensions = {
-        key: ai_dimensions.get(key)
-        for key in (
-            "financial_health",
-            "news_sentiment",
-            "macro_exposure",
-            "sector_exposure",
-            "volatility",
-        )
+        "financial_health": _first_non_none(
+            ai_dimensions.get("financial_health"),
+            ai_dimensions.get("position_sizing"),
+        ),
+        "news_sentiment": ai_dimensions.get("news_sentiment"),
+        "macro_exposure": ai_dimensions.get("macro_exposure"),
+        "sector_exposure": ai_dimensions.get("sector_exposure"),
+        "volatility": _first_non_none(
+            ai_dimensions.get("volatility"),
+            ai_dimensions.get("volatility_trend"),
+        ),
     }
     return {
         **factor_breakdown,
@@ -2458,27 +2475,28 @@ def build_risk_score_response(
             or snapshot.get("analysis_as_of"),
             "total_score": total_score_val,
             "composite_score": total_score_val,
-            "news_sentiment": (
-                fallback.get("news_sentiment")
-                if fallback.get("news_sentiment") is not None
-                else ai_dims.get("news_sentiment")
+            "news_sentiment": _first_non_none(
+                fallback.get("news_sentiment"),
+                ai_dims.get("news_sentiment"),
             ),
-            "macro_exposure": (
-                fallback.get("macro_exposure")
-                if fallback.get("macro_exposure") is not None
-                else ai_dims.get("macro_exposure")
+            "macro_exposure": _first_non_none(
+                fallback.get("macro_exposure"),
+                ai_dims.get("macro_exposure"),
             ),
-            "financial_health": (
-                fallback.get("financial_health")
-                if fallback.get("financial_health") is not None
-                else ai_dims.get("financial_health")
+            "financial_health": _first_non_none(
+                fallback.get("financial_health"),
+                ai_dims.get("financial_health"),
+                ai_dims.get("position_sizing"),
             ),
-            "sector_exposure": (
-                fallback.get("sector_exposure")
-                if fallback.get("sector_exposure") is not None
-                else ai_dims.get("sector_exposure")
+            "sector_exposure": _first_non_none(
+                fallback.get("sector_exposure"),
+                ai_dims.get("sector_exposure"),
             ),
-            "volatility": ai_dims.get("volatility") or fallback.get("volatility"),
+            "volatility": _first_non_none(
+                ai_dims.get("volatility"),
+                fallback.get("volatility"),
+                ai_dims.get("volatility_trend"),
+            ),
             "source_count": source_count,
             "major_event_count": major_event_count,
             "minor_event_count": minor_event_count,

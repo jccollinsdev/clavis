@@ -1,6 +1,7 @@
 import sys
 import types
 from types import SimpleNamespace
+import asyncio
 
 _fake_supabase_module = types.ModuleType("supabase")
 _fake_supabase_module.create_client = lambda *args, **kwargs: None
@@ -108,8 +109,6 @@ def test_update_preferences_reschedules_when_notifications_toggle_changes(monkey
 
     request = SimpleNamespace(state=SimpleNamespace(user_id="user-1"))
 
-    import asyncio
-
     result = asyncio.run(
         preferences.update_preferences(
             preferences.PreferencesUpdate(notifications_enabled=False),
@@ -120,3 +119,77 @@ def test_update_preferences_reschedules_when_notifications_toggle_changes(monkey
     assert result == {"status": "ok"}
     assert rescheduled == ["user-1"]
     assert supabase.rows["user_preferences"][0]["notifications_enabled"] is False
+
+
+def test_acknowledge_onboarding_creates_row_when_none_exists(monkeypatch):
+    supabase = _FakeSupabase({"user_preferences": []})
+    monkeypatch.setattr(preferences, "get_supabase", lambda: supabase)
+
+    request = SimpleNamespace(state=SimpleNamespace(user_id="new-user-1"))
+
+    result = asyncio.run(
+        preferences.acknowledge_onboarding(request)
+    )
+
+    assert result == {"status": "ok"}
+    rows = supabase.rows["user_preferences"]
+    assert len(rows) == 1
+    assert rows[0]["user_id"] == "new-user-1"
+    assert rows[0]["has_completed_onboarding"] is True
+    assert rows[0]["onboarding_acknowledged_at"] is not None
+
+
+def test_acknowledge_onboarding_updates_existing_row(monkeypatch):
+    supabase = _FakeSupabase(
+        {
+            "user_preferences": [
+                {
+                    "id": "pref-1",
+                    "user_id": "existing-user-1",
+                    "has_completed_onboarding": False,
+                    "onboarding_acknowledged_at": None,
+                }
+            ]
+        }
+    )
+    monkeypatch.setattr(preferences, "get_supabase", lambda: supabase)
+
+    request = SimpleNamespace(state=SimpleNamespace(user_id="existing-user-1"))
+
+    result = asyncio.run(
+        preferences.acknowledge_onboarding(request)
+    )
+
+    assert result == {"status": "ok"}
+    rows = supabase.rows["user_preferences"]
+    assert len(rows) == 1
+    assert rows[0]["has_completed_onboarding"] is True
+    assert rows[0]["onboarding_acknowledged_at"] is not None
+
+
+def test_acknowledge_onboarding_idempotent(monkeypatch):
+    supabase = _FakeSupabase(
+        {
+            "user_preferences": [
+                {
+                    "id": "pref-1",
+                    "user_id": "user-1",
+                    "has_completed_onboarding": True,
+                    "onboarding_acknowledged_at": "2026-05-01T00:00:00+00:00",
+                }
+            ]
+        }
+    )
+    monkeypatch.setattr(preferences, "get_supabase", lambda: supabase)
+
+    request = SimpleNamespace(state=SimpleNamespace(user_id="user-1"))
+
+    result = asyncio.run(
+        preferences.acknowledge_onboarding(request)
+    )
+
+    assert result == {"status": "ok"}
+    rows = supabase.rows["user_preferences"]
+    assert len(rows) == 1
+    assert rows[0]["has_completed_onboarding"] is True
+    assert rows[0]["onboarding_acknowledged_at"] != "2026-05-01T00:00:00+00:00"

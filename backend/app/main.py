@@ -89,19 +89,51 @@ def log_event(level: int, event: str, **fields) -> None:
 
 def _resolve_user_id_from_token(token: str) -> str | None:
     try:
-        payload = jwt.decode(token, settings.supabase_jwt_secret, algorithms=["HS256"])
+        payload = jwt.decode(
+            token,
+            settings.supabase_jwt_secret,
+            algorithms=["HS256"],
+            audience="authenticated",
+        )
         user_id = payload.get("sub")
-        return str(user_id) if user_id else None
-    except JWTError:
-        pass
+        if user_id:
+            log_event(
+                logging.DEBUG,
+                "auth_resolved_local",
+                user_id=str(user_id),
+            )
+            return str(user_id)
+    except JWTError as e:
+        log_event(
+            logging.WARNING,
+            "auth_local_decode_failed",
+            error=str(e),
+        )
 
     try:
         user_response = get_supabase().auth.get_user(token)
         user = getattr(user_response, "user", None)
         user_id = getattr(user, "id", None)
-        return str(user_id) if user_id else None
-    except Exception:
-        return None
+        if user_id:
+            log_event(
+                logging.DEBUG,
+                "auth_resolved_supabase",
+                user_id=str(user_id),
+            )
+            return str(user_id)
+    except Exception as e:
+        log_event(
+            logging.WARNING,
+            "auth_supabase_fallback_failed",
+            error=str(e),
+        )
+
+    log_event(
+        logging.WARNING,
+        "auth_invalid",
+        reason="both_local_and_supabase_failed",
+    )
+    return None
 
 
 configure_sentry()

@@ -164,6 +164,10 @@ async def update_alert_preferences(
 
 @router.post("/acknowledge")
 async def acknowledge_onboarding(request: Request):
+    import logging
+
+    from ..main import log_event
+
     user_id = request.state.user_id
     supabase = get_supabase()
 
@@ -174,20 +178,35 @@ async def acknowledge_onboarding(request: Request):
         "onboarding_acknowledged_at": datetime.now(timezone.utc).isoformat(),
     }
 
-    existing = (
-        supabase.table("user_preferences")
-        .select("id")
-        .eq("user_id", user_id)
-        .execute()
-        .data
-    )
+    try:
+        existing = (
+            supabase.table("user_preferences")
+            .select("id")
+            .eq("user_id", user_id)
+            .execute()
+            .data
+        )
 
-    if existing:
-        supabase.table("user_preferences").update(data).eq("user_id", user_id).execute()
-    else:
-        supabase.table("user_preferences").insert(
-            {"user_id": user_id, **data}
-        ).execute()
+        if existing:
+            supabase.table("user_preferences").update(data).eq("user_id", user_id).execute()
+        else:
+            supabase.table("user_preferences").insert(
+                {"user_id": user_id, **data}
+            ).execute()
+    except Exception as e:
+        log_event(
+            logging.ERROR,
+            "acknowledge_onboarding_failed",
+            user_id=user_id,
+            error=str(e),
+        )
+        raise HTTPException(500, f"Failed to save onboarding status: {e}")
+
+    log_event(
+        logging.INFO,
+        "acknowledge_onboarding_success",
+        user_id=user_id,
+    )
 
     return {"status": "ok"}
 

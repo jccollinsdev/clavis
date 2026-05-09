@@ -13,6 +13,7 @@ from ..services.ticker_cache_service import (
     _build_macro_exposure_inputs,
     _build_sector_exposure_inputs,
     _build_volatility_inputs,
+    _shared_risk_dimensions,
 )
 
 router = APIRouter()
@@ -85,6 +86,7 @@ async def get_ticker_methodology(
         except Exception:
             dimension_inputs = {}
 
+    risk_dims = _shared_risk_dimensions(snapshot)
     articles_result = (
         supabase.table("shared_ticker_events")
         .select("*")
@@ -206,7 +208,7 @@ async def get_ticker_methodology(
         "ticker": upper,
         "dimensions": {
             "financial_health": {
-                "score": snapshot.get("financial_health"),
+                "score": risk_dims.get("financial_health"),
                 "debt_to_equity": financial_inputs.get("debt_to_equity"),
                 "fcf_margin": financial_inputs.get("fcf_margin"),
                 "interest_coverage": financial_inputs.get("interest_coverage"),
@@ -217,7 +219,7 @@ async def get_ticker_methodology(
                 "data_source": financial_inputs.get("data_source") or "finnhub",
             },
             "news_sentiment": {
-                "score": snapshot.get("news_sentiment_dim"),
+                "score": risk_dims.get("news_sentiment"),
                 "article_count_7d": news_inputs.get("article_count_7d")
                 if news_inputs.get("article_count_7d") is not None
                 else len(seven_day_articles),
@@ -244,7 +246,7 @@ async def get_ticker_methodology(
                 ],
             },
             "macro_exposure": {
-                "score": snapshot.get("macro_exposure_dim"),
+                "score": risk_dims.get("macro_exposure"),
                 "r_squared": macro_inputs.get("r_squared")
                 if macro_inputs.get("r_squared") is not None
                 else macro_regression.get("r_squared"),
@@ -265,7 +267,7 @@ async def get_ticker_methodology(
                 "narrative": macro_inputs.get("narrative"),
             },
             "sector_exposure": {
-                "score": snapshot.get("sector_exposure"),
+                "score": risk_dims.get("sector_exposure"),
                 "sector": sector_inputs.get("sector") or metadata.get("sector"),
                 "sector_etf": sector_inputs.get("sector_etf"),
                 "sector_beta": sector_inputs.get("sector_beta"),
@@ -274,7 +276,7 @@ async def get_ticker_methodology(
                 "narrative": sector_inputs.get("narrative"),
             },
             "volatility": {
-                "score": snapshot.get("volatility"),
+                "score": risk_dims.get("volatility"),
                 "realized_vol_30d": volatility_inputs.get("realized_vol_30d"),
                 "realized_vol_90d": volatility_inputs.get("realized_vol_90d"),
                 "vol_ratio": volatility_inputs.get("vol_ratio"),

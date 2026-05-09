@@ -33,9 +33,26 @@ final class OnboardingViewModel: ObservableObject {
 
         Task {
             do {
+                print("[Onboarding] Starting acknowledgeOnboarding")
+                print("[Onboarding] Auth token present: \(await SupabaseAuthService.shared.getAccessToken() != nil)")
                 try await api.acknowledgeOnboarding()
+                print("[Onboarding] acknowledgeOnboarding succeeded")
                 completion()
+            } catch let error as APIError {
+                print("[Onboarding] APIError: \(error.localizedDescription)")
+                switch error {
+                case .unauthorized:
+                    errorMessage = "Session expired — please sign in again."
+                case .serverError(let code):
+                    errorMessage = "Server error (\(code)). Please try again."
+                case .networkError:
+                    errorMessage = "No connection — please check your internet and try again."
+                default:
+                    errorMessage = "Couldn't complete setup — please check your connection and try again."
+                }
+                isCompleting = false
             } catch {
+                print("[Onboarding] Unexpected error: \(error.localizedDescription)")
                 errorMessage = "Couldn't complete setup — please check your connection and try again."
                 isCompleting = false
             }

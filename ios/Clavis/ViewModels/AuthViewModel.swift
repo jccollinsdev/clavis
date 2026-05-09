@@ -121,7 +121,12 @@ class AuthViewModel: ObservableObject {
             let prefs = try await api.fetchPreferences()
             hasCompletedOnboarding = prefs.hasCompletedOnboarding ?? false
             subscriptionTier = prefs.subscriptionTier ?? "free"
+        } catch let error as APIError {
+            print("[Auth] checkOnboardingStatus failed: \(error.localizedDescription)")
+            hasCompletedOnboarding = false
+            subscriptionTier = "free"
         } catch {
+            print("[Auth] checkOnboardingStatus failed: \(error.localizedDescription)")
             hasCompletedOnboarding = false
             subscriptionTier = "free"
         }
