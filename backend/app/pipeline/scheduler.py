@@ -5153,7 +5153,12 @@ async def _run_active_ticker_news_refresh() -> None:
 
     Per Clavix Truth §10 / §17: news articles for active tickers refresh every 4 hours.
     This is the direct ingest path that does NOT require a full analysis pipeline run.
+    Set DISABLE_NEWS_ENRICHMENT=true to kill both this job and bulk enrichment.
     """
+    if os.getenv("DISABLE_NEWS_ENRICHMENT", "").strip().lower() in {"1", "true", "yes", "on"}:
+        logger.info("[NEWS_REFRESH] Skipped: DISABLE_NEWS_ENRICHMENT is set.")
+        return
+
     from ..services.supabase import get_supabase
     from ..services.news_enrichment import ingest_and_enrich_ticker_news
 
@@ -5187,9 +5192,14 @@ async def _run_active_ticker_news_refresh() -> None:
 async def _run_bulk_sentiment_enrichment() -> None:
     """Find shared_ticker_events rows missing LLM enrichment and backfill them.
 
-    Targets rows from the last 7 days where sentiment_score OR tldr OR what_it_means is NULL.
-    Runs every 6 hours so no article sits un-enriched for long.
+    Targets rows from the last 7 days where sentiment_score IS NULL.
+    Runs every 2 hours so no article sits un-enriched for long.
+    Set DISABLE_NEWS_ENRICHMENT=true to pause both this job and the ticker news refresh.
     """
+    if os.getenv("DISABLE_NEWS_ENRICHMENT", "").strip().lower() in {"1", "true", "yes", "on"}:
+        logger.info("[BULK_ENRICH] Skipped: DISABLE_NEWS_ENRICHMENT is set.")
+        return
+
     from ..services.supabase import get_supabase
     from ..services.news_enrichment import enrich_and_store_articles_batch
 
