@@ -511,7 +511,7 @@ struct TickerDetailView: View {
 
     private var newsSubtitle: String {
         if let methodology {
-            return "\(methodology.dimensions.newsSentiment.articleCount7d) articles · 7d"
+            return "\(methodology.dimensions.newsSentiment.articleCount7d ?? 0) articles · 7d"
         }
         return "Recent article set"
     }

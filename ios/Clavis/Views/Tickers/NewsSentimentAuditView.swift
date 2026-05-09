@@ -10,7 +10,7 @@ struct NewsSentimentAuditView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                if let dimension, dimension.articleCount7d < 3 {
+                if let dimension, (dimension.articleCount7d ?? 0) < 3 {
                     AuditLimitedDataView(message: "Limited Data — fewer than 3 relevant articles were available in the seven-day window.")
                 } else {
                     AuditHeaderCard(

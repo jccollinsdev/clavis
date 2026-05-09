@@ -55,8 +55,8 @@ struct MethodologyFinancialHealth: Codable, MethodologyDimensionProtocol {
 
 struct MethodologyNewsSentiment: Codable, MethodologyDimensionProtocol {
     let score: Double?
-    let articleCount7d: Int
-    let volumeSignal: Bool
+    let articleCount7d: Int?
+    let volumeSignal: Bool?
     let weightedScore: Double?
     let articles: [MethodologyArticle]
 
@@ -75,7 +75,7 @@ struct MethodologyMacroExposure: Codable, MethodologyDimensionProtocol {
     let score: Double?
     let rSquared: Double?
     let tradingDaysUsed: Int?
-    let limitedData: Bool
+    let limitedData: Bool?
     let asOfDate: String?
     let coefficients: [String: Double]?
     let currentFactorLevels: [String: Double]?

@@ -1,5 +1,13 @@
 import SwiftUI
 
+enum AuditDestination: Hashable {
+    case financialHealth
+    case newsSentiment
+    case macroExposure
+    case sectorExposure
+    case volatility
+}
+
 struct MethodologyDrawerSheet: View {
     let ticker: String
     let methodology: MethodologyResponse
@@ -8,16 +16,18 @@ struct MethodologyDrawerSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var expandedDimension: String
     @State private var selectedArticle: MethodologyArticle?
+    @State private var auditPath: NavigationPath
 
     init(ticker: String, methodology: MethodologyResponse, tappedDimension: String) {
         self.ticker = ticker
         self.methodology = methodology
         self.tappedDimension = tappedDimension
         _expandedDimension = State(initialValue: tappedDimension)
+        _auditPath = State(initialValue: NavigationPath())
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $auditPath) {
             ScrollView {
                 VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
                     AuditHeaderCard(
@@ -31,7 +41,7 @@ struct MethodologyDrawerSheet: View {
                         key: "financial_health",
                         title: methodology.dimensions.financialHealth.label,
                         score: methodology.dimensions.financialHealth.score,
-                        destination: AnyView(FinancialHealthAuditView(ticker: ticker, methodology: methodology))
+                        destination: .financialHealth
                     ) {
                         AuditValueRow(label: "Debt / Equity", value: decimal(methodology.dimensions.financialHealth.debtToEquity), status: methodology.dimensions.financialHealth.asOfDate ?? "Updated")
                         AuditValueRow(label: "FCF Margin", value: percent(methodology.dimensions.financialHealth.fcfMargin), status: methodology.dimensions.financialHealth.dataSource ?? "Source")
@@ -41,19 +51,19 @@ struct MethodologyDrawerSheet: View {
                         key: "news_sentiment",
                         title: methodology.dimensions.newsSentiment.label,
                         score: methodology.dimensions.newsSentiment.score,
-                        destination: AnyView(NewsSentimentAuditView(ticker: ticker, methodology: methodology))
+                        destination: .newsSentiment
                     ) {
-                        Text("\(methodology.dimensions.newsSentiment.articleCount7d) articles · weighted score \(methodology.dimensions.newsSentiment.weightedScore.map { String(Int($0.rounded())) } ?? "—")")
+                        Text("\(methodology.dimensions.newsSentiment.articleCount7d ?? 0) articles · weighted score \(methodology.dimensions.newsSentiment.weightedScore.map { String(Int($0.rounded())) } ?? "—")")
                             .font(ClavisTypography.footnote)
                             .foregroundColor(.textSecondary)
-                        miniDistribution(count: methodology.dimensions.newsSentiment.articleCount7d)
+                        miniDistribution(count: methodology.dimensions.newsSentiment.articleCount7d ?? 0)
                     }
 
                     drawerDimension(
                         key: "macro_exposure",
                         title: methodology.dimensions.macroExposure.label,
                         score: methodology.dimensions.macroExposure.score,
-                        destination: AnyView(MacroExposureAuditView(ticker: ticker, methodology: methodology))
+                        destination: .macroExposure
                     ) {
                         Text("R² \(String(format: "%.3f", methodology.dimensions.macroExposure.rSquared ?? 0)) · \(methodology.dimensions.macroExposure.tradingDaysUsed ?? 0) days used")
                             .font(ClavisTypography.footnote)
@@ -64,7 +74,7 @@ struct MethodologyDrawerSheet: View {
                         key: "sector_exposure",
                         title: methodology.dimensions.sectorExposure.label,
                         score: methodology.dimensions.sectorExposure.score,
-                        destination: AnyView(SectorExposureAuditView(ticker: ticker, methodology: methodology))
+                        destination: .sectorExposure
                     ) {
                         Text(methodology.dimensions.sectorExposure.sector ?? "Sector unavailable")
                             .font(ClavisTypography.footnote)
@@ -75,7 +85,7 @@ struct MethodologyDrawerSheet: View {
                         key: "volatility",
                         title: methodology.dimensions.volatility.label,
                         score: methodology.dimensions.volatility.score,
-                        destination: AnyView(VolatilityAuditView(ticker: ticker, methodology: methodology, scoreHistory: []))
+                        destination: .volatility
                     ) {
                         Text("30d \(percent(methodology.dimensions.volatility.realizedVol30d)) · 90d \(percent(methodology.dimensions.volatility.realizedVol90d))")
                             .font(ClavisTypography.footnote)
@@ -94,13 +104,32 @@ struct MethodologyDrawerSheet: View {
                         .foregroundColor(.textSecondary)
                 }
             }
+            .navigationDestination(for: AuditDestination.self) { destination in
+                auditView(for: destination)
+            }
         }
         .sheet(item: $selectedArticle) { article in
             ArticleDetailSheet(article: article, ticker: ticker)
         }
     }
 
-    private func drawerDimension(key: String, title: String, score: Double?, destination: AnyView, @ViewBuilder content: () -> some View) -> some View {
+    @ViewBuilder
+    private func auditView(for destination: AuditDestination) -> some View {
+        switch destination {
+        case .financialHealth:
+            FinancialHealthAuditView(ticker: ticker, methodology: methodology)
+        case .newsSentiment:
+            NewsSentimentAuditView(ticker: ticker, methodology: methodology)
+        case .macroExposure:
+            MacroExposureAuditView(ticker: ticker, methodology: methodology)
+        case .sectorExposure:
+            SectorExposureAuditView(ticker: ticker, methodology: methodology)
+        case .volatility:
+            VolatilityAuditView(ticker: ticker, methodology: methodology, scoreHistory: [])
+        }
+    }
+
+    private func drawerDimension(key: String, title: String, score: Double?, destination: AuditDestination, @ViewBuilder content: () -> some View) -> some View {
         VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
             Button(action: { toggle(key) }) {
                 HStack {
@@ -120,7 +149,9 @@ struct MethodologyDrawerSheet: View {
             if expandedDimension == key {
                 VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
                     content()
-                    NavigationLink(destination: destination) {
+                    Button {
+                        auditPath.append(destination)
+                    } label: {
                         HStack {
                             Text("Full audit")
                                 .font(ClavisTypography.footnoteEmphasis)
