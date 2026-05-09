@@ -314,13 +314,46 @@ def _upsert_shared_ticker_event(
     if not event_record.get("event_hash"):
         return None
 
+    source = str(event_record.get("source") or "").strip()
+    source_tier = classify_source_tier(source) if source else 3
+    published_at_str = str(event_record.get("published_at") or "")
+    recency_weight = classify_recency_weight(published_at_str)[0] if published_at_str else 1.0
+    risk_direction = str(event_record.get("risk_direction") or "").strip().lower()
+    sentiment_score = None
+    if risk_direction:
+        if "negative" in risk_direction:
+            sentiment_score = 30
+        elif "positive" in risk_direction:
+            sentiment_score = 70
+        else:
+            sentiment_score = 50
+    classification_raw = event_record.get("classification")
+    classification_str = (
+        ",".join(str(c) for c in classification_raw)
+        if isinstance(classification_raw, list)
+        else str(classification_raw or "")
+    ).lower()
+    impact_tag = "other"
+    if "regulatory" in classification_str:
+        impact_tag = "regulatory"
+    elif "leadership" in classification_str:
+        impact_tag = "leadership"
+    elif "product" in classification_str:
+        impact_tag = "product"
+    elif "financial-impact" in classification_str or "financial" in classification_str:
+        impact_tag = "financial-impact"
+    elif "macro" in classification_str:
+        impact_tag = "macro"
+    elif "sector" in classification_str:
+        impact_tag = "sector"
+
     shared = {
         "ticker": ticker,
         "event_hash": event_record.get("event_hash"),
         "external_event_id": event_record.get("external_event_id"),
         "title": event_record.get("title", ""),
         "summary": event_record.get("summary"),
-        "source": event_record.get("source"),
+        "source": source or event_record.get("source"),
         "source_url": event_record.get("source_url"),
         "published_at": event_record.get("published_at"),
         "event_type": event_record.get("event_type"),
@@ -339,6 +372,10 @@ def _upsert_shared_ticker_event(
         "follow_up_notes": event_record.get("recommended_followups") or [],
         "tags": tags or [],
         "analysis_run_id": event_record.get("analysis_run_id"),
+        "sentiment_score": sentiment_score,
+        "source_tier": source_tier,
+        "recency_weight": recency_weight,
+        "impact_tag": impact_tag if impact_tag != "other" else None,
         "provenance": "shared",
         "updated_at": utcnow_iso(),
     }
@@ -1082,7 +1119,7 @@ def _store_relevant_articles(
     analysis_run_id: str,
     relevant_articles: list[dict],
 ):
-    from ..services.news_enrichment import enrich_and_store_articles_batch
+    from ..services.news_enrichment import enrich_and_store_articles_batch, classify_source_tier, classify_recency_weight
     import asyncio
 
     articles_to_store = []
@@ -3821,7 +3858,8 @@ async def enqueue_sp500_backfill_run(
 
 async def trigger_structural_refresh(user_id: str):
     from ..services.supabase import get_supabase
-    from ..services.ticker_metadata import upsert_ticker_metadata
+from ..services.ticker_metadata import upsert_ticker_metadata
+from ..services.news_enrichment import classify_source_tier, classify_recency_weight
 
     supabase = get_supabase()
 
