@@ -520,7 +520,7 @@ struct TickerDetailView: View {
         if let methodologyArticles = methodology?.dimensions.newsSentiment.articles, !methodologyArticles.isEmpty {
             return methodologyArticles
         }
-        return []
+        return detail.recentNews
     }
 
     private func driverSummary(_ detail: TickerDetailResponse) -> String {

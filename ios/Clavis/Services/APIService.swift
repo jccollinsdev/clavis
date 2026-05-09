@@ -758,7 +758,7 @@ struct TickerDetailResponse: Codable {
     let methodology: String?
     let dimensionBreakdown: DimensionBreakdown?
     let latestEventAnalyses: [EventAnalysis]
-    let recentNews: [NewsItem]
+    let recentNews: [MethodologyArticle]
     let recentAlerts: [Alert]
     let freshness: TickerFreshness
     let userContext: TickerUserContext
@@ -806,7 +806,7 @@ struct TickerDetailResponse: Codable {
         methodology = try container.decodeIfPresent(String.self, forKey: .methodology)
         dimensionBreakdown = try? container.decodeIfPresent(DimensionBreakdown.self, forKey: .dimensionBreakdown)
         latestEventAnalyses = (try? container.decode([EventAnalysis].self, forKey: .latestEventAnalyses)) ?? []
-        recentNews = (try? container.decode([NewsItem].self, forKey: .recentNews)) ?? []
+        recentNews = (try? container.decode([MethodologyArticle].self, forKey: .recentNews)) ?? []
         recentAlerts = (try? container.decode([Alert].self, forKey: .recentAlerts)) ?? []
         freshness = try container.decode(TickerFreshness.self, forKey: .freshness)
         userContext = try container.decode(TickerUserContext.self, forKey: .userContext)
