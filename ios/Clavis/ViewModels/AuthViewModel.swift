@@ -123,8 +123,12 @@ class AuthViewModel: ObservableObject {
             subscriptionTier = prefs.subscriptionTier ?? "free"
         } catch let error as APIError {
             print("[Auth] checkOnboardingStatus failed: \(error.localizedDescription)")
-            hasCompletedOnboarding = false
-            subscriptionTier = "free"
+            if case .unauthorized = error {
+                print("[Auth] 401 after token refresh — preserving onboarding state")
+            } else {
+                hasCompletedOnboarding = false
+                subscriptionTier = "free"
+            }
         } catch {
             print("[Auth] checkOnboardingStatus failed: \(error.localizedDescription)")
             hasCompletedOnboarding = false

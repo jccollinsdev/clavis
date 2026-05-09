@@ -75,6 +75,21 @@ class APIService {
         body: Data? = nil,
         timeoutInterval: TimeInterval = 12
     ) async throws -> Data {
+        do {
+            return try await _makeRequest(path: path, method: method, body: body, timeoutInterval: timeoutInterval)
+        } catch let error as APIError {
+            guard case .unauthorized = error else { throw error }
+            try? await SupabaseAuthService.shared.refreshSession()
+            return try await _makeRequest(path: path, method: method, body: body, timeoutInterval: timeoutInterval)
+        }
+    }
+
+    private func _makeRequest(
+        path: String,
+        method: String = "GET",
+        body: Data? = nil,
+        timeoutInterval: TimeInterval = 12
+    ) async throws -> Data {
         guard let url = URL(string: "\(baseURL)\(path)") else {
             print("API request invalid URL base=\(baseURL) path=\(path)")
             throw APIError.invalidURL
