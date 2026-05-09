@@ -326,6 +326,7 @@ async def enrich_and_store_articles_batch(
     *,
     analysis_run_id: str | None = None,
     max_concurrency: int = 5,
+    skip_existing: bool = True,
 ) -> list[dict[str, Any]]:
     if not articles:
         return []
@@ -336,7 +337,8 @@ async def enrich_and_store_articles_batch(
     async def _process(article):
         async with sem:
             return await enrich_and_store_article(
-                supabase, article, analysis_run_id=analysis_run_id
+                supabase, article, analysis_run_id=analysis_run_id,
+                skip_existing=skip_existing,
             )
 
     results = await asyncio.gather(*(_process(a) for a in articles))

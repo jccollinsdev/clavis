@@ -115,6 +115,7 @@ async def get_ticker_methodology(
             seven_day_articles[:8],
             analysis_run_id=snapshot.get("analysis_run_id"),
             max_concurrency=2,
+            skip_existing=False,
         )
         refreshed_articles_result = (
             supabase.table("shared_ticker_events")

@@ -18,7 +18,6 @@ struct TickerDetailView: View {
     @State private var selectedArticle: MethodologyArticle?
     @State private var showAddHoldingSheet = false
     @State private var showAllArticles = false
-    @State private var toggledHistoryDimensions: Set<String> = []
 
     init(ticker: String, positionId: String? = nil) {
         self.ticker = ticker
@@ -131,7 +130,6 @@ struct TickerDetailView: View {
         riskDimensionsSection(detail)
         driversSection(detail)
         recentNewsSection(detail)
-        scoreHistorySection(detail)
         bottomCtas(detail)
     }
 
@@ -140,7 +138,7 @@ struct TickerDetailView: View {
             ClavisLoadingCard(title: "Loading \(ticker)", subtitle: "Pulling the latest rating, dimensions, and news.")
             ClavisLoadingCard(title: "Loading dimensions", subtitle: "Fetching methodology inputs and score components.")
             ClavisLoadingCard(title: "Loading recent news", subtitle: "Scoring the latest article set for this ticker.")
-            ClavisLoadingCard(title: "Loading score history", subtitle: "Checking for prior composite snapshots.")
+
         }
     }
 
@@ -178,7 +176,10 @@ struct TickerDetailView: View {
                 }
 
                 if let score = displayScoreValue {
-                    HeroScoreSparkline(snapshots: scoreHistorySnapshots(referenceScore: score))
+                    Text("New")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(.gradeCBBB)
+                        .padding(.vertical, 4)
                 } else {
                     ratingPendingCard
                 }
@@ -339,31 +340,6 @@ struct TickerDetailView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, ClavisTheme.mediumSpacing)
-    }
-
-    private func scoreHistorySection(_ detail: TickerDetailResponse) -> some View {
-        let snapshots = scoreHistorySnapshots(referenceScore: displayScoreValue ?? 0)
-
-        return VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-            sectionHeader(title: "Score History")
-
-            ClavisStandardCard(fill: .surface) {
-                VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-                    // TODO: backend expose real 90-day score history snapshots for ticker detail.
-                    ScoreHistoryChart(
-                        snapshots: snapshots,
-                        showAllDimensions: true,
-                        toggledDimensions: $toggledHistoryDimensions
-                    )
-
-                    if snapshots.count < 2 {
-                        Text("Score history will appear once more daily snapshots are available.")
-                            .font(ClavisTypography.footnote)
-                            .foregroundColor(.textSecondary)
-                    }
-                }
-            }
-        }
     }
 
     private func bottomCtas(_ detail: TickerDetailResponse) -> some View {
@@ -545,28 +521,6 @@ struct TickerDetailView: View {
             return methodologyArticles
         }
         return []
-    }
-
-    private func scoreHistorySnapshots(referenceScore: Double) -> [ScoreSnapshot] {
-        guard let detail else { return [] }
-
-        let date = detail.currentScore?.scoreAsOf
-            ?? detail.latestRiskSnapshot?.analysisAsOf
-            ?? detail.freshness.analysisAsOf
-            ?? Date()
-
-        return [
-            ScoreSnapshot(
-                id: "current",
-                date: date,
-                composite: referenceScore,
-                financialHealth: dimensionItems(detail).first(where: { $0.key == "financial_health" })?.score,
-                newsSentiment: dimensionItems(detail).first(where: { $0.key == "news_sentiment" })?.score,
-                macroExposure: dimensionItems(detail).first(where: { $0.key == "macro_exposure" })?.score,
-                sectorExposure: dimensionItems(detail).first(where: { $0.key == "sector_exposure" })?.score,
-                volatility: dimensionItems(detail).first(where: { $0.key == "volatility" })?.score
-            )
-        ]
     }
 
     private func driverSummary(_ detail: TickerDetailResponse) -> String {

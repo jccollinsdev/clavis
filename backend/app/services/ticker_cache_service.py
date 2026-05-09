@@ -584,17 +584,15 @@ def search_supported_tickers(
                 if row.get("ticker")
             }
 
+    batch_refs = _batch_get_shared_reference_analyses(supabase, tickers, snapshot_map)
+
     results = []
     for row in selected:
         ticker = row["ticker"]
         metadata = metadata_map.get(ticker, {})
         snapshot = snapshot_map.get(ticker, {})
         previous_snapshot = history_map.get(ticker, [None, None])[1]
-        _shared_position_id, shared_analysis, shared_event_rows = _get_shared_reference_analysis(
-            supabase,
-            ticker=ticker,
-            snapshot=snapshot,
-        )
+        _shared_position_id, shared_analysis, shared_event_rows = batch_refs.get(ticker, (None, None, []))
         shared_summary = build_shared_ticker_analysis_summary(
             ticker=ticker,
             metadata=metadata,
@@ -1224,6 +1222,100 @@ def _get_shared_reference_position_id(supabase, ticker: str) -> str | None:
         or []
     )
     return result[0].get("id") if result else None
+
+
+def _batch_get_shared_reference_analyses(
+    supabase,
+    tickers: list[str],
+    snapshot_map: dict[str, dict[str, Any] | None],
+) -> dict[str, tuple[str | None, dict[str, Any] | None, list[dict[str, Any]]]]:
+    if not tickers:
+        return {}
+
+    position_rows = (
+        supabase.table("positions")
+        .select("id, ticker")
+        .eq("user_id", SYSTEM_SP500_USER_ID)
+        .in_("ticker", tickers)
+        .execute()
+        .data
+        or []
+    )
+    ticker_to_position_id: dict[str, str] = {}
+    for row in position_rows:
+        t = (row.get("ticker") or "").upper()
+        ticker_to_position_id[t] = row["id"]
+
+    position_ids = list(ticker_to_position_id.values())
+    analysis_map: dict[str, dict[str, Any] | None] = {}
+    if position_ids:
+        pa_rows = (
+            supabase.table("position_analyses")
+            .select("*")
+            .in_("position_id", position_ids)
+            .eq("status", "ready")
+            .order("updated_at", desc=True)
+            .order("created_at", desc=True)
+            .limit(len(position_ids) * 5)
+            .execute()
+            .data
+            or []
+        )
+        best_by_pid: dict[str, dict[str, Any]] = {}
+        for row in pa_rows:
+            pid = row.get("position_id")
+            if pid and pid not in best_by_pid:
+                best_by_pid[pid] = row
+        for ticker, pid in ticker_to_position_id.items():
+            analysis_map[ticker] = best_by_pid.get(pid)
+
+    event_rows = (
+        supabase.table("shared_ticker_events")
+        .select("*")
+        .in_("ticker", tickers)
+        .order("published_at", desc=True)
+        .order("confidence", desc=True, nullsfirst=False)
+        .limit(len(tickers) * 30)
+        .execute()
+        .data
+        or []
+    )
+    events_by_ticker: dict[str, list[dict[str, Any]]] = {t: [] for t in tickers}
+    for row in event_rows:
+        t = (row.get("ticker") or "").upper()
+        if t in events_by_ticker:
+            events_by_ticker[t].append(row)
+    for t in tickers:
+        events_by_ticker[t] = _dedup_event_analyses(events_by_ticker[t])[:10]
+
+    results: dict[str, tuple[str | None, dict[str, Any] | None, list[dict[str, Any]]]] = {}
+    for ticker in tickers:
+        position_id = ticker_to_position_id.get(ticker)
+        analysis_raw = analysis_map.get(ticker)
+        analysis = _sanitize_public_analysis_payload(
+            analysis_raw
+            or build_position_analysis_from_snapshot(
+                snapshot_map.get(ticker),
+                position_id=position_id or f"virtual:{ticker}",
+                ticker=ticker,
+            )
+        )
+        events = events_by_ticker.get(ticker, [])
+        if not events and position_id:
+            fallback = (
+                supabase.table("event_analyses")
+                .select("*")
+                .eq("position_id", position_id)
+                .order("created_at", desc=True)
+                .limit(10)
+                .execute()
+                .data
+                or []
+            )
+            events = _dedup_event_analyses(fallback)
+        results[ticker] = (position_id, analysis, events)
+
+    return results
 
 
 def _get_shared_reference_analysis(
