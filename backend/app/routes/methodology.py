@@ -5,16 +5,8 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, Request
 
-from ..services.macro_regression import FACTOR_TICKERS, run_macro_regression
-from ..services.news_enrichment import enrich_and_store_articles_batch
-from ..services.polygon import fetch_aggs
 from ..services.supabase import get_supabase
-from ..services.ticker_cache_service import (
-    _build_macro_exposure_inputs,
-    _build_sector_exposure_inputs,
-    _build_volatility_inputs,
-    _shared_risk_dimensions,
-)
+from ..services.ticker_cache_service import _shared_risk_dimensions
 
 router = APIRouter()
 
@@ -45,6 +37,13 @@ async def get_ticker_methodology(
     ticker: str,
     user_id: str = Depends(get_user_id),
 ):
+    """Return cached methodology data for a ticker.
+
+    Returns only what is already stored in ticker_risk_snapshots and
+    shared_ticker_events — no live Polygon API calls are made. If a
+    dimension's cached inputs are absent the field is returned as null
+    rather than blocking on a slow computation.
+    """
     supabase = get_supabase()
     upper = ticker.upper()
 
@@ -71,7 +70,6 @@ async def get_ticker_methodology(
     factor_breakdown = snapshot.get("factor_breakdown") or {}
     if isinstance(factor_breakdown, str):
         import json
-
         try:
             factor_breakdown = json.loads(factor_breakdown)
         except Exception:
@@ -80,13 +78,13 @@ async def get_ticker_methodology(
     dimension_inputs = snapshot.get("dimension_inputs") or {}
     if isinstance(dimension_inputs, str):
         import json
-
         try:
             dimension_inputs = json.loads(dimension_inputs)
         except Exception:
             dimension_inputs = {}
 
     risk_dims = _shared_risk_dimensions(snapshot)
+
     articles_result = (
         supabase.table("shared_ticker_events")
         .select("*")
@@ -98,41 +96,23 @@ async def get_ticker_methodology(
     articles = articles_result.data or []
 
     now = datetime.now(timezone.utc)
-    seven_day_articles = []
-    for article in articles:
-        published_at = _parse_iso_datetime(article.get("published_at"))
-        if published_at and now - published_at <= timedelta(days=7):
-            seven_day_articles.append(article)
-
-    # Enrich any articles missing LLM-produced fields. skip_existing=False so the upsert
-    # patches existing rows (the caller already filtered to only unenriched articles).
-    unenriched = [
-        a for a in seven_day_articles[:8]
-        if a.get("tldr") is None or a.get("what_it_means") is None or a.get("sentiment_score") is None
+    seven_day_articles = [
+        a for a in articles
+        if (pub := _parse_iso_datetime(a.get("published_at"))) and now - pub <= timedelta(days=7)
     ]
-    if unenriched:
-        await enrich_and_store_articles_batch(
-            supabase,
-            unenriched,
-            analysis_run_id=snapshot.get("analysis_run_id"),
-            max_concurrency=2,
-            skip_existing=False,
-        )
-        refreshed_articles_result = (
-            supabase.table("shared_ticker_events")
-            .select("*")
-            .eq("ticker", upper)
-            .order("published_at", desc=True)
-            .limit(50)
-            .execute()
-        )
-        articles = refreshed_articles_result.data or []
-        seven_day_articles = []
-        for article in articles:
-            published_at = _parse_iso_datetime(article.get("published_at"))
-            if published_at and now - published_at <= timedelta(days=7):
-                seven_day_articles.append(article)
 
+    # Build display article list — enriched articles first, fall back to all 7-day articles.
+    enriched_articles = [
+        a for a in seven_day_articles
+        if a.get("sentiment_score") is not None
+        or a.get("source_tier") is not None
+        or a.get("recency_weight") is not None
+        or a.get("tldr")
+        or a.get("what_it_means")
+    ]
+    display_articles = enriched_articles or seven_day_articles
+
+    # Pull cached dimension inputs — no live Polygon calls.
     news_inputs = dimension_inputs.get("news_sentiment") or {}
     macro_inputs = dimension_inputs.get("macro_exposure") or {}
     sector_inputs = dimension_inputs.get("sector_exposure") or {}
@@ -140,71 +120,33 @@ async def get_ticker_methodology(
     financial_inputs = dimension_inputs.get("financial_health") or {}
     macro_regression = factor_breakdown.get("macro_regression") or {}
 
-    enriched_articles = [
-        article
-        for article in seven_day_articles
-        if article.get("sentiment_score") is not None
-        or article.get("source_tier") is not None
-        or article.get("recency_weight") is not None
-        or article.get("tldr")
-        or article.get("what_it_means")
-    ]
-    display_articles = enriched_articles or seven_day_articles
-
+    # Compute weighted news score on-the-fly from available articles when
+    # the cached value is absent — this is a cheap in-memory calculation.
     if news_inputs.get("weighted_score") is None:
         weighted_total = 0.0
         total_weight = 0.0
         for article in display_articles:
             sentiment_score = article.get("sentiment_score")
-            recency_weight = article.get("recency_weight") or 1.0
-            source_weight = article.get("source_weight") or 1.0
             if sentiment_score is None:
                 continue
-            weight = float(recency_weight) * float(source_weight)
+            recency_weight = float(article.get("recency_weight") or 1.0)
+            source_weight = float(article.get("source_weight") or 1.0)
+            weight = recency_weight * source_weight
             weighted_total += float(sentiment_score) * weight
             total_weight += weight
         if total_weight > 0:
             news_inputs["weighted_score"] = round(weighted_total / total_weight, 1)
 
-    ticker_bars = fetch_aggs(upper, days=400)
-    if (
-        not sector_inputs.get("sector_etf")
-        or sector_inputs.get("sector_beta") is None
-        or sector_inputs.get("sector_momentum_30d") is None
-        or sector_inputs.get("sector_breadth") is None
-    ):
-        sector_inputs = _build_sector_exposure_inputs(upper, metadata, ticker_bars)
-
-    factor_bars_map: dict[str, list[dict[str, Any]]] = {}
-    if not macro_inputs.get("current_factor_levels"):
-        factor_bars_map = {
-            factor_key: fetch_aggs(factor_ticker, days=400)
-            for factor_key, factor_ticker in FACTOR_TICKERS.items()
+    # Sector fallback: use cached metadata when dimension_inputs lacks sector data.
+    if not sector_inputs.get("sector_etf") and metadata.get("sector"):
+        sector_inputs = {
+            "sector": metadata.get("sector"),
+            "sector_etf": None,
+            "sector_beta": None,
+            "sector_momentum_30d": None,
+            "sector_breadth": None,
+            "narrative": None,
         }
-        macro_source = macro_regression or run_macro_regression(
-            upper,
-            ticker_bars,
-            factor_bars_map,
-            as_of_date=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
-        )
-        macro_inputs = _build_macro_exposure_inputs(macro_source, factor_bars_map)
-
-    if (
-        volatility_inputs.get("realized_vol_30d") is None
-        or volatility_inputs.get("realized_vol_90d") is None
-        or volatility_inputs.get("vol_ratio") is None
-        or volatility_inputs.get("beta_to_spy") is None
-    ):
-        if not factor_bars_map:
-            factor_bars_map = {
-                factor_key: fetch_aggs(factor_ticker, days=400)
-                for factor_key, factor_ticker in FACTOR_TICKERS.items()
-            }
-        volatility_inputs = _build_volatility_inputs(
-            ticker_bars,
-            factor_bars_map.get("spy", []),
-            as_of_date=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
-        )
 
     return {
         "ticker": upper,
@@ -222,9 +164,11 @@ async def get_ticker_methodology(
             },
             "news_sentiment": {
                 "score": risk_dims.get("news_sentiment"),
-                "article_count_7d": news_inputs.get("article_count_7d")
-                if news_inputs.get("article_count_7d") is not None
-                else len(seven_day_articles),
+                "article_count_7d": (
+                    news_inputs.get("article_count_7d")
+                    if news_inputs.get("article_count_7d") is not None
+                    else len(seven_day_articles)
+                ),
                 "volume_signal": bool(news_inputs.get("volume_signal")),
                 "weighted_score": news_inputs.get("weighted_score"),
                 "articles": [
@@ -240,31 +184,34 @@ async def get_ticker_methodology(
                         "tldr": article.get("tldr"),
                         "what_it_means": article.get("what_it_means"),
                         "key_implications": article.get("key_implications") or [],
-                        "source_url": article.get("canonical_url")
-                        or article.get("source_url")
-                        or article.get("url"),
+                        "source_url": (
+                            article.get("canonical_url")
+                            or article.get("source_url")
+                            or article.get("url")
+                        ),
                     }
                     for article in display_articles[:15]
                 ],
             },
             "macro_exposure": {
                 "score": risk_dims.get("macro_exposure"),
-                "r_squared": macro_inputs.get("r_squared")
-                if macro_inputs.get("r_squared") is not None
-                else macro_regression.get("r_squared"),
-                "trading_days_used": macro_inputs.get("trading_days_used")
-                if macro_inputs.get("trading_days_used") is not None
-                else macro_regression.get("trading_days_used"),
+                "r_squared": (
+                    macro_inputs.get("r_squared")
+                    if macro_inputs.get("r_squared") is not None
+                    else macro_regression.get("r_squared")
+                ),
+                "trading_days_used": (
+                    macro_inputs.get("trading_days_used")
+                    if macro_inputs.get("trading_days_used") is not None
+                    else macro_regression.get("trading_days_used")
+                ),
                 "limited_data": bool(
                     macro_inputs.get("limited_data")
                     if macro_inputs.get("limited_data") is not None
                     else macro_regression.get("limited_data")
                 ),
-                "as_of_date": macro_inputs.get("as_of_date")
-                or macro_regression.get("as_of_date"),
-                "coefficients": macro_inputs.get("coefficients")
-                or macro_regression.get("coefficients")
-                or {},
+                "as_of_date": macro_inputs.get("as_of_date") or macro_regression.get("as_of_date"),
+                "coefficients": macro_inputs.get("coefficients") or macro_regression.get("coefficients") or {},
                 "current_factor_levels": macro_inputs.get("current_factor_levels") or {},
                 "narrative": macro_inputs.get("narrative"),
             },

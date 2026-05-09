@@ -208,6 +208,10 @@ async def enrich_and_store_article(
     event_hash = _compute_event_hash(ticker, resolved_url or url, headline)
     canonical_url = resolved_url or url
 
+    # When skip_existing=True: skip the whole row if it exists.
+    # When skip_existing=False: fetch existing row to seed LLM fields so we never
+    # overwrite non-null sentiment_score / tldr / what_it_means with a weaker pass.
+    existing_llm: dict[str, Any] = {}
     if skip_existing:
         try:
             existing = (
@@ -220,6 +224,20 @@ async def enrich_and_store_article(
             )
             if existing.data:
                 return existing.data[0]
+        except Exception:
+            pass
+    else:
+        try:
+            existing_row = (
+                supabase.table("shared_ticker_events")
+                .select("sentiment_score,sentiment_reason,impact_tag,tldr,what_it_means,key_implications")
+                .eq("ticker", ticker)
+                .eq("event_hash", event_hash)
+                .limit(1)
+                .execute()
+            )
+            if existing_row.data:
+                existing_llm = existing_row.data[0]
         except Exception:
             pass
 
@@ -242,41 +260,56 @@ async def enrich_and_store_article(
     recency_w, article_window = classify_recency_weight(published_at)
     source_w = source_weight_for_tier(source_tier)
 
-    sentiment_score = None
-    sentiment_reason = None
-    impact_tag = None
-    tldr = None
-    what_it_means = None
-    key_implications = None
+    # Seed LLM fields from existing row. A non-null DB value is preserved;
+    # a null DB value (or no existing row) triggers a fresh LLM call below.
+    sentiment_score: Any = existing_llm.get("sentiment_score")
+    sentiment_reason: str | None = existing_llm.get("sentiment_reason")
+    impact_tag: str | None = existing_llm.get("impact_tag")
+    tldr: str | None = existing_llm.get("tldr")
+    what_it_means: str | None = existing_llm.get("what_it_means")
+    key_implications: list | None = existing_llm.get("key_implications")
+
+    need_sentiment = sentiment_score is None
+    need_tldr = tldr is None or what_it_means is None
 
     # Score from full body when available; fall back to headline-only scoring per §10.
     # Headline-only path: score sentiment from headline alone when body extraction failed.
-    body_has_content = body and not is_paywalled and not body.startswith("[No body extracted]") and len(body.split()) >= 40
+    body_has_content = (
+        body
+        and not is_paywalled
+        and not body.startswith("[No body extracted]")
+        and len(body.split()) >= 40
+    )
     headline_only = not body_has_content and bool(headline)
-
     scoring_text = body if body_has_content else headline
 
     if scoring_text and not is_paywalled and (body_has_content or headline_only):
-        try:
-            sent = await _score_article_llm(ticker, headline, scoring_text)
-            sentiment_score = sent.get("sentiment_score")
-            sentiment_reason = sanitize_text_field(sent.get("sentiment_reason"), fallback="")
-            impact_tag_val = (sent.get("impact_tag") or "").strip().lower()
-            valid_tags = {"financial-impact", "regulatory", "leadership", "product", "macro", "sector", "other"}
-            impact_tag = impact_tag_val if impact_tag_val in valid_tags else None
-        except Exception as exc:
-            logger.warning("Sentiment scoring failed for %s: %s", ticker, exc)
+        if need_sentiment:
+            try:
+                sent = await _score_article_llm(ticker, headline, scoring_text)
+                sentiment_score = sent.get("sentiment_score")
+                sentiment_reason = sanitize_text_field(sent.get("sentiment_reason"), fallback="")
+                impact_tag_val = (sent.get("impact_tag") or "").strip().lower()
+                valid_tags = {"financial-impact", "regulatory", "leadership", "product", "macro", "sector", "other"}
+                impact_tag = impact_tag_val if impact_tag_val in valid_tags else None
+            except Exception as exc:
+                logger.warning("Sentiment scoring failed for %s: %s", ticker, exc)
 
-        if body_has_content:
+        if body_has_content and need_tldr:
             try:
                 tldr_result = await _generate_tldr_llm(ticker, headline, scoring_text)
-                tldr = sanitize_text_field(tldr_result.get("tldr"), fallback="")
-                what_it_means = sanitize_text_field(tldr_result.get("what_it_means"), fallback="")
+                new_tldr = sanitize_text_field(tldr_result.get("tldr"), fallback="")
+                new_what = sanitize_text_field(tldr_result.get("what_it_means"), fallback="")
+                # Only overwrite a field when the new value is non-empty — preserves
+                # any partially-enriched data if the LLM returns empty for that field.
+                tldr = new_tldr if new_tldr else tldr
+                what_it_means = new_what if new_what else what_it_means
                 raw_imp = tldr_result.get("key_implications")
                 if isinstance(raw_imp, list):
-                    key_implications = [sanitize_text_field(item, fallback="") for item in raw_imp[:4]]
-                    key_implications = [imp for imp in key_implications if imp]
-                else:
+                    new_imp = [sanitize_text_field(item, fallback="") for item in raw_imp[:4]]
+                    new_imp = [imp for imp in new_imp if imp]
+                    key_implications = new_imp if new_imp else key_implications
+                elif key_implications is None:
                     key_implications = []
             except Exception as exc:
                 logger.warning("TLDR generation failed for %s: %s", ticker, exc)
