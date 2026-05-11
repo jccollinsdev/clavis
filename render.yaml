@@ -29,6 +29,8 @@ services:
         sync: false
       - key: SUPABASE_JWT_SECRET
         sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://getclavix.com,https://www.getclavix.com
       - key: MINIMAX_API_KEY
         sync: false
       - key: MINIMAX_BASE_URL

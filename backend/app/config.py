@@ -12,7 +12,19 @@ class Settings(BaseSettings):
     sentry_environment: str = "development"
     sentry_traces_sample_rate: float = 0.0
     sentry_profiles_sample_rate: float = 0.0
-    cors_allowed_origins: str = "https://clavis.andoverdigital.com"
+    cors_allowed_origins: str = (
+        "https://clavis.andoverdigital.com,"
+        "https://getclavix.com,"
+        "https://www.getclavix.com,"
+        "http://localhost:3000,"
+        "http://localhost:4173,"
+        "http://localhost:5173,"
+        "http://localhost:8080,"
+        "http://127.0.0.1:3000,"
+        "http://127.0.0.1:4173,"
+        "http://127.0.0.1:5173,"
+        "http://127.0.0.1:8080"
+    )
     enable_public_docs: bool = False
     enable_debug_surfaces: bool = False
     admin_password: str = ""

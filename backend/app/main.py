@@ -27,6 +27,7 @@ from .routes.tickers import router as tickers_router
 from .routes.methodology import router as methodology_router
 from .routes.watchlists import router as watchlists_router
 from .routes.brokerage import router as brokerage_router
+from .routes.waitlist import router as waitlist_router
 from .pipeline.scheduler import start_scheduler
 from .services.apns import validate_apns_configuration
 from .services.snaptrade import snaptrade_is_configured
@@ -41,7 +42,7 @@ allowed_origins = [
     for origin in settings.cors_allowed_origins.split(",")
     if origin.strip()
 ]
-public_paths = {"/health", "/admin/login", "/admin/logout"}
+public_paths = {"/health", "/admin/login", "/admin/logout", "/waitlist", "/waitlist/"}
 public_doc_paths = {"/docs", "/openapi.json", "/redoc"}
 
 
@@ -346,6 +347,7 @@ app.include_router(brokerage_router, prefix="/brokerage", tags=["brokerage"])
 app.include_router(prices_router, prefix="/prices", tags=["prices"])
 app.include_router(account_router, prefix="/account", tags=["account"])
 app.include_router(scheduler_router, prefix="/scheduler", tags=["scheduler"])
+app.include_router(waitlist_router, prefix="/waitlist", tags=["waitlist"])
 if settings.enable_debug_surfaces:
     app.include_router(test_push_router, prefix="/test-push", tags=["test-push"])
     app.include_router(debug_router, prefix="/debug", tags=["debug"])
