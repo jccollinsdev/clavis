@@ -4,745 +4,881 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Clavix | Portfolio risk, measured.</title>
-  <meta name="description" content="Clavix tells self-directed investors what changed overnight, what it means for their portfolio, and how risk ratings are derived." />
+  <meta name="description" content="Clavix turns your holdings into a 60-second morning risk briefing: what changed overnight, where you are exposed, and why every position is rated the way it is." />
   <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://getclavix.com/" />
+  <meta name="theme-color" content="#0F1117" />
   <meta property="og:title" content="Clavix | Portfolio risk, measured." />
-  <meta property="og:description" content="Portfolio risk intelligence for self-directed investors. Calm, precise, transparent." />
+  <meta property="og:description" content="Know what changed overnight, where you are exposed, and why every position is rated the way it is." />
   <meta property="og:type" content="website" />
-  <meta name="theme-color" content="#f4efe6" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet">
+  <meta property="og:url" content="https://getclavix.com" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Clavix | Portfolio risk, measured." />
+  <meta name="twitter:description" content="Know what changed overnight, where you are exposed, and why every position is rated the way it is." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --bg: #f4efe6;
-      --paper: rgba(255, 252, 247, 0.72);
-      --paper-strong: #fffaf2;
-      --text: #161312;
-      --muted: #5f5850;
-      --line: rgba(22, 19, 18, 0.12);
-      --line-strong: rgba(22, 19, 18, 0.2);
-      --accent: #9a5d26;
-      --accent-soft: rgba(154, 93, 38, 0.12);
-      --success: #2d6a4f;
-      --danger: #a94442;
-      --shadow: 0 20px 60px rgba(31, 23, 18, 0.08);
-      --shadow-strong: 0 28px 80px rgba(31, 23, 18, 0.12);
-      --radius: 24px;
-      --radius-sm: 16px;
-      --container: 1160px;
+      --bg-primary: #0F1117;
+      --surface: #161B24;
+      --surface-el: #1E2530;
+      --border: #2A3140;
+      --text-pri: #E8ECF0;
+      --text-sec: #7A8799;
+      --risk-a: #1D9E75;
+      --risk-c: #BA7517;
+      --risk-d: #D85A30;
+      --cream: #FEF5E7;
+      --font-ui: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
     }
 
-    * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
+
     body {
-      margin: 0;
-      min-height: 100vh;
-      overflow-x: hidden;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(154, 93, 38, 0.16), transparent 28%),
-        radial-gradient(circle at 90% 8%, rgba(45, 106, 79, 0.08), transparent 24%),
-        linear-gradient(180deg, #faf6ef 0%, #f3ede4 60%, #f0e8dd 100%);
-      font-family: "IBM Plex Sans", system-ui, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-pri);
+      font-family: var(--font-ui);
+      font-weight: 400;
       -webkit-font-smoothing: antialiased;
-      text-rendering: optimizeLegibility;
+      overflow-x: hidden;
     }
 
-    body::before {
-      content: "";
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+
+    nav {
       position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: 0.12;
-      background-image:
-        linear-gradient(rgba(22, 19, 18, 0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(22, 19, 18, 0.03) 1px, transparent 1px);
-      background-size: 36px 36px;
-      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 95%);
-    }
-
-    a { color: inherit; }
-    .shell {
-      position: relative;
-      width: min(calc(100% - 32px), var(--container));
-      margin: 0 auto;
-      padding: 20px 0 28px;
-    }
-
-    .topbar {
+      top: 0; left: 0; right: 0;
+      z-index: 100;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      padding: 8px 0 20px;
+      padding: 0 3rem;
+      height: 64px;
+      background: rgba(15,17,23,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 0.5px solid var(--border);
     }
 
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      text-decoration: none;
-      letter-spacing: 0.02em;
-    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
 
-    .mark {
-      width: 42px;
-      height: 42px;
-      border-radius: 14px;
-      border: 1px solid var(--line-strong);
-      background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.55));
+    .logo-mark {
+      width: 32px;
+      height: 32px;
+      background: var(--surface-el);
+      border: 0.5px solid var(--border);
       display: grid;
       place-items: center;
-      box-shadow: var(--shadow);
-    }
-
-    .mark svg { width: 22px; height: 22px; }
-    .brand-copy { display: grid; gap: 2px; }
-    .brand-copy strong {
-      font-family: "Source Serif 4", Georgia, serif;
-      font-size: 1.02rem;
-      line-height: 1;
-    }
-    .brand-copy span {
+      color: var(--risk-a);
+      font-family: var(--font-mono);
       font-size: 0.78rem;
-      color: var(--muted);
-      font-family: "IBM Plex Mono", monospace;
+      font-weight: 500;
     }
 
-    .nav {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      color: var(--muted);
-      font-size: 0.92rem;
+    .logo-word {
+      font-weight: 600;
+      font-size: 1.1rem;
+      letter-spacing: 0.12em;
+      color: var(--cream);
+      text-transform: uppercase;
     }
-    .nav a {
-      text-decoration: none;
-      padding: 10px 12px;
-      border-radius: 999px;
-      transition: background 160ms ease, color 160ms ease;
+
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; align-items: center; }
+
+    .nav-links a {
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-sec);
+      transition: color 0.2s;
     }
-    .nav a:hover { background: rgba(22, 19, 18, 0.05); color: var(--text); }
+
+    .nav-links a:hover { color: var(--text-pri); }
+
+    .nav-cta {
+      display: inline-block;
+      font-size: 0.78rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 9px 22px;
+      border: 1px solid var(--text-pri);
+      background: var(--text-pri);
+      color: var(--bg-primary) !important;
+      transition: opacity 0.2s;
+    }
+
+    .nav-cta:hover { opacity: 0.88; }
+
+    .nav-hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 8px; background: none; border: none; }
+    .nav-hamburger span { display: block; width: 22px; height: 1.5px; background: var(--text-pri); }
 
     .hero {
+      min-height: 100vh;
       display: grid;
-      grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
-      gap: 24px;
-      align-items: stretch;
-      padding: 24px 0 34px;
+      grid-template-columns: 1fr 1fr;
+      padding-top: 64px;
+      overflow: hidden;
+      border-top: none;
     }
 
-    .hero-copy,
-    .hero-panel,
-    .section,
-    .waitlist-card {
-      border: 1px solid var(--line);
-      background: var(--paper);
-      backdrop-filter: blur(16px);
-      box-shadow: var(--shadow);
+    .hero-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 6rem 4rem;
+      border-right: 0.5px solid var(--border);
     }
 
-    .hero-copy {
-      border-radius: var(--radius);
-      padding: clamp(28px, 5vw, 56px);
-      display: grid;
-      gap: 22px;
-      align-content: start;
-    }
-
-    .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--accent);
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 0.76rem;
+    .hero-kicker, .section-tag {
+      font-size: 0.7rem;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
+      color: var(--text-sec);
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
-    .eyebrow::before {
-      content: "";
-      width: 36px;
+    .hero-kicker::before, .section-tag::before {
+      content: '';
+      width: 32px;
       height: 1px;
-      background: currentColor;
+      background: var(--text-sec);
+      display: block;
+    }
+
+    .hero-headline {
+      font-size: clamp(2.4rem, 4vw, 3.8rem);
+      font-weight: 400;
+      line-height: 1.1;
+      letter-spacing: -0.025em;
+      margin-bottom: 2rem;
+      color: var(--text-pri);
+    }
+
+    .hero-headline em { font-style: italic; color: var(--text-sec); }
+
+    .hero-body {
+      font-size: 1rem;
+      line-height: 1.78;
+      color: var(--text-sec);
+      max-width: 540px;
+      margin-bottom: 2rem;
+      font-weight: 300;
+    }
+
+    .hero-body strong { color: var(--text-pri); font-weight: 400; }
+
+    .proof-list { display: grid; gap: 0.75rem; max-width: 560px; margin-bottom: 2.6rem; }
+
+    .proof-item {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      font-size: 0.84rem;
+      color: var(--text-sec);
+      line-height: 1.55;
+    }
+
+    .proof-item::before { content: ''; width: 6px; height: 6px; background: var(--risk-a); flex-shrink: 0; }
+
+    .hero-form { display: flex; flex-direction: column; gap: 12px; max-width: 560px; }
+
+    .signup-shell { border: 1px solid var(--border); background: rgba(30, 37, 48, 0.82); padding: 1rem; }
+
+    .form-row { display: flex; gap: 0; }
+
+    .email-input {
+      flex: 1;
+      height: 50px;
+      border: 1px solid var(--border);
+      border-right: none;
+      background: var(--surface);
+      padding: 0 1.2rem;
+      font-size: 1rem;
+      color: var(--text-pri);
+      outline: none;
+      -webkit-appearance: none;
+      border-radius: 0;
+      min-width: 0;
+    }
+
+    .email-input::placeholder { color: var(--text-sec); }
+    .email-input:focus { border-color: var(--text-sec); background: var(--surface-el); }
+
+    .primary-btn {
+      height: 50px;
+      padding: 0 1.8rem;
+      background: var(--surface-el);
+      color: var(--text-pri);
+      border: 1px solid var(--border);
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.18s, border-color 0.18s;
+      border-radius: 0;
+    }
+
+    .primary-btn:hover { background: var(--border); border-color: var(--text-sec); }
+    .primary-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .smallprint {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      font-size: 0.72rem;
+      color: var(--text-sec);
+      letter-spacing: 0.04em;
+      margin-top: 0.75rem;
+    }
+
+    .success-msg { display: none; font-size: 0.82rem; letter-spacing: 0.04em; color: var(--risk-a); margin-top: 0.85rem; line-height: 1.5; }
+
+    .optional-profile { display: none; border-top: 0.5px solid var(--border); margin-top: 1rem; padding-top: 1rem; }
+
+    .optional-title { font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-sec); margin-bottom: 0.85rem; }
+    .optional-note { font-size: 0.82rem; color: var(--text-sec); line-height: 1.55; margin-bottom: 0.95rem; }
+
+    .chip-group { display: grid; gap: 0.7rem; margin-bottom: 1rem; }
+    .chip-label { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-sec); }
+    .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+    .choice-chip {
+      border: 0.5px solid var(--border);
+      background: var(--bg-primary);
+      color: var(--text-sec);
+      padding: 0.68rem 0.8rem;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: border-color 0.18s, color 0.18s, background 0.18s;
+    }
+
+    .choice-chip:hover, .choice-chip.is-selected {
+      color: var(--text-pri);
+      background: var(--surface-el);
+      border-color: var(--text-sec);
+    }
+
+    .lead-secondary {
+      border: none;
+      background: transparent;
+      color: var(--text-sec);
+      font-size: 0.76rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      margin-left: 0.9rem;
+    }
+
+    .lead-secondary:hover { color: var(--text-pri); }
+
+    .hero-right {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 3rem;
+      background: var(--surface);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .preview-panel, .mobile-preview {
+      width: 100%;
+      max-width: 390px;
+      border: 1.5px solid var(--border);
+      background: var(--bg-primary);
+      box-shadow: 0 0 60px rgba(0,0,0,0.6), 0 0 120px rgba(29,158,117,0.08);
+      padding: 1.15rem;
+    }
+
+    .mobile-preview { display: none; margin-top: 2rem; box-shadow: none; }
+
+    .preview-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-sec);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      padding-bottom: 0.9rem;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .grade-card { background: var(--surface-el); border: 0.5px solid var(--border); padding: 1.25rem; margin-bottom: 0.9rem; }
+    .grade-label { font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-sec); margin-bottom: 1rem; }
+    .grade-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; }
+    .grade-large { font-size: 3.8rem; line-height: 0.9; font-weight: 400; letter-spacing: -0.05em; }
+    .score-number { font-family: var(--font-mono); font-size: 0.92rem; color: var(--risk-a); margin-bottom: 0.35rem; }
+
+    .brief-card { border: 0.5px solid var(--border); background: var(--surface); padding: 1rem; margin-bottom: 0.75rem; }
+    .brief-meta { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-sec); margin-bottom: 0.7rem; }
+    .brief-meta .stable { color: var(--risk-a); }
+    .brief-meta .elevated { color: var(--risk-c); }
+    .brief-meta .audit { color: var(--text-pri); }
+    .brief-title { font-size: 0.92rem; line-height: 1.45; color: var(--text-pri); margin-bottom: 0.4rem; }
+    .brief-text { font-size: 0.78rem; line-height: 1.55; color: var(--text-sec); }
+
+    .hero-phone-caption {
+      position: absolute;
+      bottom: 2rem;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-sec);
       opacity: 0.5;
     }
 
-    h1 {
-      margin: 0;
-      max-width: 11ch;
-      font-family: "Source Serif 4", Georgia, serif;
-      font-size: clamp(3rem, 8vw, 6rem);
-      line-height: 0.94;
-      letter-spacing: -0.05em;
+    section, .section { padding: 5rem 4rem; border-top: 0.5px solid var(--border); }
+
+    .section-headline {
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 400;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.5rem;
+      color: var(--text-pri);
+      max-width: 850px;
     }
 
-    .lede {
-      margin: 0;
-      max-width: 62ch;
-      font-size: clamp(1.03rem, 1.25vw, 1.15rem);
-      line-height: 1.72;
-      color: #2d2723;
-    }
+    .section-body { font-size: 0.95rem; line-height: 1.8; color: var(--text-sec); font-weight: 300; max-width: 720px; }
 
-    .hero-points {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 2px;
-    }
-
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 10px 14px;
-      background: rgba(255, 255, 255, 0.52);
-      font-size: 0.92rem;
-      color: var(--muted);
-    }
-
-    .chip strong {
-      color: var(--text);
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 0.84rem;
-    }
-
-    .hero-panel {
-      border-radius: var(--radius);
-      padding: 20px;
-      display: grid;
-      gap: 16px;
-      align-content: start;
-      background: linear-gradient(180deg, rgba(255,255,255,0.74), rgba(255,250,242,0.92));
-    }
-
-    .panel-note {
-      margin: 0;
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 0.77rem;
+    .skim-line {
+      display: inline-block;
+      margin: 0 0 1.1rem;
+      font-size: 0.78rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--muted);
+      color: var(--risk-a);
     }
 
-    .metric-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-    }
+    .pain-grid, .how-grid, .case-grid, .screens-grid, .fit-grid { display: grid; gap: 0; margin-top: 4rem; border: 0.5px solid var(--border); }
+    .pain-grid { grid-template-columns: 0.9fr 1.1fr; }
+    .how-grid { grid-template-columns: repeat(3, 1fr); }
+    .case-grid { grid-template-columns: repeat(3, 1fr); }
+    .screens-grid { grid-template-columns: repeat(4, 1fr); }
+    .fit-grid { grid-template-columns: 1fr 1fr; }
 
-    .metric {
-      min-width: 0;
-      border-radius: 20px;
-      border: 1px solid var(--line);
-      padding: 18px;
-      background: rgba(255,255,255,0.72);
-    }
+    .cell { padding: 2.5rem 2rem; border-right: 0.5px solid var(--border); background: var(--surface); }
+    .cell:last-child { border-right: none; }
 
-    .metric span {
-      display: block;
-      font-family: "IBM Plex Mono", monospace;
-      color: var(--muted);
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
+    .pain-stat, .cell-num { font-family: var(--font-mono); font-size: 3rem; color: var(--border); line-height: 1; margin-bottom: 1.5rem; font-weight: 400; }
+    .pain-stat { font-size: 4rem; }
 
-    .metric strong {
-      display: block;
-      margin-top: 8px;
-      font-family: "Source Serif 4", Georgia, serif;
-      font-size: clamp(1.2rem, 3vw, 1.6rem);
-      line-height: 1.1;
-      letter-spacing: -0.03em;
-    }
+    .cell-title { font-size: 1.15rem; font-weight: 400; margin-bottom: 0.75rem; line-height: 1.3; color: var(--text-pri); }
+    .cell-desc { font-size: 0.85rem; color: var(--text-sec); line-height: 1.75; font-weight: 300; }
 
-    .panel-list {
-      list-style: none;
-      display: grid;
-      gap: 10px;
-      padding: 0;
-      margin: 0;
-    }
+    .stack-list { display: grid; gap: 0; background: var(--surface); }
+    .stack-item { padding: 1.4rem 1.6rem; border-bottom: 0.5px solid var(--border); display: grid; grid-template-columns: 34px 1fr; gap: 1rem; align-items: start; }
+    .stack-item:last-child { border-bottom: none; }
+    .stack-index { font-family: var(--font-mono); color: var(--text-sec); font-size: 0.8rem; padding-top: 0.2rem; }
 
-    .panel-list li {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      border-top: 1px solid var(--line);
-      padding-top: 10px;
-      font-size: 0.95rem;
-      color: var(--muted);
-    }
+    .method-section { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 0; padding: 0; border-top: 0.5px solid var(--border); }
+    .method-left { padding: 7rem 4rem; border-right: 0.5px solid var(--border); background: var(--bg-primary); display: flex; flex-direction: column; justify-content: center; }
+    .method-right { padding: 7rem 4rem; background: var(--surface); }
+    .formula-box { border: 0.5px solid var(--border); background: var(--surface-el); padding: 1.5rem; font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.75; color: var(--text-sec); margin-top: 2rem; overflow-x: auto; }
 
-    .panel-list li strong {
-      color: var(--text);
-      font-family: "IBM Plex Mono", monospace;
-      font-weight: 600;
-      white-space: nowrap;
-    }
+    .dimension-list { display: flex; flex-direction: column; gap: 14px; }
+    .dimension-item { display: grid; grid-template-columns: 1fr auto; gap: 1.2rem; align-items: center; padding: 1.1rem 1.4rem; border: 0.5px solid var(--border); background: var(--surface-el); transition: border-color 0.2s; }
+    .dimension-item:hover { border-color: var(--text-sec); }
+    .dimension-title { font-size: 0.92rem; color: var(--text-pri); margin-bottom: 0.3rem; }
+    .dimension-desc { font-size: 0.78rem; color: var(--text-sec); line-height: 1.55; font-weight: 300; }
+    .dimension-weight { font-family: var(--font-mono); color: var(--risk-a); font-size: 0.82rem; }
 
-    .section {
-      border-radius: var(--radius);
-      padding: clamp(20px, 3vw, 30px);
-      margin-top: 18px;
-      display: grid;
-      gap: 18px;
-    }
+    .case-section { background: var(--surface); }
+    .case-card { padding: 2rem; border-right: 0.5px solid var(--border); background: var(--bg-primary); }
+    .case-card:last-child { border-right: none; }
+    .case-top { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+    .ticker { font-family: var(--font-mono); font-size: 0.9rem; color: var(--text-pri); letter-spacing: 0.08em; text-transform: uppercase; }
+    .case-badge { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--risk-d); border: 0.5px solid var(--border); padding: 0.45rem 0.65rem; background: var(--surface-el); white-space: nowrap; }
+    .mini-chart { height: 110px; border: 0.5px solid var(--border); background: var(--surface); margin-bottom: 1.4rem; overflow: hidden; }
+    .mini-chart svg { width: 100%; height: 100%; display: block; }
+    .case-note { margin-top: 1.5rem; color: var(--text-sec); font-size: 0.78rem; line-height: 1.7; max-width: 880px; font-weight: 300; }
 
-    .section-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      align-items: end;
-    }
+    .screen-card { padding: 1rem; border-right: 0.5px solid var(--border); background: var(--surface); }
+    .screen-card:last-child { border-right: none; }
+    .screen-mock { min-height: 285px; border: 0.5px solid var(--border); background: var(--bg-primary); padding: 1rem; display: grid; align-content: start; gap: 0.8rem; margin-bottom: 0.9rem; }
+    .mock-line { height: 10px; background: var(--surface-el); border: 0.5px solid var(--border); }
+    .mock-line.short { width: 54%; }
+    .mock-line.med { width: 76%; }
+    .mock-block { height: 62px; background: rgba(29,158,117,0.11); border: 0.5px solid rgba(29,158,117,0.28); }
+    .mock-block.amber { background: rgba(186,117,23,0.11); border-color: rgba(186,117,23,0.28); }
+    .mock-block.red { background: rgba(216,90,48,0.11); border-color: rgba(216,90,48,0.28); }
+    .screen-label { padding: 0.4rem 0.2rem 0; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-sec); line-height: 1.45; }
 
-    .section h2 {
-      margin: 0;
-      font-family: "Source Serif 4", Georgia, serif;
-      font-size: clamp(1.8rem, 3vw, 2.6rem);
-      line-height: 1;
-      letter-spacing: -0.04em;
-    }
+    .fit-list { list-style: none; display: grid; gap: 1rem; margin-top: 1.2rem; }
+    .fit-list li { display: grid; grid-template-columns: 18px 1fr; gap: 0.8rem; color: var(--text-sec); font-size: 0.85rem; line-height: 1.65; }
+    .fit-list li::before { content: ''; width: 7px; height: 7px; background: var(--risk-a); margin-top: 0.55rem; }
+    .not-for li::before { background: var(--risk-d); }
 
-    .section p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.7;
-      max-width: 68ch;
-    }
-
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .card {
-      min-width: 0;
-      border-radius: 22px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.58);
-      padding: 18px;
-      display: grid;
-      gap: 12px;
-    }
-
-    .card .num {
-      font-family: "IBM Plex Mono", monospace;
-      color: var(--accent);
-      font-size: 0.78rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    .card h3 {
-      margin: 0;
-      font-size: 1.08rem;
-      line-height: 1.25;
-      letter-spacing: -0.02em;
-    }
-
-    .card p { font-size: 0.96rem; }
-
-    .waitlist-card {
-      border-radius: var(--radius);
-      padding: clamp(22px, 4vw, 34px);
-      display: grid;
-      gap: 16px;
-      margin-top: 18px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.84), rgba(255,250,243,0.88));
-    }
-
-    .waitlist-top {
-      display: flex;
-      justify-content: space-between;
-      gap: 18px;
-      align-items: baseline;
-      flex-wrap: wrap;
-    }
-
-    .waitlist-top h2 { margin: 0; }
-    .waitlist-top p { max-width: 56ch; }
-
-    .form {
-      display: grid;
-      gap: 12px;
-    }
-
-    .field-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 10px;
-      align-items: stretch;
-    }
-
-    .field-shell {
-      display: grid;
-      gap: 8px;
-    }
-
-    label {
-      font-size: 0.88rem;
-      color: var(--muted);
-    }
-
-    input {
+    .faq-wrap { margin-top: 3rem; border: 0.5px solid var(--border); }
+    .faq-item { border-bottom: 0.5px solid var(--border); background: var(--surface); }
+    .faq-item:last-child { border-bottom: none; }
+    .faq-question {
       width: 100%;
-      border-radius: 18px;
-      border: 1px solid var(--line-strong);
-      background: rgba(255,255,255,0.9);
-      color: var(--text);
-      padding: 18px 18px;
-      font: inherit;
-      font-size: 1rem;
-      min-height: 56px;
-      outline: none;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.65);
-    }
-
-    input::placeholder { color: #8a8176; }
-    input:focus {
-      border-color: rgba(154, 93, 38, 0.45);
-      box-shadow: 0 0 0 4px rgba(154, 93, 38, 0.12);
-    }
-
-    button {
+      min-height: 58px;
       border: none;
-      border-radius: 18px;
-      min-height: 56px;
-      padding: 0 20px;
-      font: inherit;
-      font-weight: 700;
+      background: transparent;
+      color: var(--text-pri);
+      text-align: left;
+      padding: 1.1rem 1.3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
       cursor: pointer;
-      transition: transform 140ms ease, box-shadow 140ms ease, opacity 140ms ease, background 140ms ease;
-    }
-
-    button:hover { transform: translateY(-1px); }
-    button:active { transform: translateY(0); }
-    button:disabled { cursor: progress; opacity: 0.75; transform: none; }
-
-    .submit {
-      min-width: 180px;
-      background: linear-gradient(180deg, #ab6b30, #8f5420);
-      color: #fffaf3;
-      box-shadow: 0 14px 30px rgba(143, 84, 32, 0.22);
-    }
-
-    .submit[data-state="loading"] {
-      background: linear-gradient(180deg, #9a5d26, #7f481c);
-    }
-
-    .helper-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .help,
-    .status {
-      margin: 0;
       font-size: 0.94rem;
-      line-height: 1.55;
-      color: var(--muted);
     }
+    .faq-question span { color: var(--text-sec); font-family: var(--font-mono); font-size: 0.8rem; }
+    .faq-answer { display: none; padding: 0 1.3rem 1.3rem; color: var(--text-sec); font-size: 0.86rem; line-height: 1.75; max-width: 860px; }
+    .faq-item.is-open .faq-answer { display: block; }
+    .faq-item.is-open .faq-question span { color: var(--risk-a); }
 
-    .status { min-height: 1.55em; }
-    .status.is-success { color: var(--success); }
-    .status.is-error { color: var(--danger); }
+    .offer-section { text-align: center; padding: 9rem 4rem; background: var(--surface-el); border-top: 0.5px solid var(--border); }
+    .offer-section .section-tag { justify-content: center; }
+    .offer-section .section-headline { margin-left: auto; margin-right: auto; }
+    .offer-body { font-size: 1rem; color: var(--text-sec); line-height: 1.8; max-width: 560px; margin: 0 auto 3rem; font-weight: 300; }
+    .offer-form { display: flex; justify-content: center; gap: 0; max-width: 520px; margin: 0 auto 1.5rem; }
+    .offer-form .email-input { height: 52px; }
+    .offer-form .primary-btn { height: 52px; background: var(--text-pri); color: var(--bg-primary); border-color: var(--text-pri); }
+    .offer-form .primary-btn:hover { opacity: 0.88; background: var(--text-pri); }
 
-    .status[data-tone="duplicate"] { color: #7b5a0e; }
-    .status[data-tone="loading"] { color: var(--accent); }
-
-    .footnote {
-      margin-top: 18px;
-      padding-top: 18px;
-      border-top: 1px solid var(--line);
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-      color: var(--muted);
-      font-size: 0.88rem;
-      line-height: 1.6;
-    }
-
-    .footer {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      align-items: center;
-      flex-wrap: wrap;
-      padding: 18px 2px 4px;
-      color: var(--muted);
-      font-size: 0.82rem;
-      font-family: "IBM Plex Mono", monospace;
-      letter-spacing: 0.02em;
-    }
+    footer { padding: 2.5rem 4rem; border-top: 0.5px solid var(--border); background: var(--bg-primary); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .footer-copy { font-size: 0.72rem; color: var(--text-sec); letter-spacing: 0.04em; }
+    .footer-links { display: flex; gap: 2rem; list-style: none; flex-wrap: wrap; }
+    .footer-links a { font-size: 0.72rem; color: var(--text-sec); letter-spacing: 0.04em; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--text-pri); }
+    .footer-risk { width: 100%; font-size: 0.68rem; color: var(--text-sec); line-height: 1.6; border-top: 0.5px solid var(--border); padding-top: 1rem; margin-top: 0.5rem; }
 
     @media (max-width: 980px) {
-      .hero { grid-template-columns: 1fr; }
-      .cards { grid-template-columns: 1fr; }
-      .metric-grid { grid-template-columns: 1fr 1fr; }
+      nav { padding: 0 1.5rem; }
+      .nav-links { display: none; }
+      .nav-links.open { display: flex; position: fixed; top: 64px; left: 0; right: 0; flex-direction: column; align-items: stretch; gap: 0; background: rgba(15,17,23,0.98); border-bottom: 0.5px solid var(--border); padding: 1rem 1.5rem; }
+      .nav-links.open a { padding: 0.8rem 0; }
+      .nav-hamburger { display: flex; }
+      .hero { grid-template-columns: 1fr; min-height: auto; }
+      .hero-right { display: none; }
+      .mobile-preview { display: block; max-width: 100%; }
+      .hero-left { padding: 4rem 1.5rem 5rem; border-right: none; }
+      .hero-headline { font-size: 2.25rem; }
+      .hero-body { font-size: 0.92rem; }
+      .hero-form { max-width: 100%; }
+      .form-row { flex-direction: column; }
+      .email-input { border-right: 1px solid var(--border); height: 52px; width: 100%; font-size: 16px; }
+      .primary-btn { height: 52px; width: 100%; }
+      .lead-secondary { margin-left: 0; margin-top: 0.9rem; display: block; }
+      section, .section { padding: 5rem 1.5rem; }
+      .pain-grid, .how-grid, .case-grid, .screens-grid, .fit-grid { grid-template-columns: 1fr; }
+      .cell, .case-card, .screen-card { border-right: none; border-bottom: 0.5px solid var(--border); padding: 2rem 1.5rem; }
+      .cell:last-child, .case-card:last-child, .screen-card:last-child { border-bottom: none; }
+      .method-section { grid-template-columns: 1fr; }
+      .method-left { padding: 4rem 1.5rem; border-right: none; }
+      .method-right { padding: 4rem 1.5rem; }
+      .offer-section { padding: 6rem 1.5rem; }
+      .offer-form { flex-direction: column; max-width: 340px; }
+      .offer-form .email-input { border-right: 1px solid var(--border); }
+      footer { padding: 2rem 1.5rem; flex-direction: column; align-items: flex-start; }
     }
 
-    @media (max-width: 720px) {
-      .shell { width: min(calc(100% - 20px), var(--container)); }
-      .topbar { align-items: start; }
-      .nav { display: none; }
-      h1 { max-width: 100%; font-size: clamp(2.6rem, 15vw, 4.4rem); }
-      .metric-grid { grid-template-columns: 1fr; }
-      .field-row { grid-template-columns: 1fr; }
-      .submit { width: 100%; min-width: 0; }
-      .section-head,
-      .waitlist-top,
-      .footnote,
-      .footer { align-items: start; }
+    @media (max-width: 600px) {
+      nav { height: 56px; }
+      .logo-mark { width: 28px; height: 28px; }
+      .logo-word { font-size: 0.9rem; }
+      .nav-links.open { top: 56px; }
+      .hero-left { padding: 3.4rem 1.25rem 3rem; }
+      .hero-kicker { font-size: 0.62rem; }
+      .hero-headline { font-size: 1.82rem; letter-spacing: -0.01em; margin-bottom: 1.4rem; }
+      .hero-body { font-size: 0.94rem; line-height: 1.65; margin-bottom: 1.7rem; }
+      .proof-item { font-size: 0.82rem; }
+      .choice-chip { min-height: 44px; }
+      section, .section { padding: 3.5rem 1.25rem; }
+      .section-tag { font-size: 0.6rem; }
+      .section-headline { font-size: 1.55rem; }
+      .section-body { font-size: 0.9rem; }
+      .cell-num, .pain-stat { font-size: 2rem; }
+      .cell-title { font-size: 0.98rem; }
+      .cell-desc { font-size: 0.84rem; }
+      .method-left, .method-right { padding: 3rem 1.25rem; }
+      .faq-question { font-size: 0.88rem; }
+      .offer-section { padding: 4rem 1.25rem; }
+      .footer-links { gap: 1.5rem; }
     }
 
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
-      *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+      *, *::before, *::after { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
     }
   </style>
 </head>
 <body>
-  <div class="shell">
-    <header class="topbar">
-      <a class="brand" href="#top" aria-label="Clavix home">
-        <span class="mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M17 6.5C15.6 4.8 13.5 3.8 11.3 3.8C7.1 3.8 3.8 7.1 3.8 11.3C3.8 15.5 7.1 18.8 11.3 18.8C13.5 18.8 15.6 17.8 17 16.1" stroke="#9a5d26" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
-        </span>
-        <span class="brand-copy">
-          <strong>Clavix</strong>
-          <span>Portfolio risk, measured.</span>
-        </span>
-      </a>
-      <nav class="nav" aria-label="Primary">
-        <a href="#methodology">Methodology</a>
-        <a href="#waitlist">Waitlist</a>
-      </nav>
-    </header>
+  <nav>
+    <a href="#top" class="nav-logo" aria-label="Clavix home">
+      <span class="logo-mark">CX</span>
+      <span class="logo-word">CLAVIX</span>
+    </a>
+    <button class="nav-hamburger" aria-label="Menu" aria-expanded="false" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="#pain">Problem</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#methodology">Methodology</a></li>
+      <li><a href="#case-studies">Case studies</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="#early-access" class="nav-cta">Get early access</a></li>
+    </ul>
+  </nav>
 
-    <main id="top">
-      <section class="hero">
-        <div class="hero-copy">
-          <div class="eyebrow">Public launch surface</div>
-          <h1>Portfolio risk, measured.</h1>
-          <p class="lede">Clavix tells self-directed investors what changed overnight, what it means for their portfolio, and how risk ratings are derived. Calm, precise, and transparent from the first screen to the last score.</p>
-          <div class="hero-points" aria-label="Key points">
-            <span class="chip"><strong>Macro</strong> to sector to position</span>
-            <span class="chip"><strong>AAA-F</strong> style risk grades</span>
-            <span class="chip"><strong>Audit trail</strong> behind every score</span>
+  <main id="top">
+    <section class="hero" style="border-top:none;padding:0;padding-top:64px;">
+      <div class="hero-left">
+        <div class="hero-kicker">For self-directed investors managing real portfolios</div>
+        <h1 class="hero-headline">Portfolio risk,<br><em>measured.</em></h1>
+        <p class="hero-body">Clavix turns your holdings into a <strong>60-second morning risk briefing</strong>: what changed overnight, where you are exposed, and why every position is rated the way it is.</p>
+        <div class="proof-list" aria-label="Clavix benefits">
+          <div class="proof-item">Overnight macro, sector, and position changes in one view.</div>
+          <div class="proof-item">Bond-style risk grades for every holding.</div>
+          <div class="proof-item">Full methodology with formulas, inputs, sources, and refresh dates.</div>
+        </div>
+        <div class="hero-form">
+          <div class="signup-shell">
+            <div class="form-row">
+              <input class="email-input" type="email" name="email" inputmode="email" id="hero-email" placeholder="your@email.com" autocomplete="email" autocapitalize="none" spellcheck="false" aria-label="Email address" />
+              <button class="primary-btn" type="button" onclick="submitEmail('hero-email','hero-success',true)">Get early access</button>
+            </div>
+            <p class="success-msg" id="hero-success" role="status" aria-live="polite">You are on the list. Launch access is sent to waitlist members first.</p>
+            <div class="smallprint"><span>14-day Pro trial at launch</span><span>·</span><span>No credit card required</span><span>·</span><span>Free tier available</span></div>
+            <div class="optional-profile" id="optional-profile">
+              <div class="optional-title">Optional, 10 seconds</div>
+              <p class="optional-note">Tap what fits. This helps us prioritize beta invites without slowing down signup.</p>
+              <div class="chip-group">
+                <div class="chip-label">You are</div>
+                <div class="chips" data-field="investor_type">
+                  <button type="button" class="choice-chip" data-value="self_directed_investor">Self-directed investor</button>
+                  <button type="button" class="choice-chip" data-value="advisor_wealth_manager">Advisor</button>
+                  <button type="button" class="choice-chip" data-value="finance_professional">Finance professional</button>
+                  <button type="button" class="choice-chip" data-value="student_learning">Learning</button>
+                </div>
+              </div>
+              <div class="chip-group">
+                <div class="chip-label">Main pain</div>
+                <div class="chips" data-field="biggest_pain">
+                  <button type="button" class="choice-chip" data-value="too_much_portfolio_news">Too much news</button>
+                  <button type="button" class="choice-chip" data-value="dont_know_riskier_holdings">Do not know what got riskier</button>
+                  <button type="button" class="choice-chip" data-value="transparent_methodology">Want transparent ratings</button>
+                  <button type="button" class="choice-chip" data-value="better_alerts">Want better alerts</button>
+                </div>
+              </div>
+              <button class="primary-btn" type="button" onclick="submitProfile()">Save profile</button>
+              <button class="lead-secondary" type="button" onclick="skipProfile()">Skip this</button>
+            </div>
           </div>
         </div>
 
-        <aside class="hero-panel" aria-label="Launch brief">
-          <p class="panel-note">Morning briefing</p>
-          <div class="metric-grid">
-            <div class="metric">
-              <span>Focus</span>
-              <strong>Risk, not noise</strong>
-            </div>
-            <div class="metric">
-              <span>Output</span>
-              <strong>Clear letter grades</strong>
-            </div>
-            <div class="metric">
-              <span>Method</span>
-              <strong>Visible inputs</strong>
-            </div>
-            <div class="metric">
-              <span>Audience</span>
-              <strong>Self-directed investors</strong>
-            </div>
-          </div>
-          <ul class="panel-list">
-            <li><span>What changed overnight</span><strong>Observed</strong></li>
-            <li><span>What it means for the book</span><strong>Explained</strong></li>
-            <li><span>How the rating was derived</span><strong>Shown</strong></li>
-          </ul>
-        </aside>
-      </section>
-
-      <section id="methodology" class="section">
-        <div class="section-head">
-          <div>
-            <h2>Editorial, not promotional.</h2>
-          </div>
-          <p>Clavix is a portfolio risk intelligence surface, not an investment adviser. It uses disciplined language, visible methodology, and a restrained launch tone.</p>
+        <div class="mobile-preview" aria-label="Compact Clavix app preview">
+          <div class="preview-top"><span>Morning briefing</span><span>6:42 AM ET</span></div>
+          <div class="grade-card"><div class="grade-label">Portfolio composite grade</div><div class="grade-row"><div class="grade-large">AA</div><div class="score-number">82 / 100</div></div></div>
+          <div class="brief-card"><div class="brief-meta"><span>Holding</span><span class="elevated">Elevated</span></div><div class="brief-title">One position has weaker news and higher short-term volatility.</div><p class="brief-text">Tap the rating to inspect the formula, inputs, and source data.</p></div>
         </div>
+      </div>
 
-        <div class="cards">
-          <article class="card">
-            <div class="num">01</div>
-            <h3>Overnight change, organized.</h3>
-            <p>Macro headlines, sector moves, and position-level shifts are presented in a sequence that respects how serious investors read the market.</p>
-          </article>
-          <article class="card">
-            <div class="num">02</div>
-            <h3>Risk grades with context.</h3>
-            <p>Every score is designed to be explainable, auditable, and easy to compare across holdings without leaning on hype or guesswork.</p>
-          </article>
-          <article class="card">
-            <div class="num">03</div>
-            <h3>Transparent enough to trust.</h3>
-            <p>Clavix shows the inputs behind the rating so investors can understand the reason for a change, not just the change itself.</p>
-          </article>
+      <div class="hero-right">
+        <div class="preview-panel" aria-label="Clavix app preview">
+          <div class="preview-top"><span>Morning briefing</span><span>6:42 AM ET</span></div>
+          <div class="grade-card"><div class="grade-label">Portfolio composite grade</div><div class="grade-row"><div class="grade-large">AA</div><div class="score-number">82 / 100</div></div></div>
+          <div class="brief-card"><div class="brief-meta"><span>Macro</span><span class="stable">Stable</span></div><div class="brief-title">Rates and futures show no major portfolio-wide pressure.</div><p class="brief-text">Your largest holdings remain most sensitive to sector data, not today’s macro tape.</p></div>
+          <div class="brief-card"><div class="brief-meta"><span>Holding</span><span class="elevated">Elevated</span></div><div class="brief-title">One position has weaker news and higher short-term volatility.</div><p class="brief-text">The rating is unchanged, but two dimensions moved lower overnight.</p></div>
+          <div class="brief-card"><div class="brief-meta"><span>Methodology</span><span class="audit">Auditable</span></div><div class="brief-title">Tap any rating to see the formula and inputs.</div><p class="brief-text">Financial health, news, macro exposure, sector exposure, and volatility are shown separately.</p></div>
         </div>
-      </section>
+        <div class="hero-phone-caption">Portfolio Risk · Holdings · Digest</div>
+      </div>
+    </section>
 
-      <section id="waitlist" class="waitlist-card">
-        <div class="waitlist-top">
-          <div>
-            <h2>Join the waitlist.</h2>
-          </div>
-          <p>Leave an email if you want launch updates. No advice, no trading instructions, no noisy drip campaign.</p>
+    <section id="pain">
+      <div class="section-tag">The problem</div>
+      <span class="skim-line">One morning briefing instead of a scattered routine.</span>
+      <h2 class="section-headline">You should not need six apps to know if your portfolio changed overnight.</h2>
+      <p class="section-body">Most mornings, nothing material happened. But serious investors still have to check macro data, sector moves, headlines, earnings calendars, and each holding before they know that.</p>
+      <div class="pain-grid">
+        <div class="cell"><div class="pain-stat">30–60</div><h3 class="cell-title">Minutes spent piecing together what matters.</h3><p class="cell-desc">Clavix is built to compress the morning routine into a written briefing tailored to the holdings you actually own.</p></div>
+        <div class="stack-list">
+          <div class="stack-item"><div class="stack-index">01</div><div><h3 class="cell-title">Macro first.</h3><p class="cell-desc">What changed overnight in rates, volatility, oil, the dollar, and the broader market.</p></div></div>
+          <div class="stack-item"><div class="stack-index">02</div><div><h3 class="cell-title">Then sectors.</h3><p class="cell-desc">Which parts of the market affect the positions in your portfolio.</p></div></div>
+          <div class="stack-item"><div class="stack-index">03</div><div><h3 class="cell-title">Then holdings.</h3><p class="cell-desc">Which positions had meaningful changes, which stayed quiet, and why the ratings moved.</p></div></div>
         </div>
+      </div>
+    </section>
 
-        <form id="waitlist-form" class="form" novalidate>
-          <div class="field-shell">
-            <label for="email">Email address</label>
-            <div class="field-row">
-              <input id="email" name="email" type="email" inputmode="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="name@example.com" required />
-              <button id="submit-button" class="submit" type="submit">Join waitlist</button>
-            </div>
-          </div>
+    <section id="how">
+      <div class="section-tag">How Clavix works</div>
+      <span class="skim-line">Add holdings. Filter the market. Audit the rating.</span>
+      <h2 class="section-headline">From holdings to a daily risk briefing.</h2>
+      <p class="section-body">Clavix is not a trading newsletter. It is a rating layer for self-directed investors who want calmer, clearer risk data.</p>
+      <div class="how-grid">
+        <div class="cell"><div class="cell-num">01</div><h3 class="cell-title">Add your holdings</h3><p class="cell-desc">Enter positions manually or connect your brokerage when Pro access opens. Clavix builds a portfolio view from your holdings.</p></div>
+        <div class="cell"><div class="cell-num">02</div><h3 class="cell-title">Clavix filters the market</h3><p class="cell-desc">Macro, sector, and company-level data are translated into changes that actually connect to your positions.</p></div>
+        <div class="cell"><div class="cell-num">03</div><h3 class="cell-title">You get ratings with the math shown</h3><p class="cell-desc">Every position receives a composite grade and five dimension scores, with formulas, inputs, and sources available to inspect.</p></div>
+      </div>
+    </section>
 
-          <div class="helper-row">
-            <p class="help">Launch updates only. Your email is stored in Supabase from the backend, not from browser-side service role code.</p>
-            <p id="status" class="status" aria-live="polite"></p>
-          </div>
-        </form>
+    <div class="method-section" id="methodology">
+      <div class="method-left"><div class="section-tag">Transparency is the product</div><span class="skim-line">Every score shows formula, inputs, sources, and refresh time.</span><h2 class="section-headline">Not a black-box AI score.</h2><p class="section-body">Clavix uses five equal risk dimensions. Tap a score to see the formula, the input values, the source data, and when each piece refreshed.</p><div class="formula-box">composite_score = (financial_health + news_score + macro_exposure + sector_exposure + volatility) / 5</div></div>
+      <div class="method-right"><div class="dimension-list">
+        <div class="dimension-item"><div><div class="dimension-title">Financial Health</div><div class="dimension-desc">Balance sheet, cash flow, profitability, and growth trend.</div></div><div class="dimension-weight">20%</div></div>
+        <div class="dimension-item"><div><div class="dimension-title">News Score</div><div class="dimension-desc">Recent article tone, severity, source quality, recency, and unusual volume.</div></div><div class="dimension-weight">20%</div></div>
+        <div class="dimension-item"><div><div class="dimension-title">Macro Exposure</div><div class="dimension-desc">Regression-based sensitivity to rates, dollar, oil, volatility, and market beta.</div></div><div class="dimension-weight">20%</div></div>
+        <div class="dimension-item"><div><div class="dimension-title">Sector Exposure</div><div class="dimension-desc">Sector beta, sector trend, sector breadth, and sector-specific data.</div></div><div class="dimension-weight">20%</div></div>
+        <div class="dimension-item"><div><div class="dimension-title">Volatility</div><div class="dimension-desc">30-day and 90-day realized volatility, drawdown, and market beta.</div></div><div class="dimension-weight">20%</div></div>
+      </div></div>
+    </div>
 
-        <div class="footnote">
-          <span>Clavix provides informational risk intelligence only.</span>
-          <span>It does not provide investment advice, recommendations, or trading instructions.</span>
-        </div>
-      </section>
-    </main>
+    <section id="case-studies" class="case-section">
+      <div class="section-tag">Case studies</div>
+      <span class="skim-line">Historical examples only. No predictions. No recommendations.</span>
+      <h2 class="section-headline">Historical examples where risk ratings deteriorated before later price weakness.</h2>
+      <p class="section-body">Use this section for real examples once your backfilled data is verified. Each card should show the rating change, the data behind it, and what happened afterward.</p>
+      <div class="case-grid">
+        <article class="case-card"><div class="case-top"><div class="ticker">Example 01</div><div class="case-badge">High risk</div></div><div class="mini-chart" aria-hidden="true"><svg viewBox="0 0 320 110" preserveAspectRatio="none"><path d="M0,28 C35,24 48,34 75,32 C112,30 129,45 156,52 C188,60 205,73 230,78 C260,84 286,92 320,99" fill="none" stroke="rgba(216,90,48,0.95)" stroke-width="3"/><path d="M0,28 C35,24 48,34 75,32 C112,30 129,45 156,52 C188,60 205,73 230,78 C260,84 286,92 320,99 L320,110 L0,110 Z" fill="rgba(216,90,48,0.12)"/></svg></div><h3 class="cell-title">Rating deterioration before a later drawdown.</h3><p class="cell-desc">Replace this with a verified ticker where news score, volatility, or financial health weakened before the stock moved lower.</p></article>
+        <article class="case-card"><div class="case-top"><div class="ticker">Example 02</div><div class="case-badge">Weakening</div></div><div class="mini-chart" aria-hidden="true"><svg viewBox="0 0 320 110" preserveAspectRatio="none"><path d="M0,40 C30,39 47,35 75,44 C104,55 128,50 154,62 C187,75 201,71 230,83 C264,96 289,92 320,103" fill="none" stroke="rgba(216,90,48,0.95)" stroke-width="3"/><path d="M0,40 C30,39 47,35 75,44 C104,55 128,50 154,62 C187,75 201,71 230,83 C264,96 289,92 320,103 L320,110 L0,110 Z" fill="rgba(216,90,48,0.12)"/></svg></div><h3 class="cell-title">Multiple dimensions moved in the same direction.</h3><p class="cell-desc">Use this for cases where the composite rating fell because several independent inputs weakened together.</p></article>
+        <article class="case-card"><div class="case-top"><div class="ticker">Example 03</div><div class="case-badge">Pressure</div></div><div class="mini-chart" aria-hidden="true"><svg viewBox="0 0 320 110" preserveAspectRatio="none"><path d="M0,24 C38,27 54,28 85,41 C116,52 130,49 157,59 C188,69 204,83 236,86 C270,89 286,100 320,105" fill="none" stroke="rgba(216,90,48,0.95)" stroke-width="3"/><path d="M0,24 C38,27 54,28 85,41 C116,52 130,49 157,59 C188,69 204,83 236,86 C270,89 286,100 320,105 L320,110 L0,110 Z" fill="rgba(216,90,48,0.12)"/></svg></div><h3 class="cell-title">A high-risk rating helped separate signal from noise.</h3><p class="cell-desc">Use this for a before-and-after example with dates, starting grade, ending grade, and the data that drove the move.</p></article>
+      </div>
+      <p class="case-note">Case studies must be factual and dated. Best format: On [date], Clavix rated [ticker] [grade] because [inputs]. Over the next [period], the price moved [x percent]. This is historical context, not a prediction or recommendation.</p>
+    </section>
 
-    <footer class="footer">
-      <span>Clavix</span>
-      <span>Portfolio risk, measured.</span>
-    </footer>
-  </div>
+    <section id="fit">
+      <div class="section-tag">Fit</div>
+      <span class="skim-line">Clear for the right user. Clear about the wrong use case.</span>
+      <h2 class="section-headline">Built for self-directed investors. Not for trading calls.</h2>
+      <p class="section-body">Clavix is designed to make portfolio risk easier to understand, not to tell anyone what to buy or sell.</p>
+      <div class="fit-grid">
+        <div class="cell"><h3 class="cell-title">Built for</h3><ul class="fit-list"><li>Investors who manage individual stocks, ETFs, and long-term positions.</li><li>People who already read market news but want it filtered through their actual holdings.</li><li>Users who want a rating and the math behind it, not a black-box answer.</li></ul></div>
+        <div class="cell"><h3 class="cell-title">Not built for</h3><ul class="fit-list not-for"><li>Day trading, options gambling, or short-term price predictions.</li><li>Buy, sell, add, reduce, or exit recommendations.</li><li>Replacing your own due diligence, advisor, or investment process.</li></ul></div>
+      </div>
+    </section>
+
+    <section id="screens">
+      <div class="section-tag">Product preview</div><span class="skim-line">The app should feel like a daily portfolio memo.</span><h2 class="section-headline">Built for the morning check-in.</h2><p class="section-body">The app should feel like a rating agency, a portfolio memo, and a transparent methodology drawer in one product.</p>
+      <div class="screens-grid">
+        <div class="screen-card"><div class="screen-mock" aria-hidden="true"><div class="mock-block"></div><div class="mock-line med"></div><div class="mock-line short"></div><div class="mock-block amber"></div><div class="mock-line med"></div></div><div class="screen-label">Know what changed overnight</div></div>
+        <div class="screen-card"><div class="screen-mock" aria-hidden="true"><div class="mock-line short"></div><div class="mock-block red"></div><div class="mock-line med"></div><div class="mock-line short"></div><div class="mock-block"></div></div><div class="screen-label">See which ratings moved</div></div>
+        <div class="screen-card"><div class="screen-mock" aria-hidden="true"><div class="mock-block amber"></div><div class="mock-block"></div><div class="mock-block red"></div><div class="mock-line med"></div></div><div class="screen-label">Audit the five dimensions</div></div>
+        <div class="screen-card"><div class="screen-mock" aria-hidden="true"><div class="mock-line med"></div><div class="mock-line short"></div><div class="mock-block"></div><div class="mock-line med"></div><div class="mock-line short"></div></div><div class="screen-label">Read the daily briefing</div></div>
+      </div>
+    </section>
+
+    <section id="faq">
+      <div class="section-tag">Deeper detail</div>
+      <span class="skim-line">Simple page. More detail when someone wants it.</span>
+      <h2 class="section-headline">Questions serious investors will ask.</h2>
+      <p class="section-body">The top of the page stays simple. This section gives more detail without forcing every visitor to read it.</p>
+      <div class="faq-wrap">
+        <div class="faq-item is-open"><button class="faq-question" type="button" aria-expanded="true" onclick="toggleFaq(this)">What does Clavix actually track?<span>−</span></button><div class="faq-answer">Clavix tracks macro conditions, sector exposure, company-specific news, financial health, and volatility. Those inputs roll into five risk dimensions and a composite bond-style grade for each tracked position.</div></div>
+        <div class="faq-item"><button class="faq-question" type="button" aria-expanded="false" onclick="toggleFaq(this)">How are scores calculated?<span>+</span></button><div class="faq-answer">Each ticker is scored across five dimensions: Financial Health, News Score, Macro Exposure, Sector Exposure, and Volatility. Each dimension is weighted equally at 20 percent. If a dimension has limited data, Clavix labels that clearly and recalculates from the available dimensions.</div></div>
+        <div class="faq-item"><button class="faq-question" type="button" aria-expanded="false" onclick="toggleFaq(this)">Is Clavix giving investment advice?<span>+</span></button><div class="faq-answer">No. Clavix is informational. It does not recommend buys, sells, position changes, trading actions, or price predictions. It describes observed portfolio risk using data, ratings, and methodology transparency.</div></div>
+        <div class="faq-item"><button class="faq-question" type="button" aria-expanded="false" onclick="toggleFaq(this)">What happens after the trial?<span>+</span></button><div class="faq-answer">The launch plan is a 14-day Pro trial with no credit card required. After the trial, users can continue with the free tier or choose Pro at the listed monthly price.</div></div>
+        <div class="faq-item"><button class="faq-question" type="button" aria-expanded="false" onclick="toggleFaq(this)">Why show the methodology?<span>+</span></button><div class="faq-answer">Sophisticated investors do not trust unexplained scores. Clavix is built so a user can inspect the formula, the inputs, the sources, the articles, and the refresh dates behind each rating.</div></div>
+      </div>
+    </section>
+
+    <section id="early-access" class="offer-section">
+      <div class="section-tag">Early access</div><h2 class="section-headline">Know what changed before the market opens.</h2><p class="offer-body">Join the Clavix launch list. Waitlist members get first access to the 14-day Pro trial, with no credit card required.</p>
+      <div class="offer-form"><input class="email-input" type="email" name="email" inputmode="email" id="footer-email" placeholder="your@email.com" autocomplete="email" autocapitalize="none" spellcheck="false" aria-label="Email address" /><button class="primary-btn" type="button" onclick="submitEmail('footer-email','footer-success',false)">Reserve my spot</button></div>
+      <div class="success-msg" id="footer-success" role="status" aria-live="polite" style="justify-content:center;margin:0.75rem auto 0;">Your spot is reserved. We will be in touch.</div>
+      <p class="smallprint" style="justify-content:center;margin-top:1rem;">Free tier available · Pro $20/month after trial · Your data is never sold</p>
+    </section>
+  </main>
+
+  <footer>
+    <a href="#top" class="nav-logo" aria-label="Clavix home"><span class="logo-mark" style="width:28px;height:28px;font-size:0.68rem;opacity:0.85;">CX</span><span class="logo-word" style="font-size:0.9rem;opacity:0.6;">CLAVIX</span></a>
+    <span class="footer-copy">© 2026 Clavix. All rights reserved.</span>
+    <ul class="footer-links"><li><a href="/privacy">Privacy</a></li><li><a href="/terms">Terms</a></li><li><a href="/refund">Refund</a></li><li><a href="/methodology">Methodology</a></li><li><a href="mailto:support@getclavix.com">Contact</a></li></ul>
+    <p class="footer-risk">Clavix is for informational purposes only and does not provide investment advice, buy/sell recommendations, price predictions, or money management. Ratings are algorithmic and may be inaccurate, delayed, or incomplete. Always do your own due diligence before making investment decisions.</p>
+  </footer>
 
   <script>
     (function () {
-      var form = document.getElementById('waitlist-form');
-      var input = document.getElementById('email');
-      var status = document.getElementById('status');
-      var submitButton = document.getElementById('submit-button');
-      var API_BASE = window.CLAVIX_API_BASE_URL || (location.hostname === 'localhost' || location.hostname === '127.0.0.1' ? 'http://127.0.0.1:8000' : 'https://clavis.andoverdigital.com');
+      var API_BASE = window.CLAVIX_API_BASE_URL || (
+        location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+          ? 'http://127.0.0.1:8000'
+          : 'https://clavis.andoverdigital.com'
+      );
+      var WAITLIST_ENDPOINT = API_BASE.replace(/\/$/, '') + '/waitlist';
+      var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-      // The browser only talks to the backend; the Supabase service role stays server-side.
-      function setStatus(message, tone) {
-        status.textContent = message;
-        status.className = 'status';
-        if (tone) {
-          status.classList.add('is-' + tone);
-          status.dataset.tone = tone;
-        } else {
-          status.removeAttribute('data-tone');
-        }
+      var capturedLeadEmail = '';
+      var leadProfile = { investor_type: '', biggest_pain: '' };
+
+      function toggleMenu() {
+        var links = document.getElementById('nav-links');
+        var button = document.querySelector('.nav-hamburger');
+        links.classList.toggle('open');
+        button.setAttribute('aria-expanded', links.classList.contains('open') ? 'true' : 'false');
       }
 
-      function setLoading(isLoading) {
-        submitButton.disabled = isLoading;
-        submitButton.dataset.state = isLoading ? 'loading' : 'idle';
-        submitButton.textContent = isLoading ? 'Joining…' : 'Join waitlist';
-        input.disabled = isLoading;
-      }
+      document.querySelectorAll('.nav-links a').forEach(function (link) {
+        link.addEventListener('click', function () {
+          document.getElementById('nav-links').classList.remove('open');
+          var button = document.querySelector('.nav-hamburger');
+          if (button) button.setAttribute('aria-expanded', 'false');
+        });
+      });
+
+      document.querySelectorAll('.chips').forEach(function (group) {
+        group.querySelectorAll('.choice-chip').forEach(function (chip) {
+          chip.addEventListener('click', function () {
+            var selected = chip.classList.contains('is-selected');
+            group.querySelectorAll('.choice-chip').forEach(function (item) {
+              item.classList.remove('is-selected');
+              item.setAttribute('aria-pressed', 'false');
+            });
+            if (selected) {
+              leadProfile[group.dataset.field] = '';
+            } else {
+              chip.classList.add('is-selected');
+              chip.setAttribute('aria-pressed', 'true');
+              leadProfile[group.dataset.field] = chip.dataset.value;
+            }
+          });
+        });
+      });
 
       function normalizeEmail(value) {
         return value.trim().toLowerCase();
       }
 
       function isValidEmail(value) {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+        return EMAIL_RE.test(value);
       }
 
-      async function submitWaitlist(email) {
-        var response = await fetch(API_BASE.replace(/\/$/, '') + '/waitlist', {
+      function showMessage(id, text, isError) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = text;
+        el.style.display = 'block';
+        el.style.color = isError ? '#D85A30' : '#1D9E75';
+      }
+
+      async function postLead(payload) {
+        var res = await fetch(WAITLIST_ENDPOINT, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ email: email })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
         });
-
-        var payload = {};
+        var data = {};
         try {
-          payload = await response.json();
+          data = await res.json();
         } catch (error) {
-          payload = {};
+          data = {};
         }
-
-        return { response: response, payload: payload };
+        return { res: res, data: data };
       }
 
-      form.addEventListener('submit', async function (event) {
-        event.preventDefault();
-
+      async function submitEmail(inputId, messageId, showProfile) {
+        var input = document.getElementById(inputId);
         var email = normalizeEmail(input.value);
 
-        if (!email) {
-          setStatus('Enter an email address.', 'error');
-          input.focus();
-          return;
-        }
-
         if (!isValidEmail(email)) {
-          setStatus('Enter a valid email address.', 'error');
+          input.style.borderColor = '#D85A30';
           input.focus();
+          showMessage(messageId, 'Enter a valid email address.', true);
           return;
         }
 
         input.value = email;
-        setLoading(true);
-        setStatus('Joining the waitlist…', 'loading');
+        input.style.borderColor = '';
+
+        var button = input.parentElement.querySelector('button');
+        var originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = 'Saving…';
 
         try {
-          var result = await submitWaitlist(email);
-          var response = result.response;
-          var payload = result.payload || {};
+          var result = await postLead({ email: email });
+          var res = result.res;
+          var data = result.data || {};
 
-          if (response.ok && payload.status === 'success') {
-            setStatus('You are on the waitlist. We will be in touch when Clavix opens.', 'success');
-            form.reset();
-            input.value = email;
+          if (res.status === 422 || res.status === 400) {
+            showMessage(messageId, 'Enter a valid email address.', true);
             return;
           }
 
-          if (payload.status === 'duplicate' || response.status === 409) {
-            setStatus('That email is already on the waitlist.', 'duplicate');
+          if (res.ok && (data.status === 'success' || data.status === 'updated')) {
+            capturedLeadEmail = email;
+            showMessage(messageId, 'You are on the list. Launch access is sent to waitlist members first.');
+            if (showProfile) document.getElementById('optional-profile').style.display = 'block';
             return;
           }
 
-          if (response.status === 422 || response.status === 400) {
-            setStatus('Enter a valid email address.', 'error');
+          if (data.status === 'duplicate' || res.status === 409) {
+            capturedLeadEmail = email;
+            showMessage(messageId, 'You are already on the list. We will keep you posted.');
+            if (showProfile) document.getElementById('optional-profile').style.display = 'block';
             return;
           }
 
-          setStatus('Something went wrong. Please try again.', 'error');
+          showMessage(messageId, 'Something went wrong. Please try again.', true);
         } catch (error) {
-          setStatus('Something went wrong. Please try again.', 'error');
+          showMessage(messageId, 'Something went wrong. Please try again.', true);
         } finally {
-          setLoading(false);
+          button.disabled = false;
+          button.textContent = originalText;
         }
-      });
+      }
 
-      setStatus('');
+      async function submitProfile() {
+        if (!capturedLeadEmail) return;
+
+        if (!leadProfile.investor_type && !leadProfile.biggest_pain) {
+          skipProfile();
+          return;
+        }
+
+        var payload = { email: capturedLeadEmail };
+        if (leadProfile.investor_type) payload.investor_type = leadProfile.investor_type;
+        if (leadProfile.biggest_pain) payload.biggest_pain = leadProfile.biggest_pain;
+
+        try {
+          var result = await postLead(payload);
+          var res = result.res;
+          var data = result.data || {};
+          if (!res.ok && data.status !== 'updated' && data.status !== 'duplicate') {
+            throw new Error('profile failed');
+          }
+          document.getElementById('optional-profile').style.display = 'none';
+          showMessage('hero-success', 'Thanks. Your launch profile is saved.');
+        } catch (error) {
+          showMessage('hero-success', 'Your email is saved. We could not save those extra details.', true);
+        }
+      }
+
+      function skipProfile() {
+        document.getElementById('optional-profile').style.display = 'none';
+        showMessage('hero-success', 'You are on the list. We will keep you posted.');
+      }
+
+      function toggleFaq(button) {
+        var item = button.parentElement;
+        var icon = button.querySelector('span');
+        var isOpen = item.classList.toggle('is-open');
+        button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        icon.textContent = isOpen ? '−' : '+';
+      }
+
+      window.toggleMenu = toggleMenu;
+      window.submitEmail = submitEmail;
+      window.submitProfile = submitProfile;
+      window.skipProfile = skipProfile;
+      window.toggleFaq = toggleFaq;
     })();
   </script>
 </body>
