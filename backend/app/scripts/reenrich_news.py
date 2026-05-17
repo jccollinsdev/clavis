@@ -212,13 +212,26 @@ async def _enrich_one(
 
     body = cleaned_body
 
+    existing_tldr = str(row.get("tldr") or "").strip() or None
+    existing_what = str(row.get("what_it_means") or "").strip() or None
+    existing_implications = row.get("key_implications") if isinstance(row.get("key_implications"), list) else []
+
+    need_sentiment = True
+    need_tldr = existing_tldr is None or existing_what is None
+
     try:
-        # Run sentiment + TLDR concurrently
-        sentiment_res, tldr_res = await asyncio.gather(
-            _score_article_llm(ticker, headline, body),
-            _generate_tldr_llm(ticker, headline, body),
-            return_exceptions=True,
-        )
+        coro_keys: list[str] = []
+        coros = []
+        if need_sentiment:
+            coro_keys.append("sentiment")
+            coros.append(_score_article_llm(ticker, headline, body))
+        if need_tldr:
+            coro_keys.append("tldr")
+            coros.append(_generate_tldr_llm(ticker, headline, body))
+        llm_results = await asyncio.gather(*coros, return_exceptions=True)
+        llm_by_key = dict(zip(coro_keys, llm_results))
+        sentiment_res = llm_by_key.get("sentiment")
+        tldr_res = llm_by_key.get("tldr")
     except Exception as exc:
         result["status"] = "llm_exception"
         result["issues"] = [str(exc)[:120]]
@@ -239,18 +252,22 @@ async def _enrich_one(
         impact_tag = tag_val if tag_val in valid_tags else None
 
     # Unpack TLDR
-    tldr: str | None = None
-    what_it_means: str | None = None
-    key_implications: list = []
+    tldr: str | None = existing_tldr
+    what_it_means: str | None = existing_what
+    key_implications: list = existing_implications
 
     if isinstance(tldr_res, Exception):
         result["issues"].append(f"tldr_failed:{tldr_res!s:.80}")
     elif isinstance(tldr_res, dict):
-        tldr = _sani(tldr_res.get("tldr"), fallback="")
-        what_it_means = _sani(tldr_res.get("what_it_means"), fallback="")
+        new_tldr = _sani(tldr_res.get("tldr"), fallback="")
+        new_what = _sani(tldr_res.get("what_it_means"), fallback="")
+        tldr = new_tldr or tldr
+        what_it_means = new_what or what_it_means
         raw_imp = tldr_res.get("key_implications")
         if isinstance(raw_imp, list):
-            key_implications = [_sani(i, fallback="") for i in raw_imp[:4] if i]
+            cleaned_implications = [_sani(i, fallback="") for i in raw_imp[:4] if i]
+            if cleaned_implications:
+                key_implications = cleaned_implications
 
     # Validate
     enrichment_out = {
