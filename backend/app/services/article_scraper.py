@@ -85,6 +85,27 @@ _GENERIC_BOILERPLATE_PHRASES = (
 )
 
 _SOURCE_BOILERPLATE_PHRASES = {
+    "benzinga.com": (
+        "benzinga edge",
+        "benzinga pro",
+        "benzinga premium services",
+        "data & apis",
+        "stock screener",
+    ),
+    "cnbc.com": (
+        "create free account",
+        "search quotes, news & videos",
+        "join pro",
+        "livestream menu",
+        "investing club",
+    ),
+    "fool.com": (
+        "help our services",
+        "stock advisor",
+        "best stocks to buy",
+        "how to invest",
+        "market research",
+    ),
     "zacks.com": (
         "we use cookies",
         "this article originally appeared on zacks",

@@ -81,6 +81,67 @@ _LOW_VALUE_DOMAINS: set[str] = {
     "macroaxis.com", "tipranks.com", "barchart.com",
 }
 
+_LOGIN_WALL_MARKERS: tuple[str, ...] = (
+    "sign in",
+    "log in",
+    "login",
+    "subscribe",
+    "create free account",
+    "join pro",
+    "join ic",
+    "watchlist",
+)
+
+_NAVIGATION_MARKERS: tuple[str, ...] = (
+    "search quotes, news & videos",
+    "livestream menu",
+    "markets markets",
+    "stock screener",
+    "data & apis",
+    "financial news financial news",
+    "options etfs commodities",
+    "premarket advertise contribute",
+    "privacy policy",
+    "terms of service",
+)
+
+_COOKIE_MARKERS: tuple[str, ...] = (
+    "accept all",
+    "deny optional",
+    "cookie policy",
+    "consent preferences",
+)
+
+_BLOCKED_PAGE_MARKERS: tuple[str, ...] = (
+    "access denied",
+    "verify you are human",
+    "captcha",
+    "unusual traffic",
+    "checking if the site connection is secure",
+    "press and hold",
+)
+
+_TITLE_STOPWORDS: set[str] = {
+    "a",
+    "an",
+    "and",
+    "as",
+    "at",
+    "by",
+    "for",
+    "from",
+    "how",
+    "in",
+    "is",
+    "of",
+    "on",
+    "or",
+    "the",
+    "this",
+    "to",
+    "with",
+}
+
 SENTIMENT_PROMPT = """Analyze the following news article about {ticker} and return a JSON object.
 
 Article headline: {headline}
@@ -215,6 +276,94 @@ def _truncate_text(text: str, limit: int = 1500) -> str:
     return text[:limit]
 
 
+def _sentence_like_paragraphs(text: str) -> int:
+    count = 0
+    for raw in re.split(r"\n{2,}", text or ""):
+        paragraph = raw.strip()
+        if len(paragraph.split()) < 12:
+            continue
+        if re.search(r"[.!?]", paragraph):
+            count += 1
+    return count
+
+
+def _title_signal_tokens(title: str) -> list[str]:
+    tokens: list[str] = []
+    for token in re.split(r"[^A-Za-z0-9]+", title or ""):
+        normalized = token.strip().lower()
+        if len(normalized) < 4 or normalized in _TITLE_STOPWORDS:
+            continue
+        tokens.append(normalized)
+    return tokens[:6]
+
+
+def assess_article_body_quality(article: dict[str, Any]) -> tuple[bool, str | None, str]:
+    """Decide whether an extracted body is usable for LLM enrichment."""
+    body = str(article.get("body") or "").strip()
+    if not body:
+        return False, "no_body", ""
+
+    if body.startswith("[Paywalled]"):
+        return False, "paywall_content", body
+    if body.startswith("[Blocked]"):
+        return False, "blocked_content", body
+    if body.startswith("[No body extracted]"):
+        return False, "no_body", body
+
+    source_host = _article_source_host(article)
+    if not source_host:
+        source_host = _normalize_host(
+            str(
+                article.get("resolved_url")
+                or article.get("canonical_url")
+                or article.get("source_url")
+                or article.get("url")
+                or ""
+            )
+        )
+
+    cleaned_body = _strip_article_boilerplate(body, source_host) or body
+    lowered = cleaned_body.lower()
+    raw_lowered = body.lower()
+
+    if any(marker in raw_lowered for marker in _BLOCKED_PAGE_MARKERS):
+        return False, "blocked_content", cleaned_body
+
+    login_hits = sum(marker in raw_lowered for marker in _LOGIN_WALL_MARKERS)
+    nav_hits = sum(marker in raw_lowered for marker in _NAVIGATION_MARKERS)
+    cookie_hits = sum(marker in raw_lowered for marker in _COOKIE_MARKERS)
+    sentence_paragraphs = _sentence_like_paragraphs(cleaned_body)
+    cleaned_words = len(cleaned_body.split())
+    original_words = max(1, len(body.split()))
+    retained_ratio = cleaned_words / original_words
+
+    if "benzinga" in source_host and (
+        "get benzinga pro" in raw_lowered
+        or "benzinga edge" in raw_lowered
+        or "benzinga premium services" in raw_lowered
+    ):
+        return False, "no_usable_content", cleaned_body
+
+    if login_hits >= 2 and sentence_paragraphs < 3:
+        return False, "login_wall", cleaned_body
+
+    if cookie_hits >= 2 and sentence_paragraphs < 2:
+        return False, "cookie_wall", cleaned_body
+
+    if nav_hits >= 4 and (sentence_paragraphs < 3 or retained_ratio < 0.45):
+        return False, "no_usable_content", cleaned_body
+
+    if cleaned_words < 40:
+        return False, "no_usable_content", cleaned_body
+
+    title_tokens = _title_signal_tokens(str(article.get("title") or article.get("headline") or ""))
+    title_signal_hits = sum(token in lowered for token in title_tokens)
+    if title_tokens and title_signal_hits == 0 and sentence_paragraphs < 3 and nav_hits >= 2:
+        return False, "no_usable_content", cleaned_body
+
+    return True, None, cleaned_body
+
+
 async def _score_article_llm(
     ticker: str, headline: str, body: str
 ) -> dict[str, Any]:
@@ -342,6 +491,23 @@ async def enrich_and_store_article(
         body = headline
         extraction_status = "empty"
 
+    rejection_reason: str | None = None
+    if extraction_status == "success":
+        body_is_usable, rejection_reason, cleaned_body = assess_article_body_quality(
+            {
+                **article,
+                "title": headline,
+                "headline": headline,
+                "body": body,
+                "resolved_url": resolved_url,
+                "canonical_url": canonical_url,
+                "source_url": canonical_url,
+            }
+        )
+        body = cleaned_body
+        if not body_is_usable:
+            extraction_status = "failed"
+
     source_tier = classify_source_tier(source)
     recency_w, article_window = classify_recency_weight(published_at)
     source_w = source_weight_for_tier(source_tier)
@@ -358,18 +524,16 @@ async def enrich_and_store_article(
     need_sentiment = sentiment_score is None
     need_tldr = tldr is None or what_it_means is None
 
-    # Score from full body when available; fall back to headline-only scoring per §10.
-    # Headline-only path: score sentiment from headline alone when body extraction failed.
     body_has_content = (
-        body
+        extraction_status == "success"
+        and rejection_reason is None
+        and bool(body)
         and not is_paywalled
-        and not body.startswith("[No body extracted]")
         and len(body.split()) >= 40
     )
-    headline_only = not body_has_content and bool(headline)
-    scoring_text = body if body_has_content else headline
+    scoring_text = body if body_has_content else ""
 
-    if scoring_text and not is_paywalled and (body_has_content or headline_only):
+    if scoring_text and not is_paywalled and body_has_content:
         # Run sentiment + TLDR concurrently — each is now truly async via asyncio.to_thread
         _coro_keys: list[str] = []
         _coros = []
@@ -419,8 +583,11 @@ async def enrich_and_store_article(
         "event_type": str(article.get("event_type") or "").strip() or None,
         "significance": "minor",
         "body": body,
+        "body_length": len(body),
         "extraction_status": extraction_status,
         "paywalled": is_paywalled,
+        "headline_only": False,
+        "rejection_reason": rejection_reason,
         "sentiment_score": sentiment_score,
         "sentiment_reason": sentiment_reason,
         "source_tier": source_tier,

@@ -5201,7 +5201,7 @@ async def _run_bulk_sentiment_enrichment() -> None:
         return
 
     from ..services.supabase import get_supabase
-    from ..services.news_enrichment import enrich_and_store_articles_batch
+    from ..services.news_enrichment import assess_article_body_quality, enrich_and_store_articles_batch
 
     supabase = get_supabase()
     try:
@@ -5223,21 +5223,31 @@ async def _run_bulk_sentiment_enrichment() -> None:
             or []
         )
         # Client-side guard: skip paywalled / headline-only rows
-        rows = [
-            r for r in rows
-            if not r.get("paywalled")
-            and not r.get("paywall_detected")
-            and not r.get("headline_only")
-        ]
+        filtered_rows = []
+        rejected_counts: dict[str, int] = {}
+        for row in rows:
+            if row.get("paywalled") or row.get("paywall_detected") or row.get("headline_only"):
+                continue
+            usable, rejection_reason, cleaned_body = assess_article_body_quality(row)
+            if not usable:
+                key = rejection_reason or "no_usable_content"
+                rejected_counts[key] = rejected_counts.get(key, 0) + 1
+                continue
+            filtered_rows.append({**row, "body": cleaned_body, "body_length": len(cleaned_body)})
+        rows = filtered_rows
         if not rows:
             logger.info("[BULK_ENRICH] No unenriched body-complete articles found.")
             return
 
-        logger.info("[BULK_ENRICH] Enriching %d body-complete articles missing sentiment.", len(rows))
+        logger.info(
+            "[BULK_ENRICH] Enriching %d body-complete articles missing sentiment. skipped_garbage=%s",
+            len(rows),
+            rejected_counts or "none",
+        )
         stored = await enrich_and_store_articles_batch(
             supabase,
-            rows,
-            max_concurrency=4,
+            rows[:100],
+            max_concurrency=1,
             skip_existing=False,
         )
         logger.info("[BULK_ENRICH] Enrichment complete: %d articles updated.", len(stored))

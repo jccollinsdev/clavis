@@ -62,21 +62,51 @@ def _passes_client_filter(row: dict) -> bool:
     if row.get("headline_only"):
         return False
     body = str(row.get("body") or "").strip()
-    if len(body.split()) < 40:
-        return False
     if body.startswith("[No body extracted]") or body.startswith("[Paywalled]") or body.startswith("[Blocked]"):
         return False
     body_lower = body.lower()
+    login_hits = sum(
+        marker in body_lower
+        for marker in ("sign in", "login", "create free account", "join pro", "join ic", "subscribe")
+    )
+    nav_hits = sum(
+        marker in body_lower
+        for marker in (
+            "search quotes, news & videos",
+            "livestream menu",
+            "markets markets",
+            "stock screener",
+            "data & apis",
+            "financial news financial news",
+            "options etfs commodities",
+            "premarket advertise contribute",
+        )
+    )
+    sentence_like = sum(
+        1
+        for paragraph in body.split("\n\n")
+        if len(paragraph.split()) >= 12 and any(punct in paragraph for punct in ".!?")
+    )
+
     if "get benzinga pro" in body_lower or "benzinga edge" in body_lower:
         return False
-    if "create free account" in body_lower:
+    if login_hits >= 2 and sentence_like < 3:
+        return False
+    if nav_hits >= 4 and sentence_like < 3:
+        return False
+    if len(body.split()) < 40:
         return False
     if body.startswith("# ") and "stock price, quote" in body_lower:
         return False
-    return True
+    return sentence_like >= 1
 
 
-GOOD_BODY = " ".join(["word"] * 50)  # 50 words — passes 40-word threshold
+GOOD_BODY = (
+    "The company reported stronger quarterly revenue and margin expansion than analysts expected. "
+    "Management also reaffirmed full-year guidance and cited steady demand across its largest product lines.\n\n"
+    "Executives said order trends improved through the quarter, operating cash flow remained healthy, "
+    "and customer retention stayed above internal targets."
+)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -105,7 +135,10 @@ class TestCandidateSelection:
         assert _passes_client_filter(row) is False
 
     def test_body_exactly_40_words_accepted(self):
-        body = " ".join(["word"] * 40)
+        body = (
+            "The company raised guidance after posting better-than-expected first-quarter revenue and margin performance.\n\n"
+            "Management said enterprise demand improved, renewal rates stayed solid, and operating cash flow remained strong throughout the quarter while backlog and customer spending both increased versus last quarter."
+        )
         row = {"body": body, "paywalled": False, "headline_only": False}
         assert _passes_client_filter(row) is True
 
@@ -159,15 +192,64 @@ class TestCandidateSelection:
 
     def test_stock_price_heading_without_stock_price_quote_accepted(self):
         # A genuine article that happens to start with # but is not a ticker page
-        body = "# Q3 Earnings Beat Expectations Analysts say " + " ".join(["word"] * 45)
+        body = (
+            "# Q3 Earnings Beat Expectations\n\n"
+            "Analysts said the company posted stronger revenue growth than expected. "
+            + " ".join(["word"] * 45)
+            + "."
+        )
         row = {"body": body, "paywalled": False}
         assert _passes_client_filter(row) is True
 
     def test_good_article_with_benzinga_name_in_text_accepted(self):
         # An article quoting Benzinga as a source (not a navigation page)
-        body = "According to Benzinga analysts, the company reported strong earnings. " + " ".join(["word"] * 45)
+        body = (
+            "According to Benzinga analysts, the company reported strong earnings. "
+            + " ".join(["word"] * 45)
+            + "."
+        )
         row = {"body": body, "paywalled": False}
         assert _passes_client_filter(row) is True
+
+    def test_generic_navigation_page_excluded(self):
+        body = (
+            "Markets Markets Livestream Menu Search quotes, news & videos Stock Screener Data & APIs "
+            "Premarket Advertise Contribute Financial News Financial News Options ETFs Commodities "
+            + " ".join(["word"] * 50)
+        )
+        row = {"body": body, "paywalled": False}
+        assert _passes_client_filter(row) is False
+
+    def test_paywall_login_body_excluded(self):
+        body = (
+            "Sign in Subscribe Create free account Join Pro Search quotes, news & videos "
+            + " ".join(["word"] * 45)
+        )
+        row = {"body": body, "paywalled": False}
+        assert _passes_client_filter(row) is False
+
+    def test_real_article_body_accepted(self):
+        body = (
+            "The company raised full-year guidance after reporting stronger subscription revenue.\n\n"
+            "Management said demand improved across enterprise and public-sector customers, and operating margins expanded versus last year.\n\n"
+            "Shares moved higher after the release as investors focused on bookings growth and lower churn."
+        )
+        row = {"body": body, "paywalled": False}
+        assert _passes_client_filter(row) is True
+
+    def test_body_length_alone_is_not_enough(self):
+        body = "Create free account Join Pro Search quotes, news & videos " * 20
+        assert len(body) >= 300
+        row = {"body": body, "paywalled": False, "headline_only": False}
+        assert _passes_client_filter(row) is False
+
+    def test_garbage_body_not_selected_by_reenrichment(self):
+        row = {
+            "body": "Benzinga Edge Get Benzinga Pro Login Register Stock Screener Data & APIs " * 12,
+            "paywalled": False,
+            "headline_only": False,
+        }
+        assert _passes_client_filter(row) is False
 
 
 # ══════════════════════════════════════════════════════════════════════════════

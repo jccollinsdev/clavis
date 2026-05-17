@@ -45,7 +45,7 @@ def test_attach_decoded_google_news_urls_rewrites_wrapper_urls():
 
     async def _run():
         with patch(
-            "app.pipeline.rss_ingest.decode_google_news_urls",
+            "app.pipeline.rss_ingest.decode_google_news_urls_budgeted",
             return_value={
                 "https://news.google.com/rss/articles/example": "https://www.example.com/story"
             },

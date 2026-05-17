@@ -27,6 +27,7 @@ import logging
 import os
 import sys
 import time
+from collections import Counter
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -56,8 +57,12 @@ _REJECTION_REASONS = {
 }
 
 
-def _select_candidates(supabase, *, window_days: int, limit: int) -> list[dict[str, Any]]:
-    """Fetch articles eligible for re-enrichment, paginating past the 1000-row API cap."""
+def _select_candidates(
+    supabase, *, window_days: int, limit: int
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Fetch raw candidates and split them into valid vs garbage bodies."""
+    from ..services.news_enrichment import assess_article_body_quality
+
     cutoff = (datetime.now(timezone.utc) - timedelta(days=window_days)).isoformat()
     PAGE_SIZE = 1000
 
@@ -94,29 +99,26 @@ def _select_candidates(supabase, *, window_days: int, limit: int) -> list[dict[s
 
     # Client-side filters that Supabase .is_() can't express cleanly
     candidates = []
+    rejected: list[dict[str, Any]] = []
     for row in all_rows:
         if row.get("paywalled") or row.get("paywall_detected"):
             continue
         if row.get("headline_only"):
             continue
-        body = str(row.get("body") or "").strip()
-        if len(body.split()) < MIN_BODY_WORDS:
+        usable, rejection_reason, cleaned_body = assess_article_body_quality(row)
+        if not usable:
+            rejected.append({
+                "id": row.get("id"),
+                "ticker": row.get("ticker"),
+                "reason": rejection_reason or "no_usable_content",
+            })
             continue
-        # Sanity: body must not be a placeholder
-        if body.startswith("[No body extracted]") or body.startswith("[Paywalled]") or body.startswith("[Blocked]"):
-            continue
-        # Skip known extraction-failure patterns (navigation menus / login walls
-        # that passed body_length >= 300 but contain no article content)
-        body_lower = body.lower()
-        if "get benzinga pro" in body_lower or "benzinga edge" in body_lower:
-            continue
-        if "create free account" in body_lower:
-            continue
-        if body.startswith("# ") and "stock price, quote" in body_lower:
-            continue
+        row = dict(row)
+        row["body"] = cleaned_body
+        row["body_length"] = len(cleaned_body)
         candidates.append(row)
 
-    return candidates
+    return candidates, rejected
 
 
 def _validate_enrichment(result: dict[str, Any]) -> tuple[bool, list[str]]:
@@ -157,6 +159,7 @@ async def _enrich_one(
     from ..services.news_enrichment import (
         _score_article_llm,
         _generate_tldr_llm,
+        assess_article_body_quality,
         sanitize_text_field,
     )
     from ..pipeline.analysis_utils import sanitize_text_field as _sani
@@ -176,6 +179,36 @@ async def _enrich_one(
     if not ticker or not headline or not body:
         result["status"] = "skipped_missing_fields"
         return result
+
+    usable, rejection_reason, cleaned_body = assess_article_body_quality(row)
+    if not usable:
+        result["status"] = "rejected_garbage"
+        result["issues"] = [rejection_reason or "no_usable_content"]
+        if dry_run:
+            return result
+        try:
+            patch = {
+                "body": cleaned_body,
+                "body_length": len(cleaned_body),
+                "extraction_status": "failed",
+                "analysis_status": "rejected",
+                "rejection_reason": rejection_reason or "no_usable_content",
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }
+            await asyncio.to_thread(
+                lambda: (
+                    supabase.table("shared_ticker_events")
+                    .update(patch)
+                    .eq("id", str(row_id))
+                    .execute()
+                )
+            )
+        except Exception as exc:
+            result["status"] = "db_write_failed"
+            result["issues"].append(str(exc)[:120])
+        return result
+
+    body = cleaned_body
 
     try:
         # Run sentiment + TLDR concurrently
@@ -243,6 +276,8 @@ async def _enrich_one(
             "sentiment_score": sentiment_score,
             "sentiment_reason": sentiment_reason,
             "impact_tag": impact_tag,
+            "body": body,
+            "body_length": len(body),
             "tldr": tldr or None,
             "what_it_means": what_it_means or None,
             "key_implications": key_implications,
@@ -286,13 +321,29 @@ async def run_reenrichment(
 
     fetch_limit = max_articles or 5000
     logger.info("[SELECT] Querying candidates (limit=%d)…", fetch_limit)
-    candidates = _select_candidates(supabase, window_days=window_days, limit=fetch_limit)
-    logger.info("[SELECT] Found %d eligible articles across %d tickers",
-                len(candidates), len({c["ticker"] for c in candidates}))
+    candidates, rejected = _select_candidates(supabase, window_days=window_days, limit=fetch_limit)
+    rejection_counts = Counter(r["reason"] for r in rejected)
+    logger.info(
+        "[SELECT] Raw=%d valid=%d rejected_garbage=%d across %d tickers",
+        len(candidates) + len(rejected),
+        len(candidates),
+        len(rejected),
+        len({c["ticker"] for c in candidates}),
+    )
+    if rejection_counts:
+        logger.info("[SELECT] Top rejection reasons: %s", rejection_counts.most_common(10))
 
     if not candidates:
         logger.info("[SELECT] Nothing to do.")
-        return {"total_candidates": 0, "enriched": 0, "failed": 0, "skipped": 0}
+        return {
+            "raw_candidates": len(rejected),
+            "total_candidates": 0,
+            "rejected_garbage": len(rejected),
+            "rejections_by_reason": dict(rejection_counts),
+            "enriched": 0,
+            "failed": 0,
+            "skipped": 0,
+        }
 
     if dry_run:
         ticker_counts: dict[str, int] = {}
@@ -302,7 +353,10 @@ async def run_reenrichment(
         logger.info("[DRY-RUN] Would enrich %d articles", len(candidates))
         logger.info("[DRY-RUN] Top tickers: %s", top10)
         return {
+            "raw_candidates": len(candidates) + len(rejected),
             "total_candidates": len(candidates),
+            "rejected_garbage": len(rejected),
+            "rejections_by_reason": dict(rejection_counts),
             "tickers_affected": len(ticker_counts),
             "dry_run": True,
         }
@@ -310,7 +364,10 @@ async def run_reenrichment(
     # ── Batch processing ──────────────────────────────────────────────────────
     t_start   = time.monotonic()
     stats: dict[str, Any] = {
+        "raw_candidates": len(candidates) + len(rejected),
         "total_candidates": len(candidates),
+        "rejected_garbage": len(rejected),
+        "rejections_by_reason": dict(rejection_counts),
         "enriched": 0,
         "failed": 0,
         "skipped": 0,
@@ -339,13 +396,19 @@ async def run_reenrichment(
         elapsed = time.monotonic() - t_batch
 
         enriched_n = sum(1 for r in batch_results if r["status"] == "enriched")
-        failed_n   = sum(1 for r in batch_results if r["status"] not in ("enriched", "skipped_missing_fields"))
+        failed_n   = sum(
+            1
+            for r in batch_results
+            if r["status"] not in ("enriched", "skipped_missing_fields", "rejected_garbage")
+        )
         skipped_n  = sum(1 for r in batch_results if r["status"] == "skipped_missing_fields")
+        rejected_n = sum(1 for r in batch_results if r["status"] == "rejected_garbage")
 
         stats["batches"] += 1
         stats["enriched"] += enriched_n
         stats["failed"]   += failed_n
         stats["skipped"]  += skipped_n
+        stats["rejected_garbage"] += rejected_n
 
         for r in batch_results:
             if r["status"] == "enriched":
@@ -356,6 +419,9 @@ async def run_reenrichment(
                 stats["llm_exception"] += 1
             if r["status"] == "db_write_failed":
                 stats["db_write_failed"] += 1
+            if r["status"] == "rejected_garbage":
+                for issue in r.get("issues", []):
+                    stats["rejections_by_reason"][issue] = stats["rejections_by_reason"].get(issue, 0) + 1
             for issue in r.get("issues", []):
                 key = issue.split(":")[0]
                 stats["failures_by_issue"][key] = stats["failures_by_issue"].get(key, 0) + 1
@@ -368,11 +434,11 @@ async def run_reenrichment(
                 batch_issue_counts[key] = batch_issue_counts.get(key, 0) + 1
 
         logger.info(
-            "[BATCH %d/%d] Done in %.1fs — enriched=%d failed=%d skipped=%d "
-            "(total so far: enriched=%d failed=%d) issues=%s",
+            "[BATCH %d/%d] Done in %.1fs — enriched=%d failed=%d skipped=%d rejected=%d "
+            "(total so far: enriched=%d failed=%d rejected=%d) issues=%s",
             batch_num, total_batches, elapsed,
-            enriched_n, failed_n, skipped_n,
-            stats["enriched"], stats["failed"],
+            enriched_n, failed_n, skipped_n, rejected_n,
+            stats["enriched"], stats["failed"], stats["rejected_garbage"],
             batch_issue_counts or "none",
         )
 
@@ -420,7 +486,9 @@ async def run_reenrichment(
 
     # ── Final summary ─────────────────────────────────────────────────────────
     logger.info("=== Re-Enrichment Complete ===")
+    logger.info("  Raw        : %d", stats["raw_candidates"])
     logger.info("  Candidates : %d", stats["total_candidates"])
+    logger.info("  Rejected   : %d", stats["rejected_garbage"])
     logger.info("  Enriched   : %d (%.1f%%)",
                 stats["enriched"],
                 100 * stats["enriched"] / max(1, stats["total_candidates"]))
