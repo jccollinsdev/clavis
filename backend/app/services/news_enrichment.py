@@ -35,7 +35,7 @@ from .article_scraper import (
     _article_source_host,
 )
 from .minimax import chatcompletion_text
-from ..pipeline.analysis_utils import extract_json_object, sanitize_text_field
+from ..pipeline.analysis_utils import extract_json_object, sanitize_text_field, _strip_model_wrappers
 
 logger = logging.getLogger(__name__)
 
