@@ -47,3 +47,7 @@ services:
         sync: false
       - key: APNS_BUNDLE_ID
         sync: false
+      - key: PAUSE_SYSTEM_SCHEDULER
+        value: "true"
+      - key: DISABLE_NEWS_ENRICHMENT
+        value: "false"

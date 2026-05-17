@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import re
 import logging
@@ -42,6 +43,22 @@ SOURCE_TIER_MAP: dict[str, int] = {
 _PAYWALL_DOMAINS: set[str] = {
     "wsj.com", "bloomberg.com", "ft.com",
     "barrons.com", "marketwatch.com",
+    "nytimes.com", "morningstar.com", "global.morningstar.com",
+    "thetimes.com", "news.microsoft.com",
+}
+
+# Domains that are technically not paywalled but are blocked / anti-bot / 0% extraction
+# These will be stored but marked extraction_status="blocked" rather than "failed"
+_BLOCKED_DOMAINS: set[str] = {
+    "reuters.com", "msn.com", "news.bloomberglaw.com",
+    "thestreet.com", "britannica.com",
+}
+
+# Low-value domains (chart sites, analytics, not real news) — deprioritized upstream
+# but if they do arrive, extract minimally
+_LOW_VALUE_DOMAINS: set[str] = {
+    "marketbeat.com", "chartmill.com", "stocktitan.net",
+    "macroaxis.com", "tipranks.com", "barchart.com",
 }
 
 SENTIMENT_PROMPT = """Analyze the following news article about {ticker} and return a JSON object.
@@ -104,16 +121,54 @@ def source_weight_for_tier(tier: int) -> float:
     return {1: 1.5, 2: 1.0, 3: 0.5}.get(tier, 1.0)
 
 
-def is_paywalled_domain(url: str) -> bool:
+def _normalize_url_host(url: str) -> str:
     try:
         from urllib.parse import urlparse
-        host = urlparse(url).netloc.lower()
-        for pd in _PAYWALL_DOMAINS:
-            if pd in host:
-                return True
+        return urlparse(url).netloc.lower()
     except Exception:
-        pass
-    return False
+        return ""
+
+
+def is_paywalled_domain(url: str) -> bool:
+    host = _normalize_url_host(url)
+    return any(pd in host for pd in _PAYWALL_DOMAINS) if host else False
+
+
+def is_blocked_domain(url: str) -> bool:
+    """Anti-bot/blocked domains: 0% extraction success, not paywalled."""
+    host = _normalize_url_host(url)
+    return any(bd in host for bd in _BLOCKED_DOMAINS) if host else False
+
+
+def validate_enrichment_completeness(article: dict) -> tuple[bool, list[str]]:
+    """Check whether an article has all required enrichment fields.
+
+    Returns (is_complete, missing_fields).
+    An article is complete when it has:
+    - sentiment_score (numeric 0-100)
+    - sentiment_reason (non-empty string)
+    - tldr (non-empty, only required if body_has_content)
+
+    key_implications are required only for body-extracted articles.
+    """
+    missing: list[str] = []
+    if article.get("sentiment_score") is None:
+        missing.append("missing_sentiment_score")
+    if not str(article.get("sentiment_reason") or "").strip():
+        missing.append("missing_sentiment_reason")
+    body = str(article.get("body") or "")
+    body_has_content = (
+        body
+        and not body.startswith("[No body extracted]")
+        and not body.startswith("[Paywalled]")
+        and len(body.split()) >= 40
+    )
+    if body_has_content:
+        if not str(article.get("tldr") or "").strip():
+            missing.append("missing_tldr")
+        if not str(article.get("what_it_means") or "").strip():
+            missing.append("missing_what_it_means")
+    return len(missing) == 0, missing
 
 
 def _parse_iso(value: str) -> datetime | None:
@@ -242,11 +297,15 @@ async def enrich_and_store_article(
             pass
 
     is_paywalled = is_paywalled_domain(canonical_url)
+    is_blocked = is_blocked_domain(canonical_url)
 
     if is_paywalled or (body and body.startswith("[Paywalled]")):
         body = "[Paywalled] " + headline
         extraction_status = "paywalled"
         is_paywalled = True
+    elif is_blocked and (not body or len(body.split()) < 30):
+        body = "[Blocked] " + headline
+        extraction_status = "blocked"
     elif not body or len(body.split()) < 30:
         body = "[No body extracted] " + headline
         extraction_status = "failed"
@@ -372,7 +431,6 @@ async def enrich_and_store_articles_batch(
     if not articles:
         return []
 
-    import asyncio
     sem = asyncio.Semaphore(max_concurrency)
 
     async def _process(article):
@@ -438,8 +496,7 @@ async def ingest_and_enrich_ticker_news(
             )
             return len(stored)
 
-    import asyncio as _asyncio
-    counts = await _asyncio.gather(
+    counts = await asyncio.gather(
         *(_ingest_ticker(t, arts) for t, arts in by_ticker.items())
     )
     for ticker, count in zip(by_ticker.keys(), counts):

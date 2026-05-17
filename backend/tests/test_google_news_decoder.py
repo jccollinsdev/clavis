@@ -33,7 +33,7 @@ def test_attach_decoded_google_news_urls_rewrites_source_url():
 
     async def _run():
         with patch(
-            "app.pipeline.rss_ingest.decode_google_news_urls",
+            "app.pipeline.rss_ingest.decode_google_news_urls_budgeted",
             new=AsyncMock(
                 return_value={
                     "https://news.google.com/rss/articles/example123?oc=5": (

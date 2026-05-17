@@ -11,7 +11,8 @@ from typing import Iterable
 import feedparser
 from gnews import GNews
 
-from ..services.google_news_decoder import decode_google_news_urls
+from ..services.google_news_decoder import decode_google_news_urls, decode_google_news_urls_budgeted
+from ..services.candidate_ranker import rank_and_filter_candidates, should_decode_google_wrapper
 
 
 CNBC_MACRO_RSS_URL = "https://www.cnbc.com/id/100003114/device/rss/rss.html"
@@ -300,12 +301,30 @@ def _dedupe_articles(articles: list[dict]) -> list[dict]:
     return deduped
 
 
-async def _attach_decoded_google_news_urls(articles: list[dict]) -> list[dict]:
+async def _attach_decoded_google_news_urls(
+    articles: list[dict],
+    *,
+    decode_budget: int = 20,
+) -> list[dict]:
+    """Decode Google News wrapper URLs into real publisher URLs.
+
+    Uses decode budget and skips known-bad source domains (blocked/spam/paywalled)
+    to avoid wasting Google decode quota.
+    """
     if not articles:
         return articles
 
-    decoded_urls = await decode_google_news_urls(
-        [str(article.get("url") or "") for article in articles]
+    google_urls = [str(article.get("url") or "") for article in articles]
+    decoded_urls = await decode_google_news_urls_budgeted(
+        google_urls,
+        budget=decode_budget,
+        should_decode_fn=lambda url: should_decode_google_wrapper(
+            # look up the source article to get source_url for domain check
+            next(
+                (a for a in articles if str(a.get("url") or "") == url),
+                {"url": url},
+            )
+        ),
     )
     if not decoded_urls:
         return articles
@@ -524,7 +543,12 @@ async def fetch_google_company_rss(
             for entry in first_results[:limit_per_ticker]
         ]
         deduped_primary = _dedupe_articles(ticker_articles)
-        deduped_primary = await _attach_decoded_google_news_urls(deduped_primary)
+        # Rank candidates and filter out blocked/spam/low-value domains
+        # before spending Google decode budget.
+        deduped_primary = rank_and_filter_candidates(deduped_primary)
+        deduped_primary = await _attach_decoded_google_news_urls(
+            deduped_primary, decode_budget=limit_per_ticker + 5
+        )
         if (
             len(deduped_primary) >= fallback_threshold
             or company_name == normalized_ticker
@@ -542,7 +566,10 @@ async def fetch_google_company_rss(
             )
             for entry in fallback_results[:limit_per_ticker]
         ]
-        fallback_articles = await _attach_decoded_google_news_urls(fallback_articles)
+        fallback_articles = rank_and_filter_candidates(fallback_articles)
+        fallback_articles = await _attach_decoded_google_news_urls(
+            fallback_articles, decode_budget=limit_per_ticker + 5
+        )
         return _dedupe_articles(deduped_primary + fallback_articles)[:limit_per_ticker]
 
     ticker_articles = await asyncio.gather(
