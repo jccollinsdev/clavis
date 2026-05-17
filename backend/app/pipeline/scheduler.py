@@ -5212,7 +5212,6 @@ async def _run_bulk_sentiment_enrichment() -> None:
             supabase.table("shared_ticker_events")
             .select("*")
             .eq("extraction_status", "success")
-            .gte("body_length", 300)
             .gte("published_at", cutoff)
             .is_("sentiment_score", "null")
             .is_("rejection_reason", "null")
@@ -5227,6 +5226,8 @@ async def _run_bulk_sentiment_enrichment() -> None:
         rejected_counts: dict[str, int] = {}
         for row in rows:
             if row.get("paywalled") or row.get("paywall_detected") or row.get("headline_only"):
+                continue
+            if len(str(row.get("body") or "").strip()) < 300:
                 continue
             usable, rejection_reason, cleaned_body = assess_article_body_quality(row)
             if not usable:

@@ -80,7 +80,6 @@ def _select_candidates(
                 "extraction_provider_used,event_hash"
             )
             .eq("extraction_status", "success")
-            .gte("body_length", MIN_BODY_LENGTH)
             .is_("sentiment_score", "null")
             .is_("rejection_reason", "null")
             .gte("published_at", cutoff)
@@ -104,6 +103,9 @@ def _select_candidates(
         if row.get("paywalled") or row.get("paywall_detected"):
             continue
         if row.get("headline_only"):
+            continue
+        body = str(row.get("body") or "").strip()
+        if len(body) < MIN_BODY_LENGTH:
             continue
         usable, rejection_reason, cleaned_body = assess_article_body_quality(row)
         if not usable:
