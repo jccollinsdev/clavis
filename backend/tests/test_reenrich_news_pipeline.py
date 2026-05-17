@@ -40,16 +40,16 @@ def _validate_enrichment(result: dict) -> tuple[bool, list[str]]:
     reason = str(result.get("sentiment_reason") or "").strip()
     if not reason:
         issues.append("missing_sentiment_reason")
-    else:
-        for phrase in _FORBIDDEN_PHRASES:
-            if phrase in reason.lower():
-                issues.append(f"forbidden_phrase:{phrase}")
     tldr = str(result.get("tldr") or "").strip()
     if not tldr:
         issues.append("missing_tldr")
     what = str(result.get("what_it_means") or "").strip()
     if not what:
         issues.append("missing_what_it_means")
+    combined = " ".join(part.lower() for part in (reason, tldr, what) if part)
+    for phrase in _FORBIDDEN_PHRASES:
+        if phrase in combined:
+            issues.append(f"forbidden_phrase:{phrase}")
     return len(issues) == 0, issues
 
 
@@ -557,3 +557,248 @@ class TestNewsStatusThresholds:
         # After repair job runs
         after = [dict(a, sentiment_score=55) for a in before]
         assert len(self._usable(after)) == 3
+
+
+class TestActualBodyQualityFilter:
+    def test_yahoo_promo_body_rejected(self):
+        from app.services.news_enrichment import assess_article_body_quality
+
+        article = {
+            "ticker": "NVDA",
+            "company_name": "NVIDIA Corporation",
+            "source_url": "https://finance.yahoo.com/news/example",
+            "body": (
+                "AI Investor Podcast Investing Personal Finance Technology Economy and Geopolitics\n\n"
+                "The analyst who called NVIDIA in 2010 just named his top 10 stocks and Coinbase wasn't one of them. Get them here FREE.\n\n"
+                "This post may contain links from our sponsors and affiliates, and Flywheel Publishing may receive compensation."
+            ),
+            "title": "Howard Lindzon on Seed Investing",
+        }
+
+        usable, reason, _ = assess_article_body_quality(article)
+        assert usable is False
+        assert reason in {"promo_menu_page", "ticker_mismatch", "no_usable_content"}
+
+    def test_motley_fool_promo_body_rejected(self):
+        from app.services.news_enrichment import assess_article_body_quality
+
+        article = {
+            "ticker": "INTC",
+            "company_name": "Intel Corporation",
+            "source_url": "https://www.fool.com/example",
+            "body": (
+                "Accessibility ... Help Our Services All Services Stock Advisor Epic Epic Plus Fool Portfolios.\n\n"
+                "Best ETFs to Buy Best AI Stocks Best Growth Stocks Dividend Kings Best Index Funds.\n\n"
+                "How to Invest How to Invest Money What to Invest In How to Invest in Stocks."
+            ),
+            "title": "Snapchat: Don't Rush to Buy This Social Media Stock",
+        }
+
+        usable, reason, _ = assess_article_body_quality(article)
+        assert usable is False
+        assert reason in {"promo_menu_page", "ticker_mismatch", "no_usable_content"}
+
+    def test_off_topic_body_rejected(self):
+        from app.services.news_enrichment import assess_article_body_quality
+
+        article = {
+            "ticker": "PCG",
+            "company_name": "PG&E Corporation",
+            "source_url": "https://clutchpoints.com/example",
+            "body": (
+                "NBA Eastern Atlantic Boston Celtics Brooklyn Nets New York Knicks Philadelphia 76ers Toronto Raptors\n\n"
+                "Western Pacific Golden State Warriors Los Angeles Lakers Phoenix Suns Sacramento Kings\n\n"
+                "Thunder's SGA gets top 3 PG take from Brandon Jennings after MVP win."
+            ),
+            "title": "Thunder’s SGA gets top 3 PG take from Brandon Jennings after MVP win",
+        }
+
+        usable, reason, _ = assess_article_body_quality(article)
+        assert usable is False
+        assert reason == "off_topic"
+
+    def test_real_article_body_accepted(self):
+        from app.services.news_enrichment import assess_article_body_quality
+
+        article = {
+            "ticker": "GOOG",
+            "company_name": "Alphabet Inc.",
+            "source_url": "https://finance.yahoo.com/news/example",
+            "body": (
+                "Berkshire Hathaway recorded its first quarter of portfolio decisions under new CEO Greg Abel.\n\n"
+                "The company exited positions in Amazon, Visa, Mastercard, and UnitedHealth while adding exposure to Alphabet and Delta Air Lines.\n\n"
+                "For shareholders, the shift toward Alphabet provides another signal about how Berkshire may be positioning its equity portfolio under new leadership."
+            ),
+            "title": "Berkshire Hathaway Portfolio Under Greg Abel Shifts Toward Alphabet And Delta",
+        }
+
+        usable, reason, cleaned = assess_article_body_quality(article)
+        assert usable is True
+        assert reason is None
+        assert "Alphabet" in cleaned
+
+
+class TestEnrichmentRetryPath:
+    @pytest.mark.asyncio
+    async def test_partial_json_retries_and_succeeds(self):
+        from app.services.news_enrichment import enrich_article_with_retry
+
+        responses = [
+            {"raw_text": '{"sentiment_score": 50, "sentiment_reason": "The', "parsed": {}, "error": None},
+            {"raw_text": '{"sentiment_score": 55, "sentiment_reason": "Balanced update.", "tldr": "Summary.", "what_it_means": "Implication.", "key_implications": ["One", "Two"], "impact_tag": "other"}', "parsed": {"sentiment_score": 55, "sentiment_reason": "Balanced update.", "tldr": "Summary.", "what_it_means": "Implication.", "key_implications": ["One", "Two"], "impact_tag": "other"}, "error": None},
+        ]
+
+        with patch("app.services.news_enrichment._request_llm_json_diagnostic", side_effect=responses):
+            payload, diagnostics = await enrich_article_with_retry(ticker="MSFT", headline="Headline", body="Body text", company_name="Microsoft")
+
+        assert payload is not None
+        assert payload["sentiment_score"] == 55
+        assert diagnostics["llm_calls"] == 2
+
+    @pytest.mark.asyncio
+    async def test_malformed_json_retries_and_succeeds(self):
+        from app.services.news_enrichment import enrich_article_with_retry
+
+        responses = [
+            {"raw_text": '{sentiment_score: 60', "parsed": {}, "error": None},
+            {"raw_text": '{"sentiment_score": 60, "sentiment_reason": "Solid quarter.", "tldr": "Summary.", "what_it_means": "Implication.", "key_implications": ["One"], "impact_tag": "financial-impact"}', "parsed": {"sentiment_score": 60, "sentiment_reason": "Solid quarter.", "tldr": "Summary.", "what_it_means": "Implication.", "key_implications": ["One"], "impact_tag": "financial-impact"}, "error": None},
+        ]
+
+        with patch("app.services.news_enrichment._request_llm_json_diagnostic", side_effect=responses):
+            payload, diagnostics = await enrich_article_with_retry(ticker="AAPL", headline="Headline", body="Body text", company_name="Apple")
+
+        assert payload is not None
+        assert diagnostics["llm_calls"] == 2
+
+    @pytest.mark.asyncio
+    async def test_empty_json_retries_and_succeeds(self):
+        from app.services.news_enrichment import enrich_article_with_retry
+
+        responses = [
+            {"raw_text": "", "parsed": {}, "error": None},
+            {"raw_text": '{"sentiment_score": 48, "sentiment_reason": "Mixed outlook.", "tldr": "Summary.", "what_it_means": "Implication.", "key_implications": ["One"], "impact_tag": "macro"}', "parsed": {"sentiment_score": 48, "sentiment_reason": "Mixed outlook.", "tldr": "Summary.", "what_it_means": "Implication.", "key_implications": ["One"], "impact_tag": "macro"}, "error": None},
+        ]
+
+        with patch("app.services.news_enrichment._request_llm_json_diagnostic", side_effect=responses):
+            payload, diagnostics = await enrich_article_with_retry(ticker="TSLA", headline="Headline", body="Body text", company_name="Tesla")
+
+        assert payload is not None
+        assert diagnostics["llm_calls"] == 2
+
+    @pytest.mark.asyncio
+    async def test_forbidden_phrase_retries_and_succeeds(self):
+        from app.services.news_enrichment import enrich_article_with_retry
+
+        responses = [
+            {"raw_text": '{"sentiment_score": 70, "sentiment_reason": "Investors should buy the stock.", "tldr": "Buy this company.", "what_it_means": "Upside potential is strong.", "key_implications": ["Bullish outlook"], "impact_tag": "other"}', "parsed": {"sentiment_score": 70, "sentiment_reason": "Investors should buy the stock.", "tldr": "Buy this company.", "what_it_means": "Upside potential is strong.", "key_implications": ["Bullish outlook"], "impact_tag": "other"}, "error": None},
+            {"raw_text": '{"sentiment_score": 70, "sentiment_reason": "The article points to stronger demand and improved margins.", "tldr": "Demand and margins improved.", "what_it_means": "The company may benefit from stronger near-term operating results.", "key_implications": ["Demand improved", "Margins expanded"], "impact_tag": "financial-impact"}', "parsed": {"sentiment_score": 70, "sentiment_reason": "The article points to stronger demand and improved margins.", "tldr": "Demand and margins improved.", "what_it_means": "The company may benefit from stronger near-term operating results.", "key_implications": ["Demand improved", "Margins expanded"], "impact_tag": "financial-impact"}, "error": None},
+        ]
+
+        with patch("app.services.news_enrichment._request_llm_json_diagnostic", side_effect=responses):
+            payload, diagnostics = await enrich_article_with_retry(ticker="META", headline="Headline", body="Body text", company_name="Meta")
+
+        assert payload is not None
+        assert diagnostics["llm_calls"] == 2
+
+    @pytest.mark.asyncio
+    async def test_failed_retry_marks_clear_rejection_reason(self):
+        from app.scripts.reenrich_news import _enrich_one
+
+        class _FakeQuery:
+            def __init__(self):
+                self.payload = None
+                self.row_id = None
+
+            def update(self, payload):
+                self.payload = payload
+                return self
+
+            def eq(self, _, row_id):
+                self.row_id = row_id
+                return self
+
+            def execute(self):
+                return types.SimpleNamespace(data=[])
+
+        class _FakeSupabase:
+            def __init__(self):
+                self.query = _FakeQuery()
+
+            def table(self, _):
+                return self.query
+
+        fake_supabase = _FakeSupabase()
+        row = {
+            "id": "row-1",
+            "ticker": "NVDA",
+            "company_name": "NVIDIA Corporation",
+            "title": "Headline",
+            "source": "Yahoo",
+            "body": "The company reported revenue growth and margin expansion.\n\nInvestors focused on stronger data-center demand and improving cash flow across the quarter.",
+        }
+
+        with (
+            patch("app.services.news_enrichment.assess_article_body_quality", return_value=(True, None, row["body"])),
+            patch("app.services.news_enrichment.enrich_article_with_retry", new=AsyncMock(return_value=(None, {"failure_reason": "partial_json", "llm_calls": 2, "llm_429s": 0, "raw_llm_preview": '{"sentiment_score": 50'}))),
+        ):
+            result = await _enrich_one(fake_supabase, row, dry_run=False)
+
+        assert result["status"] == "validation_failed"
+        assert result["issues"] == ["partial_json"]
+        assert fake_supabase.query.payload["rejection_reason"] == "partial_json"
+        assert fake_supabase.query.payload["analysis_status"] == "enrichment_failed"
+
+    @pytest.mark.asyncio
+    async def test_successful_retry_stores_complete_enrichment(self):
+        from app.scripts.reenrich_news import _enrich_one
+
+        class _FakeQuery:
+            def __init__(self):
+                self.payload = None
+
+            def update(self, payload):
+                self.payload = payload
+                return self
+
+            def eq(self, *_):
+                return self
+
+            def execute(self):
+                return types.SimpleNamespace(data=[])
+
+        class _FakeSupabase:
+            def __init__(self):
+                self.query = _FakeQuery()
+
+            def table(self, _):
+                return self.query
+
+        fake_supabase = _FakeSupabase()
+        row = {
+            "id": "row-2",
+            "ticker": "MSFT",
+            "company_name": "Microsoft Corporation",
+            "title": "Headline",
+            "source": "Yahoo",
+            "body": "Microsoft reported higher cloud revenue and operating margins.\n\nManagement also reiterated guidance and highlighted stable enterprise demand through the quarter.",
+        }
+        payload = {
+            "sentiment_score": 64,
+            "sentiment_reason": "The article shows stronger cloud demand and steady margins.",
+            "tldr": "Microsoft posted higher cloud revenue and reiterated guidance.",
+            "what_it_means": "The results support stable near-term operating performance for Microsoft.",
+            "key_implications": ["Cloud growth improved", "Margins held steady"],
+            "impact_tag": "financial-impact",
+        }
+
+        with (
+            patch("app.services.news_enrichment.assess_article_body_quality", return_value=(True, None, row["body"])),
+            patch("app.services.news_enrichment.enrich_article_with_retry", new=AsyncMock(return_value=(payload, {"failure_reason": None, "llm_calls": 2, "llm_429s": 0, "raw_llm_preview": '{...}'}))),
+        ):
+            result = await _enrich_one(fake_supabase, row, dry_run=False)
+
+        assert result["status"] == "enriched"
+        assert fake_supabase.query.payload["sentiment_score"] == 64
+        assert fake_supabase.query.payload["tldr"]
+        assert fake_supabase.query.payload["what_it_means"]
+        assert fake_supabase.query.payload["analysis_status"] == "complete"

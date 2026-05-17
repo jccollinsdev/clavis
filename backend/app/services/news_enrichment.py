@@ -142,6 +142,157 @@ _TITLE_STOPWORDS: set[str] = {
     "with",
 }
 
+_COMPANY_STOPWORDS: set[str] = {
+    "class",
+    "co",
+    "company",
+    "corp",
+    "corporation",
+    "group",
+    "holdings",
+    "inc",
+    "incorporated",
+    "limited",
+    "ltd",
+    "plc",
+    "sa",
+}
+
+_PROMO_PARAGRAPH_MARKERS: tuple[str, ...] = (
+    "get them here free",
+    "find your next quality investment",
+    "never miss an important update on your stock portfolio",
+    "trusted by over",
+    "this post may contain links from our sponsors and affiliates",
+    "flywheel publishing may receive compensation",
+    "how to add us to google news",
+    "help our services",
+    "stock advisor",
+    "all podcasts",
+    "best etfs to buy",
+    "best ai stocks",
+    "top stocks to buy now",
+    "best brokerage accounts",
+    "free tool can match you with a financial advisor",
+    "don't waste another minute",
+    "breakfast news",
+    "print subscriptions",
+    "download the app",
+    "back to home",
+    "skip to navigation",
+)
+
+_SPORTS_MARKERS: tuple[str, ...] = (
+    "nba",
+    "nfl",
+    "mlb",
+    "nhl",
+    "wnba",
+    "soccer",
+    "world cup",
+    "touchdown",
+    "quarterback",
+    "playoffs",
+    "lakers",
+    "warriors",
+    "thunder",
+    "eagles",
+    "celtics",
+)
+
+_FINANCE_MARKERS: tuple[str, ...] = (
+    "analyst",
+    "business",
+    "ceo",
+    "company",
+    "dividend",
+    "earnings",
+    "equity",
+    "guidance",
+    "investor",
+    "lawsuit",
+    "management",
+    "market",
+    "merger",
+    "profit",
+    "quarter",
+    "regulator",
+    "revenue",
+    "sales",
+    "shares",
+    "stock",
+)
+
+_GENERAL_NEWS_DOMAINS: set[str] = {
+    "clutchpoints.com",
+    "espn.com",
+    "imdb.com",
+    "theguardian.com",
+    "burncitysports.com",
+    "hotelsmag.com",
+}
+
+_FORBIDDEN_PHRASES: tuple[str, ...] = (
+    "buy",
+    "sell",
+    "advise",
+    "suggest",
+    "predict",
+    "forecast",
+    "recommendation",
+    "bullish outlook",
+    "bearish call",
+    "upside potential",
+)
+
+ENRICHMENT_PROMPT = """You are validating one news article for a stock-risk system.
+
+Return exactly one JSON object and nothing else.
+Do not include markdown, prefaces, apologies, analysis outside JSON, or trailing text.
+Never use investment advice or recommendation language.
+
+Required JSON schema:
+{{
+  "sentiment_score": <number 0-100>,
+  "sentiment_reason": "<one sentence>",
+  "tldr": "<1-2 sentence factual summary>",
+  "what_it_means": "<1-2 sentence implication for the company/stock>",
+  "key_implications": ["<bullet 1>", "<bullet 2>", "<bullet 3>", "<bullet 4>"],
+  "impact_tag": "<financial-impact|regulatory|leadership|product|macro|sector|other>"
+}}
+
+Rules:
+- sentiment_score must be a number from 0 to 100.
+- sentiment_reason must explain the score using article evidence only.
+- tldr must describe what happened, factually.
+- what_it_means must explain the likely implication for the company/stock, not for an investor.
+- key_implications must contain 2-4 concise bullets; use [] only if the article truly lacks enough evidence.
+- Do not use these phrases anywhere in any field: buy, sell, advise, suggest, predict, forecast, recommendation, bullish outlook, bearish call, upside potential.
+- If the article is descriptive and balanced, use sentiment_score 50.
+
+Ticker: {ticker}
+Company: {company_name}
+Headline: {headline}
+Article excerpt:
+{body_excerpt}
+"""
+
+ENRICHMENT_RETRY_PROMPT = """Return one strict JSON object only.
+
+The previous response was unusable because it was empty, malformed, incomplete, or used forbidden language.
+Do not output any prose outside JSON.
+Do not omit any required key.
+Do not use investment advice terms.
+
+Required keys: sentiment_score, sentiment_reason, tldr, what_it_means, key_implications, impact_tag.
+
+Ticker: {ticker}
+Company: {company_name}
+Headline: {headline}
+Shorter article excerpt:
+{body_excerpt}
+"""
+
 SENTIMENT_PROMPT = """Analyze the following news article about {ticker} and return a JSON object.
 
 Article headline: {headline}
@@ -297,6 +448,125 @@ def _title_signal_tokens(title: str) -> list[str]:
     return tokens[:6]
 
 
+def _company_signal_tokens(company_name: str | None, ticker: str) -> list[str]:
+    tokens: list[str] = []
+    for token in re.split(r"[^A-Za-z0-9&]+", company_name or ""):
+        normalized = token.strip().lower()
+        if len(normalized) < 3 or normalized in _COMPANY_STOPWORDS:
+            continue
+        tokens.append(normalized)
+    ticker_token = str(ticker or "").strip().lower()
+    if len(ticker_token) >= 2:
+        tokens.append(ticker_token)
+    return list(dict.fromkeys(tokens))[:8]
+
+
+def _contains_ticker_symbol(text: str, ticker: str) -> bool:
+    symbol = str(ticker or "").strip().upper()
+    if not symbol:
+        return False
+    return re.search(rf"\b{re.escape(symbol)}\b", text or "", flags=re.IGNORECASE) is not None
+
+
+def _strip_low_value_paragraphs(text: str, source_host: str = "") -> tuple[str, int]:
+    kept: list[str] = []
+    removed = 0
+    for raw in re.split(r"\n{2,}", text or ""):
+        paragraph = raw.strip()
+        if not paragraph:
+            continue
+        lowered = paragraph.lower()
+        if any(marker in lowered for marker in _PROMO_PARAGRAPH_MARKERS):
+            removed += 1
+            continue
+        if paragraph.count("|") >= 5 or lowered.count("http") >= 2:
+            removed += 1
+            continue
+        if "yahoo" in source_host and lowered.startswith("ai investor podcast investing personal finance"):
+            removed += 1
+            continue
+        if "fool.com" in source_host and lowered.startswith("accessibility"):
+            removed += 1
+            continue
+        kept.append(paragraph)
+    return "\n\n".join(kept).strip(), removed
+
+
+def _find_forbidden_phrase(payload: dict[str, Any]) -> str | None:
+    text_parts: list[str] = []
+    for key in ("sentiment_reason", "tldr", "what_it_means"):
+        value = str(payload.get(key) or "").strip().lower()
+        if value:
+            text_parts.append(value)
+    for item in payload.get("key_implications") or []:
+        value = str(item or "").strip().lower()
+        if value:
+            text_parts.append(value)
+    combined = " ".join(text_parts)
+    for phrase in _FORBIDDEN_PHRASES:
+        if phrase in combined:
+            return phrase
+    return None
+
+
+def _coerce_enrichment_payload(payload: Any) -> dict[str, Any]:
+    if not isinstance(payload, dict):
+        return {}
+
+    score = payload.get("sentiment_score")
+    if isinstance(score, str):
+        try:
+            score = float(score)
+        except ValueError:
+            score = score.strip()
+
+    implications = payload.get("key_implications")
+    if not isinstance(implications, list):
+        implications = []
+
+    return {
+        "sentiment_score": score,
+        "sentiment_reason": sanitize_text_field(payload.get("sentiment_reason"), fallback=""),
+        "tldr": sanitize_text_field(payload.get("tldr"), fallback=""),
+        "what_it_means": sanitize_text_field(payload.get("what_it_means"), fallback=""),
+        "key_implications": [
+            sanitize_text_field(item, fallback="")
+            for item in implications[:4]
+            if sanitize_text_field(item, fallback="")
+        ],
+        "impact_tag": str(payload.get("impact_tag") or "").strip().lower(),
+    }
+
+
+def _classify_json_failure(raw_text: str, parsed: dict[str, Any], error: str | None) -> str:
+    if error:
+        if "429" in error:
+            return "llm_429"
+        return "true_llm_failure"
+    cleaned = raw_text.strip()
+    if not cleaned:
+        return "empty_llm_response"
+    if parsed:
+        return "missing_required_field"
+    if "{" in cleaned and "}" not in cleaned:
+        return "partial_json"
+    if "{" in cleaned or "}" in cleaned:
+        return "malformed_json"
+    return "true_llm_failure"
+
+
+def _recover_partial_json_object(raw_text: str) -> dict[str, Any]:
+    cleaned = _strip_model_wrappers(raw_text).strip()
+    if not cleaned.startswith("{"):
+        return {}
+    if cleaned.count('"') % 2 != 0:
+        return {}
+    if cleaned.count("{") == 1 and cleaned.count("}") == 0:
+        recovered = extract_json_object(cleaned + "}", {})
+        return recovered if isinstance(recovered, dict) else {}
+    return {}
+
+
 def assess_article_body_quality(article: dict[str, Any]) -> tuple[bool, str | None, str]:
     """Decide whether an extracted body is usable for LLM enrichment."""
     body = str(article.get("body") or "").strip()
@@ -323,6 +593,7 @@ def assess_article_body_quality(article: dict[str, Any]) -> tuple[bool, str | No
         )
 
     cleaned_body = _strip_article_boilerplate(body, source_host) or body
+    cleaned_body, promo_removed = _strip_low_value_paragraphs(cleaned_body, source_host)
     lowered = cleaned_body.lower()
     raw_lowered = body.lower()
 
@@ -336,6 +607,17 @@ def assess_article_body_quality(article: dict[str, Any]) -> tuple[bool, str | No
     cleaned_words = len(cleaned_body.split())
     original_words = max(1, len(body.split()))
     retained_ratio = cleaned_words / original_words
+    company_tokens = _company_signal_tokens(article.get("company_name"), article.get("ticker") or "")
+    company_signal_hits = sum(token in lowered for token in company_tokens)
+    ticker_symbol_hit = _contains_ticker_symbol(
+        f"{article.get('title') or ''} {cleaned_body}",
+        str(article.get("ticker") or ""),
+    )
+    sports_hits = sum(marker in lowered for marker in _SPORTS_MARKERS)
+    finance_hits = sum(marker in lowered for marker in _FINANCE_MARKERS)
+
+    if promo_removed >= 1 and cleaned_words < 60:
+        return False, "promo_menu_page", cleaned_body
 
     if "benzinga" in source_host and (
         "get benzinga pro" in raw_lowered
@@ -351,17 +633,64 @@ def assess_article_body_quality(article: dict[str, Any]) -> tuple[bool, str | No
         return False, "cookie_wall", cleaned_body
 
     if nav_hits >= 4 and (sentence_paragraphs < 3 or retained_ratio < 0.45):
-        return False, "no_usable_content", cleaned_body
+        return False, "promo_menu_page", cleaned_body
+
+    if sports_hits >= 4 and finance_hits < 2 and not ticker_symbol_hit:
+        return False, "off_topic", cleaned_body
+
+    if source_host in _GENERAL_NEWS_DOMAINS and finance_hits == 0 and not ticker_symbol_hit and company_signal_hits == 0:
+        return False, "off_topic", cleaned_body
 
     if cleaned_words < 40:
-        return False, "no_usable_content", cleaned_body
+        return False, "too_little_prose", cleaned_body
 
     title_tokens = _title_signal_tokens(str(article.get("title") or article.get("headline") or ""))
     title_signal_hits = sum(token in lowered for token in title_tokens)
     if title_tokens and title_signal_hits == 0 and sentence_paragraphs < 3 and nav_hits >= 2:
-        return False, "no_usable_content", cleaned_body
+        return False, "ticker_mismatch", cleaned_body
+
+    if company_tokens and company_signal_hits == 0 and not ticker_symbol_hit and promo_removed >= 1:
+        return False, "ticker_mismatch", cleaned_body
 
     return True, None, cleaned_body
+
+
+def _request_llm_json_diagnostic(
+    prompt: str,
+    *,
+    max_tokens: int = 700,
+    system_prompt: str | None = None,
+) -> dict[str, Any]:
+    try:
+        result_text = chatcompletion_text(
+            messages=[
+                {
+                    "role": "system",
+                    "content": system_prompt or "You MUST respond with valid JSON only. No markdown. No explanation. Start with { and end with }.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.0,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0,
+            max_tokens=max_tokens,
+        )
+        parsed = extract_json_object(result_text, {})
+        if not parsed:
+            parsed = _recover_partial_json_object(result_text)
+        return {
+            "raw_text": result_text,
+            "parsed": parsed if isinstance(parsed, dict) else {},
+            "error": None,
+        }
+    except Exception as exc:
+        logger.warning("LLM request failed: %s", exc)
+        return {
+            "raw_text": "",
+            "parsed": {},
+            "error": str(exc),
+        }
 
 
 async def _score_article_llm(
@@ -389,25 +718,71 @@ async def _generate_tldr_llm(
 
 
 def _request_llm_json(prompt: str, max_tokens: int = 600) -> tuple[str, dict]:
-    try:
-        result_text = chatcompletion_text(
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You MUST respond with valid JSON only. No markdown. No explanation. Start with { and end with }.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0.0,
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0,
-            max_tokens=max_tokens,
+    result = _request_llm_json_diagnostic(prompt, max_tokens=max_tokens)
+    return str(result.get("raw_text") or ""), result.get("parsed") or {}
+
+
+async def enrich_article_with_retry(
+    *,
+    ticker: str,
+    headline: str,
+    body: str,
+    company_name: str | None = None,
+) -> tuple[dict[str, Any] | None, dict[str, Any]]:
+    diagnostics: dict[str, Any] = {
+        "attempts": 0,
+        "llm_calls": 0,
+        "llm_429s": 0,
+        "failure_reason": None,
+        "raw_llm_preview": "",
+    }
+    excerpts = [1600, 900]
+    prompts = [ENRICHMENT_PROMPT, ENRICHMENT_RETRY_PROMPT]
+
+    for index, excerpt_limit in enumerate(excerpts):
+        diagnostics["attempts"] += 1
+        diagnostics["llm_calls"] += 1
+        prompt = prompts[index].format(
+            ticker=ticker,
+            company_name=company_name or ticker,
+            headline=headline[:300],
+            body_excerpt=_truncate_text(body or "", excerpt_limit),
         )
-        return result_text, extract_json_object(result_text, {})
-    except Exception as exc:
-        logger.warning("LLM request failed: %s", exc)
-        return "", {}
+        response = await asyncio.to_thread(
+            _request_llm_json_diagnostic,
+            prompt,
+            max_tokens=750,
+            system_prompt="Return one strict JSON object only. No markdown. No extra text. No commentary.",
+        )
+        raw_text = str(response.get("raw_text") or "")
+        parsed = _coerce_enrichment_payload(response.get("parsed") or {})
+        error = response.get("error")
+        if error and "429" in str(error):
+            diagnostics["llm_429s"] += 1
+        diagnostics["raw_llm_preview"] = raw_text[:240]
+
+        failure_reason = _classify_json_failure(raw_text, parsed, str(error) if error else None)
+        if parsed and not error:
+            required_fields = (
+                parsed.get("sentiment_score") is not None
+                and bool(parsed.get("sentiment_reason"))
+                and bool(parsed.get("tldr"))
+                and bool(parsed.get("what_it_means"))
+            )
+            if not required_fields:
+                failure_reason = "missing_required_field"
+            else:
+                forbidden = _find_forbidden_phrase(parsed)
+                if forbidden:
+                    diagnostics["failure_reason"] = f"forbidden_phrase:{forbidden}"
+                    failure_reason = "forbidden_phrase"
+                else:
+                    diagnostics["failure_reason"] = None
+                    return parsed, diagnostics
+
+        diagnostics["failure_reason"] = failure_reason
+
+    return None, diagnostics
 
 
 async def enrich_and_store_article(
@@ -521,9 +896,6 @@ async def enrich_and_store_article(
     what_it_means: str | None = existing_llm.get("what_it_means")
     key_implications: list | None = existing_llm.get("key_implications")
 
-    need_sentiment = sentiment_score is None
-    need_tldr = tldr is None or what_it_means is None
-
     body_has_content = (
         extraction_status == "success"
         and rejection_reason is None
@@ -533,43 +905,36 @@ async def enrich_and_store_article(
     )
     scoring_text = body if body_has_content else ""
 
-    if scoring_text and not is_paywalled and body_has_content:
-        # Run sentiment + TLDR concurrently — each is now truly async via asyncio.to_thread
-        _coro_keys: list[str] = []
-        _coros = []
-        if need_sentiment:
-            _coro_keys.append("sentiment")
-            _coros.append(_score_article_llm(ticker, headline, scoring_text))
-        if body_has_content and need_tldr:
-            _coro_keys.append("tldr")
-            _coros.append(_generate_tldr_llm(ticker, headline, scoring_text))
-
-        if _coros:
-            _llm_results = await asyncio.gather(*_coros, return_exceptions=True)
-            for _key, _result in zip(_coro_keys, _llm_results):
-                if isinstance(_result, Exception):
-                    logger.warning("LLM %s failed for %s: %s", _key, ticker, _result)
-                    continue
-                if _key == "sentiment":
-                    sentiment_score = _result.get("sentiment_score")
-                    sentiment_reason = sanitize_text_field(_result.get("sentiment_reason"), fallback="")
-                    impact_tag_val = (_result.get("impact_tag") or "").strip().lower()
-                    valid_tags = {"financial-impact", "regulatory", "leadership", "product", "macro", "sector", "other"}
-                    impact_tag = impact_tag_val if impact_tag_val in valid_tags else None
-                elif _key == "tldr":
-                    new_tldr = sanitize_text_field(_result.get("tldr"), fallback="")
-                    new_what = sanitize_text_field(_result.get("what_it_means"), fallback="")
-                    # Only overwrite a field when the new value is non-empty — preserves
-                    # any partially-enriched data if the LLM returns empty for that field.
-                    tldr = new_tldr if new_tldr else tldr
-                    what_it_means = new_what if new_what else what_it_means
-                    raw_imp = _result.get("key_implications")
-                    if isinstance(raw_imp, list):
-                        new_imp = [sanitize_text_field(item, fallback="") for item in raw_imp[:4]]
-                        new_imp = [imp for imp in new_imp if imp]
-                        key_implications = new_imp if new_imp else key_implications
-                    elif key_implications is None:
-                        key_implications = []
+    if scoring_text and not is_paywalled and body_has_content and (
+        sentiment_score is None or tldr is None or what_it_means is None
+    ):
+        enrichment, diagnostics = await enrich_article_with_retry(
+            ticker=ticker,
+            headline=headline,
+            body=scoring_text,
+            company_name=str(article.get("company_name") or "").strip() or None,
+        )
+        if enrichment is None:
+            rejection_reason = str(diagnostics.get("failure_reason") or "true_llm_failure")
+        else:
+            if sentiment_score is None:
+                sentiment_score = enrichment.get("sentiment_score")
+                sentiment_reason = sanitize_text_field(enrichment.get("sentiment_reason"), fallback="")
+                impact_tag_val = (enrichment.get("impact_tag") or "").strip().lower()
+                valid_tags = {"financial-impact", "regulatory", "leadership", "product", "macro", "sector", "other"}
+                impact_tag = impact_tag_val if impact_tag_val in valid_tags else None
+            if tldr is None or what_it_means is None:
+                new_tldr = sanitize_text_field(enrichment.get("tldr"), fallback="")
+                new_what = sanitize_text_field(enrichment.get("what_it_means"), fallback="")
+                tldr = new_tldr if new_tldr else tldr
+                what_it_means = new_what if new_what else what_it_means
+                raw_imp = enrichment.get("key_implications")
+                if isinstance(raw_imp, list):
+                    new_imp = [sanitize_text_field(item, fallback="") for item in raw_imp[:4]]
+                    new_imp = [imp for imp in new_imp if imp]
+                    key_implications = new_imp if new_imp else key_implications
+                elif key_implications is None:
+                    key_implications = []
 
     payload = {
         "ticker": ticker,
@@ -600,6 +965,7 @@ async def enrich_and_store_article(
         "key_implications": key_implications or [],
         "tags": article.get("tags") or [],
         "analysis_run_id": analysis_run_id,
+        "analysis_status": "complete" if rejection_reason is None and sentiment_score is not None else "enrichment_failed" if rejection_reason else None,
         "factored_into_score": False,
         "provenance": "news_pipeline_v2",
         "methodology_version": "v2",

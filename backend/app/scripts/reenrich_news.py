@@ -96,6 +96,24 @@ def _select_candidates(
             break
         offset += fetch
 
+    ticker_rows = [str(row.get("ticker") or "").strip().upper() for row in all_rows if str(row.get("ticker") or "").strip()]
+    metadata_map: dict[str, dict[str, Any]] = {}
+    unique_tickers = sorted(set(ticker_rows))
+    if unique_tickers:
+        metadata_rows = (
+            supabase.table("ticker_metadata")
+            .select("ticker,company_name")
+            .in_("ticker", unique_tickers)
+            .execute()
+            .data
+            or []
+        )
+        metadata_map = {
+            str(row.get("ticker") or "").upper(): row
+            for row in metadata_rows
+            if row.get("ticker")
+        }
+
     # Client-side filters that Supabase .is_() can't express cleanly
     candidates = []
     rejected: list[dict[str, Any]] = []
@@ -107,6 +125,10 @@ def _select_candidates(
         body = str(row.get("body") or "").strip()
         if len(body) < MIN_BODY_LENGTH:
             continue
+        row = dict(row)
+        row["company_name"] = (
+            metadata_map.get(str(row.get("ticker") or "").upper(), {}).get("company_name")
+        )
         usable, rejection_reason, cleaned_body = assess_article_body_quality(row)
         if not usable:
             rejected.append({
@@ -115,7 +137,6 @@ def _select_candidates(
                 "reason": rejection_reason or "no_usable_content",
             })
             continue
-        row = dict(row)
         row["body"] = cleaned_body
         row["body_length"] = len(cleaned_body)
         candidates.append(row)
@@ -135,10 +156,6 @@ def _validate_enrichment(result: dict[str, Any]) -> tuple[bool, list[str]]:
     reason = str(result.get("sentiment_reason") or "").strip()
     if not reason:
         issues.append("missing_sentiment_reason")
-    else:
-        for phrase in _FORBIDDEN_PHRASES:
-            if phrase in reason.lower():
-                issues.append(f"forbidden_phrase:{phrase}")
 
     tldr = str(result.get("tldr") or "").strip()
     if not tldr:
@@ -148,7 +165,22 @@ def _validate_enrichment(result: dict[str, Any]) -> tuple[bool, list[str]]:
     if not what:
         issues.append("missing_what_it_means")
 
+    combined = " ".join(
+        part.lower()
+        for part in (reason, tldr, what)
+        if part
+    )
+    for phrase in _FORBIDDEN_PHRASES:
+        if phrase in combined:
+            issues.append(f"forbidden_phrase:{phrase}")
+
     return len(issues) == 0, issues
+
+
+def _primary_issue(issues: list[str]) -> str:
+    if not issues:
+        return "unknown_failure"
+    return str(issues[0]).split(":", 1)[0]
 
 
 async def _enrich_one(
@@ -159,12 +191,10 @@ async def _enrich_one(
 ) -> dict[str, Any]:
     """Enrich a single article and update the DB. Returns result dict."""
     from ..services.news_enrichment import (
-        _score_article_llm,
-        _generate_tldr_llm,
         assess_article_body_quality,
+        enrich_article_with_retry,
         sanitize_text_field,
     )
-    from ..pipeline.analysis_utils import sanitize_text_field as _sani
 
     ticker   = str(row.get("ticker") or "").strip().upper()
     headline = str(row.get("title")  or "").strip()
@@ -174,8 +204,15 @@ async def _enrich_one(
     result: dict[str, Any] = {
         "id": row_id,
         "ticker": ticker,
+        "source": str(row.get("source") or ""),
+        "body_length": len(body),
         "status": "pending",
         "issues": [],
+        "raw_llm_preview": "",
+        "body_quality_reason": None,
+        "llm_calls": 0,
+        "llm_429s": 0,
+        "sent_to_llm": False,
     }
 
     if not ticker or not headline or not body:
@@ -186,6 +223,7 @@ async def _enrich_one(
     if not usable:
         result["status"] = "rejected_garbage"
         result["issues"] = [rejection_reason or "no_usable_content"]
+        result["body_quality_reason"] = rejection_reason or "no_usable_content"
         if dry_run:
             return result
         try:
@@ -211,63 +249,59 @@ async def _enrich_one(
         return result
 
     body = cleaned_body
+    result["body_length"] = len(body)
 
     existing_tldr = str(row.get("tldr") or "").strip() or None
     existing_what = str(row.get("what_it_means") or "").strip() or None
     existing_implications = row.get("key_implications") if isinstance(row.get("key_implications"), list) else []
+    result["sent_to_llm"] = True
+    enrichment, diagnostics = await enrich_article_with_retry(
+        ticker=ticker,
+        headline=headline,
+        body=body,
+        company_name=str(row.get("company_name") or "").strip() or None,
+    )
+    result["llm_calls"] = int(diagnostics.get("llm_calls") or 0)
+    result["llm_429s"] = int(diagnostics.get("llm_429s") or 0)
+    result["raw_llm_preview"] = str(diagnostics.get("raw_llm_preview") or "")
 
-    need_sentiment = True
-    need_tldr = existing_tldr is None or existing_what is None
-
-    try:
-        coro_keys: list[str] = []
-        coros = []
-        if need_sentiment:
-            coro_keys.append("sentiment")
-            coros.append(_score_article_llm(ticker, headline, body))
-        if need_tldr:
-            coro_keys.append("tldr")
-            coros.append(_generate_tldr_llm(ticker, headline, body))
-        llm_results = await asyncio.gather(*coros, return_exceptions=True)
-        llm_by_key = dict(zip(coro_keys, llm_results))
-        sentiment_res = llm_by_key.get("sentiment")
-        tldr_res = llm_by_key.get("tldr")
-    except Exception as exc:
-        result["status"] = "llm_exception"
-        result["issues"] = [str(exc)[:120]]
+    if enrichment is None:
+        failure_reason = str(diagnostics.get("failure_reason") or "true_llm_failure")
+        result["status"] = "validation_failed"
+        result["issues"] = [failure_reason]
+        if dry_run:
+            return result
+        try:
+            await asyncio.to_thread(
+                lambda: (
+                    supabase.table("shared_ticker_events")
+                    .update(
+                        {
+                            "analysis_status": "enrichment_failed",
+                            "rejection_reason": failure_reason,
+                            "updated_at": datetime.now(timezone.utc).isoformat(),
+                        }
+                    )
+                    .eq("id", str(row_id))
+                    .execute()
+                )
+            )
+        except Exception as exc:
+            result["status"] = "db_write_failed"
+            result["issues"].append(str(exc)[:120])
         return result
 
-    # Unpack sentiment
-    sentiment_score: Any = None
-    sentiment_reason: str | None = None
-    impact_tag: str | None = None
+    sentiment_score: Any = enrichment.get("sentiment_score")
+    sentiment_reason = sanitize_text_field(enrichment.get("sentiment_reason"), fallback="")
+    impact_tag = (enrichment.get("impact_tag") or "").strip().lower()
+    valid_tags = {"financial-impact", "regulatory", "leadership", "product", "macro", "sector", "other"}
+    impact_tag = impact_tag if impact_tag in valid_tags else None
 
-    if isinstance(sentiment_res, Exception):
-        result["issues"].append(f"sentiment_failed:{sentiment_res!s:.80}")
-    elif isinstance(sentiment_res, dict):
-        sentiment_score = sentiment_res.get("sentiment_score")
-        sentiment_reason = _sani(sentiment_res.get("sentiment_reason"), fallback="")
-        tag_val = (sentiment_res.get("impact_tag") or "").strip().lower()
-        valid_tags = {"financial-impact", "regulatory", "leadership", "product", "macro", "sector", "other"}
-        impact_tag = tag_val if tag_val in valid_tags else None
-
-    # Unpack TLDR
-    tldr: str | None = existing_tldr
-    what_it_means: str | None = existing_what
-    key_implications: list = existing_implications
-
-    if isinstance(tldr_res, Exception):
-        result["issues"].append(f"tldr_failed:{tldr_res!s:.80}")
-    elif isinstance(tldr_res, dict):
-        new_tldr = _sani(tldr_res.get("tldr"), fallback="")
-        new_what = _sani(tldr_res.get("what_it_means"), fallback="")
-        tldr = new_tldr or tldr
-        what_it_means = new_what or what_it_means
-        raw_imp = tldr_res.get("key_implications")
-        if isinstance(raw_imp, list):
-            cleaned_implications = [_sani(i, fallback="") for i in raw_imp[:4] if i]
-            if cleaned_implications:
-                key_implications = cleaned_implications
+    tldr = sanitize_text_field(enrichment.get("tldr"), fallback="") or existing_tldr
+    what_it_means = sanitize_text_field(enrichment.get("what_it_means"), fallback="") or existing_what
+    key_implications = [sanitize_text_field(i, fallback="") for i in (enrichment.get("key_implications") or []) if sanitize_text_field(i, fallback="")]
+    if not key_implications:
+        key_implications = existing_implications
 
     # Validate
     enrichment_out = {
@@ -280,9 +314,27 @@ async def _enrich_one(
     if not ok:
         result["status"] = "validation_failed"
         result["issues"].extend(issues)
-        # Retry once if only missing tldr/what_it_means (partial)
-        if any(i.startswith("forbidden_phrase") or i == "missing_sentiment_score" for i in issues):
+        if dry_run:
             return result
+        try:
+            await asyncio.to_thread(
+                lambda: (
+                    supabase.table("shared_ticker_events")
+                    .update(
+                        {
+                            "analysis_status": "enrichment_failed",
+                            "rejection_reason": _primary_issue(issues),
+                            "updated_at": datetime.now(timezone.utc).isoformat(),
+                        }
+                    )
+                    .eq("id", str(row_id))
+                    .execute()
+                )
+            )
+        except Exception as exc:
+            result["status"] = "db_write_failed"
+            result["issues"].append(str(exc)[:120])
+        return result
 
     if dry_run:
         result["status"] = "dry_run_would_enrich"
@@ -300,6 +352,8 @@ async def _enrich_one(
             "tldr": tldr or None,
             "what_it_means": what_it_means or None,
             "key_implications": key_implications,
+            "analysis_status": "complete",
+            "rejection_reason": None,
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
         # Remove None values so we don't overwrite existing data with NULL
@@ -359,6 +413,9 @@ async def run_reenrichment(
             "total_candidates": 0,
             "rejected_garbage": len(rejected),
             "rejections_by_reason": dict(rejection_counts),
+            "sent_to_llm": 0,
+            "llm_calls": 0,
+            "llm_429s": 0,
             "enriched": 0,
             "failed": 0,
             "skipped": 0,
@@ -377,6 +434,9 @@ async def run_reenrichment(
             "rejected_garbage": len(rejected),
             "rejections_by_reason": dict(rejection_counts),
             "tickers_affected": len(ticker_counts),
+            "sent_to_llm": 0,
+            "llm_calls": 0,
+            "llm_429s": 0,
             "dry_run": True,
         }
 
@@ -387,6 +447,9 @@ async def run_reenrichment(
         "total_candidates": len(candidates),
         "rejected_garbage": len(rejected),
         "rejections_by_reason": dict(rejection_counts),
+        "sent_to_llm": 0,
+        "llm_calls": 0,
+        "llm_429s": 0,
         "enriched": 0,
         "failed": 0,
         "skipped": 0,
@@ -396,6 +459,7 @@ async def run_reenrichment(
         "batches": 0,
         "tickers_enriched": set(),
         "failures_by_issue": {},
+        "failure_rows": [],
     }
 
     sem = asyncio.Semaphore(max_concurrency)
@@ -428,6 +492,9 @@ async def run_reenrichment(
         stats["failed"]   += failed_n
         stats["skipped"]  += skipped_n
         stats["rejected_garbage"] += rejected_n
+        stats["sent_to_llm"] += sum(1 for r in batch_results if r.get("sent_to_llm"))
+        stats["llm_calls"] += sum(int(r.get("llm_calls") or 0) for r in batch_results)
+        stats["llm_429s"] += sum(int(r.get("llm_429s") or 0) for r in batch_results)
 
         for r in batch_results:
             if r["status"] == "enriched":
@@ -444,6 +511,18 @@ async def run_reenrichment(
             for issue in r.get("issues", []):
                 key = issue.split(":")[0]
                 stats["failures_by_issue"][key] = stats["failures_by_issue"].get(key, 0) + 1
+            if r["status"] not in ("enriched", "skipped_missing_fields"):
+                stats["failure_rows"].append(
+                    {
+                        "article_id": r.get("id"),
+                        "ticker": r.get("ticker"),
+                        "source": r.get("source"),
+                        "body_length": r.get("body_length"),
+                        "failure_reason": _primary_issue(r.get("issues", [])),
+                        "raw_llm_preview": r.get("raw_llm_preview", ""),
+                        "body_quality_reason": r.get("body_quality_reason"),
+                    }
+                )
 
         # Build per-batch failure breakdown for diagnostics
         batch_issue_counts: dict[str, int] = {}
@@ -508,10 +587,13 @@ async def run_reenrichment(
     logger.info("  Raw        : %d", stats["raw_candidates"])
     logger.info("  Candidates : %d", stats["total_candidates"])
     logger.info("  Rejected   : %d", stats["rejected_garbage"])
+    logger.info("  Sent to LLM: %d", stats["sent_to_llm"])
     logger.info("  Enriched   : %d (%.1f%%)",
                 stats["enriched"],
                 100 * stats["enriched"] / max(1, stats["total_candidates"]))
     logger.info("  Failed     : %d", stats["failed"])
+    logger.info("  MiniMax calls : %d", stats["llm_calls"])
+    logger.info("  MiniMax 429s  : %d", stats["llm_429s"])
     logger.info("  Skipped    : %d", stats["skipped"])
     logger.info("  Runtime    : %.1fs", stats["runtime_s"])
     if stats["failures_by_issue"]:
