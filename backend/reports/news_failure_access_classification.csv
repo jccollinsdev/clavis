@@ -1,0 +1,108 @@
+ticker,company,sector,finnhub_usable,currently_usable,db_articles_7d,primary_failure,enrichment_incomplete_count,hard_paywall_count,soft_block_count,extraction_bug_count,recoverable_bodies_7d,potential_after_reenrich_7d,reaches_3_7d,reaches_10_7d,reaches_10_14d,paywall_headlines_available,reaches_10_with_headline
+BF.B,Brown–Forman,Consumer Staples,1,1,30,enrichment_incomplete,22,3,1,2,5,6,True,False,False,3,False
+BKNG,Booking Holdings,Consumer Discretionary,1,1,35,enrichment_incomplete,22,0,4,6,8,9,True,False,False,0,False
+BLDR,Builders FirstSource,Industrials,2,2,26,low_finnhub_supply,17,1,4,2,4,6,True,False,False,1,False
+CINF,Cincinnati Financial,Financials,2,2,29,low_finnhub_supply,20,1,0,6,3,5,True,False,False,1,False
+CNC,Centene Corporation,Health Care,2,2,35,enrichment_incomplete,22,2,4,5,5,7,True,False,False,1,False
+CSGP,CoStar Group,Real Estate,2,2,29,enrichment_incomplete,17,0,1,8,7,9,True,False,True,0,False
+GNRC,Generac,Industrials,1,1,27,enrichment_incomplete,21,1,2,2,6,7,True,False,False,1,False
+GRMN,Garmin,Consumer Discretionary,0,0,24,low_finnhub_supply,23,0,0,0,9,9,True,False,False,0,False
+GWW,W. W. Grainger,Industrials,2,1,27,enrichment_incomplete,18,1,3,4,7,8,True,False,False,1,False
+HBAN,Huntington Bancshares,Financials,2,2,30,enrichment_incomplete,18,1,1,7,6,8,True,False,False,1,False
+HII,Huntington Ingalls Industries,Industrials,2,2,30,enrichment_incomplete,20,0,1,7,7,9,True,False,False,0,False
+HSIC,Henry Schein,Health Care,2,2,25,enrichment_incomplete,19,1,2,0,7,9,True,False,False,1,True
+HSY,Hershey Company (The),Consumer Staples,2,2,31,enrichment_incomplete,22,0,2,3,9,11,True,True,True,0,False
+HUBB,Hubbell Incorporated,Industrials,0,0,25,low_finnhub_supply,22,0,0,2,8,8,True,False,False,0,False
+IEX,IDEX Corporation,Industrials,1,1,26,low_finnhub_supply,18,1,4,2,6,7,True,False,False,1,False
+INCY,Incyte,Health Care,1,1,30,low_finnhub_supply,25,1,1,2,8,9,True,False,True,1,True
+IP,International Paper,Materials,2,2,28,enrichment_incomplete,17,1,3,4,4,6,True,False,False,1,False
+IQV,IQVIA,Health Care,2,2,29,enrichment_incomplete,22,0,0,5,9,11,True,True,True,0,False
+IR,Ingersoll Rand,Industrials,2,2,29,enrichment_incomplete,19,1,1,5,5,7,True,False,False,1,False
+ISRG,Intuitive Surgical,Health Care,1,1,34,enrichment_incomplete,20,1,6,6,7,8,True,False,False,1,False
+JBHT,J.B. Hunt,Industrials,2,2,34,enrichment_incomplete,23,1,2,6,7,9,True,False,False,1,True
+KMB,Kimberly-Clark,Consumer Staples,2,2,37,enrichment_incomplete,27,0,3,5,5,7,True,False,False,0,False
+KR,Kroger,Consumer Staples,2,2,32,enrichment_incomplete,19,0,4,7,5,7,True,False,False,0,False
+L,Loews Corporation,Financials,0,0,21,low_finnhub_supply,20,0,1,0,8,8,True,False,False,0,False
+LH,Labcorp,Health Care,1,1,30,enrichment_incomplete,22,0,1,6,11,12,True,True,True,0,False
+LII,Lennox International,Industrials,1,1,26,low_finnhub_supply,20,0,2,3,8,9,True,False,False,0,False
+LIN,Linde plc,Materials,2,2,25,enrichment_incomplete,19,0,3,1,6,8,True,False,False,0,False
+LULU,Lululemon Athletica,Consumer Discretionary,2,2,34,enrichment_incomplete,19,2,3,7,7,9,True,False,False,2,True
+LUV,Southwest Airlines,Industrials,1,1,33,enrichment_incomplete,21,0,4,7,6,7,True,False,False,0,False
+MA,Mastercard,Financials,2,2,35,enrichment_incomplete,28,0,0,4,9,11,True,True,True,0,False
+MCK,McKesson Corporation,Health Care,2,2,34,enrichment_incomplete,23,1,0,8,9,11,True,True,True,1,False
+MDLZ,Mondelez International,Consumer Staples,2,2,23,enrichment_incomplete,17,0,2,2,7,9,True,False,True,0,False
+MGM,MGM Resorts,Consumer Discretionary,2,2,32,enrichment_incomplete,24,1,2,3,9,11,True,True,True,1,False
+MNST,Monster Beverage,Consumer Staples,0,0,39,enrichment_incomplete,25,1,4,8,8,8,True,False,True,1,False
+MPWR,Monolithic Power Systems,Information Technology,2,2,32,enrichment_incomplete,21,3,1,5,7,9,True,False,False,3,True
+MRK,Merck & Co.,Health Care,2,2,27,enrichment_incomplete,18,1,0,6,3,5,True,False,False,0,False
+MSCI,MSCI Inc.,Financials,0,0,30,enrichment_incomplete,18,3,3,5,3,3,True,False,False,2,False
+MTD,Mettler Toledo,Health Care,0,0,33,enrichment_incomplete,20,3,2,7,7,7,True,False,False,3,True
+NCLH,Norwegian Cruise Line Holdings,Consumer Discretionary,0,0,34,enrichment_incomplete,19,0,7,8,5,5,True,False,False,0,False
+NDAQ,"Nasdaq, Inc.",Financials,2,2,34,enrichment_incomplete,25,0,1,6,7,9,True,False,False,0,False
+NDSN,Nordson Corporation,Industrials,2,2,24,enrichment_incomplete,17,1,1,3,8,10,True,True,True,1,False
+NEM,Newmont,Materials,1,1,35,enrichment_incomplete,25,1,1,7,7,8,True,False,False,1,False
+NI,NiSource,Utilities,0,0,32,enrichment_incomplete,23,0,2,7,10,10,True,True,True,0,False
+NOW,ServiceNow,Information Technology,1,1,35,enrichment_incomplete,24,1,2,7,8,9,True,False,False,1,True
+NTAP,NetApp,Information Technology,0,0,31,enrichment_incomplete,20,1,1,9,8,8,True,False,False,0,False
+NUE,Nucor,Materials,2,2,31,enrichment_incomplete,19,2,2,6,5,7,True,False,False,2,False
+NXPI,NXP Semiconductors,Information Technology,2,2,34,enrichment_incomplete,22,1,0,9,6,8,True,False,False,1,False
+OKE,Oneok,Energy,1,1,32,enrichment_incomplete,26,1,1,3,7,8,True,False,False,1,False
+ON,ON Semiconductor,Information Technology,1,1,38,enrichment_incomplete,24,2,5,6,5,6,True,False,False,2,False
+ORCL,Oracle Corporation,Information Technology,2,2,39,enrichment_incomplete,25,1,2,8,6,8,True,False,False,1,False
+ORLY,O’Reilly Automotive,Consumer Discretionary,2,2,28,enrichment_incomplete,18,0,4,4,6,8,True,False,False,0,False
+OTIS,Otis Worldwide,Industrials,1,1,27,enrichment_incomplete,16,4,1,5,4,5,True,False,False,2,False
+PANW,Palo Alto Networks,Information Technology,2,2,40,enrichment_incomplete,29,0,1,6,8,10,True,True,True,0,False
+PAYX,Paychex,Industrials,0,0,26,low_finnhub_supply,19,3,3,0,4,4,True,False,False,2,False
+PCAR,Paccar,Industrials,2,2,19,low_finnhub_supply,16,1,0,0,8,10,True,True,True,1,False
+PEG,Public Service Enterprise Group,Utilities,1,1,29,enrichment_incomplete,19,2,2,5,7,8,True,False,False,2,True
+PEP,PepsiCo,Consumer Staples,2,2,33,enrichment_incomplete,21,0,4,6,7,9,True,False,False,0,False
+PFE,Pfizer,Health Care,2,2,34,enrichment_incomplete,21,1,4,6,9,11,True,True,True,0,False
+PFG,Principal Financial Group,Financials,1,1,16,low_finnhub_supply,10,0,4,1,7,8,True,False,True,0,False
+PGR,Progressive Corporation,Financials,0,0,37,enrichment_incomplete,26,1,2,7,10,10,True,True,True,1,False
+PHM,PulteGroup,Consumer Discretionary,0,0,23,low_finnhub_supply,14,2,5,2,4,4,True,False,False,2,False
+PKG,Packaging Corporation of America,Materials,1,1,30,enrichment_incomplete,18,1,2,5,5,6,True,False,False,1,False
+PLD,Prologis,Real Estate,0,0,30,enrichment_incomplete,18,1,3,7,5,5,True,False,False,0,False
+PNC,PNC Financial Services,Financials,1,1,33,enrichment_incomplete,20,2,3,7,5,6,True,False,False,1,False
+PNR,Pentair,Industrials,1,1,19,low_finnhub_supply,14,2,0,2,4,5,True,False,False,2,False
+PNW,Pinnacle West Capital,Utilities,2,2,27,low_finnhub_supply,19,1,3,2,2,4,True,False,False,1,False
+POOL,Pool Corporation,Consumer Discretionary,2,2,24,enrichment_incomplete,12,0,4,6,3,5,True,False,False,0,False
+PPG,PPG Industries,Materials,0,0,27,low_finnhub_supply,19,3,4,1,5,5,True,False,False,3,False
+PPL,PPL Corporation,Utilities,0,0,30,enrichment_incomplete,22,0,1,7,11,11,True,True,True,0,False
+PRU,Prudential Financial,Financials,1,1,41,enrichment_incomplete,25,1,4,9,2,3,True,False,False,0,False
+PSA,Public Storage,Real Estate,0,0,21,low_finnhub_supply,18,0,2,1,6,6,True,False,False,0,False
+PSKY,Paramount Skydance Corporation,Communication Services,1,1,25,enrichment_incomplete,17,0,2,5,6,7,True,False,False,0,False
+PSX,Phillips 66,Energy,0,0,40,enrichment_incomplete,29,2,3,6,8,8,True,False,False,1,False
+PWR,Quanta Services,Industrials,2,2,33,enrichment_incomplete,24,1,0,6,9,11,True,True,True,1,False
+PYPL,PayPal,Financials,0,0,30,enrichment_incomplete,18,1,4,7,5,5,True,False,False,1,False
+Q,Qnity Electronics,Information Technology,0,0,32,enrichment_incomplete,21,0,2,9,9,9,True,False,False,0,False
+QCOM,Qualcomm,Information Technology,2,2,31,enrichment_incomplete,20,2,2,5,6,8,True,False,False,1,False
+RCL,Royal Caribbean Group,Consumer Discretionary,2,2,35,enrichment_incomplete,20,2,4,6,7,9,True,False,True,1,True
+REG,Regency Centers,Real Estate,1,1,26,low_finnhub_supply,19,1,3,1,6,7,True,False,False,1,False
+RF,Regions Financial Corporation,Financials,2,2,32,low_finnhub_supply,23,1,3,3,7,9,True,False,False,1,True
+RL,Ralph Lauren Corporation,Consumer Discretionary,0,0,30,enrichment_incomplete,18,0,1,10,8,8,True,False,False,0,False
+ROL,"Rollins, Inc.",Industrials,0,0,34,enrichment_incomplete,27,0,3,4,7,7,True,False,False,0,False
+ROP,Roper Technologies,Information Technology,1,1,34,enrichment_incomplete,20,1,4,8,4,5,True,False,False,1,False
+ROST,Ross Stores,Consumer Discretionary,1,1,26,enrichment_incomplete,16,1,1,7,6,7,True,False,False,0,False
+RSG,Republic Services,Industrials,0,0,31,enrichment_incomplete,22,0,2,7,9,9,True,False,False,0,False
+SATS,EchoStar,Communication Services,2,2,29,enrichment_incomplete,19,0,1,7,5,7,True,False,False,0,False
+SBAC,SBA Communications,Real Estate,2,2,37,enrichment_incomplete,25,2,6,1,3,5,True,False,False,1,False
+SBUX,Starbucks,Consumer Discretionary,2,2,43,enrichment_incomplete,27,1,4,8,8,10,True,True,True,1,False
+SCHW,Charles Schwab Corporation,Financials,1,1,35,enrichment_incomplete,27,0,3,4,9,10,True,True,True,0,False
+SHW,Sherwin-Williams,Materials,0,0,32,enrichment_incomplete,22,0,5,5,6,6,True,False,False,0,False
+SLB,Schlumberger,Energy,2,2,30,enrichment_incomplete,20,0,1,7,8,10,True,True,True,0,False
+SNA,Snap-on,Industrials,1,1,27,low_finnhub_supply,21,0,2,2,6,7,True,False,False,0,False
+SNPS,Synopsys,Information Technology,2,2,28,enrichment_incomplete,19,0,0,6,6,8,True,False,False,0,False
+STLD,Steel Dynamics,Materials,2,2,28,enrichment_incomplete,16,1,3,6,4,6,True,False,False,1,False
+STZ,Constellation Brands,Consumer Staples,1,1,28,enrichment_incomplete,18,3,1,5,4,5,True,False,False,1,False
+SWKS,Skyworks Solutions,Information Technology,2,2,39,enrichment_incomplete,28,1,2,6,9,11,True,True,True,1,False
+SYF,Synchrony Financial,Financials,2,2,26,enrichment_incomplete,16,2,3,3,3,5,True,False,False,2,False
+TAP,Molson Coors Beverage Company,Consumer Staples,2,2,21,enrichment_incomplete,11,3,2,3,1,3,True,False,False,1,False
+TDY,Teledyne Technologies,Information Technology,2,2,27,enrichment_incomplete,14,1,5,4,3,5,True,False,False,1,False
+TGT,Target Corporation,Consumer Staples,2,2,34,enrichment_incomplete,18,1,6,6,4,6,True,False,False,1,False
+TMO,Thermo Fisher Scientific,Health Care,2,2,35,enrichment_incomplete,23,1,3,6,6,8,True,False,False,1,False
+TPL,Texas Pacific Land Corporation,Energy,1,1,37,enrichment_incomplete,27,1,1,7,5,6,True,False,False,0,False
+UDR,"UDR, Inc.",Real Estate,2,2,23,low_finnhub_supply,15,1,2,3,3,5,True,False,False,1,False
+UPS,United Parcel Service,Industrials,2,2,34,enrichment_incomplete,21,0,2,9,5,7,True,False,False,0,False
+VRSK,Verisk Analytics,Industrials,2,2,33,enrichment_incomplete,19,1,3,7,5,7,True,False,False,1,False
+VRSN,Verisign,Information Technology,2,2,15,low_finnhub_supply,8,2,2,1,1,3,True,False,False,2,False
+WRB,W. R. Berkley Corporation,Financials,1,1,21,low_finnhub_supply,13,1,1,5,3,4,True,False,False,1,False

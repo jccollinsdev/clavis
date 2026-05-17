@@ -1,0 +1,2734 @@
+{
+  "generated_at": "2026-05-17T17:30:00Z",
+  "analysis_scope": "S&P 500 tickers with <3 usable articles (7-day window)",
+  "n_tickers_below_mvp": 107,
+  "aggregate": {
+    "total_db_articles_7d": 3230,
+    "currently_usable": 138,
+    "by_failure_mode": {
+      "enrichment_incomplete": 2172,
+      "soft_block": 250,
+      "extraction_bug": 531,
+      "hard_paywall": 102
+    },
+    "tickers_primary_failure": {
+      "enrichment_incomplete": 107,
+      "hard_paywall": 0,
+      "soft_block": 0,
+      "genuine_low_news": 0
+    }
+  },
+  "recovery_potential": {
+    "reenrich_existing_bodies_7d": {
+      "recoverable_articles": 663,
+      "tickers_reaching_ge3": 107,
+      "tickers_reaching_ge10": 18,
+      "note": "Re-process articles where extraction_status=success AND body_length>=300 AND sentiment_score IS NULL"
+    },
+    "reenrich_existing_bodies_14d": {
+      "tickers_reaching_ge3": 107,
+      "tickers_reaching_ge10": 24
+    },
+    "headline_only_policy_7d": {
+      "description": "Count paywalled articles (title+summary, no body) as low-confidence usable",
+      "paywall_headline_articles": 81,
+      "tickers_with_paywall_headlines": 62,
+      "additional_tickers_reaching_ge10": 10,
+      "total_tickers_reaching_ge10_combined": 28,
+      "recommendation": "Do not implement \u2014 0 additional tickers reach >=3; adds marginal >=10 coverage at cost of precision"
+    }
+  },
+  "domain_access_map": {
+    "finance.yahoo.com": {
+      "attempts": 470,
+      "success": 347,
+      "body_good": 89,
+      "with_sentiment": 22,
+      "paywall": 0,
+      "fail_403": 0,
+      "access_class": "open_good",
+      "body_rate_pct": 18.9,
+      "sentiment_rate_pct": 4.7
+    },
+    "finnhub.io": {
+      "attempts": 365,
+      "success": 199,
+      "body_good": 162,
+      "with_sentiment": 41,
+      "paywall": 0,
+      "fail_403": 43,
+      "access_class": "open_good",
+      "body_rate_pct": 44.4,
+      "sentiment_rate_pct": 11.2
+    },
+    "marketwatch.com": {
+      "attempts": 247,
+      "success": 0,
+      "body_good": 0,
+      "with_sentiment": 0,
+      "paywall": 67,
+      "fail_403": 5,
+      "access_class": "hard_paywall",
+      "body_rate_pct": 0.0,
+      "sentiment_rate_pct": 0.0
+    },
+    "stocktitan.net": {
+      "attempts": 191,
+      "success": 48,
+      "body_good": 48,
+      "with_sentiment": 12,
+      "paywall": 0,
+      "fail_403": 0,
+      "access_class": "open_good",
+      "body_rate_pct": 25.1,
+      "sentiment_rate_pct": 6.3
+    },
+    "msn.com": {
+      "attempts": 154,
+      "success": 1,
+      "body_good": 0,
+      "with_sentiment": 0,
+      "paywall": 0,
+      "fail_403": 0,
+      "access_class": "open_no_body",
+      "body_rate_pct": 0.0,
+      "sentiment_rate_pct": 0.0
+    },
+    "marketbeat.com": {
+      "attempts": 131,
+      "success": 53,
+      "body_good": 43,
+      "with_sentiment": 12,
+      "paywall": 0,
+      "fail_403": 0,
+      "access_class": "open_good",
+      "body_rate_pct": 32.8,
+      "sentiment_rate_pct": 9.2
+    },
+    "gurufocus.com": {
+      "attempts": 131,
+      "success": 0,
+      "body_good": 0,
+      "with_sentiment": 0,
+      "paywall": 0,
+      "fail_403": 33,
+      "access_class": "soft_blocked_403",
+      "body_rate_pct": 0.0,
+      "sentiment_rate_pct": 0.0
+    },
+    "chartmill.com": {
+      "attempts": 113,
+      "success": 10,
+      "body_good": 3,
+      "with_sentiment": 1,
+      "paywall": 0,
+      "fail_403": 0,
+      "access_class": "open_mixed",
+      "body_rate_pct": 2.7,
+      "sentiment_rate_pct": 0.9
+    },
+    "investing.com": {
+      "attempts": 71,
+      "success": 0,
+      "body_good": 0,
+      "with_sentiment": 0,
+      "paywall": 0,
+      "fail_403": 30,
+      "access_class": "soft_blocked_403",
+      "body_rate_pct": 0.0,
+      "sentiment_rate_pct": 0.0
+    },
+    "simplywall.st": {
+      "attempts": 67,
+      "success": 55,
+      "body_good": 55,
+      "with_sentiment": 8,
+      "paywall": 0,
+      "fail_403": 0,
+      "access_class": "open_good",
+      "body_rate_pct": 82.1,
+      "sentiment_rate_pct": 11.9
+    },
+    "benzinga.com": {
+      "attempts": 67,
+      "success": 61,
+      "body_good": 2,
+      "with_sentiment": 2,
+      "paywall": 0,
+      "fail_403": 0,
+      "access_class": "open_mixed",
+      "body_rate_pct": 3.0,
+      "sentiment_rate_pct": 3.0
+    },
+    "barchart.com": {
+      "attempts": 45,
+      "success": 30,
+      "body_good": 0,
+      "with_sentiment": 0,
+      "paywall": 0,
+      "fail_403": 6,
+      "access_class": "open_no_body",
+      "body_rate_pct": 0.0,
+      "sentiment_rate_pct": 0.0
+    },
+    "ad-hoc-news.de": {
+      "attempts": 44,
+      "success": 5,
+      "body_good": 5,
+      "with_sentiment": 1,
+      "paywall": 0,
+      "fail_403": 0,
+      "access_class": "open_mixed",
+      "body_rate_pct": 11.4,
+      "sentiment_rate_pct": 2.3
+    },
+    "cnbc.com": {
+      "attempts": 41,
+      "success": 39,
+      "body_good": 11,
+      "with_sentiment": 6,
+      "paywall": 0,
+      "fail_403": 0,
+      "access_class": "open_good",
+      "body_rate_pct": 26.8,
+      "sentiment_rate_pct": 14.6
+    },
+    "seekingalpha.com": {
+      "attempts": 38,
+      "success": 4,
+      "body_good": 4,
+      "with_sentiment": 0,
+      "paywall": 0,
+      "fail_403": 18,
+      "access_class": "open_mixed",
+      "body_rate_pct": 10.5,
+      "sentiment_rate_pct": 0.0
+    },
+    "news.google.com": {
+      "attempts": 35,
+      "success": 0,
+      "body_good": 0,
+      "with_sentiment": 0,
+      "paywall": 0,
+      "fail_403": 0,
+      "access_class": "unknown",
+      "body_rate_pct": 0.0,
+      "sentiment_rate_pct": 0.0
+    },
+    "tradingview.com": {
+      "attempts": 34,
+      "success": 8,
+      "body_good": 8,
+      "with_sentiment": 1,
+      "paywall": 0,
+      "fail_403": 0,
+      "access_class": "open_good",
+      "body_rate_pct": 23.5,
+      "sentiment_rate_pct": 2.9
+    },
+    "moomoo.com": {
+      "attempts": 33,
+      "success": 0,
+      "body_good": 0,
+      "with_sentiment": 0,
+      "paywall": 0,
+      "fail_403": 0,
+      "access_class": "unknown",
+      "body_rate_pct": 0.0,
+      "sentiment_rate_pct": 0.0
+    },
+    "insidermonkey.com": {
+      "attempts": 32,
+      "success": 2,
+      "body_good": 2,
+      "with_sentiment": 2,
+      "paywall": 0,
+      "fail_403": 0,
+      "access_class": "open_mixed",
+      "body_rate_pct": 6.2,
+      "sentiment_rate_pct": 6.2
+    },
+    "sahmcapital.com": {
+      "attempts": 26,
+      "success": 7,
+      "body_good": 7,
+      "with_sentiment": 0,
+      "paywall": 0,
+      "fail_403": 0,
+      "access_class": "open_good",
+      "body_rate_pct": 26.9,
+      "sentiment_rate_pct": 0.0
+    }
+  },
+  "engineering_recommendation": {
+    "action": "Add targeted re-enrich pass to pipeline",
+    "sql_filter": "extraction_status = 'success' AND body_length >= 300 AND sentiment_score IS NULL AND published_at > NOW() - INTERVAL '7 days'",
+    "estimated_articles": 663,
+    "expected_outcome": "All 107 tickers reach >=3 usable; 18 reach >=10",
+    "no_new_providers_required": true,
+    "no_paywall_bypass": true
+  },
+  "per_ticker": {
+    "BF.B": {
+      "company": "Brown\u2013Forman",
+      "sector": "Consumer Staples",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 30,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 22,
+        "hard_paywall": 3,
+        "soft_block": 1,
+        "extraction_bug": 2
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 5,
+        "potential_after_reenrich_7d": 6,
+        "potential_after_reenrich_14d": 6,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 3
+    },
+    "BKNG": {
+      "company": "Booking Holdings",
+      "sector": "Consumer Discretionary",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 35,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 22,
+        "hard_paywall": 0,
+        "soft_block": 4,
+        "extraction_bug": 6
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 8,
+        "potential_after_reenrich_7d": 9,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "BLDR": {
+      "company": "Builders FirstSource",
+      "sector": "Industrials",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 26,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 17,
+        "hard_paywall": 1,
+        "soft_block": 4,
+        "extraction_bug": 2
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 4,
+        "potential_after_reenrich_7d": 6,
+        "potential_after_reenrich_14d": 7,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "CINF": {
+      "company": "Cincinnati Financial",
+      "sector": "Financials",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 29,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 20,
+        "hard_paywall": 1,
+        "soft_block": 0,
+        "extraction_bug": 6
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 3,
+        "potential_after_reenrich_7d": 5,
+        "potential_after_reenrich_14d": 5,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "CNC": {
+      "company": "Centene Corporation",
+      "sector": "Health Care",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 35,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 22,
+        "hard_paywall": 2,
+        "soft_block": 4,
+        "extraction_bug": 5
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 5,
+        "potential_after_reenrich_7d": 7,
+        "potential_after_reenrich_14d": 7,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "CSGP": {
+      "company": "CoStar Group",
+      "sector": "Real Estate",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 29,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 17,
+        "hard_paywall": 0,
+        "soft_block": 1,
+        "extraction_bug": 8
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 7,
+        "potential_after_reenrich_7d": 9,
+        "potential_after_reenrich_14d": 10,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 0
+    },
+    "GNRC": {
+      "company": "Generac",
+      "sector": "Industrials",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 27,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 21,
+        "hard_paywall": 1,
+        "soft_block": 2,
+        "extraction_bug": 2
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 6,
+        "potential_after_reenrich_7d": 7,
+        "potential_after_reenrich_14d": 8,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "GRMN": {
+      "company": "Garmin",
+      "sector": "Consumer Discretionary",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 24,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 23,
+        "hard_paywall": 0,
+        "soft_block": 0,
+        "extraction_bug": 0
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 9,
+        "potential_after_reenrich_7d": 9,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "GWW": {
+      "company": "W. W. Grainger",
+      "sector": "Industrials",
+      "finnhub_usable": 2,
+      "currently_usable": 1,
+      "db_articles_7d": 27,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 18,
+        "hard_paywall": 1,
+        "soft_block": 3,
+        "extraction_bug": 4
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 7,
+        "potential_after_reenrich_7d": 8,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "HBAN": {
+      "company": "Huntington Bancshares",
+      "sector": "Financials",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 30,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 18,
+        "hard_paywall": 1,
+        "soft_block": 1,
+        "extraction_bug": 7
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 6,
+        "potential_after_reenrich_7d": 8,
+        "potential_after_reenrich_14d": 8,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "HII": {
+      "company": "Huntington Ingalls Industries",
+      "sector": "Industrials",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 30,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 20,
+        "hard_paywall": 0,
+        "soft_block": 1,
+        "extraction_bug": 7
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 7,
+        "potential_after_reenrich_7d": 9,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "HSIC": {
+      "company": "Henry Schein",
+      "sector": "Health Care",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 25,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 19,
+        "hard_paywall": 1,
+        "soft_block": 2,
+        "extraction_bug": 0
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 7,
+        "potential_after_reenrich_7d": 9,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "HSY": {
+      "company": "Hershey Company (The)",
+      "sector": "Consumer Staples",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 31,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 22,
+        "hard_paywall": 0,
+        "soft_block": 2,
+        "extraction_bug": 3
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 9,
+        "potential_after_reenrich_7d": 11,
+        "potential_after_reenrich_14d": 11,
+        "reaches_3_7d": true,
+        "reaches_10_7d": true,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 0
+    },
+    "HUBB": {
+      "company": "Hubbell Incorporated",
+      "sector": "Industrials",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 25,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 22,
+        "hard_paywall": 0,
+        "soft_block": 0,
+        "extraction_bug": 2
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 8,
+        "potential_after_reenrich_7d": 8,
+        "potential_after_reenrich_14d": 8,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "IEX": {
+      "company": "IDEX Corporation",
+      "sector": "Industrials",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 26,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 18,
+        "hard_paywall": 1,
+        "soft_block": 4,
+        "extraction_bug": 2
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 6,
+        "potential_after_reenrich_7d": 7,
+        "potential_after_reenrich_14d": 7,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "INCY": {
+      "company": "Incyte",
+      "sector": "Health Care",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 30,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 25,
+        "hard_paywall": 1,
+        "soft_block": 1,
+        "extraction_bug": 2
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 8,
+        "potential_after_reenrich_7d": 9,
+        "potential_after_reenrich_14d": 10,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 1
+    },
+    "IP": {
+      "company": "International Paper",
+      "sector": "Materials",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 28,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 17,
+        "hard_paywall": 1,
+        "soft_block": 3,
+        "extraction_bug": 4
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 4,
+        "potential_after_reenrich_7d": 6,
+        "potential_after_reenrich_14d": 6,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "IQV": {
+      "company": "IQVIA",
+      "sector": "Health Care",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 29,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 22,
+        "hard_paywall": 0,
+        "soft_block": 0,
+        "extraction_bug": 5
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 9,
+        "potential_after_reenrich_7d": 11,
+        "potential_after_reenrich_14d": 12,
+        "reaches_3_7d": true,
+        "reaches_10_7d": true,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 0
+    },
+    "IR": {
+      "company": "Ingersoll Rand",
+      "sector": "Industrials",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 29,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 19,
+        "hard_paywall": 1,
+        "soft_block": 1,
+        "extraction_bug": 5
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 5,
+        "potential_after_reenrich_7d": 7,
+        "potential_after_reenrich_14d": 8,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "ISRG": {
+      "company": "Intuitive Surgical",
+      "sector": "Health Care",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 34,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 20,
+        "hard_paywall": 1,
+        "soft_block": 6,
+        "extraction_bug": 6
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 7,
+        "potential_after_reenrich_7d": 8,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "JBHT": {
+      "company": "J.B. Hunt",
+      "sector": "Industrials",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 34,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 23,
+        "hard_paywall": 1,
+        "soft_block": 2,
+        "extraction_bug": 6
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 7,
+        "potential_after_reenrich_7d": 9,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "KMB": {
+      "company": "Kimberly-Clark",
+      "sector": "Consumer Staples",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 37,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 27,
+        "hard_paywall": 0,
+        "soft_block": 3,
+        "extraction_bug": 5
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 5,
+        "potential_after_reenrich_7d": 7,
+        "potential_after_reenrich_14d": 7,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "KR": {
+      "company": "Kroger",
+      "sector": "Consumer Staples",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 32,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 19,
+        "hard_paywall": 0,
+        "soft_block": 4,
+        "extraction_bug": 7
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 5,
+        "potential_after_reenrich_7d": 7,
+        "potential_after_reenrich_14d": 7,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "L": {
+      "company": "Loews Corporation",
+      "sector": "Financials",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 21,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 20,
+        "hard_paywall": 0,
+        "soft_block": 1,
+        "extraction_bug": 0
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 8,
+        "potential_after_reenrich_7d": 8,
+        "potential_after_reenrich_14d": 8,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "LH": {
+      "company": "Labcorp",
+      "sector": "Health Care",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 30,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 22,
+        "hard_paywall": 0,
+        "soft_block": 1,
+        "extraction_bug": 6
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 11,
+        "potential_after_reenrich_7d": 12,
+        "potential_after_reenrich_14d": 12,
+        "reaches_3_7d": true,
+        "reaches_10_7d": true,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 0
+    },
+    "LII": {
+      "company": "Lennox International",
+      "sector": "Industrials",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 26,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 20,
+        "hard_paywall": 0,
+        "soft_block": 2,
+        "extraction_bug": 3
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 8,
+        "potential_after_reenrich_7d": 9,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "LIN": {
+      "company": "Linde plc",
+      "sector": "Materials",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 25,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 19,
+        "hard_paywall": 0,
+        "soft_block": 3,
+        "extraction_bug": 1
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 6,
+        "potential_after_reenrich_7d": 8,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "LULU": {
+      "company": "Lululemon Athletica",
+      "sector": "Consumer Discretionary",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 34,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 19,
+        "hard_paywall": 2,
+        "soft_block": 3,
+        "extraction_bug": 7
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 7,
+        "potential_after_reenrich_7d": 9,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 2
+    },
+    "LUV": {
+      "company": "Southwest Airlines",
+      "sector": "Industrials",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 33,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 21,
+        "hard_paywall": 0,
+        "soft_block": 4,
+        "extraction_bug": 7
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 6,
+        "potential_after_reenrich_7d": 7,
+        "potential_after_reenrich_14d": 7,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "MA": {
+      "company": "Mastercard",
+      "sector": "Financials",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 35,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 28,
+        "hard_paywall": 0,
+        "soft_block": 0,
+        "extraction_bug": 4
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 9,
+        "potential_after_reenrich_7d": 11,
+        "potential_after_reenrich_14d": 12,
+        "reaches_3_7d": true,
+        "reaches_10_7d": true,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 0
+    },
+    "MCK": {
+      "company": "McKesson Corporation",
+      "sector": "Health Care",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 34,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 23,
+        "hard_paywall": 1,
+        "soft_block": 0,
+        "extraction_bug": 8
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 9,
+        "potential_after_reenrich_7d": 11,
+        "potential_after_reenrich_14d": 11,
+        "reaches_3_7d": true,
+        "reaches_10_7d": true,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 1
+    },
+    "MDLZ": {
+      "company": "Mondelez International",
+      "sector": "Consumer Staples",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 23,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 17,
+        "hard_paywall": 0,
+        "soft_block": 2,
+        "extraction_bug": 2
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 7,
+        "potential_after_reenrich_7d": 9,
+        "potential_after_reenrich_14d": 10,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 0
+    },
+    "MGM": {
+      "company": "MGM Resorts",
+      "sector": "Consumer Discretionary",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 32,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 24,
+        "hard_paywall": 1,
+        "soft_block": 2,
+        "extraction_bug": 3
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 9,
+        "potential_after_reenrich_7d": 11,
+        "potential_after_reenrich_14d": 11,
+        "reaches_3_7d": true,
+        "reaches_10_7d": true,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 1
+    },
+    "MNST": {
+      "company": "Monster Beverage",
+      "sector": "Consumer Staples",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 39,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 25,
+        "hard_paywall": 1,
+        "soft_block": 4,
+        "extraction_bug": 8
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 8,
+        "potential_after_reenrich_7d": 8,
+        "potential_after_reenrich_14d": 10,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 1
+    },
+    "MPWR": {
+      "company": "Monolithic Power Systems",
+      "sector": "Information Technology",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 32,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 21,
+        "hard_paywall": 3,
+        "soft_block": 1,
+        "extraction_bug": 5
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 7,
+        "potential_after_reenrich_7d": 9,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 3
+    },
+    "MRK": {
+      "company": "Merck & Co.",
+      "sector": "Health Care",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 27,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 18,
+        "hard_paywall": 1,
+        "soft_block": 0,
+        "extraction_bug": 6
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 3,
+        "potential_after_reenrich_7d": 5,
+        "potential_after_reenrich_14d": 5,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "MSCI": {
+      "company": "MSCI Inc.",
+      "sector": "Financials",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 30,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 18,
+        "hard_paywall": 3,
+        "soft_block": 3,
+        "extraction_bug": 5
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 3,
+        "potential_after_reenrich_7d": 3,
+        "potential_after_reenrich_14d": 3,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 2
+    },
+    "MTD": {
+      "company": "Mettler Toledo",
+      "sector": "Health Care",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 33,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 20,
+        "hard_paywall": 3,
+        "soft_block": 2,
+        "extraction_bug": 7
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 7,
+        "potential_after_reenrich_7d": 7,
+        "potential_after_reenrich_14d": 7,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 3
+    },
+    "NCLH": {
+      "company": "Norwegian Cruise Line Holdings",
+      "sector": "Consumer Discretionary",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 34,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 19,
+        "hard_paywall": 0,
+        "soft_block": 7,
+        "extraction_bug": 8
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 5,
+        "potential_after_reenrich_7d": 5,
+        "potential_after_reenrich_14d": 5,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "NDAQ": {
+      "company": "Nasdaq, Inc.",
+      "sector": "Financials",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 34,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 25,
+        "hard_paywall": 0,
+        "soft_block": 1,
+        "extraction_bug": 6
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 7,
+        "potential_after_reenrich_7d": 9,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "NDSN": {
+      "company": "Nordson Corporation",
+      "sector": "Industrials",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 24,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 17,
+        "hard_paywall": 1,
+        "soft_block": 1,
+        "extraction_bug": 3
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 8,
+        "potential_after_reenrich_7d": 10,
+        "potential_after_reenrich_14d": 10,
+        "reaches_3_7d": true,
+        "reaches_10_7d": true,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 1
+    },
+    "NEM": {
+      "company": "Newmont",
+      "sector": "Materials",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 35,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 25,
+        "hard_paywall": 1,
+        "soft_block": 1,
+        "extraction_bug": 7
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 7,
+        "potential_after_reenrich_7d": 8,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "NI": {
+      "company": "NiSource",
+      "sector": "Utilities",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 32,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 23,
+        "hard_paywall": 0,
+        "soft_block": 2,
+        "extraction_bug": 7
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 10,
+        "potential_after_reenrich_7d": 10,
+        "potential_after_reenrich_14d": 10,
+        "reaches_3_7d": true,
+        "reaches_10_7d": true,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 0
+    },
+    "NOW": {
+      "company": "ServiceNow",
+      "sector": "Information Technology",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 35,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 24,
+        "hard_paywall": 1,
+        "soft_block": 2,
+        "extraction_bug": 7
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 8,
+        "potential_after_reenrich_7d": 9,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "NTAP": {
+      "company": "NetApp",
+      "sector": "Information Technology",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 31,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 20,
+        "hard_paywall": 1,
+        "soft_block": 1,
+        "extraction_bug": 9
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 8,
+        "potential_after_reenrich_7d": 8,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "NUE": {
+      "company": "Nucor",
+      "sector": "Materials",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 31,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 19,
+        "hard_paywall": 2,
+        "soft_block": 2,
+        "extraction_bug": 6
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 5,
+        "potential_after_reenrich_7d": 7,
+        "potential_after_reenrich_14d": 8,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 2
+    },
+    "NXPI": {
+      "company": "NXP Semiconductors",
+      "sector": "Information Technology",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 34,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 22,
+        "hard_paywall": 1,
+        "soft_block": 0,
+        "extraction_bug": 9
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 6,
+        "potential_after_reenrich_7d": 8,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "OKE": {
+      "company": "Oneok",
+      "sector": "Energy",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 32,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 26,
+        "hard_paywall": 1,
+        "soft_block": 1,
+        "extraction_bug": 3
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 7,
+        "potential_after_reenrich_7d": 8,
+        "potential_after_reenrich_14d": 8,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "ON": {
+      "company": "ON Semiconductor",
+      "sector": "Information Technology",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 38,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 24,
+        "hard_paywall": 2,
+        "soft_block": 5,
+        "extraction_bug": 6
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 5,
+        "potential_after_reenrich_7d": 6,
+        "potential_after_reenrich_14d": 6,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 2
+    },
+    "ORCL": {
+      "company": "Oracle Corporation",
+      "sector": "Information Technology",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 39,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 25,
+        "hard_paywall": 1,
+        "soft_block": 2,
+        "extraction_bug": 8
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 6,
+        "potential_after_reenrich_7d": 8,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "ORLY": {
+      "company": "O\u2019Reilly Automotive",
+      "sector": "Consumer Discretionary",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 28,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 18,
+        "hard_paywall": 0,
+        "soft_block": 4,
+        "extraction_bug": 4
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 6,
+        "potential_after_reenrich_7d": 8,
+        "potential_after_reenrich_14d": 8,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "OTIS": {
+      "company": "Otis Worldwide",
+      "sector": "Industrials",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 27,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 16,
+        "hard_paywall": 4,
+        "soft_block": 1,
+        "extraction_bug": 5
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 4,
+        "potential_after_reenrich_7d": 5,
+        "potential_after_reenrich_14d": 6,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 2
+    },
+    "PANW": {
+      "company": "Palo Alto Networks",
+      "sector": "Information Technology",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 40,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 29,
+        "hard_paywall": 0,
+        "soft_block": 1,
+        "extraction_bug": 6
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 8,
+        "potential_after_reenrich_7d": 10,
+        "potential_after_reenrich_14d": 10,
+        "reaches_3_7d": true,
+        "reaches_10_7d": true,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 0
+    },
+    "PAYX": {
+      "company": "Paychex",
+      "sector": "Industrials",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 26,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 19,
+        "hard_paywall": 3,
+        "soft_block": 3,
+        "extraction_bug": 0
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 4,
+        "potential_after_reenrich_7d": 4,
+        "potential_after_reenrich_14d": 5,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 2
+    },
+    "PCAR": {
+      "company": "Paccar",
+      "sector": "Industrials",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 19,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 16,
+        "hard_paywall": 1,
+        "soft_block": 0,
+        "extraction_bug": 0
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 8,
+        "potential_after_reenrich_7d": 10,
+        "potential_after_reenrich_14d": 11,
+        "reaches_3_7d": true,
+        "reaches_10_7d": true,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 1
+    },
+    "PEG": {
+      "company": "Public Service Enterprise Group",
+      "sector": "Utilities",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 29,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 19,
+        "hard_paywall": 2,
+        "soft_block": 2,
+        "extraction_bug": 5
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 7,
+        "potential_after_reenrich_7d": 8,
+        "potential_after_reenrich_14d": 8,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 2
+    },
+    "PEP": {
+      "company": "PepsiCo",
+      "sector": "Consumer Staples",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 33,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 21,
+        "hard_paywall": 0,
+        "soft_block": 4,
+        "extraction_bug": 6
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 7,
+        "potential_after_reenrich_7d": 9,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "PFE": {
+      "company": "Pfizer",
+      "sector": "Health Care",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 34,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 21,
+        "hard_paywall": 1,
+        "soft_block": 4,
+        "extraction_bug": 6
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 9,
+        "potential_after_reenrich_7d": 11,
+        "potential_after_reenrich_14d": 11,
+        "reaches_3_7d": true,
+        "reaches_10_7d": true,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 0
+    },
+    "PFG": {
+      "company": "Principal Financial Group",
+      "sector": "Financials",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 16,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 10,
+        "hard_paywall": 0,
+        "soft_block": 4,
+        "extraction_bug": 1
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 7,
+        "potential_after_reenrich_7d": 8,
+        "potential_after_reenrich_14d": 10,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 0
+    },
+    "PGR": {
+      "company": "Progressive Corporation",
+      "sector": "Financials",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 37,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 26,
+        "hard_paywall": 1,
+        "soft_block": 2,
+        "extraction_bug": 7
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 10,
+        "potential_after_reenrich_7d": 10,
+        "potential_after_reenrich_14d": 11,
+        "reaches_3_7d": true,
+        "reaches_10_7d": true,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 1
+    },
+    "PHM": {
+      "company": "PulteGroup",
+      "sector": "Consumer Discretionary",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 23,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 14,
+        "hard_paywall": 2,
+        "soft_block": 5,
+        "extraction_bug": 2
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 4,
+        "potential_after_reenrich_7d": 4,
+        "potential_after_reenrich_14d": 5,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 2
+    },
+    "PKG": {
+      "company": "Packaging Corporation of America",
+      "sector": "Materials",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 30,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 18,
+        "hard_paywall": 1,
+        "soft_block": 2,
+        "extraction_bug": 5
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 5,
+        "potential_after_reenrich_7d": 6,
+        "potential_after_reenrich_14d": 6,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "PLD": {
+      "company": "Prologis",
+      "sector": "Real Estate",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 30,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 18,
+        "hard_paywall": 1,
+        "soft_block": 3,
+        "extraction_bug": 7
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 5,
+        "potential_after_reenrich_7d": 5,
+        "potential_after_reenrich_14d": 5,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "PNC": {
+      "company": "PNC Financial Services",
+      "sector": "Financials",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 33,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 20,
+        "hard_paywall": 2,
+        "soft_block": 3,
+        "extraction_bug": 7
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 5,
+        "potential_after_reenrich_7d": 6,
+        "potential_after_reenrich_14d": 6,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "PNR": {
+      "company": "Pentair",
+      "sector": "Industrials",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 19,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 14,
+        "hard_paywall": 2,
+        "soft_block": 0,
+        "extraction_bug": 2
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 4,
+        "potential_after_reenrich_7d": 5,
+        "potential_after_reenrich_14d": 6,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 2
+    },
+    "PNW": {
+      "company": "Pinnacle West Capital",
+      "sector": "Utilities",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 27,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 19,
+        "hard_paywall": 1,
+        "soft_block": 3,
+        "extraction_bug": 2
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 2,
+        "potential_after_reenrich_7d": 4,
+        "potential_after_reenrich_14d": 5,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "POOL": {
+      "company": "Pool Corporation",
+      "sector": "Consumer Discretionary",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 24,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 12,
+        "hard_paywall": 0,
+        "soft_block": 4,
+        "extraction_bug": 6
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 3,
+        "potential_after_reenrich_7d": 5,
+        "potential_after_reenrich_14d": 6,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "PPG": {
+      "company": "PPG Industries",
+      "sector": "Materials",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 27,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 19,
+        "hard_paywall": 3,
+        "soft_block": 4,
+        "extraction_bug": 1
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 5,
+        "potential_after_reenrich_7d": 5,
+        "potential_after_reenrich_14d": 5,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 3
+    },
+    "PPL": {
+      "company": "PPL Corporation",
+      "sector": "Utilities",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 30,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 22,
+        "hard_paywall": 0,
+        "soft_block": 1,
+        "extraction_bug": 7
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 11,
+        "potential_after_reenrich_7d": 11,
+        "potential_after_reenrich_14d": 12,
+        "reaches_3_7d": true,
+        "reaches_10_7d": true,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 0
+    },
+    "PRU": {
+      "company": "Prudential Financial",
+      "sector": "Financials",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 41,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 25,
+        "hard_paywall": 1,
+        "soft_block": 4,
+        "extraction_bug": 9
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 2,
+        "potential_after_reenrich_7d": 3,
+        "potential_after_reenrich_14d": 3,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "PSA": {
+      "company": "Public Storage",
+      "sector": "Real Estate",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 21,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 18,
+        "hard_paywall": 0,
+        "soft_block": 2,
+        "extraction_bug": 1
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 6,
+        "potential_after_reenrich_7d": 6,
+        "potential_after_reenrich_14d": 7,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "PSKY": {
+      "company": "Paramount Skydance Corporation",
+      "sector": "Communication Services",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 25,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 17,
+        "hard_paywall": 0,
+        "soft_block": 2,
+        "extraction_bug": 5
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 6,
+        "potential_after_reenrich_7d": 7,
+        "potential_after_reenrich_14d": 8,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "PSX": {
+      "company": "Phillips 66",
+      "sector": "Energy",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 40,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 29,
+        "hard_paywall": 2,
+        "soft_block": 3,
+        "extraction_bug": 6
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 8,
+        "potential_after_reenrich_7d": 8,
+        "potential_after_reenrich_14d": 8,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "PWR": {
+      "company": "Quanta Services",
+      "sector": "Industrials",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 33,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 24,
+        "hard_paywall": 1,
+        "soft_block": 0,
+        "extraction_bug": 6
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 9,
+        "potential_after_reenrich_7d": 11,
+        "potential_after_reenrich_14d": 12,
+        "reaches_3_7d": true,
+        "reaches_10_7d": true,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 1
+    },
+    "PYPL": {
+      "company": "PayPal",
+      "sector": "Financials",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 30,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 18,
+        "hard_paywall": 1,
+        "soft_block": 4,
+        "extraction_bug": 7
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 5,
+        "potential_after_reenrich_7d": 5,
+        "potential_after_reenrich_14d": 5,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "Q": {
+      "company": "Qnity Electronics",
+      "sector": "Information Technology",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 32,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 21,
+        "hard_paywall": 0,
+        "soft_block": 2,
+        "extraction_bug": 9
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 9,
+        "potential_after_reenrich_7d": 9,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "QCOM": {
+      "company": "Qualcomm",
+      "sector": "Information Technology",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 31,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 20,
+        "hard_paywall": 2,
+        "soft_block": 2,
+        "extraction_bug": 5
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 6,
+        "potential_after_reenrich_7d": 8,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "RCL": {
+      "company": "Royal Caribbean Group",
+      "sector": "Consumer Discretionary",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 35,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 20,
+        "hard_paywall": 2,
+        "soft_block": 4,
+        "extraction_bug": 6
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 7,
+        "potential_after_reenrich_7d": 9,
+        "potential_after_reenrich_14d": 10,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 1
+    },
+    "REG": {
+      "company": "Regency Centers",
+      "sector": "Real Estate",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 26,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 19,
+        "hard_paywall": 1,
+        "soft_block": 3,
+        "extraction_bug": 1
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 6,
+        "potential_after_reenrich_7d": 7,
+        "potential_after_reenrich_14d": 7,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "RF": {
+      "company": "Regions Financial Corporation",
+      "sector": "Financials",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 32,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 23,
+        "hard_paywall": 1,
+        "soft_block": 3,
+        "extraction_bug": 3
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 7,
+        "potential_after_reenrich_7d": 9,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "RL": {
+      "company": "Ralph Lauren Corporation",
+      "sector": "Consumer Discretionary",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 30,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 18,
+        "hard_paywall": 0,
+        "soft_block": 1,
+        "extraction_bug": 10
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 8,
+        "potential_after_reenrich_7d": 8,
+        "potential_after_reenrich_14d": 8,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "ROL": {
+      "company": "Rollins, Inc.",
+      "sector": "Industrials",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 34,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 27,
+        "hard_paywall": 0,
+        "soft_block": 3,
+        "extraction_bug": 4
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 7,
+        "potential_after_reenrich_7d": 7,
+        "potential_after_reenrich_14d": 7,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "ROP": {
+      "company": "Roper Technologies",
+      "sector": "Information Technology",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 34,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 20,
+        "hard_paywall": 1,
+        "soft_block": 4,
+        "extraction_bug": 8
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 4,
+        "potential_after_reenrich_7d": 5,
+        "potential_after_reenrich_14d": 5,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "ROST": {
+      "company": "Ross Stores",
+      "sector": "Consumer Discretionary",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 26,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 16,
+        "hard_paywall": 1,
+        "soft_block": 1,
+        "extraction_bug": 7
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 6,
+        "potential_after_reenrich_7d": 7,
+        "potential_after_reenrich_14d": 8,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "RSG": {
+      "company": "Republic Services",
+      "sector": "Industrials",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 31,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 22,
+        "hard_paywall": 0,
+        "soft_block": 2,
+        "extraction_bug": 7
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 9,
+        "potential_after_reenrich_7d": 9,
+        "potential_after_reenrich_14d": 9,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "SATS": {
+      "company": "EchoStar",
+      "sector": "Communication Services",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 29,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 19,
+        "hard_paywall": 0,
+        "soft_block": 1,
+        "extraction_bug": 7
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 5,
+        "potential_after_reenrich_7d": 7,
+        "potential_after_reenrich_14d": 7,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "SBAC": {
+      "company": "SBA Communications",
+      "sector": "Real Estate",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 37,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 25,
+        "hard_paywall": 2,
+        "soft_block": 6,
+        "extraction_bug": 1
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 3,
+        "potential_after_reenrich_7d": 5,
+        "potential_after_reenrich_14d": 6,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "SBUX": {
+      "company": "Starbucks",
+      "sector": "Consumer Discretionary",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 43,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 27,
+        "hard_paywall": 1,
+        "soft_block": 4,
+        "extraction_bug": 8
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 8,
+        "potential_after_reenrich_7d": 10,
+        "potential_after_reenrich_14d": 10,
+        "reaches_3_7d": true,
+        "reaches_10_7d": true,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 1
+    },
+    "SCHW": {
+      "company": "Charles Schwab Corporation",
+      "sector": "Financials",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 35,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 27,
+        "hard_paywall": 0,
+        "soft_block": 3,
+        "extraction_bug": 4
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 9,
+        "potential_after_reenrich_7d": 10,
+        "potential_after_reenrich_14d": 10,
+        "reaches_3_7d": true,
+        "reaches_10_7d": true,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 0
+    },
+    "SHW": {
+      "company": "Sherwin-Williams",
+      "sector": "Materials",
+      "finnhub_usable": 0,
+      "currently_usable": 0,
+      "db_articles_7d": 32,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 22,
+        "hard_paywall": 0,
+        "soft_block": 5,
+        "extraction_bug": 5
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 6,
+        "potential_after_reenrich_7d": 6,
+        "potential_after_reenrich_14d": 7,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "SLB": {
+      "company": "Schlumberger",
+      "sector": "Energy",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 30,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 20,
+        "hard_paywall": 0,
+        "soft_block": 1,
+        "extraction_bug": 7
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 8,
+        "potential_after_reenrich_7d": 10,
+        "potential_after_reenrich_14d": 10,
+        "reaches_3_7d": true,
+        "reaches_10_7d": true,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 0
+    },
+    "SNA": {
+      "company": "Snap-on",
+      "sector": "Industrials",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 27,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 21,
+        "hard_paywall": 0,
+        "soft_block": 2,
+        "extraction_bug": 2
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 6,
+        "potential_after_reenrich_7d": 7,
+        "potential_after_reenrich_14d": 7,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "SNPS": {
+      "company": "Synopsys",
+      "sector": "Information Technology",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 28,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 19,
+        "hard_paywall": 0,
+        "soft_block": 0,
+        "extraction_bug": 6
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 6,
+        "potential_after_reenrich_7d": 8,
+        "potential_after_reenrich_14d": 8,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "STLD": {
+      "company": "Steel Dynamics",
+      "sector": "Materials",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 28,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 16,
+        "hard_paywall": 1,
+        "soft_block": 3,
+        "extraction_bug": 6
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 4,
+        "potential_after_reenrich_7d": 6,
+        "potential_after_reenrich_14d": 6,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "STZ": {
+      "company": "Constellation Brands",
+      "sector": "Consumer Staples",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 28,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 18,
+        "hard_paywall": 3,
+        "soft_block": 1,
+        "extraction_bug": 5
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 4,
+        "potential_after_reenrich_7d": 5,
+        "potential_after_reenrich_14d": 6,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "SWKS": {
+      "company": "Skyworks Solutions",
+      "sector": "Information Technology",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 39,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 28,
+        "hard_paywall": 1,
+        "soft_block": 2,
+        "extraction_bug": 6
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 9,
+        "potential_after_reenrich_7d": 11,
+        "potential_after_reenrich_14d": 11,
+        "reaches_3_7d": true,
+        "reaches_10_7d": true,
+        "reaches_10_14d": true
+      },
+      "paywall_headlines": 1
+    },
+    "SYF": {
+      "company": "Synchrony Financial",
+      "sector": "Financials",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 26,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 16,
+        "hard_paywall": 2,
+        "soft_block": 3,
+        "extraction_bug": 3
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 3,
+        "potential_after_reenrich_7d": 5,
+        "potential_after_reenrich_14d": 5,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 2
+    },
+    "TAP": {
+      "company": "Molson Coors Beverage Company",
+      "sector": "Consumer Staples",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 21,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 11,
+        "hard_paywall": 3,
+        "soft_block": 2,
+        "extraction_bug": 3
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 1,
+        "potential_after_reenrich_7d": 3,
+        "potential_after_reenrich_14d": 4,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "TDY": {
+      "company": "Teledyne Technologies",
+      "sector": "Information Technology",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 27,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 14,
+        "hard_paywall": 1,
+        "soft_block": 5,
+        "extraction_bug": 4
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 3,
+        "potential_after_reenrich_7d": 5,
+        "potential_after_reenrich_14d": 7,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "TGT": {
+      "company": "Target Corporation",
+      "sector": "Consumer Staples",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 34,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 18,
+        "hard_paywall": 1,
+        "soft_block": 6,
+        "extraction_bug": 6
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 4,
+        "potential_after_reenrich_7d": 6,
+        "potential_after_reenrich_14d": 7,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "TMO": {
+      "company": "Thermo Fisher Scientific",
+      "sector": "Health Care",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 35,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 23,
+        "hard_paywall": 1,
+        "soft_block": 3,
+        "extraction_bug": 6
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 6,
+        "potential_after_reenrich_7d": 8,
+        "potential_after_reenrich_14d": 8,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "TPL": {
+      "company": "Texas Pacific Land Corporation",
+      "sector": "Energy",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 37,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 27,
+        "hard_paywall": 1,
+        "soft_block": 1,
+        "extraction_bug": 7
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 5,
+        "potential_after_reenrich_7d": 6,
+        "potential_after_reenrich_14d": 6,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "UDR": {
+      "company": "UDR, Inc.",
+      "sector": "Real Estate",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 23,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 15,
+        "hard_paywall": 1,
+        "soft_block": 2,
+        "extraction_bug": 3
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 3,
+        "potential_after_reenrich_7d": 5,
+        "potential_after_reenrich_14d": 5,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "UPS": {
+      "company": "United Parcel Service",
+      "sector": "Industrials",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 34,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 21,
+        "hard_paywall": 0,
+        "soft_block": 2,
+        "extraction_bug": 9
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 5,
+        "potential_after_reenrich_7d": 7,
+        "potential_after_reenrich_14d": 7,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 0
+    },
+    "VRSK": {
+      "company": "Verisk Analytics",
+      "sector": "Industrials",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 33,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 19,
+        "hard_paywall": 1,
+        "soft_block": 3,
+        "extraction_bug": 7
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 5,
+        "potential_after_reenrich_7d": 7,
+        "potential_after_reenrich_14d": 8,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    },
+    "VRSN": {
+      "company": "Verisign",
+      "sector": "Information Technology",
+      "finnhub_usable": 2,
+      "currently_usable": 2,
+      "db_articles_7d": 15,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 8,
+        "hard_paywall": 2,
+        "soft_block": 2,
+        "extraction_bug": 1
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 1,
+        "potential_after_reenrich_7d": 3,
+        "potential_after_reenrich_14d": 4,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 2
+    },
+    "WRB": {
+      "company": "W. R. Berkley Corporation",
+      "sector": "Financials",
+      "finnhub_usable": 1,
+      "currently_usable": 1,
+      "db_articles_7d": 21,
+      "primary_failure": "enrichment_incomplete",
+      "article_breakdown": {
+        "enrichment_incomplete": 13,
+        "hard_paywall": 1,
+        "soft_block": 1,
+        "extraction_bug": 5
+      },
+      "recovery": {
+        "recoverable_bodies_7d": 3,
+        "potential_after_reenrich_7d": 4,
+        "potential_after_reenrich_14d": 4,
+        "reaches_3_7d": true,
+        "reaches_10_7d": false,
+        "reaches_10_14d": false
+      },
+      "paywall_headlines": 1
+    }
+  }
+}
