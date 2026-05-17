@@ -283,7 +283,9 @@ async def enrich_and_store_article(
     event_hash = _compute_event_hash(ticker, resolved_url or url, headline)
     canonical_url = resolved_url or url
 
-    # When skip_existing=True: skip the whole row if it exists.
+    # When skip_existing=True: skip the row only if it is FULLY ENRICHED
+    # (sentiment_score IS NOT NULL). Rows that exist but have no sentiment are
+    # extraction-complete but LLM-incomplete — they must be re-enriched, not skipped.
     # When skip_existing=False: fetch existing row to seed LLM fields so we never
     # overwrite non-null sentiment_score / tldr / what_it_means with a weaker pass.
     existing_llm: dict[str, Any] = {}
@@ -291,14 +293,19 @@ async def enrich_and_store_article(
         try:
             existing = (
                 supabase.table("shared_ticker_events")
-                .select("id")
+                .select("id,sentiment_score,sentiment_reason,impact_tag,tldr,what_it_means,key_implications")
                 .eq("ticker", ticker)
                 .eq("event_hash", event_hash)
                 .limit(1)
                 .execute()
             )
             if existing.data:
-                return existing.data[0]
+                row = existing.data[0]
+                if row.get("sentiment_score") is not None:
+                    # Fully enriched — skip
+                    return row
+                # Exists but unenriched — fall through to re-enrich, seeding existing LLM fields
+                existing_llm = row
         except Exception:
             pass
     else:
@@ -475,14 +482,20 @@ async def enrich_and_store_articles_batch(
         def _batch_lookup():
             return (
                 supabase.table("shared_ticker_events")
-                .select("event_hash")
+                .select("event_hash,sentiment_score")
                 .in_("event_hash", list(hash_map.keys()))
                 .execute()
                 .data or []
             )
         try:
             existing_rows = await asyncio.to_thread(_batch_lookup)
-            existing_hashes = {r["event_hash"] for r in existing_rows}
+            # Only skip rows that are FULLY enriched (sentiment_score is set).
+            # Rows that exist but have sentiment_score=NULL were extracted without LLM
+            # enrichment and must be re-processed — not skipped.
+            existing_hashes = {
+                r["event_hash"] for r in existing_rows
+                if r.get("sentiment_score") is not None
+            }
         except Exception:
             existing_hashes = set()
 

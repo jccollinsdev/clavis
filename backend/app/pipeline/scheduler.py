@@ -5206,26 +5206,38 @@ async def _run_bulk_sentiment_enrichment() -> None:
     supabase = get_supabase()
     try:
         cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+        # Filter to extraction-success rows with real bodies only — avoids wasting
+        # LLM budget on failed/paywalled/headline-only rows that cannot be enriched.
         rows = (
             supabase.table("shared_ticker_events")
             .select("*")
+            .eq("extraction_status", "success")
+            .gte("body_length", 300)
             .gte("published_at", cutoff)
             .is_("sentiment_score", "null")
+            .is_("rejection_reason", "null")
             .order("published_at", desc=True)
-            .limit(200)
+            .limit(500)
             .execute()
             .data
             or []
         )
+        # Client-side guard: skip paywalled / headline-only rows
+        rows = [
+            r for r in rows
+            if not r.get("paywalled")
+            and not r.get("paywall_detected")
+            and not r.get("headline_only")
+        ]
         if not rows:
-            logger.info("[BULK_ENRICH] No unenriched articles found.")
+            logger.info("[BULK_ENRICH] No unenriched body-complete articles found.")
             return
 
-        logger.info("[BULK_ENRICH] Enriching %d articles missing sentiment.", len(rows))
+        logger.info("[BULK_ENRICH] Enriching %d body-complete articles missing sentiment.", len(rows))
         stored = await enrich_and_store_articles_batch(
             supabase,
             rows,
-            max_concurrency=3,
+            max_concurrency=4,
             skip_existing=False,
         )
         logger.info("[BULK_ENRICH] Enrichment complete: %d articles updated.", len(stored))
