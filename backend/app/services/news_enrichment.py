@@ -2,10 +2,16 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import os
 import re
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Any
+
+# Finnhub-first pipeline settings
+NEWS_PRIMARY_PROVIDER: str = "finnhub"
+GOOGLE_NEWS_FALLBACK_ENABLED: bool = os.getenv("GOOGLE_NEWS_FALLBACK_ENABLED", "true").lower() not in {"0", "false", "no", "off"}
+GOOGLE_FALLBACK_MIN_USABLE_ARTICLES: int = int(os.getenv("GOOGLE_FALLBACK_MIN_USABLE_ARTICLES", "3"))
 
 from .article_scraper import (
     _extract_with_trafilatura,
@@ -451,55 +457,107 @@ async def ingest_and_enrich_ticker_news(
     limit_per_ticker: int = 10,
     max_concurrency: int = 3,
 ) -> dict[str, int]:
-    """Fetch Google News RSS for each ticker, extract article bodies, run LLM
-    sentiment + TLDR, and write to shared_ticker_events.
+    """Finnhub-first news ingestion: fetch → filter → extract → score → store.
 
-    This is the direct ingest path (Layer 2 fix) — it does NOT require a full
-    analysis run.  Articles that already exist (by event_hash) are left alone
-    unless their LLM fields are missing.
+    Primary: Finnhub company-news (7-day window) with inline body extraction.
+    Fallback: Google News RSS, only for tickers with < GOOGLE_FALLBACK_MIN_USABLE_ARTICLES
+    usable 7-day articles after Finnhub enrichment.
 
     Returns: dict of {ticker: articles_stored}.
     """
-    from ..pipeline.rss_ingest import fetch_google_company_rss
+    from ..pipeline.finnhub_news import fetch_finnhub_ticker_news
     from ..pipeline.news_normalizer import normalize_news_batch
+    from .article_scraper import enrich_articles_content
+    from .candidate_ranker import rank_and_filter_candidates
     from .ticker_cache_service import get_metadata_map
 
     if not tickers:
         return {}
 
-    metadata_map = get_metadata_map(supabase, tickers)
+    results: dict[str, int] = {}
 
-    raw = await fetch_google_company_rss(
-        tickers,
+    # ── 1. Finnhub primary ────────────────────────────────────────────────────
+    per_ticker_raw, _ = await fetch_finnhub_ticker_news(
+        tickers, days=7, limit_per_ticker=limit_per_ticker
+    )
+    all_finnhub = [a for arts in per_ticker_raw.values() for a in arts]
+
+    # Filter by domain policy before spending extraction budget
+    filtered_finnhub = rank_and_filter_candidates(all_finnhub, skip_score_below=15.0)
+
+    # Extract article bodies from Finnhub URLs
+    if filtered_finnhub:
+        extracted_finnhub = await enrich_articles_content(
+            filtered_finnhub, max_concurrency=max_concurrency
+        )
+    else:
+        extracted_finnhub = []
+
+    # Store + LLM score
+    finnhub_stored = await enrich_and_store_articles_batch(
+        supabase, extracted_finnhub, max_concurrency=max_concurrency, skip_existing=True
+    )
+    for article in finnhub_stored:
+        t = str(article.get("ticker") or "").strip().upper()
+        if t in tickers:
+            results[t] = results.get(t, 0) + 1
+
+    # ── 2. Google fallback ────────────────────────────────────────────────────
+    if not GOOGLE_NEWS_FALLBACK_ENABLED:
+        return results
+
+    # Query DB for usable 7-day counts per ticker
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+    try:
+        rows = (
+            supabase.table("shared_ticker_events")
+            .select("ticker,extraction_status,paywalled,sentiment_score")
+            .in_("ticker", list(tickers))
+            .gte("published_at", cutoff)
+            .execute()
+            .data or []
+        )
+    except Exception:
+        rows = []
+
+    usable_by_ticker: dict[str, int] = {}
+    for row in rows:
+        t = str(row.get("ticker") or "").upper()
+        if (
+            row.get("extraction_status") == "success"
+            and not row.get("paywalled", False)
+            and row.get("sentiment_score") is not None
+        ):
+            usable_by_ticker[t] = usable_by_ticker.get(t, 0) + 1
+
+    fallback_tickers = [
+        t for t in tickers
+        if usable_by_ticker.get(t, 0) < GOOGLE_FALLBACK_MIN_USABLE_ARTICLES
+    ]
+
+    if not fallback_tickers:
+        return results
+
+    logger.info(
+        "[NEWS] Google fallback for %d tickers (need more usable): %s",
+        len(fallback_tickers), fallback_tickers,
+    )
+
+    from ..pipeline.rss_ingest import fetch_google_company_rss
+
+    metadata_map = get_metadata_map(supabase, fallback_tickers)
+    google_raw = await fetch_google_company_rss(
+        fallback_tickers,
         ticker_metadata=metadata_map,
         limit_per_ticker=limit_per_ticker,
     )
-    normalized = normalize_news_batch(raw, "company_news")
-
-    # group by ticker so we can track per-ticker counts
-    by_ticker: dict[str, list[dict]] = {}
-    for article in normalized:
+    google_normalized = normalize_news_batch(google_raw, "company_news") if google_raw else []
+    google_stored = await enrich_and_store_articles_batch(
+        supabase, google_normalized, max_concurrency=max_concurrency, skip_existing=True
+    )
+    for article in google_stored:
         t = str(article.get("ticker") or "").strip().upper()
         if t in tickers:
-            by_ticker.setdefault(t, []).append(article)
-
-    results: dict[str, int] = {}
-    sem = asyncio.Semaphore(max_concurrency)
-
-    async def _ingest_ticker(ticker: str, articles: list[dict]) -> int:
-        async with sem:
-            stored = await enrich_and_store_articles_batch(
-                supabase,
-                articles,
-                max_concurrency=2,
-                skip_existing=True,
-            )
-            return len(stored)
-
-    counts = await asyncio.gather(
-        *(_ingest_ticker(t, arts) for t, arts in by_ticker.items())
-    )
-    for ticker, count in zip(by_ticker.keys(), counts):
-        results[ticker] = count
+            results[t] = results.get(t, 0) + 1
 
     return results

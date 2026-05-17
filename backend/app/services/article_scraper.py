@@ -962,6 +962,7 @@ async def enrich_article_content(
 
     try:
         proxy_failure_reason = ""
+        proxy_evaluation = None
         if not _is_google_wrapper(url, ""):
             try:
                 proxy_text = await _fetch_proxy_text(url, client)
