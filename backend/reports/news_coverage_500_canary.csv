@@ -1,0 +1,505 @@
+ticker,company_name,sector,industry,finnhub_raw,finnhub_deduped,finnhub_relevant,extraction_attempted,extraction_success,jina_success,trafilatura_success,newspaper4k_success,blocked_urls,paywalled_urls,extraction_fail,enriched_complete,db_usable_before,db_usable_after,new_usable_added,usable_7d,news_status,top_failure_reason,finnhub_429,google_used,google_added_usable,batch_num
+AMD,Advanced Micro Devices,Information Technology,Semiconductors,243,10,10,10,9,5,0,4,0,0,1,0,75,75,0,75,scored,blocked_domains,False,False,0,2
+GOOG,Alphabet Inc.,Communication Services,Interactive Media & Services,246,10,10,10,10,9,0,1,0,0,0,1,70,74,4,74,scored,none,False,False,0,9
+GOOGL,Alphabet Inc.,Communication Services,Interactive Media & Services,245,10,10,10,10,9,0,1,0,0,0,0,59,61,2,61,scored,none,False,False,0,9
+AMZN,Amazon,Consumer Discretionary,Broadline Retail,243,10,10,10,10,7,0,3,0,0,0,3,54,57,3,57,scored,none,False,False,0,2
+ADBE,Adobe Inc.,Information Technology,Application Software,38,10,10,10,8,7,0,1,0,0,2,0,39,39,0,39,scored,blocked_domains,False,False,0,1
+AKAM,Akamai Technologies,Information Technology,Internet Services & Infrastructure,51,10,10,10,9,8,0,1,0,0,1,0,34,34,0,34,scored,blocked_domains,False,False,0,1
+ABNB,Airbnb,Consumer Discretionary,"Hotels, Resorts & Cruise Lines",32,10,10,10,10,8,0,0,0,0,0,1,32,33,1,33,scored,none,False,False,0,1
+ABT,Abbott Laboratories,Health Care,Health Care Equipment,27,10,10,10,9,9,0,0,0,0,1,0,28,28,0,28,scored,blocked_domains,False,False,0,1
+ACN,Accenture,Information Technology,IT Consulting & Other Services,40,10,10,10,8,7,0,1,0,0,2,0,27,27,0,27,scored,blocked_domains,False,False,0,1
+ALB,Albemarle Corporation,Materials,Specialty Chemicals,24,10,10,10,9,9,0,0,0,0,1,0,24,24,0,24,scored,blocked_domains,False,False,0,1
+ABBV,AbbVie,Health Care,Biotechnology,35,10,10,10,10,10,0,0,0,0,0,0,23,23,0,23,scored,none,False,False,0,1
+AAPL,Apple Inc.,Information Technology,"Technology Hardware, Storage & Peripherals",238,10,10,10,10,8,0,2,0,0,0,1,20,22,2,22,scored,none,False,False,0,1
+NVDA,Nvidia,Information Technology,Semiconductors,249,10,10,10,9,6,0,3,0,0,1,0,21,21,0,21,scored,blocked_domains,False,False,0,14
+BRO,Brown & Brown,Financials,Insurance Brokers,6,6,6,6,4,4,0,0,0,0,2,0,18,18,0,18,scored,blocked_domains,False,False,0,3
+FOX,Fox Corporation,Communication Services,Broadcasting,37,10,10,10,7,5,0,2,0,0,3,6,13,17,4,17,scored,blocked_domains,False,False,0,8
+MO,Altria,Consumer Staples,Tobacco,18,10,10,10,7,7,0,0,0,0,3,5,17,17,0,17,scored,blocked_domains,False,False,0,13
+AES,AES Corporation,Utilities,Independent Power Producers & Energy Traders,8,8,8,8,7,4,0,3,0,0,1,0,16,16,0,16,scored,blocked_domains,False,False,0,1
+CHD,Church & Dwight,Consumer Staples,Household Products,5,5,5,5,5,5,0,0,0,0,0,2,14,16,2,16,scored,none,False,False,0,4
+T,AT&T,Communication Services,Integrated Telecommunication Services,51,10,10,10,10,8,0,2,0,0,0,0,16,16,0,16,scored,none,False,False,0,18
+ALLE,Allegion,Industrials,Building Products,13,10,9,9,8,6,0,2,0,0,1,0,15,15,0,15,scored,blocked_domains,False,False,0,1
+MTB,M&T Bank,Financials,Regional Banks,4,4,4,4,3,3,0,0,0,0,1,2,14,15,1,15,scored,blocked_domains,False,False,0,13
+PCG,PG&E Corporation,Utilities,Multi-Utilities,9,9,9,9,9,9,0,0,0,0,0,0,15,15,0,15,scored,none,False,False,0,15
+ALL,Allstate,Financials,Property & Casualty Insurance,11,10,9,9,7,7,0,0,0,0,2,0,14,14,0,14,scored,blocked_domains,False,False,0,1
+ALGN,Align Technology,Health Care,Health Care Supplies,5,5,5,5,5,5,0,0,0,0,0,0,13,13,0,13,scored,none,False,False,0,1
+C,Citigroup,Financials,Diversified Banks,98,10,10,10,10,8,0,2,0,0,0,3,10,13,3,13,scored,none,False,False,0,3
+MMM,3M,Industrials,Industrial Conglomerates,12,10,10,10,7,7,0,0,0,0,3,1,13,13,0,13,scored,blocked_domains,False,False,0,13
+AMCR,Amcor,Materials,Paper & Plastic Packaging Products & Materials,8,8,8,8,6,6,0,0,0,0,2,0,12,12,0,12,scored,blocked_domains,False,False,0,2
+AOS,A. O. Smith,Industrials,Building Products,10,10,10,10,8,8,0,0,0,0,2,0,12,12,0,12,scored,blocked_domains,False,False,0,2
+BR,Broadridge Financial Solutions,Industrials,Data Processing & Outsourced Services,19,10,10,10,9,9,0,0,0,0,1,0,12,12,0,12,scored,blocked_domains,False,False,0,3
+FOXA,Fox Corporation,Communication Services,Broadcasting,43,10,10,10,8,6,0,2,0,0,2,5,10,12,2,12,scored,blocked_domains,False,False,0,8
+JNJ,Johnson & Johnson,Health Care,Pharmaceuticals,59,10,10,10,9,9,0,0,0,0,1,6,8,12,4,12,scored,blocked_domains,False,False,0,11
+KKR,KKR & Co.,Financials,Asset Management & Custody Banks,35,10,10,10,10,9,0,1,0,0,0,6,9,12,3,12,scored,none,False,False,0,11
+AEE,Ameren,Utilities,Multi-Utilities,6,6,6,6,5,5,0,0,0,0,1,0,11,11,0,11,scored,none,False,False,0,1
+AFL,Aflac,Financials,Life & Health Insurance,9,9,9,9,8,8,0,0,0,0,1,0,12,11,0,11,scored,blocked_domains,False,False,0,1
+APH,Amphenol,Information Technology,Electronic Components,25,10,10,10,10,10,0,0,0,0,0,0,11,11,0,11,scored,none,False,False,0,2
+BLK,BlackRock,Financials,Asset Management & Custody Banks,84,10,10,10,10,10,0,0,0,0,0,1,10,11,1,11,scored,none,False,False,0,3
+CARR,Carrier Global,Industrials,Building Products,11,10,10,10,9,9,0,0,0,0,1,0,11,11,0,11,scored,blocked_domains,False,False,0,4
+CRM,Salesforce,Information Technology,Application Software,91,10,10,10,10,8,0,2,0,0,0,3,8,11,3,11,scored,none,False,False,0,5
+CTSH,Cognizant,Information Technology,IT Consulting & Other Services,12,10,10,10,10,9,0,1,0,0,0,4,7,11,4,11,scored,none,False,False,0,5
+EG,Everest Group,Financials,Reinsurance,7,7,7,7,7,7,0,0,0,0,0,4,7,11,4,11,scored,none,False,False,0,7
+A,Agilent Technologies,Health Care,Life Sciences Tools & Services,7,7,7,7,7,6,0,0,0,0,0,0,10,10,0,10,scored,none,False,False,0,1
+AIG,American International Group,Financials,Multi-line Insurance,7,7,7,7,6,6,0,0,0,0,1,0,10,10,0,10,scored,blocked_domains,False,False,0,1
+AON,Aon plc,Financials,Insurance Brokers,15,10,9,9,8,6,0,2,0,0,1,0,10,10,0,10,scored,blocked_domains,False,False,0,2
+BK,BNY Mellon,Financials,Asset Management & Custody Banks,9,9,9,9,8,8,0,0,0,0,1,0,10,10,0,10,scored,blocked_domains,False,False,0,3
+CI,Cigna,Health Care,Health Care Services,11,10,10,10,9,8,0,1,0,0,1,0,10,10,0,10,scored,blocked_domains,False,False,0,4
+COR,Cencora,Health Care,Health Care Distributors,10,10,9,9,8,7,0,1,0,0,1,7,4,10,6,10,scored,blocked_domains,False,False,0,5
+CVS,CVS Health,Health Care,Health Care Services,43,10,9,9,9,8,0,1,0,0,0,3,8,10,2,10,scored,none,False,False,0,6
+DELL,Dell Technologies,Information Technology,"Technology Hardware, Storage & Peripherals",80,10,10,10,10,9,0,1,0,0,0,3,7,10,3,10,scored,none,False,False,0,6
+DOW,Dow Inc.,Materials,Commodity Chemicals,13,10,10,10,7,7,0,0,0,0,3,5,7,10,3,10,scored,blocked_domains,False,False,0,6
+DUK,Duke Energy,Utilities,Electric Utilities,18,10,10,10,10,9,0,1,0,0,0,5,5,10,5,10,scored,none,False,False,0,7
+EME,Emcor,Industrials,Construction & Engineering,19,10,10,10,10,8,0,2,0,0,0,4,6,10,4,10,scored,none,False,False,0,7
+EOG,EOG Resources,Energy,Oil & Gas Exploration & Production,15,10,10,10,9,8,0,1,0,0,1,6,7,10,3,10,scored,blocked_domains,False,False,0,7
+ES,Eversource Energy,Utilities,Electric Utilities,10,10,10,10,9,9,0,0,0,0,1,4,7,10,3,10,scored,blocked_domains,False,False,0,7
+ETN,Eaton Corporation,Industrials,Electrical Components & Equipment,21,10,9,9,9,8,0,1,0,0,0,2,8,10,2,10,scored,none,False,False,0,7
+FRT,Federal Realty Investment Trust,Real Estate,Retail REITs,8,8,8,8,6,5,0,1,0,0,2,5,7,10,3,10,scored,blocked_domains,False,False,0,8
+GE,GE Aerospace,Industrials,Aerospace & Defense,46,10,10,10,9,9,0,0,0,0,1,5,7,10,3,10,scored,blocked_domains,False,False,0,9
+SPGI,S&P Global,Financials,Financial Exchanges & Data,37,10,10,10,8,6,0,2,0,0,2,0,10,10,0,10,scored,blocked_domains,False,False,0,17
+AIZ,Assurant,Financials,Multi-line Insurance,11,10,10,10,9,8,0,1,0,0,1,0,9,9,0,9,scored,blocked_domains,False,False,0,1
+APO,Apollo Global Management,Financials,Asset Management & Custody Banks,52,10,10,10,10,9,0,1,0,0,0,0,9,9,0,9,scored,none,False,False,0,2
+AWK,American Water Works,Utilities,Water Utilities,19,10,10,10,10,10,0,0,0,0,0,0,9,9,0,9,scored,none,False,False,0,2
+AXP,American Express,Financials,Consumer Finance,47,10,9,9,9,9,0,0,0,0,0,0,9,9,0,9,scored,none,False,False,0,2
+BEN,Franklin Resources,Financials,Asset Management & Custody Banks,15,10,10,10,9,8,0,1,0,0,1,0,9,9,0,9,scored,blocked_domains,False,False,0,3
+CEG,Constellation Energy,Utilities,Electric Utilities,79,10,10,10,8,8,0,0,0,0,2,0,9,9,0,9,scored,blocked_domains,False,False,0,4
+CPT,Camden Property Trust,Real Estate,Multi-Family Residential REITs,11,10,10,10,9,7,0,2,0,0,1,5,5,9,4,9,scored,blocked_domains,False,False,0,5
+CRWD,CrowdStrike,Information Technology,Systems Software,44,10,10,10,9,9,0,0,0,0,1,5,6,9,3,9,scored,blocked_domains,False,False,0,5
+EXC,Exelon,Utilities,Electric Utilities,11,10,10,10,10,10,0,0,0,0,0,3,7,9,2,9,scored,none,False,False,0,8
+EXPE,Expedia Group,Consumer Discretionary,"Hotels, Resorts & Cruise Lines",19,10,10,10,10,10,0,0,0,0,0,5,4,9,5,9,scored,none,False,False,0,8
+F,Ford Motor Company,Consumer Discretionary,Automobile Manufacturers,137,10,10,10,9,9,0,0,0,0,1,2,7,9,2,9,scored,blocked_domains,False,False,0,8
+INTC,Intel,Information Technology,Semiconductors,250,10,10,10,10,1,0,9,0,0,0,2,7,9,2,9,scored,none,False,False,0,10
+KEY,KeyCorp,Financials,Regional Banks,14,10,10,10,8,6,0,2,0,0,2,7,5,9,4,9,scored,blocked_domains,False,False,0,11
+MRSH,Marsh McLennan,Financials,Insurance Brokers,5,5,5,5,5,5,0,0,0,0,0,0,9,9,0,9,scored,none,False,False,0,13
+TKO,TKO Group Holdings,Communication Services,Movies & Entertainment,6,6,6,6,6,6,0,0,0,0,0,0,9,9,0,9,scored,none,False,False,0,18
+TSLA,"Tesla, Inc.",Consumer Discretionary,Automobile Manufacturers,229,10,10,10,9,7,0,2,0,0,1,0,9,9,0,9,scored,blocked_domains,False,False,0,18
+AMP,Ameriprise Financial,Financials,Asset Management & Custody Banks,10,10,10,10,8,8,0,0,0,0,2,0,8,8,0,8,scored,blocked_domains,False,False,0,2
+ANET,Arista Networks,Information Technology,Communications Equipment,41,10,10,10,9,7,0,2,0,0,1,0,8,8,0,8,scored,blocked_domains,False,False,0,2
+APA,APA Corporation,Energy,Oil & Gas Exploration & Production,13,10,10,10,9,9,0,0,0,0,1,0,8,8,0,8,scored,blocked_domains,False,False,0,2
+AVGO,Broadcom,Information Technology,Semiconductors,169,10,10,10,8,5,0,3,0,0,2,0,8,8,0,8,scored,blocked_domains,False,False,0,2
+AXON,Axon Enterprise,Industrials,Aerospace & Defense,12,10,10,10,9,9,0,0,0,0,1,0,8,8,0,8,scored,blocked_domains,False,False,0,2
+BA,Boeing,Industrials,Aerospace & Defense,231,10,10,10,9,7,0,2,0,0,1,0,8,8,0,8,scored,blocked_domains,False,False,0,3
+BAC,Bank of America,Financials,Diversified Banks,101,10,10,10,10,6,0,4,0,0,0,0,8,8,0,8,scored,none,False,False,0,3
+BIIB,Biogen,Health Care,Biotechnology,45,10,10,10,9,9,0,0,0,0,1,0,8,8,0,8,scored,blocked_domains,False,False,0,3
+CAT,Caterpillar Inc.,Industrials,Construction Machinery & Heavy Transportation Equipment,55,10,10,10,7,6,0,1,0,0,3,0,8,8,0,8,scored,blocked_domains,False,False,0,4
+CBOE,Cboe Global Markets,Financials,Financial Exchanges & Data,42,10,9,9,9,9,0,0,0,0,0,0,8,8,0,8,scored,none,False,False,0,4
+CBRE,CBRE Group,Real Estate,Real Estate Services,7,7,7,7,6,6,0,0,0,0,1,0,8,8,0,8,scored,blocked_domains,False,False,0,4
+CME,CME Group,Financials,Financial Exchanges & Data,56,10,10,10,10,7,0,3,0,0,0,0,8,8,0,8,scored,none,False,False,0,4
+COST,Costco,Consumer Staples,Consumer Staples Merchandise Retail,58,10,10,10,5,5,0,0,0,0,5,5,5,8,3,8,scored,blocked_domains,False,False,0,5
+CPAY,Corpay,Financials,Transaction & Payment Processing Services,10,10,10,10,7,7,0,0,0,0,3,7,5,8,3,8,scored,blocked_domains,False,False,0,5
+CRL,Charles River Laboratories,Health Care,Life Sciences Tools & Services,10,10,10,10,9,9,0,0,0,0,1,3,6,8,2,8,scored,blocked_domains,False,False,0,5
+DE,Deere & Company,Industrials,Agricultural & Farm Machinery,23,10,10,10,7,6,0,1,0,0,3,5,5,8,3,8,scored,blocked_domains,False,False,0,6
+DG,Dollar General,Consumer Staples,Consumer Staples Merchandise Retail,20,10,10,10,8,7,0,1,0,0,2,4,5,8,3,8,scored,blocked_domains,False,False,0,6
+DOV,Dover Corporation,Industrials,Industrial Machinery & Supplies & Components,2,2,2,2,2,2,0,0,0,0,0,0,8,8,0,8,scored,none,False,False,0,6
+ED,Consolidated Edison,Utilities,Multi-Utilities,9,9,9,9,8,8,0,0,0,0,1,3,5,8,3,8,scored,blocked_domains,False,False,0,7
+EW,Edwards Lifesciences,Health Care,Health Care Equipment,6,6,6,6,4,4,0,0,0,0,2,3,7,8,1,8,scored,blocked_domains,False,False,0,8
+FDS,FactSet,Financials,Financial Exchanges & Data,55,10,10,10,9,6,0,3,0,0,1,7,4,8,4,8,scored,blocked_domains,False,False,0,8
+GD,General Dynamics,Industrials,Aerospace & Defense,15,10,10,10,10,8,0,2,0,0,0,3,6,8,2,8,scored,none,False,False,0,9
+IRM,Iron Mountain,Real Estate,Other Specialized REITs,10,10,10,10,6,6,0,0,0,0,4,5,6,8,2,8,scored,blocked_domains,False,False,0,11
+META,Meta Platforms,Communication Services,Interactive Media & Services,245,10,10,10,9,9,0,0,0,0,1,1,8,8,0,8,scored,blocked_domains,False,False,0,13
+MU,Micron Technology,Information Technology,Semiconductors,239,10,10,10,9,7,0,2,0,0,1,3,6,8,2,8,scored,blocked_domains,False,False,0,13
+NWSA,News Corp,Communication Services,Publishing,15,10,10,10,10,10,0,0,0,0,0,0,8,8,0,8,scored,none,False,False,0,14
+PG,Procter & Gamble,Consumer Staples,Personal Care Products,38,10,10,10,10,6,0,4,0,0,0,0,8,8,0,8,scored,none,False,False,0,15
+TFC,Truist Financial,Financials,Diversified Banks,33,10,10,10,10,10,0,0,0,0,0,0,8,8,0,8,scored,none,False,False,0,18
+TTD,Trade Desk (The),Communication Services,Advertising,43,10,10,10,10,10,0,0,0,0,0,0,8,8,0,8,scored,none,False,False,0,19
+VRT,Vertiv,Industrials,Electrical Components & Equipment,66,10,10,10,9,9,0,0,0,0,1,0,8,8,0,8,scored,blocked_domains,False,False,0,19
+VST,Vistra Corp,Utilities,Electric Utilities,25,10,10,10,9,9,0,0,0,0,1,0,8,8,0,8,scored,blocked_domains,False,False,0,20
+WFC,Wells Fargo,Financials,Diversified Banks,44,10,10,10,9,9,0,0,0,0,1,0,8,8,0,8,scored,blocked_domains,False,False,0,20
+ADSK,Autodesk,Information Technology,Application Software,23,10,10,10,8,8,0,0,0,0,2,0,7,7,0,7,scored,blocked_domains,False,False,0,1
+AEP,American Electric Power,Utilities,Electric Utilities,28,10,10,10,10,7,0,3,0,0,0,0,7,7,0,7,scored,none,False,False,0,1
+AMGN,Amgen,Health Care,Biotechnology,24,10,10,10,10,8,0,2,0,0,0,0,7,7,0,7,scored,none,False,False,0,2
+APP,AppLovin,Information Technology,Application Software,44,10,8,8,7,7,0,0,0,0,1,0,7,7,0,7,scored,blocked_domains,False,False,0,2
+AZO,AutoZone,Consumer Discretionary,Automotive Retail,5,5,5,5,5,5,0,0,0,0,0,0,7,7,0,7,scored,none,False,False,0,3
+BDX,Becton Dickinson,Health Care,Health Care Equipment,10,10,10,10,8,8,0,0,0,0,2,0,7,7,0,7,scored,blocked_domains,False,False,0,3
+BRK.B,Berkshire Hathaway,Financials,Multi-Sector Holdings,10,10,10,10,6,3,0,3,0,0,4,0,7,7,0,7,scored,blocked_domains,False,False,0,3
+BX,Blackstone Inc.,Financials,Asset Management & Custody Banks,78,10,10,10,9,8,0,1,0,0,1,0,7,7,0,7,scored,blocked_domains,False,False,0,3
+BXP,"BXP, Inc.",Real Estate,Office REITs,3,3,3,3,3,3,0,0,0,0,0,0,7,7,0,7,scored,none,False,False,0,3
+CCI,Crown Castle,Real Estate,Telecom Tower REITs,5,5,5,5,2,0,0,2,0,0,3,0,7,7,0,7,scored,blocked_domains,False,False,0,4
+CF,CF Industries,Materials,Fertilizers & Agricultural Chemicals,23,10,10,10,10,9,0,1,0,0,0,0,7,7,0,7,scored,none,False,False,0,4
+CHRW,C.H. Robinson,Industrials,Air Freight & Logistics,17,10,10,10,10,10,0,0,0,0,0,0,7,7,0,7,scored,none,False,False,0,4
+CL,Colgate-Palmolive,Consumer Staples,Household Products,31,10,10,10,10,10,0,0,0,0,0,0,7,7,0,7,scored,none,False,False,0,4
+CMI,Cummins,Industrials,Construction Machinery & Heavy Transportation Equipment,18,10,10,10,8,8,0,0,0,0,2,5,4,7,3,7,scored,blocked_domains,False,False,0,5
+CMS,CMS Energy,Utilities,Multi-Utilities,9,9,9,9,9,9,0,0,0,0,0,4,3,7,4,7,scored,none,False,False,0,5
+COF,Capital One,Financials,Consumer Finance,23,10,10,10,9,7,0,2,0,0,1,4,3,7,4,7,scored,blocked_domains,False,False,0,5
+CPB,Campbell's Company (The),Consumer Staples,Packaged Foods & Meats,5,5,5,5,5,5,0,0,0,0,0,2,7,7,0,7,scored,none,False,False,0,5
+DASH,DoorDash,Consumer Discretionary,Specialized Consumer Services,29,10,10,10,10,9,0,1,0,0,0,3,5,7,2,7,scored,none,False,False,0,6
+DECK,Deckers Brands,Consumer Discretionary,Footwear,9,9,9,9,8,7,0,1,0,0,1,5,2,7,5,7,scored,blocked_domains,False,False,0,6
+DHI,D. R. Horton,Consumer Discretionary,Homebuilding,7,7,7,7,7,7,0,0,0,0,0,2,5,7,2,7,scored,none,False,False,0,6
+DLR,Digital Realty,Real Estate,Data Center REITs,18,10,10,10,8,7,0,1,0,0,2,5,4,7,3,7,scored,blocked_domains,False,False,0,6
+DOC,Healthpeak Properties,Real Estate,Health Care REITs,14,10,10,10,5,5,0,0,0,0,5,7,4,7,3,7,scored,blocked_domains,False,False,0,6
+DPZ,Domino's,Consumer Discretionary,Restaurants,27,10,9,9,8,5,0,3,0,0,1,3,6,7,1,7,scored,blocked_domains,False,False,0,6
+DVN,Devon Energy,Energy,Oil & Gas Exploration & Production,28,10,10,10,9,7,0,2,0,0,1,5,5,7,2,7,scored,blocked_domains,False,False,0,7
+DXCM,Dexcom,Health Care,Health Care Equipment,36,10,10,10,10,10,0,0,0,0,0,3,6,7,1,7,scored,none,False,False,0,7
+EQR,Equity Residential,Real Estate,Multi-Family Residential REITs,5,5,5,5,3,3,0,0,0,0,2,3,6,7,1,7,scored,blocked_domains,False,False,0,7
+EXPD,Expeditors International,Industrials,Air Freight & Logistics,11,10,10,10,7,7,0,0,0,0,3,6,3,7,4,7,scored,blocked_domains,False,False,0,8
+FIS,Fidelity National Information Services,Financials,Transaction & Payment Processing Services,17,10,10,10,9,6,0,3,0,0,1,2,5,7,2,7,scored,blocked_domains,False,False,0,8
+FIX,Comfort Systems USA,Industrials,Construction & Engineering,19,10,10,10,7,6,0,1,0,0,3,5,5,7,2,7,scored,blocked_domains,False,False,0,8
+FTV,Fortive,Industrials,Industrial Machinery & Supplies & Components,10,10,10,10,9,9,0,0,0,0,1,3,3,7,4,7,scored,blocked_domains,False,False,0,9
+GEN,Gen Digital,Information Technology,Systems Software,5,5,5,5,5,5,0,0,0,0,0,3,5,7,2,7,scored,none,False,False,0,9
+GLW,Corning Inc.,Information Technology,Electronic Components,62,10,10,10,8,8,0,0,0,0,2,5,4,7,3,7,scored,blocked_domains,False,False,0,9
+HOOD,Robinhood Markets,Financials,Investment Banking & Brokerage,62,10,10,10,7,7,0,0,0,0,3,0,7,7,0,7,scored,blocked_domains,False,False,0,10
+IVZ,Invesco,Financials,Asset Management & Custody Banks,16,10,10,10,10,10,0,0,0,0,0,2,5,7,2,7,scored,none,False,False,0,11
+JKHY,Jack Henry & Associates,Financials,Transaction & Payment Processing Services,9,9,9,9,9,8,0,1,0,0,0,5,2,7,5,7,scored,none,False,False,0,11
+KEYS,Keysight Technologies,Information Technology,Electronic Equipment & Instruments,26,10,10,10,9,9,0,0,0,0,1,5,3,7,4,7,scored,blocked_domains,False,False,0,11
+LLY,Lilly (Eli),Health Care,Pharmaceuticals,95,10,10,10,9,7,0,2,0,0,1,2,6,7,1,7,scored,blocked_domains,False,False,0,12
+MAR,Marriott International,Consumer Discretionary,"Hotels, Resorts & Cruise Lines",17,10,10,10,10,10,0,0,0,0,0,4,3,7,4,7,scored,none,False,False,0,12
+MOS,Mosaic Company (The),Materials,Fertilizers & Agricultural Chemicals,58,10,10,10,8,6,0,2,0,0,2,7,4,7,3,7,scored,blocked_domains,False,False,0,13
+MSFT,Microsoft,Information Technology,Systems Software,246,10,10,10,8,7,0,1,0,0,2,1,7,7,0,7,scored,blocked_domains,False,False,0,13
+NFLX,Netflix,Communication Services,Movies & Entertainment,85,10,10,10,10,9,0,1,0,0,0,0,7,7,0,7,scored,none,False,False,0,14
+SMCI,Supermicro,Information Technology,"Technology Hardware, Storage & Peripherals",57,10,10,10,9,9,0,0,0,0,1,0,7,7,0,7,scored,blocked_domains,False,False,0,17
+TJX,TJX Companies,Consumer Discretionary,Apparel Retail,21,10,10,10,9,9,0,0,0,0,1,0,7,7,0,7,scored,blocked_domains,False,False,0,18
+TMUS,T-Mobile US,Communication Services,Wireless Telecommunication Services,45,10,10,10,10,8,0,2,0,0,0,0,7,7,0,7,scored,none,False,False,0,18
+ULTA,Ulta Beauty,Consumer Discretionary,Other Specialty Retail,18,10,10,10,10,8,0,2,0,0,0,0,7,7,0,7,scored,none,False,False,0,19
+UNH,UnitedHealth Group,Health Care,Managed Health Care,57,10,10,10,9,8,0,1,0,0,1,0,7,7,0,7,scored,blocked_domains,False,False,0,19
+USB,U.S. Bancorp,Financials,Diversified Banks,7,7,7,7,7,6,0,1,0,0,0,0,7,7,0,7,scored,none,False,False,0,19
+WAB,Wabtec,Industrials,Construction Machinery & Heavy Transportation Equipment,7,7,7,7,7,7,0,0,0,0,0,0,7,7,0,7,scored,none,False,False,0,20
+WBD,Warner Bros. Discovery,Communication Services,Broadcasting,24,10,10,10,9,4,0,5,0,0,1,0,7,7,0,7,scored,blocked_domains,False,False,0,20
+WM,Waste Management,Industrials,Environmental & Facilities Services,10,10,10,10,8,8,0,0,0,0,2,0,7,7,0,7,scored,none,False,False,0,20
+AJG,Arthur J. Gallagher & Co.,Financials,Insurance Brokers,8,8,8,8,8,8,0,0,0,0,0,0,6,6,0,6,scored,none,False,False,0,1
+APTV,Aptiv,Consumer Discretionary,Automotive Parts & Equipment,12,10,10,10,10,10,0,0,0,0,0,0,6,6,0,6,scored,none,False,False,0,2
+ATO,Atmos Energy,Utilities,Gas Utilities,11,10,10,10,8,8,0,0,0,0,2,0,6,6,0,6,scored,blocked_domains,False,False,0,2
+BBY,Best Buy,Consumer Discretionary,Computer & Electronics Retail,18,10,10,10,8,8,0,0,0,0,2,0,6,6,0,6,scored,blocked_domains,False,False,0,3
+BKR,Baker Hughes,Energy,Oil & Gas Equipment & Services,10,10,10,10,10,10,0,0,0,0,0,0,6,6,0,6,scored,none,False,False,0,3
+BMY,Bristol Myers Squibb,Health Care,Pharmaceuticals,43,10,10,10,8,7,0,1,0,0,2,0,6,6,0,6,scored,blocked_domains,False,False,0,3
+BSX,Boston Scientific,Health Care,Health Care Equipment,21,10,9,9,8,8,0,0,0,0,1,0,6,6,0,6,scored,blocked_domains,False,False,0,3
+CDNS,Cadence Design Systems,Information Technology,Application Software,10,10,10,10,10,9,0,1,0,0,0,0,6,6,0,6,scored,none,False,False,0,4
+CDW,CDW Corporation,Information Technology,Technology Distributors,7,7,7,7,6,6,0,0,0,0,1,1,5,6,1,6,scored,blocked_domains,False,False,0,4
+CLX,Clorox,Consumer Staples,Household Products,12,10,10,10,10,8,0,2,0,0,0,0,6,6,0,6,scored,none,False,False,0,4
+CMCSA,Comcast,Communication Services,Cable & Satellite,43,10,10,10,10,9,0,1,0,0,0,0,6,6,0,6,scored,none,False,False,0,4
+CMG,Chipotle Mexican Grill,Consumer Discretionary,Restaurants,21,10,9,9,7,5,0,2,0,0,2,0,6,6,0,6,scored,blocked_domains,False,False,0,4
+CSX,CSX Corporation,Industrials,Rail Transportation,10,10,10,10,9,8,0,1,0,0,1,3,4,6,2,6,scored,blocked_domains,False,False,0,5
+CTVA,Corteva,Materials,Fertilizers & Agricultural Chemicals,10,10,10,10,9,8,0,1,0,0,1,5,4,6,2,6,scored,blocked_domains,False,False,0,6
+DAL,Delta Air Lines,Industrials,Passenger Airlines,61,10,10,10,9,8,0,1,0,0,1,4,5,6,1,6,scored,blocked_domains,False,False,0,6
+DD,DuPont,Materials,Specialty Chemicals,11,10,10,10,10,9,0,1,0,0,0,7,1,6,5,6,scored,none,False,False,0,6
+DLTR,Dollar Tree,Consumer Staples,Consumer Staples Merchandise Retail,16,10,10,10,8,8,0,0,0,0,2,5,3,6,3,6,scored,blocked_domains,False,False,0,6
+EA,Electronic Arts,Communication Services,Interactive Home Entertainment,5,5,5,5,4,3,0,1,0,0,1,2,5,6,1,6,scored,blocked_domains,False,False,0,7
+EBAY,eBay Inc.,Consumer Discretionary,Broadline Retail,97,10,10,10,10,10,0,0,0,0,0,3,3,6,3,6,scored,none,False,False,0,7
+EPAM,EPAM Systems,Information Technology,IT Consulting & Other Services,10,10,10,10,8,8,0,0,0,0,2,5,5,6,1,6,scored,blocked_domains,False,False,0,7
+FCX,Freeport-McMoRan,Materials,Copper,40,10,10,10,9,7,0,2,0,0,1,5,3,6,3,6,scored,blocked_domains,False,False,0,8
+FFIV,"F5, Inc.",Information Technology,Communications Equipment,5,5,5,5,5,5,0,0,0,0,0,1,5,6,1,6,scored,none,False,False,0,8
+FISV,Fiserv,Financials,Transaction & Payment Processing Services,30,10,10,10,8,8,0,0,0,0,2,6,4,6,2,6,scored,blocked_domains,False,False,0,8
+GEHC,GE HealthCare,Health Care,Health Care Equipment,17,10,10,10,8,8,0,0,0,0,2,2,6,6,0,6,scored,blocked_domains,False,False,0,9
+GIS,General Mills,Consumer Staples,Packaged Foods & Meats,15,10,10,10,9,8,0,1,0,0,1,1,4,6,2,6,scored,blocked_domains,False,False,0,9
+HD,Home Depot (The),Consumer Discretionary,Home Improvement Retail,63,10,10,10,7,6,0,1,0,0,3,5,3,6,3,6,scored,blocked_domains,False,False,0,9
+HIG,Hartford (The),Financials,Property & Casualty Insurance,7,7,7,7,6,6,0,0,0,0,1,3,4,6,2,6,scored,blocked_domains,False,False,0,10
+HON,Honeywell,Industrials,Industrial Conglomerates,17,10,10,10,9,6,0,3,0,0,1,5,3,6,3,6,scored,blocked_domains,False,False,0,10
+HPE,Hewlett Packard Enterprise,Information Technology,"Technology Hardware, Storage & Peripherals",42,10,10,10,10,10,0,0,0,0,0,5,2,6,4,6,scored,none,False,False,0,10
+INVH,Invitation Homes,Real Estate,Single-Family Residential REITs,4,4,4,4,2,0,0,2,0,0,2,0,5,6,1,6,scored,blocked_domains,False,False,0,10
+LMT,Lockheed Martin,Industrials,Aerospace & Defense,53,10,10,10,10,10,0,0,0,0,0,1,5,6,1,6,scored,none,False,False,0,12
+MKC,McCormick & Company,Consumer Staples,Packaged Foods & Meats,9,9,9,9,9,9,0,0,0,0,0,4,2,6,4,6,scored,none,False,False,0,13
+NWS,News Corp,Communication Services,Publishing,10,10,10,10,10,10,0,0,0,0,0,0,6,6,0,6,scored,none,False,False,0,14
+OXY,Occidental Petroleum,Energy,Oil & Gas Exploration & Production,27,10,9,9,7,3,0,4,0,0,2,0,6,6,0,6,scored,blocked_domains,False,False,0,15
+PTC,PTC Inc.,Information Technology,Application Software,10,10,10,10,10,10,0,0,0,0,0,0,6,6,0,6,scored,none,False,False,0,16
+SO,Southern Company,Utilities,Electric Utilities,9,9,9,9,9,9,0,0,0,0,0,0,6,6,0,6,scored,none,False,False,0,17
+STT,State Street Corporation,Financials,Asset Management & Custody Banks,15,10,10,10,10,9,0,1,0,0,0,0,6,6,0,6,scored,none,False,False,0,17
+SYY,Sysco,Consumer Staples,Food Distributors,8,8,8,8,8,8,0,0,0,0,0,0,6,6,0,6,scored,none,False,False,0,18
+TROW,T. Rowe Price,Financials,Asset Management & Custody Banks,17,10,8,8,8,8,0,0,0,0,0,0,6,6,0,6,scored,none,False,False,0,18
+TSN,Tyson Foods,Consumer Staples,Packaged Foods & Meats,22,10,10,10,10,10,0,0,0,0,0,0,6,6,0,6,scored,none,False,False,0,18
+TXT,Textron,Industrials,Aerospace & Defense,13,10,10,10,10,10,0,0,0,0,0,0,6,6,0,6,scored,none,False,False,0,19
+VLO,Valero Energy,Energy,Oil & Gas Refining & Marketing,18,10,10,10,9,9,0,0,0,0,1,0,6,6,0,6,scored,blocked_domains,False,False,0,19
+WAT,Waters Corporation,Health Care,Life Sciences Tools & Services,8,8,8,8,7,7,0,0,0,0,1,0,6,6,0,6,scored,blocked_domains,False,False,0,20
+WDAY,"Workday, Inc.",Information Technology,Application Software,34,10,10,10,10,8,0,2,0,0,0,0,6,6,0,6,scored,none,False,False,0,20
+WELL,Welltower,Real Estate,Health Care REITs,7,7,7,7,3,3,0,0,0,0,4,0,6,6,0,6,scored,blocked_domains,False,False,0,20
+XOM,ExxonMobil,Energy,Integrated Oil & Gas,92,10,10,10,8,4,0,4,0,0,2,0,6,6,0,6,scored,blocked_domains,False,False,0,20
+ACGL,Arch Capital Group,Financials,Property & Casualty Insurance,6,6,6,6,6,5,0,1,0,0,0,0,5,5,0,5,scored,none,False,False,0,1
+ADI,Analog Devices,Information Technology,Semiconductors,35,10,10,10,10,10,0,0,0,0,0,0,5,5,0,5,scored,none,False,False,0,1
+ADP,Automatic Data Processing,Industrials,Human Resource & Employment Services,3,3,3,3,2,2,0,0,0,0,1,0,5,5,0,5,scored,blocked_domains,False,False,0,1
+AME,Ametek,Industrials,Electrical Components & Equipment,5,5,5,5,4,4,0,0,0,0,1,0,5,5,0,5,scored,blocked_domains,False,False,0,2
+AMT,American Tower,Real Estate,Telecom Tower REITs,12,10,10,10,6,5,0,1,0,0,4,0,5,5,0,5,scored,blocked_domains,False,False,0,2
+ARE,Alexandria Real Estate Equities,Real Estate,Office REITs,5,5,5,5,2,2,0,0,0,0,3,0,5,5,0,5,scored,blocked_domains,False,False,0,2
+ARES,Ares Management,Financials,Asset Management & Custody Banks,11,10,10,10,8,8,0,0,0,0,2,0,5,5,0,5,scored,blocked_domains,False,False,0,2
+BALL,Ball Corporation,Materials,"Metal, Glass & Plastic Containers",5,5,5,5,4,4,0,0,0,0,1,1,4,5,1,5,scored,blocked_domains,False,False,0,3
+BAX,Baxter International,Health Care,Health Care Equipment,6,6,6,6,5,5,0,0,0,0,1,0,5,5,0,5,scored,blocked_domains,False,False,0,3
+CAG,Conagra Brands,Consumer Staples,Packaged Foods & Meats,4,4,4,4,3,3,0,0,0,0,1,1,5,5,0,5,scored,blocked_domains,False,False,0,3
+CAH,Cardinal Health,Health Care,Health Care Distributors,17,10,9,9,7,7,0,0,0,0,2,0,5,5,0,5,scored,blocked_domains,False,False,0,4
+CASY,Casey's,Consumer Staples,Food Retail,8,8,8,8,6,6,0,0,0,0,2,0,5,5,0,5,scored,blocked_domains,False,False,0,4
+CB,Chubb Limited,Financials,Property & Casualty Insurance,14,10,9,9,7,7,0,0,0,0,2,0,5,5,0,5,scored,blocked_domains,False,False,0,4
+CCL,Carnival,Consumer Discretionary,"Hotels, Resorts & Cruise Lines",26,10,10,10,10,10,0,0,0,0,0,0,5,5,0,5,scored,none,False,False,0,4
+CIEN,Ciena,Information Technology,Communications Equipment,22,10,10,10,9,8,0,1,0,0,1,1,4,5,1,5,scored,blocked_domains,False,False,0,4
+CNP,CenterPoint Energy,Utilities,Multi-Utilities,8,8,7,7,6,6,0,0,0,0,1,3,3,5,2,5,scored,blocked_domains,False,False,0,5
+COHR,Coherent Corp.,Information Technology,Electronic Components,67,10,10,10,8,8,0,0,0,0,2,3,3,5,2,5,scored,blocked_domains,False,False,0,5
+COIN,Coinbase,Financials,Financial Exchanges & Data,84,10,10,10,8,8,0,0,0,0,2,4,3,5,2,5,scored,blocked_domains,False,False,0,5
+COP,ConocoPhillips,Energy,Oil & Gas Exploration & Production,37,10,10,10,9,8,0,1,0,0,1,2,5,5,0,5,scored,blocked_domains,False,False,0,5
+CSCO,Cisco,Information Technology,Communications Equipment,240,10,10,10,9,8,0,1,0,0,1,1,5,5,0,5,scored,blocked_domains,False,False,0,5
+CVNA,Carvana,Consumer Discretionary,Automotive Retail,20,10,10,10,8,8,0,0,0,0,2,6,2,5,3,5,scored,blocked_domains,False,False,0,6
+CVX,Chevron Corporation,Energy,Integrated Oil & Gas,93,10,10,10,8,3,0,5,0,0,2,3,3,5,2,5,scored,blocked_domains,False,False,0,6
+D,Dominion Energy,Utilities,Multi-Utilities,16,10,10,10,10,8,0,2,0,0,0,5,3,5,2,5,scored,none,False,False,0,6
+DGX,Quest Diagnostics,Health Care,Health Care Services,5,5,5,5,3,3,0,0,0,0,2,2,4,5,1,5,scored,blocked_domains,False,False,0,6
+EMR,Emerson Electric,Industrials,Electrical Components & Equipment,14,10,10,10,10,10,0,0,0,0,0,4,2,5,3,5,scored,none,False,False,0,7
+EQIX,Equinix,Real Estate,Data Center REITs,25,10,10,10,8,7,0,1,0,0,2,3,4,5,1,5,scored,blocked_domains,False,False,0,7
+ESS,Essex Property Trust,Real Estate,Multi-Family Residential REITs,5,5,5,5,4,4,0,0,0,0,1,2,3,5,2,5,scored,blocked_domains,False,False,0,7
+ETR,Entergy,Utilities,Electric Utilities,5,5,5,5,5,5,0,0,0,0,0,0,5,5,0,5,scored,none,False,False,0,7
+EVRG,Evergy,Utilities,Electric Utilities,6,6,6,6,5,5,0,0,0,0,1,1,5,5,0,5,scored,blocked_domains,False,False,0,8
+EXR,Extra Space Storage,Real Estate,Self-Storage REITs,4,4,4,4,3,3,0,0,0,0,1,2,4,5,1,5,scored,blocked_domains,False,False,0,8
+FANG,Diamondback Energy,Energy,Oil & Gas Exploration & Production,16,10,10,10,8,7,0,1,0,0,2,2,4,5,1,5,scored,blocked_domains,False,False,0,8
+FDX,FedEx,Industrials,Air Freight & Logistics,51,10,10,10,8,5,0,3,0,0,2,4,3,5,2,5,scored,blocked_domains,False,False,0,8
+FTNT,Fortinet,Information Technology,Systems Software,27,10,10,10,9,9,0,0,0,0,1,2,4,5,1,5,scored,blocked_domains,False,False,0,8
+GS,Goldman Sachs,Financials,Investment Banking & Brokerage,138,10,10,10,9,8,0,1,0,0,1,5,3,5,2,5,scored,blocked_domains,False,False,0,9
+HAS,Hasbro,Consumer Discretionary,Leisure Products,13,10,10,10,10,10,0,0,0,0,0,4,2,5,3,5,scored,none,False,False,0,9
+HPQ,HP Inc.,Information Technology,"Technology Hardware, Storage & Peripherals",8,8,8,8,8,7,0,1,0,0,0,2,3,5,2,5,scored,none,False,False,0,10
+IBM,IBM,Information Technology,IT Consulting & Other Services,56,10,10,10,10,8,0,2,0,0,0,2,3,5,2,5,scored,none,False,False,0,10
+IDXX,Idexx Laboratories,Health Care,Health Care Equipment,10,10,10,10,9,9,0,0,0,0,1,3,2,5,3,5,scored,blocked_domains,False,False,0,10
+IFF,International Flavors & Fragrances,Materials,Specialty Chemicals,6,6,6,6,6,6,0,0,0,0,0,1,4,5,1,5,scored,none,False,False,0,10
+IT,Gartner,Information Technology,IT Consulting & Other Services,28,10,10,10,9,9,0,0,0,0,1,5,1,5,4,5,scored,blocked_domains,False,False,0,11
+ITW,Illinois Tool Works,Industrials,Industrial Machinery & Supplies & Components,6,6,6,6,6,6,0,0,0,0,0,3,2,5,3,5,scored,none,False,False,0,11
+JCI,Johnson Controls,Industrials,Building Products,9,9,9,9,9,7,0,2,0,0,0,3,2,5,3,5,scored,none,False,False,0,11
+JPM,JPMorgan Chase,Financials,Diversified Banks,188,10,10,10,8,4,0,4,0,0,2,0,5,5,0,5,scored,blocked_domains,False,False,0,11
+KLAC,KLA Corporation,Information Technology,Semiconductor Materials & Equipment,38,10,10,10,6,6,0,0,0,0,4,6,2,5,3,5,scored,blocked_domains,False,False,0,11
+KMI,Kinder Morgan,Energy,Oil & Gas Storage & Transportation,18,10,9,9,9,9,0,0,0,0,0,3,2,5,3,5,scored,none,False,False,0,11
+KO,Coca-Cola Company (The),Consumer Staples,Soft Drinks & Non-alcoholic Beverages,52,10,10,10,9,6,0,3,0,0,1,3,3,5,2,5,scored,blocked_domains,False,False,0,11
+LYB,LyondellBasell,Materials,Specialty Chemicals,9,9,9,9,6,5,0,1,0,0,3,6,2,5,3,5,scored,blocked_domains,False,False,0,12
+MCD,McDonald's,Consumer Discretionary,Restaurants,79,10,9,9,9,9,0,0,0,0,0,1,4,5,1,5,scored,none,False,False,0,12
+MCHP,Microchip Technology,Information Technology,Semiconductors,24,10,10,10,8,8,0,0,0,0,2,5,3,5,2,5,scored,blocked_domains,False,False,0,12
+MCO,Moody's Corporation,Financials,Financial Exchanges & Data,13,10,9,9,8,7,0,1,0,0,1,3,3,5,2,5,scored,blocked_domains,False,False,0,13
+MDT,Medtronic,Health Care,Health Care Equipment,32,10,10,10,8,4,0,1,0,0,2,4,2,5,3,5,scored,blocked_domains,False,False,0,13
+MPC,Marathon Petroleum,Energy,Oil & Gas Refining & Marketing,17,10,10,10,10,10,0,0,0,0,0,3,2,5,3,5,scored,none,False,False,0,13
+MSI,Motorola Solutions,Information Technology,Communications Equipment,16,10,10,10,10,9,0,1,0,0,0,5,0,5,5,5,scored,none,False,False,0,13
+NEE,NextEra Energy,Utilities,Multi-Utilities,14,10,10,10,10,9,0,1,0,0,0,0,5,5,0,5,scored,none,False,False,0,14
+O,Realty Income,Real Estate,Retail REITs,34,10,10,10,9,8,0,1,0,0,1,0,5,5,0,5,scored,blocked_domains,False,False,0,14
+PM,Philip Morris International,Consumer Staples,Tobacco,14,10,10,10,9,8,0,1,0,0,1,0,5,5,0,5,scored,blocked_domains,False,False,0,15
+STX,Seagate Technology,Information Technology,"Technology Hardware, Storage & Peripherals",43,10,10,10,10,9,0,1,0,0,0,0,5,5,0,5,scored,none,False,False,0,17
+SWK,Stanley Black & Decker,Industrials,Industrial Machinery & Supplies & Components,6,6,6,6,6,6,0,0,0,0,0,0,5,5,0,5,scored,none,False,False,0,17
+TRV,Travelers Companies (The),Financials,Property & Casualty Insurance,15,10,8,8,7,7,0,0,0,0,1,0,5,5,0,5,scored,blocked_domains,False,False,0,18
+TSCO,Tractor Supply,Consumer Discretionary,Other Specialty Retail,7,7,7,7,7,7,0,0,0,0,0,0,5,5,0,5,scored,none,False,False,0,18
+UBER,Uber,Industrials,Passenger Ground Transportation,97,10,10,10,10,8,0,2,0,0,0,0,5,5,0,5,scored,none,False,False,0,19
+URI,United Rentals,Industrials,Trading Companies & Distributors,0,0,0,0,0,0,0,0,0,0,0,0,5,5,0,5,scored,low_finnhub_supply,False,False,0,19
+V,Visa Inc.,Financials,Transaction & Payment Processing Services,101,10,10,10,9,6,0,3,0,0,1,0,5,5,0,5,scored,blocked_domains,False,False,0,19
+WDC,Western Digital,Information Technology,"Technology Hardware, Storage & Peripherals",84,10,10,10,10,8,0,2,0,0,0,0,5,5,0,5,scored,none,False,False,0,20
+WMB,Williams Companies,Energy,Oil & Gas Storage & Transportation,11,10,10,10,9,8,0,1,0,0,1,0,5,5,0,5,scored,blocked_domains,False,False,0,20
+WMT,Walmart,Consumer Staples,Consumer Staples Merchandise Retail,150,10,10,10,8,7,0,1,0,0,2,0,5,5,0,5,scored,blocked_domains,False,False,0,20
+WY,Weyerhaeuser,Real Estate,Timber REITs,6,6,6,6,5,5,0,0,0,0,1,0,5,5,0,5,scored,blocked_domains,False,False,0,20
+WYNN,Wynn Resorts,Consumer Discretionary,Casinos & Gaming,9,9,9,9,9,9,0,0,0,0,0,0,5,5,0,5,scored,none,False,False,0,20
+XEL,Xcel Energy,Utilities,Multi-Utilities,5,5,5,5,5,5,0,0,0,0,0,0,5,5,0,5,scored,none,False,False,0,20
+XYL,Xylem Inc.,Industrials,Industrial Machinery & Supplies & Components,5,5,5,5,5,5,0,0,0,0,0,0,5,5,0,5,scored,none,False,False,0,20
+ZBH,Zimmer Biomet,Health Care,Health Care Equipment,17,10,10,10,9,8,0,1,0,0,1,0,5,5,0,5,scored,blocked_domains,False,False,0,21
+ZTS,Zoetis,Health Care,Pharmaceuticals,18,10,10,10,9,9,0,0,0,0,1,0,5,5,0,5,scored,blocked_domains,False,False,0,21
+ADM,Archer Daniels Midland,Consumer Staples,Agricultural Products & Services,17,10,10,10,8,8,0,0,0,0,2,0,4,4,0,4,scored,blocked_domains,False,False,0,1
+AMAT,Applied Materials,Information Technology,Semiconductor Materials & Equipment,184,10,10,10,7,6,0,1,0,0,3,1,3,4,1,4,scored,blocked_domains,False,False,0,1
+APD,Air Products,Materials,Industrial Gases,2,2,2,2,1,1,0,0,0,0,1,0,4,4,0,4,scored,blocked_domains,False,False,0,2
+AVB,AvalonBay Communities,Real Estate,Multi-Family Residential REITs,8,8,8,8,6,3,0,3,0,0,2,0,4,4,0,4,scored,blocked_domains,False,False,0,2
+BG,Bunge Global,Consumer Staples,Agricultural Products & Services,6,6,6,6,4,4,0,0,0,0,2,0,4,4,0,4,scored,blocked_domains,False,False,0,3
+CFG,Citizens Financial Group,Financials,Regional Banks,6,6,6,6,6,6,0,0,0,0,0,0,4,4,0,4,scored,none,False,False,0,4
+CHTR,Charter Communications,Communication Services,Cable & Satellite,28,10,9,9,8,6,0,2,0,0,1,0,4,4,0,4,scored,blocked_domains,False,False,0,4
+CTAS,Cintas,Industrials,Diversified Support Services,3,3,3,3,3,3,0,0,0,0,0,0,4,4,0,4,scored,none,False,False,0,5
+DDOG,Datadog,Information Technology,Application Software,38,10,10,10,6,5,0,1,0,0,4,4,3,4,1,4,scored,blocked_domains,False,False,0,6
+DHR,Danaher Corporation,Health Care,Life Sciences Tools & Services,19,10,10,10,10,10,0,0,0,0,0,6,1,4,3,4,scored,none,False,False,0,6
+DIS,Walt Disney Company (The),Communication Services,Movies & Entertainment,78,10,10,10,8,8,0,0,0,0,2,4,3,4,1,4,scored,blocked_domains,False,False,0,6
+DVA,DaVita,Health Care,Health Care Services,17,10,9,9,7,7,0,0,0,0,2,4,3,4,1,4,scored,blocked_domains,False,False,0,7
+ECL,Ecolab,Materials,Specialty Chemicals,9,9,9,9,8,8,0,0,0,0,1,2,3,4,1,4,scored,blocked_domains,False,False,0,7
+EL,Estée Lauder Companies (The),Consumer Staples,Personal Care Products,14,10,10,10,9,9,0,0,0,0,1,3,2,4,2,4,scored,blocked_domains,False,False,0,7
+ELV,Elevance Health,Health Care,Managed Health Care,6,6,6,6,5,5,0,0,0,0,1,2,3,4,1,4,scored,blocked_domains,False,False,0,7
+FAST,Fastenal,Industrials,Trading Companies & Distributors,6,6,6,6,5,5,0,0,0,0,1,1,4,4,0,4,scored,blocked_domains,False,False,0,8
+FE,FirstEnergy,Utilities,Electric Utilities,6,6,6,6,5,5,0,0,0,0,1,1,3,4,1,4,scored,blocked_domains,False,False,0,8
+FICO,Fair Isaac,Information Technology,Application Software,16,10,10,10,9,9,0,0,0,0,1,3,3,4,1,4,scored,blocked_domains,False,False,0,8
+FITB,Fifth Third Bancorp,Financials,Regional Banks,4,4,4,4,4,4,0,0,0,0,0,0,4,4,0,4,scored,none,False,False,0,8
+FSLR,First Solar,Information Technology,Semiconductors,22,10,10,10,9,8,0,1,0,0,1,4,2,4,2,4,scored,blocked_domains,False,False,0,8
+GEV,GE Vernova,Industrials,Heavy Electrical Equipment,46,10,10,10,10,6,0,4,0,0,0,3,2,4,2,4,scored,none,False,False,0,9
+GILD,Gilead Sciences,Health Care,Biotechnology,20,10,10,10,10,8,0,2,0,0,0,3,1,4,3,4,scored,none,False,False,0,9
+GL,Globe Life,Financials,Life & Health Insurance,4,4,4,4,4,4,0,0,0,0,0,1,3,4,1,4,scored,none,False,False,0,9
+GM,General Motors,Consumer Discretionary,Automobile Manufacturers,71,10,10,10,10,7,0,3,0,0,0,5,0,4,4,4,scored,none,False,False,0,9
+GPC,Genuine Parts Company,Consumer Discretionary,Distributors,6,6,6,6,5,5,0,0,0,0,1,2,2,4,2,4,scored,blocked_domains,False,False,0,9
+GPN,Global Payments,Financials,Transaction & Payment Processing Services,19,10,10,10,10,10,0,0,0,0,0,3,1,4,3,4,scored,none,False,False,0,9
+HAL,Halliburton,Energy,Oil & Gas Equipment & Services,30,10,10,10,10,10,0,0,0,0,0,5,1,4,3,4,scored,none,False,False,0,9
+HLT,Hilton Worldwide,Consumer Discretionary,"Hotels, Resorts & Cruise Lines",9,9,9,9,7,7,0,0,0,0,2,4,2,4,2,4,scored,blocked_domains,False,False,0,10
+HRL,Hormel Foods,Consumer Staples,Packaged Foods & Meats,16,10,10,10,8,6,0,2,0,0,2,4,2,4,2,4,scored,blocked_domains,False,False,0,10
+HUM,Humana,Health Care,Managed Health Care,18,10,10,10,9,9,0,0,0,0,1,4,1,4,3,4,scored,blocked_domains,False,False,0,10
+HWM,Howmet Aerospace,Industrials,Aerospace & Defense,17,10,10,10,8,7,0,1,0,0,2,5,1,4,3,4,scored,blocked_domains,False,False,0,10
+IBKR,Interactive Brokers,Financials,Investment Banking & Brokerage,19,10,10,10,9,8,0,1,0,0,1,3,3,4,1,4,scored,blocked_domains,False,False,0,10
+ICE,Intercontinental Exchange,Financials,Financial Exchanges & Data,28,10,10,10,10,9,0,1,0,0,0,2,2,4,2,4,scored,none,False,False,0,10
+INTU,Intuit,Information Technology,Application Software,33,10,10,10,9,7,0,2,0,0,1,1,3,4,1,4,scored,blocked_domains,False,False,0,10
+KHC,Kraft Heinz,Consumer Staples,Packaged Foods & Meats,22,10,9,9,9,8,0,1,0,0,0,0,4,4,0,4,scored,none,False,False,0,11
+LEN,Lennar,Consumer Discretionary,Homebuilding,9,9,8,8,7,7,0,0,0,0,1,4,1,4,3,4,scored,blocked_domains,False,False,0,12
+LOW,Lowe's,Consumer Discretionary,Home Improvement Retail,46,10,10,10,7,7,0,0,0,0,3,5,2,4,2,4,scored,blocked_domains,False,False,0,12
+LRCX,Lam Research,Information Technology,Semiconductor Materials & Equipment,50,10,10,10,9,9,0,0,0,0,1,1,3,4,1,4,scored,blocked_domains,False,False,0,12
+MAA,Mid-America Apartment Communities,Real Estate,Multi-Family Residential REITs,9,9,9,9,6,6,0,0,0,0,3,5,2,4,2,4,scored,blocked_domains,False,False,0,12
+MAS,Masco,Industrials,Building Products,12,10,10,10,7,7,0,0,0,0,3,7,2,4,2,4,scored,blocked_domains,False,False,0,12
+MET,MetLife,Financials,Life & Health Insurance,15,10,10,10,10,10,0,0,0,0,0,3,1,4,3,4,scored,none,False,False,0,13
+MRNA,Moderna,Health Care,Biotechnology,71,10,10,10,10,9,0,1,0,0,0,5,1,4,3,4,scored,none,False,False,0,13
+MS,Morgan Stanley,Financials,Investment Banking & Brokerage,89,10,10,10,7,6,0,1,0,0,3,4,3,4,1,4,scored,blocked_domains,False,False,0,13
+NKE,"Nike, Inc.",Consumer Discretionary,"Apparel, Accessories & Luxury Goods",53,10,10,10,10,7,0,3,0,0,0,0,4,4,0,4,scored,none,False,False,0,14
+NTRS,Northern Trust,Financials,Asset Management & Custody Banks,5,5,5,5,5,4,0,1,0,0,0,0,4,4,0,4,scored,none,False,False,0,14
+NVR,"NVR, Inc.",Consumer Discretionary,Homebuilding,3,3,3,3,3,3,0,0,0,0,0,0,4,4,0,4,scored,none,False,False,0,14
+ODFL,Old Dominion,Industrials,Cargo Ground Transportation,6,6,6,6,5,5,0,0,0,0,1,0,4,4,0,4,scored,blocked_domains,False,False,0,14
+PLTR,Palantir Technologies,Information Technology,Application Software,125,10,10,10,8,6,0,2,0,0,2,0,4,4,0,4,scored,blocked_domains,False,False,0,15
+SJM,J.M. Smucker Company (The),Consumer Staples,Packaged Foods & Meats,10,10,10,10,9,9,0,0,0,0,1,0,4,4,0,4,scored,blocked_domains,False,False,0,17
+SNDK,Sandisk,Information Technology,"Technology Hardware, Storage & Peripherals",151,10,10,10,10,10,0,0,0,0,0,0,4,4,0,4,scored,none,False,False,0,17
+SPG,Simon Property Group,Real Estate,Retail REITs,32,10,10,10,7,7,0,0,0,0,3,0,4,4,0,4,scored,blocked_domains,False,False,0,17
+STE,Steris,Health Care,Health Care Equipment,27,10,10,10,10,9,0,1,0,0,0,0,4,4,0,4,scored,none,False,False,0,17
+SW,Smurfit Westrock,Materials,Paper & Plastic Packaging Products & Materials,6,6,6,6,4,4,0,0,0,0,2,0,4,4,0,4,scored,blocked_domains,False,False,0,17
+SYK,Stryker Corporation,Health Care,Health Care Equipment,22,10,10,10,9,9,0,0,0,0,1,0,4,4,0,4,scored,blocked_domains,False,False,0,18
+TEL,TE Connectivity,Information Technology,Electronic Manufacturing Services,8,8,7,7,6,6,0,0,0,0,1,0,4,4,0,4,scored,blocked_domains,False,False,0,18
+TEST,,,,0,0,0,0,0,0,0,0,0,0,0,0,4,4,0,4,scored,low_finnhub_supply,False,False,0,18
+TPR,"Tapestry, Inc.",Consumer Discretionary,"Apparel, Accessories & Luxury Goods",20,10,10,10,10,10,0,0,0,0,0,0,4,4,0,4,scored,none,False,False,0,18
+TRMB,Trimble Inc.,Information Technology,Electronic Equipment & Instruments,5,5,5,5,5,5,0,0,0,0,0,0,4,4,0,4,scored,none,False,False,0,18
+TTWO,Take-Two Interactive,Communication Services,Interactive Home Entertainment,23,10,10,10,9,9,0,0,0,0,1,0,4,4,0,4,scored,blocked_domains,False,False,0,19
+TXN,Texas Instruments,Information Technology,Semiconductors,38,10,10,10,8,6,0,2,0,0,2,0,4,4,0,4,scored,blocked_domains,False,False,0,19
+UAL,United Airlines Holdings,Industrials,Passenger Airlines,43,10,10,10,10,8,0,2,0,0,0,0,4,4,0,4,scored,none,False,False,0,19
+UHS,Universal Health Services,Health Care,Health Care Facilities,3,3,3,3,2,2,0,0,0,0,1,0,4,4,0,4,scored,blocked_domains,False,False,0,19
+VMC,Vulcan Materials Company,Materials,Construction Materials,8,8,8,8,7,7,0,0,0,0,1,0,4,4,0,4,scored,blocked_domains,False,False,0,19
+VRTX,Vertex Pharmaceuticals,Health Care,Biotechnology,6,6,6,6,6,6,0,0,0,0,0,0,4,4,0,4,scored,none,False,False,0,19
+VTRS,Viatris,Health Care,Pharmaceuticals,8,8,8,8,4,4,0,0,0,0,4,0,4,4,0,4,scored,blocked_domains,False,False,0,20
+WSM,"Williams-Sonoma, Inc.",Consumer Discretionary,Homefurnishing Retail,11,10,10,10,9,8,0,1,0,0,1,0,4,4,0,4,scored,blocked_domains,False,False,0,20
+ZBRA,Zebra Technologies,Information Technology,Electronic Equipment & Instruments,75,10,10,10,9,9,0,0,0,0,1,0,4,4,0,4,scored,blocked_domains,False,False,0,21
+AVY,Avery Dennison,Materials,Paper & Plastic Packaging Products & Materials,5,5,5,5,4,3,0,1,0,0,1,0,3,3,0,3,scored,blocked_domains,False,False,0,2
+COO,Cooper Companies (The),Health Care,Health Care Supplies,6,6,6,6,6,6,0,0,0,0,0,2,1,3,2,3,scored,none,False,False,0,5
+CPRT,Copart,Industrials,Diversified Support Services,2,2,2,2,2,2,0,0,0,0,0,0,3,3,0,3,scored,none,False,False,0,5
+CRH,CRH plc,Materials,Construction Materials,6,6,6,6,6,6,0,0,0,0,0,3,1,3,2,3,scored,none,False,False,0,5
+CTRA,Coterra,Energy,Oil & Gas Exploration & Production,1,1,1,1,1,1,0,0,0,0,0,0,3,3,0,3,scored,none,False,False,0,5
+DRI,Darden Restaurants,Consumer Discretionary,Restaurants,2,2,2,2,1,1,0,0,0,0,1,1,3,3,0,3,scored,blocked_domains,False,False,0,6
+DTE,DTE Energy,Utilities,Multi-Utilities,3,3,3,3,3,3,0,0,0,0,0,0,3,3,0,3,scored,none,False,False,0,6
+EFX,Equifax,Industrials,Research & Consulting Services,15,10,10,10,8,7,0,1,0,0,2,2,2,3,1,3,scored,blocked_domains,False,False,0,7
+EIX,Edison International,Utilities,Electric Utilities,4,4,4,4,4,3,0,1,0,0,0,0,3,3,0,3,scored,none,False,False,0,7
+EQT,EQT Corporation,Energy,Oil & Gas Exploration & Production,4,4,4,4,4,4,0,0,0,0,0,1,2,3,1,3,scored,none,False,False,0,7
+ERIE,Erie Indemnity,Financials,Insurance Brokers,1,1,1,1,1,1,0,0,0,0,0,0,3,3,0,3,scored,none,False,False,0,7
+EXE,Expand Energy,Energy,Oil & Gas Exploration & Production,0,0,0,0,0,0,0,0,0,0,0,0,3,3,0,3,scored,low_finnhub_supply,False,False,0,8
+GDDY,GoDaddy,Information Technology,Internet Services & Infrastructure,7,7,7,7,6,6,0,0,0,0,1,1,3,3,0,3,scored,blocked_domains,False,False,0,9
+HCA,HCA Healthcare,Health Care,Health Care Facilities,3,3,3,3,3,3,0,0,0,0,0,0,3,3,0,3,scored,none,False,False,0,9
+HST,Host Hotels & Resorts,Real Estate,Hotel & Resort REITs,14,10,10,10,9,9,0,0,0,0,1,4,0,3,3,3,scored,blocked_domains,False,False,0,10
+J,Jacobs Solutions,Industrials,Construction & Engineering,11,10,10,10,9,8,0,1,0,0,1,4,1,3,2,3,scored,blocked_domains,False,False,0,11
+JBL,Jabil,Information Technology,Electronic Manufacturing Services,9,9,9,9,7,7,0,0,0,0,2,3,2,3,1,3,scored,blocked_domains,False,False,0,11
+KDP,Keurig Dr Pepper,Consumer Staples,Soft Drinks & Non-alcoholic Beverages,6,6,6,6,5,5,0,0,0,0,1,2,2,3,1,3,scored,blocked_domains,False,False,0,11
+KIM,Kimco Realty,Real Estate,Retail REITs,3,3,3,3,2,2,0,0,0,0,1,1,2,3,1,3,scored,blocked_domains,False,False,0,11
+KVUE,Kenvue,Consumer Staples,Personal Care Products,11,10,10,10,9,9,0,0,0,0,1,3,1,3,2,3,scored,blocked_domains,False,False,0,12
+LDOS,Leidos,Industrials,Diversified Support Services,26,10,10,10,10,10,0,0,0,0,0,3,0,3,3,3,scored,none,False,False,0,12
+LHX,L3Harris,Industrials,Aerospace & Defense,13,10,10,10,10,10,0,0,0,0,0,2,1,3,2,3,scored,none,False,False,0,12
+LITE,Lumentum,Information Technology,Communications Equipment,89,10,10,10,8,7,0,1,0,0,2,5,1,3,2,3,scored,blocked_domains,False,False,0,12
+LNT,Alliant Energy,Utilities,Electric Utilities,4,4,4,4,4,3,0,1,0,0,0,0,3,3,0,3,scored,none,False,False,0,12
+LVS,Las Vegas Sands,Consumer Discretionary,Casinos & Gaming,7,7,7,7,7,5,0,2,0,0,0,1,2,3,1,3,scored,none,False,False,0,12
+LYV,Live Nation Entertainment,Communication Services,Movies & Entertainment,9,9,9,9,8,7,0,1,0,0,1,4,1,3,2,3,scored,blocked_domains,False,False,0,12
+MLM,Martin Marietta Materials,Materials,Construction Materials,4,4,4,4,3,3,0,0,0,0,1,2,2,3,1,3,scored,blocked_domains,False,False,0,13
+NOC,Northrop Grumman,Industrials,Aerospace & Defense,28,10,10,10,9,6,0,3,0,0,1,0,3,3,0,3,scored,blocked_domains,False,False,0,14
+NRG,NRG Energy,Utilities,Independent Power Producers & Energy Traders,10,10,10,10,10,9,0,1,0,0,0,0,3,3,0,3,scored,none,False,False,0,14
+NSC,Norfolk Southern,Industrials,Rail Transportation,15,10,10,10,9,7,0,2,0,0,1,0,3,3,0,3,scored,blocked_domains,False,False,0,14
+OMC,Omnicom Group,Communication Services,Advertising,9,9,9,9,8,8,0,0,0,0,1,0,3,3,0,3,scored,blocked_domains,False,False,0,14
+PH,Parker Hannifin,Industrials,Industrial Machinery & Supplies & Components,4,4,4,4,4,4,0,0,0,0,0,0,3,3,0,3,scored,none,False,False,0,15
+PODD,Insulet Corporation,Health Care,Health Care Equipment,12,10,10,10,8,8,0,0,0,0,2,0,3,3,0,3,scored,blocked_domains,False,False,0,15
+REGN,Regeneron Pharmaceuticals,Health Care,Biotechnology,9,9,9,9,9,8,0,1,0,0,0,0,3,3,0,3,scored,none,False,False,0,16
+RJF,Raymond James Financial,Financials,Investment Banking & Brokerage,11,10,10,10,10,8,0,2,0,0,0,0,3,3,0,3,scored,none,False,False,0,16
+RMD,ResMed,Health Care,Health Care Equipment,5,5,5,5,4,4,0,0,0,0,1,0,3,3,0,3,scored,blocked_domains,False,False,0,16
+ROK,Rockwell Automation,Industrials,Electrical Components & Equipment,11,10,10,10,10,10,0,0,0,0,0,0,3,3,0,3,scored,none,False,False,0,16
+RTX,RTX Corporation,Industrials,Aerospace & Defense,40,10,10,10,10,8,0,2,0,0,0,0,3,3,0,3,scored,none,False,False,0,16
+RVTY,Revvity,Health Care,Health Care Equipment,6,6,6,6,5,5,0,0,0,0,1,0,3,3,0,3,scored,blocked_domains,False,False,0,16
+SOLV,Solventum,Health Care,Health Care Technology,13,10,10,10,8,8,0,0,0,0,2,0,3,3,0,3,scored,blocked_domains,False,False,0,17
+SRE,Sempra,Utilities,Multi-Utilities,8,8,7,7,6,6,0,0,0,0,1,0,3,3,0,3,scored,blocked_domains,False,False,0,17
+TDG,TransDigm Group,Industrials,Aerospace & Defense,8,8,6,6,6,6,0,0,0,0,0,0,3,3,0,3,scored,none,False,False,0,18
+TECH,Bio-Techne,Health Care,Life Sciences Tools & Services,10,10,9,9,8,8,0,0,0,0,1,0,3,3,0,3,scored,blocked_domains,False,False,0,18
+TER,Teradyne,Information Technology,Semiconductor Materials & Equipment,16,10,10,10,9,8,0,1,0,0,1,0,3,3,0,3,scored,blocked_domains,False,False,0,18
+TRGP,Targa Resources,Energy,Oil & Gas Storage & Transportation,13,10,10,10,10,10,0,0,0,0,0,0,3,3,0,3,scored,none,False,False,0,18
+TT,Trane Technologies,Industrials,Building Products,18,10,10,10,8,6,0,2,0,0,2,0,3,3,0,3,scored,blocked_domains,False,False,0,19
+TYL,Tyler Technologies,Information Technology,Application Software,13,10,10,10,10,9,0,1,0,0,0,0,3,3,0,3,scored,none,False,False,0,19
+UNP,Union Pacific Corporation,Industrials,Rail Transportation,26,10,10,10,10,9,0,1,0,0,0,0,3,3,0,3,scored,none,False,False,0,19
+VICI,Vici Properties,Real Estate,Hotel & Resort REITs,13,10,10,10,5,5,0,0,0,0,5,0,3,3,0,3,scored,blocked_domains,False,False,0,19
+VLTO,Veralto,Industrials,Environmental & Facilities Services,1,1,1,1,1,1,0,0,0,0,0,0,3,3,0,3,scored,none,False,False,0,19
+VTR,Ventas,Real Estate,Health Care REITs,8,8,7,7,5,5,0,0,0,0,2,0,3,3,0,3,scored,blocked_domains,False,False,0,20
+VZ,Verizon,Communication Services,Integrated Telecommunication Services,65,10,10,10,7,7,0,0,0,0,3,0,3,3,0,3,scored,blocked_domains,False,False,0,20
+WEC,WEC Energy Group,Utilities,Electric Utilities,11,10,10,10,10,10,0,0,0,0,0,0,3,3,0,3,scored,none,False,False,0,20
+WST,West Pharmaceutical Services,Health Care,Health Care Supplies,25,10,10,10,9,9,0,0,0,0,1,0,3,3,0,3,scored,blocked_domains,False,False,0,20
+WTW,Willis Towers Watson,Financials,Insurance Brokers,6,6,6,6,5,5,0,0,0,0,1,0,3,3,0,3,scored,blocked_domains,False,False,0,20
+XYZ,"Block, Inc.",Financials,Transaction & Payment Processing Services,37,10,10,10,9,8,0,1,0,0,1,0,3,3,0,3,scored,blocked_domains,False,False,0,20
+YUM,Yum! Brands,Consumer Discretionary,Restaurants,13,10,10,10,7,7,0,0,0,0,3,0,3,3,0,3,scored,blocked_domains,False,False,0,21
+BLDR,Builders FirstSource,Industrials,Building Products,3,3,3,3,2,2,0,0,0,0,1,0,2,2,0,2,limited_data,low_finnhub_supply,False,False,0,3
+CINF,Cincinnati Financial,Financials,Property & Casualty Insurance,4,4,4,4,4,4,0,0,0,0,0,0,2,2,0,2,limited_data,low_finnhub_supply,False,False,0,4
+CNC,Centene Corporation,Health Care,Managed Health Care,14,10,10,10,9,9,0,0,0,0,1,5,0,2,2,2,limited_data,enrichment_incomplete,False,False,0,5
+CSGP,CoStar Group,Real Estate,Real Estate Services,23,10,10,10,10,10,0,0,0,0,0,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,5
+GWW,W. W. Grainger,Industrials,Industrial Machinery & Supplies & Components,7,7,7,7,7,7,0,0,0,0,0,2,0,2,2,2,limited_data,enrichment_incomplete,False,False,0,9
+HBAN,Huntington Bancshares,Financials,Regional Banks,9,9,9,9,9,9,0,0,0,0,0,1,1,2,1,2,limited_data,enrichment_incomplete,False,False,0,9
+HII,Huntington Ingalls Industries,Industrials,Aerospace & Defense,14,10,10,10,9,9,0,0,0,0,1,1,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,10
+HSIC,Henry Schein,Health Care,Health Care Distributors,5,5,5,5,4,4,0,0,0,0,1,3,0,2,2,2,limited_data,enrichment_incomplete,False,False,0,10
+HSY,Hershey Company (The),Consumer Staples,Packaged Foods & Meats,10,10,10,10,7,6,0,1,0,0,3,5,1,2,1,2,limited_data,enrichment_incomplete,False,False,0,10
+IP,International Paper,Materials,Paper & Plastic Packaging Products & Materials,5,5,5,5,4,4,0,0,0,0,1,3,0,2,2,2,limited_data,enrichment_incomplete,False,False,0,10
+IQV,IQVIA,Health Care,Life Sciences Tools & Services,14,10,10,10,8,8,0,0,0,0,2,3,1,2,1,2,limited_data,enrichment_incomplete,False,False,0,11
+IR,Ingersoll Rand,Industrials,Industrial Machinery & Supplies & Components,10,10,10,10,10,9,0,1,0,0,0,3,0,2,2,2,limited_data,enrichment_incomplete,False,False,0,11
+JBHT,J.B. Hunt,Industrials,Cargo Ground Transportation,13,10,10,10,8,6,0,2,0,0,2,2,1,2,1,2,limited_data,enrichment_incomplete,False,False,0,11
+KMB,Kimberly-Clark,Consumer Staples,Household Products,15,10,10,10,8,8,0,0,0,0,2,5,0,2,2,2,limited_data,enrichment_incomplete,False,False,0,11
+KR,Kroger,Consumer Staples,Food Retail,18,10,9,9,8,8,0,0,0,0,1,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,11
+LIN,Linde plc,Materials,Industrial Gases,5,5,5,5,4,4,0,0,0,0,1,1,1,2,1,2,limited_data,enrichment_incomplete,False,False,0,12
+LULU,Lululemon Athletica,Consumer Discretionary,"Apparel, Accessories & Luxury Goods",16,10,10,10,10,8,0,2,0,0,0,1,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,12
+MA,Mastercard,Financials,Transaction & Payment Processing Services,74,10,10,10,8,7,0,1,0,0,2,1,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,12
+MCK,McKesson Corporation,Health Care,Health Care Distributors,16,10,9,9,9,8,0,0,0,0,0,1,1,2,1,2,limited_data,enrichment_incomplete,False,False,0,13
+MDLZ,Mondelez International,Consumer Staples,Packaged Foods & Meats,6,6,6,6,6,5,0,1,0,0,0,1,1,2,1,2,limited_data,enrichment_incomplete,False,False,0,13
+MGM,MGM Resorts,Consumer Discretionary,Casinos & Gaming,5,5,5,5,5,3,0,2,0,0,0,1,1,2,1,2,limited_data,enrichment_incomplete,False,False,0,13
+MPWR,Monolithic Power Systems,Information Technology,Semiconductors,17,10,10,10,9,9,0,0,0,0,1,3,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,13
+MRK,Merck & Co.,Health Care,Pharmaceuticals,40,10,10,10,8,7,0,1,0,0,2,2,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,13
+NDAQ,"Nasdaq, Inc.",Financials,Financial Exchanges & Data,17,10,10,10,10,9,0,1,0,0,0,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,14
+NDSN,Nordson Corporation,Industrials,Industrial Machinery & Supplies & Components,5,5,5,5,5,5,0,0,0,0,0,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,14
+NUE,Nucor,Materials,Steel,16,10,9,9,8,8,0,0,0,0,1,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,14
+NXPI,NXP Semiconductors,Information Technology,Semiconductors,21,10,10,10,9,9,0,0,0,0,1,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,14
+ORCL,Oracle Corporation,Information Technology,Application Software,123,10,10,10,10,10,0,0,0,0,0,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,15
+ORLY,O’Reilly Automotive,Consumer Discretionary,Automotive Retail,5,5,5,5,4,4,0,0,0,0,1,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,15
+PANW,Palo Alto Networks,Information Technology,Systems Software,43,10,10,10,8,8,0,0,0,0,2,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,15
+PCAR,Paccar,Industrials,Construction Machinery & Heavy Transportation Equipment,1,1,1,1,1,1,0,0,0,0,0,0,2,2,0,2,limited_data,low_finnhub_supply,False,False,0,15
+PEP,PepsiCo,Consumer Staples,Soft Drinks & Non-alcoholic Beverages,32,10,10,10,7,6,0,1,0,0,3,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,15
+PFE,Pfizer,Health Care,Pharmaceuticals,75,10,10,10,9,7,0,2,0,0,1,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,15
+PNW,Pinnacle West Capital,Utilities,Multi-Utilities,2,2,2,2,2,2,0,0,0,0,0,0,2,2,0,2,limited_data,low_finnhub_supply,False,False,0,15
+POOL,Pool Corporation,Consumer Discretionary,Distributors,11,10,9,9,8,6,0,2,0,0,1,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,15
+PWR,Quanta Services,Industrials,Construction & Engineering,25,10,10,10,7,6,0,1,0,0,3,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,16
+QCOM,Qualcomm,Information Technology,Semiconductors,185,10,10,10,9,9,0,0,0,0,1,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,16
+RCL,Royal Caribbean Group,Consumer Discretionary,"Hotels, Resorts & Cruise Lines",28,10,10,10,9,9,0,0,0,0,1,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,16
+RF,Regions Financial Corporation,Financials,Regional Banks,4,4,4,4,4,4,0,0,0,0,0,0,2,2,0,2,limited_data,low_finnhub_supply,False,False,0,16
+SATS,EchoStar,Communication Services,Wireless Telecommunication Services,33,10,10,10,10,10,0,0,0,0,0,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,17
+SBAC,SBA Communications,Real Estate,Telecom Tower REITs,8,8,8,8,3,3,0,0,0,0,5,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,17
+SBUX,Starbucks,Consumer Discretionary,Restaurants,72,10,10,10,9,7,0,2,0,0,1,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,17
+SLB,Schlumberger,Energy,Oil & Gas Equipment & Services,12,10,10,10,8,8,0,0,0,0,2,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,17
+SNPS,Synopsys,Information Technology,Application Software,12,10,9,9,8,7,0,1,0,0,1,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,17
+STLD,Steel Dynamics,Materials,Steel,5,5,5,5,5,5,0,0,0,0,0,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,17
+SWKS,Skyworks Solutions,Information Technology,Semiconductors,13,10,10,10,7,7,0,0,0,0,3,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,17
+SYF,Synchrony Financial,Financials,Consumer Finance,5,5,5,5,5,4,0,1,0,0,0,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,17
+TAP,Molson Coors Beverage Company,Consumer Staples,Brewers,7,7,7,7,4,3,0,1,0,0,3,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,18
+TDY,Teledyne Technologies,Information Technology,Electronic Equipment & Instruments,9,9,6,6,6,6,0,0,0,0,0,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,18
+TGT,Target Corporation,Consumer Staples,Consumer Staples Merchandise Retail,75,10,10,10,8,8,0,0,0,0,2,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,18
+TMO,Thermo Fisher Scientific,Health Care,Life Sciences Tools & Services,14,10,10,10,7,7,0,0,0,0,3,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,18
+UDR,"UDR, Inc.",Real Estate,Multi-Family Residential REITs,4,4,4,4,4,4,0,0,0,0,0,0,2,2,0,2,limited_data,low_finnhub_supply,False,False,0,19
+UPS,United Parcel Service,Industrials,Air Freight & Logistics,24,10,10,10,10,7,0,3,0,0,0,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,19
+VRSK,Verisk Analytics,Industrials,Research & Consulting Services,9,9,9,9,9,9,0,0,0,0,0,0,2,2,0,2,limited_data,enrichment_incomplete,False,False,0,19
+VRSN,Verisign,Information Technology,Internet Services & Infrastructure,1,1,1,1,1,0,0,1,0,0,0,0,2,2,0,2,limited_data,low_finnhub_supply,False,False,0,19
+BF.B,Brown–Forman,Consumer Staples,Distillers & Vintners,5,5,5,5,5,5,0,0,0,0,0,0,1,1,0,1,limited_data,enrichment_incomplete,False,False,0,3
+BKNG,Booking Holdings,Consumer Discretionary,"Hotels, Resorts & Cruise Lines",23,10,10,10,9,6,0,3,0,0,1,0,1,1,0,1,limited_data,enrichment_incomplete,False,False,0,3
+GNRC,Generac,Industrials,Electrical Components & Equipment,7,7,7,7,5,4,0,1,0,0,2,1,1,1,0,1,limited_data,enrichment_incomplete,False,False,0,9
+IEX,IDEX Corporation,Industrials,Industrial Machinery & Supplies & Components,4,4,4,4,2,2,0,0,0,0,2,3,0,1,1,1,limited_data,low_finnhub_supply,False,False,0,10
+INCY,Incyte,Health Care,Biotechnology,4,4,4,4,3,3,0,0,0,0,1,1,0,1,1,1,limited_data,low_finnhub_supply,False,False,0,10
+ISRG,Intuitive Surgical,Health Care,Health Care Equipment,24,10,10,10,10,9,0,1,0,0,0,2,0,1,1,1,limited_data,enrichment_incomplete,False,False,0,11
+LH,Labcorp,Health Care,Health Care Services,10,10,10,10,9,9,0,0,0,0,1,2,0,1,1,1,limited_data,enrichment_incomplete,False,False,0,12
+LII,Lennox International,Industrials,Building Products,4,4,4,4,3,1,0,2,0,0,1,2,0,1,1,1,limited_data,low_finnhub_supply,False,False,0,12
+LUV,Southwest Airlines,Industrials,Passenger Airlines,27,10,10,10,10,7,0,3,0,0,0,1,1,1,0,1,limited_data,enrichment_incomplete,False,False,0,12
+NEM,Newmont,Materials,Gold,39,10,10,10,9,9,0,0,0,0,1,0,1,1,0,1,limited_data,enrichment_incomplete,False,False,0,14
+NOW,ServiceNow,Information Technology,Systems Software,58,10,10,10,10,8,0,2,0,0,0,0,1,1,0,1,limited_data,enrichment_incomplete,False,False,0,14
+OKE,Oneok,Energy,Oil & Gas Storage & Transportation,7,7,7,7,4,4,0,0,0,0,3,0,1,1,0,1,limited_data,enrichment_incomplete,False,False,0,14
+ON,ON Semiconductor,Information Technology,Semiconductors,39,10,10,10,10,9,0,1,0,0,0,0,1,1,0,1,limited_data,enrichment_incomplete,False,False,0,14
+OTIS,Otis Worldwide,Industrials,Industrial Machinery & Supplies & Components,6,6,6,6,5,4,0,1,0,0,1,0,1,1,0,1,limited_data,enrichment_incomplete,False,False,0,15
+PEG,Public Service Enterprise Group,Utilities,Electric Utilities,5,5,5,5,5,4,0,1,0,0,0,0,1,1,0,1,limited_data,enrichment_incomplete,False,False,0,15
+PFG,Principal Financial Group,Financials,Life & Health Insurance,2,2,2,2,2,2,0,0,0,0,0,0,1,1,0,1,limited_data,low_finnhub_supply,False,False,0,15
+PKG,Packaging Corporation of America,Materials,Paper & Plastic Packaging Products & Materials,5,5,5,5,5,5,0,0,0,0,0,0,1,1,0,1,limited_data,enrichment_incomplete,False,False,0,15
+PNC,PNC Financial Services,Financials,Diversified Banks,12,10,10,10,9,7,0,2,0,0,1,0,1,1,0,1,limited_data,enrichment_incomplete,False,False,0,15
+PNR,Pentair,Industrials,Industrial Machinery & Supplies & Components,1,1,1,1,1,1,0,0,0,0,0,0,1,1,0,1,limited_data,low_finnhub_supply,False,False,0,15
+PRU,Prudential Financial,Financials,Life & Health Insurance,18,10,10,10,8,8,0,0,0,0,2,0,1,1,0,1,limited_data,enrichment_incomplete,False,False,0,16
+PSKY,Paramount Skydance Corporation,Communication Services,Movies & Entertainment,29,10,10,10,8,8,0,0,0,0,2,0,1,1,0,1,limited_data,enrichment_incomplete,False,False,0,16
+REG,Regency Centers,Real Estate,Retail REITs,2,2,2,2,1,1,0,0,0,0,1,0,1,1,0,1,limited_data,low_finnhub_supply,False,False,0,16
+ROP,Roper Technologies,Information Technology,Electronic Equipment & Instruments,13,10,9,9,6,6,0,0,0,0,3,0,1,1,0,1,limited_data,enrichment_incomplete,False,False,0,16
+ROST,Ross Stores,Consumer Discretionary,Apparel Retail,16,10,10,10,9,9,0,0,0,0,1,0,1,1,0,1,limited_data,enrichment_incomplete,False,False,0,16
+SCHW,Charles Schwab Corporation,Financials,Investment Banking & Brokerage,50,10,10,10,8,5,0,3,0,0,2,0,1,1,0,1,limited_data,enrichment_incomplete,False,False,0,17
+SNA,Snap-on,Industrials,Industrial Machinery & Supplies & Components,2,2,2,2,1,1,0,0,0,0,1,0,1,1,0,1,limited_data,low_finnhub_supply,False,False,0,17
+STZ,Constellation Brands,Consumer Staples,Distillers & Vintners,8,8,7,7,5,3,0,2,0,0,2,0,1,1,0,1,limited_data,enrichment_incomplete,False,False,0,17
+TPL,Texas Pacific Land Corporation,Energy,Oil & Gas Exploration & Production,9,9,9,9,8,8,0,0,0,0,1,0,1,1,0,1,limited_data,enrichment_incomplete,False,False,0,18
+WRB,W. R. Berkley Corporation,Financials,Property & Casualty Insurance,4,4,4,4,4,4,0,0,0,0,0,0,1,1,0,1,limited_data,low_finnhub_supply,False,False,0,20
+GRMN,Garmin,Consumer Discretionary,Consumer Electronics,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,limited_data,low_finnhub_supply,False,False,0,9
+HUBB,Hubbell Incorporated,Industrials,Industrial Machinery & Supplies & Components,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,limited_data,low_finnhub_supply,False,False,0,10
+L,Loews Corporation,Financials,Multi-line Insurance,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,limited_data,low_finnhub_supply,False,False,0,12
+MNST,Monster Beverage,Consumer Staples,Soft Drinks & Non-alcoholic Beverages,15,10,9,9,8,7,0,1,0,0,1,0,0,0,0,0,limited_data,enrichment_incomplete,False,False,0,13
+MSCI,MSCI Inc.,Financials,Financial Exchanges & Data,7,7,7,7,6,6,0,0,0,0,1,0,0,0,0,0,limited_data,enrichment_incomplete,False,False,0,13
+MTD,Mettler Toledo,Health Care,Life Sciences Tools & Services,9,9,9,9,8,7,0,1,0,0,1,0,0,0,0,0,limited_data,enrichment_incomplete,False,False,0,13
+NCLH,Norwegian Cruise Line Holdings,Consumer Discretionary,"Hotels, Resorts & Cruise Lines",32,10,10,10,10,10,0,0,0,0,0,0,0,0,0,0,limited_data,enrichment_incomplete,False,False,0,14
+NI,NiSource,Utilities,Multi-Utilities,7,7,7,7,7,7,0,0,0,0,0,0,0,0,0,0,limited_data,enrichment_incomplete,False,False,0,14
+NTAP,NetApp,Information Technology,"Technology Hardware, Storage & Peripherals",10,10,10,10,10,10,0,0,0,0,0,0,0,0,0,0,limited_data,enrichment_incomplete,False,False,0,14
+PAYX,Paychex,Industrials,Human Resource & Employment Services,4,4,4,4,3,3,0,0,0,0,1,0,0,0,0,0,limited_data,low_finnhub_supply,False,False,0,15
+PGR,Progressive Corporation,Financials,Property & Casualty Insurance,16,10,10,10,10,9,0,1,0,0,0,0,0,0,0,0,limited_data,enrichment_incomplete,False,False,0,15
+PHM,PulteGroup,Consumer Discretionary,Homebuilding,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0,0,limited_data,low_finnhub_supply,False,False,0,15
+PLD,Prologis,Real Estate,Industrial REITs,15,10,10,10,8,8,0,0,0,0,2,0,0,0,0,0,limited_data,enrichment_incomplete,False,False,0,15
+PPG,PPG Industries,Materials,Specialty Chemicals,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,limited_data,low_finnhub_supply,False,False,0,16
+PPL,PPL Corporation,Utilities,Electric Utilities,9,9,9,9,8,7,0,1,0,0,1,0,0,0,0,0,limited_data,enrichment_incomplete,False,False,0,16
+PSA,Public Storage,Real Estate,Self-Storage REITs,2,2,2,2,1,1,0,0,0,0,1,0,0,0,0,0,limited_data,low_finnhub_supply,False,False,0,16
+PSX,Phillips 66,Energy,Oil & Gas Refining & Marketing,17,10,10,10,9,8,0,1,0,0,1,0,0,0,0,0,limited_data,enrichment_incomplete,False,False,0,16
+PYPL,PayPal,Financials,Transaction & Payment Processing Services,55,10,10,10,8,5,0,3,0,0,2,0,0,0,0,0,limited_data,enrichment_incomplete,False,False,0,16
+Q,Qnity Electronics,Information Technology,Semiconductor Materials & Equipment,38,10,10,10,9,9,0,0,0,0,1,0,0,0,0,0,limited_data,enrichment_incomplete,False,False,0,16
+RL,Ralph Lauren Corporation,Consumer Discretionary,"Apparel, Accessories & Luxury Goods",14,10,10,10,10,10,0,0,0,0,0,0,0,0,0,0,limited_data,enrichment_incomplete,False,False,0,16
+ROL,"Rollins, Inc.",Industrials,Environmental & Facilities Services,14,10,10,10,8,8,0,0,0,0,2,0,0,0,0,0,limited_data,enrichment_incomplete,False,False,0,16
+RSG,Republic Services,Industrials,Environmental & Facilities Services,11,10,10,10,8,8,0,0,0,0,2,0,0,0,0,0,limited_data,enrichment_incomplete,False,False,0,16
+SHW,Sherwin-Williams,Materials,Specialty Chemicals,8,8,8,8,7,6,0,1,0,0,1,0,0,0,0,0,limited_data,enrichment_incomplete,False,False,0,17

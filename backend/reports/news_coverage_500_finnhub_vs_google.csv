@@ -1,0 +1,448 @@
+ticker,company_name,sector,industry,finnhub_raw,finnhub_relevant,finnhub_extracted,finnhub_usable,google_used,google_mode,google_raw,google_decoded,google_relevant,google_extracted,google_enriched_complete,google_added_usable,google_429s,final_usable,reached_3,reached_10,top_failure
+AXP,American Express,Financials,Consumer Finance,47,9,9,2,True,mvp_recovery,15,13,0,0,0,8,0,10,True,True,none
+EXPE,Expedia Group,Consumer Discretionary,"Hotels, Resorts & Cruise Lines",19,10,10,2,True,mvp_recovery,15,9,0,0,0,8,0,10,True,True,none
+ADSK,Autodesk,Information Technology,Application Software,23,10,8,7,True,production_boost,14,13,0,0,0,2,0,9,True,False,blocked_domains
+AIZ,Assurant,Financials,Multi-line Insurance,11,10,9,9,True,production_boost,11,9,0,0,0,0,0,9,True,False,blocked_domains
+AJG,Arthur J. Gallagher & Co.,Financials,Insurance Brokers,8,8,8,6,True,production_boost,12,10,0,0,0,3,0,9,True,False,none
+APO,Apollo Global Management,Financials,Asset Management & Custody Banks,52,10,10,9,True,production_boost,14,12,0,0,0,0,0,9,True,False,none
+AVGO,Broadcom,Information Technology,Semiconductors,169,10,8,1,True,mvp_recovery,11,10,0,0,0,8,0,9,True,False,blocked_domains
+AWK,American Water Works,Utilities,Water Utilities,19,10,10,2,True,mvp_recovery,15,10,0,0,0,7,0,9,True,False,none
+BAC,Bank of America,Financials,Diversified Banks,101,10,10,3,True,production_boost,12,12,0,0,0,6,0,9,True,False,none
+BEN,Franklin Resources,Financials,Asset Management & Custody Banks,15,10,9,3,True,production_boost,10,7,0,0,0,6,0,9,True,False,blocked_domains
+CEG,Constellation Energy,Utilities,Electric Utilities,79,10,8,9,True,production_boost,12,10,0,0,0,0,0,9,True,False,blocked_domains
+COST,Costco,Consumer Staples,Consumer Staples Merchandise Retail,58,10,5,1,True,mvp_recovery,14,13,0,0,0,8,0,9,True,False,blocked_domains
+CPT,Camden Property Trust,Real Estate,Multi-Family Residential REITs,11,10,9,9,True,production_boost,13,10,0,0,0,0,0,9,True,False,blocked_domains
+CRWD,CrowdStrike,Information Technology,Systems Software,44,10,9,9,True,production_boost,15,11,0,0,0,0,0,9,True,False,blocked_domains
+ED,Consolidated Edison,Utilities,Multi-Utilities,9,9,8,1,True,mvp_recovery,14,13,0,0,0,8,0,9,True,False,blocked_domains
+EXC,Exelon,Utilities,Electric Utilities,11,10,10,2,True,mvp_recovery,12,9,0,0,0,7,0,9,True,False,none
+F,Ford Motor Company,Consumer Discretionary,Automobile Manufacturers,137,10,9,2,True,mvp_recovery,13,12,0,0,0,7,0,9,True,False,blocked_domains
+INTC,Intel,Information Technology,Semiconductors,250,10,10,2,True,mvp_recovery,12,11,0,0,0,7,0,9,True,False,none
+KEY,KeyCorp,Financials,Regional Banks,14,10,8,4,True,production_boost,13,13,0,0,0,5,0,9,True,False,blocked_domains
+MRSH,Marsh McLennan,Financials,Insurance Brokers,5,5,5,2,True,mvp_recovery,15,15,0,0,0,7,0,9,True,False,none
+TKO,TKO Group Holdings,Communication Services,Movies & Entertainment,6,6,6,9,True,production_boost,12,9,0,0,0,0,0,9,True,False,none
+TSLA,"Tesla, Inc.",Consumer Discretionary,Automobile Manufacturers,229,10,9,3,True,production_boost,13,13,0,0,0,6,0,9,True,False,blocked_domains
+AMP,Ameriprise Financial,Financials,Asset Management & Custody Banks,10,10,8,1,True,mvp_recovery,13,12,0,0,0,7,0,8,True,False,blocked_domains
+ANET,Arista Networks,Information Technology,Communications Equipment,41,10,9,8,True,production_boost,12,8,0,0,0,0,0,8,True,False,blocked_domains
+APA,APA Corporation,Energy,Oil & Gas Exploration & Production,13,10,9,8,True,production_boost,12,12,0,0,0,0,0,8,True,False,blocked_domains
+AXON,Axon Enterprise,Industrials,Aerospace & Defense,12,10,9,1,True,mvp_recovery,12,9,0,0,0,7,0,8,True,False,blocked_domains
+BA,Boeing,Industrials,Aerospace & Defense,231,10,9,4,True,production_boost,11,8,0,0,0,4,0,8,True,False,blocked_domains
+BDX,Becton Dickinson,Health Care,Health Care Equipment,10,10,8,1,True,mvp_recovery,14,11,0,0,0,7,0,8,True,False,blocked_domains
+BIIB,Biogen,Health Care,Biotechnology,45,10,9,8,True,production_boost,15,11,0,0,0,0,0,8,True,False,blocked_domains
+CAT,Caterpillar Inc.,Industrials,Construction Machinery & Heavy Transportation Equipment,55,10,7,1,True,mvp_recovery,14,14,0,0,0,7,0,8,True,False,blocked_domains
+CBOE,Cboe Global Markets,Financials,Financial Exchanges & Data,42,9,9,8,True,production_boost,12,9,0,0,0,0,0,8,True,False,none
+CBRE,CBRE Group,Real Estate,Real Estate Services,7,7,6,8,True,production_boost,15,11,0,0,0,0,0,8,True,False,blocked_domains
+CME,CME Group,Financials,Financial Exchanges & Data,56,10,10,8,True,production_boost,15,15,0,0,0,0,0,8,True,False,none
+CPAY,Corpay,Financials,Transaction & Payment Processing Services,10,10,7,8,True,production_boost,13,12,0,0,0,0,0,8,True,False,blocked_domains
+CRL,Charles River Laboratories,Health Care,Life Sciences Tools & Services,10,10,9,2,True,mvp_recovery,13,7,0,0,0,6,0,8,True,False,blocked_domains
+DE,Deere & Company,Industrials,Agricultural & Farm Machinery,23,10,7,2,True,mvp_recovery,14,13,0,0,0,6,0,8,True,False,blocked_domains
+DG,Dollar General,Consumer Staples,Consumer Staples Merchandise Retail,20,10,8,1,True,mvp_recovery,13,9,0,0,0,7,0,8,True,False,blocked_domains
+DOV,Dover Corporation,Industrials,Industrial Machinery & Supplies & Components,2,2,2,8,True,production_boost,12,10,0,0,0,0,0,8,True,False,none
+EW,Edwards Lifesciences,Health Care,Health Care Equipment,6,6,4,8,True,production_boost,11,8,0,0,0,0,0,8,True,False,blocked_domains
+FDS,FactSet,Financials,Financial Exchanges & Data,55,10,9,1,True,mvp_recovery,14,11,0,0,0,7,0,8,True,False,blocked_domains
+GD,General Dynamics,Industrials,Aerospace & Defense,15,10,10,2,True,mvp_recovery,13,11,0,0,0,6,0,8,True,False,none
+IRM,Iron Mountain,Real Estate,Other Specialized REITs,10,10,6,2,True,mvp_recovery,10,7,0,0,0,6,0,8,True,False,blocked_domains
+META,Meta Platforms,Communication Services,Interactive Media & Services,245,10,9,1,True,mvp_recovery,13,13,0,0,0,7,0,8,True,False,blocked_domains
+MU,Micron Technology,Information Technology,Semiconductors,239,10,9,1,True,mvp_recovery,14,14,0,0,0,7,0,8,True,False,blocked_domains
+NWSA,News Corp,Communication Services,Publishing,15,10,10,3,True,production_boost,9,7,0,0,0,5,0,8,True,False,none
+PG,Procter & Gamble,Consumer Staples,Personal Care Products,38,10,10,5,True,production_boost,15,15,0,0,0,3,0,8,True,False,none
+TFC,Truist Financial,Financials,Diversified Banks,33,10,10,4,True,production_boost,15,12,0,0,0,4,0,8,True,False,none
+TTD,Trade Desk (The),Communication Services,Advertising,43,10,10,1,True,mvp_recovery,15,15,0,0,0,7,0,8,True,False,none
+VRT,Vertiv,Industrials,Electrical Components & Equipment,66,10,9,2,True,mvp_recovery,14,14,0,0,0,6,0,8,True,False,blocked_domains
+VST,Vistra Corp,Utilities,Electric Utilities,25,10,9,2,True,mvp_recovery,14,11,0,0,0,6,0,8,True,False,blocked_domains
+WFC,Wells Fargo,Financials,Diversified Banks,44,10,9,3,True,production_boost,13,13,0,0,0,5,0,8,True,False,blocked_domains
+AEP,American Electric Power,Utilities,Electric Utilities,28,10,10,1,True,mvp_recovery,14,13,0,0,0,6,0,7,True,False,none
+AMGN,Amgen,Health Care,Biotechnology,24,10,10,7,True,production_boost,14,13,0,0,0,0,0,7,True,False,none
+APP,AppLovin,Information Technology,Application Software,44,8,7,7,True,production_boost,14,14,0,0,0,0,0,7,True,False,blocked_domains
+AZO,AutoZone,Consumer Discretionary,Automotive Retail,5,5,5,7,True,production_boost,15,13,0,0,0,0,0,7,True,False,none
+BRK.B,Berkshire Hathaway,Financials,Multi-Sector Holdings,10,10,6,1,True,mvp_recovery,10,7,0,0,0,6,0,7,True,False,blocked_domains
+BX,Blackstone Inc.,Financials,Asset Management & Custody Banks,78,10,9,2,True,mvp_recovery,13,9,0,0,0,5,0,7,True,False,blocked_domains
+BXP,"BXP, Inc.",Real Estate,Office REITs,3,3,3,7,True,production_boost,12,11,0,0,0,0,0,7,True,False,none
+CCI,Crown Castle,Real Estate,Telecom Tower REITs,5,5,2,1,True,mvp_recovery,13,11,0,0,0,6,0,7,True,False,blocked_domains
+CF,CF Industries,Materials,Fertilizers & Agricultural Chemicals,23,10,10,3,True,production_boost,12,10,0,0,0,4,0,7,True,False,none
+CHRW,C.H. Robinson,Industrials,Air Freight & Logistics,17,10,10,1,True,mvp_recovery,13,9,0,0,0,6,0,7,True,False,none
+CL,Colgate-Palmolive,Consumer Staples,Household Products,31,10,10,1,True,mvp_recovery,14,14,0,0,0,6,0,7,True,False,none
+CMI,Cummins,Industrials,Construction Machinery & Heavy Transportation Equipment,18,10,8,7,True,production_boost,14,12,0,0,0,0,0,7,True,False,blocked_domains
+CMS,CMS Energy,Utilities,Multi-Utilities,9,9,9,7,True,production_boost,13,12,0,0,0,0,0,7,True,False,none
+COF,Capital One,Financials,Consumer Finance,23,10,9,1,True,mvp_recovery,14,12,0,0,0,6,0,7,True,False,blocked_domains
+CPB,Campbell's Company (The),Consumer Staples,Packaged Foods & Meats,5,5,5,2,True,mvp_recovery,14,14,0,0,0,5,0,7,True,False,none
+DASH,DoorDash,Consumer Discretionary,Specialized Consumer Services,29,10,10,1,True,mvp_recovery,14,12,0,0,0,6,0,7,True,False,none
+DD,DuPont,Materials,Specialty Chemicals,11,10,10,6,True,production_boost,12,9,0,0,0,1,0,7,True,False,none
+DECK,Deckers Brands,Consumer Discretionary,Footwear,9,9,8,1,True,mvp_recovery,12,10,0,0,0,6,0,7,True,False,blocked_domains
+DHI,D. R. Horton,Consumer Discretionary,Homebuilding,7,7,7,1,True,mvp_recovery,14,12,0,0,0,6,0,7,True,False,none
+DLR,Digital Realty,Real Estate,Data Center REITs,18,10,8,2,True,mvp_recovery,12,10,0,0,0,5,0,7,True,False,blocked_domains
+DOC,Healthpeak Properties,Real Estate,Health Care REITs,14,10,5,7,True,production_boost,12,10,0,0,0,0,0,7,True,False,blocked_domains
+DPZ,Domino's,Consumer Discretionary,Restaurants,27,9,8,7,True,production_boost,9,9,0,0,0,0,0,7,True,False,blocked_domains
+DVN,Devon Energy,Energy,Oil & Gas Exploration & Production,28,10,9,2,True,mvp_recovery,12,12,0,0,0,5,0,7,True,False,blocked_domains
+DXCM,Dexcom,Health Care,Health Care Equipment,36,10,10,7,True,production_boost,12,8,0,0,0,0,0,7,True,False,none
+EQR,Equity Residential,Real Estate,Multi-Family Residential REITs,5,5,3,2,True,mvp_recovery,13,11,0,0,0,5,0,7,True,False,blocked_domains
+EXPD,Expeditors International,Industrials,Air Freight & Logistics,11,10,7,7,True,production_boost,14,12,0,0,0,0,0,7,True,False,blocked_domains
+FIS,Fidelity National Information Services,Financials,Transaction & Payment Processing Services,17,10,9,7,True,production_boost,15,12,0,0,0,0,0,7,True,False,blocked_domains
+FIX,Comfort Systems USA,Industrials,Construction & Engineering,19,10,7,7,True,production_boost,12,12,0,0,0,0,0,7,True,False,blocked_domains
+FTV,Fortive,Industrials,Industrial Machinery & Supplies & Components,10,10,9,7,True,production_boost,12,11,0,0,0,0,0,7,True,False,blocked_domains
+GEN,Gen Digital,Information Technology,Systems Software,5,5,5,1,True,mvp_recovery,13,10,0,0,0,6,0,7,True,False,none
+GLW,Corning Inc.,Information Technology,Electronic Components,62,10,8,2,True,mvp_recovery,12,10,0,0,0,5,0,7,True,False,blocked_domains
+HOOD,Robinhood Markets,Financials,Investment Banking & Brokerage,62,10,7,1,True,mvp_recovery,13,13,0,0,0,6,0,7,True,False,blocked_domains
+IVZ,Invesco,Financials,Asset Management & Custody Banks,16,10,10,2,True,mvp_recovery,14,11,0,0,0,5,0,7,True,False,none
+JKHY,Jack Henry & Associates,Financials,Transaction & Payment Processing Services,9,9,9,7,True,production_boost,14,8,0,0,0,0,0,7,True,False,none
+KEYS,Keysight Technologies,Information Technology,Electronic Equipment & Instruments,26,10,9,7,True,production_boost,14,12,0,0,0,0,0,7,True,False,blocked_domains
+LLY,Lilly (Eli),Health Care,Pharmaceuticals,95,10,9,3,True,production_boost,13,12,0,0,0,4,0,7,True,False,blocked_domains
+MAR,Marriott International,Consumer Discretionary,"Hotels, Resorts & Cruise Lines",17,10,10,1,True,mvp_recovery,14,14,0,0,0,6,0,7,True,False,none
+MOS,Mosaic Company (The),Materials,Fertilizers & Agricultural Chemicals,58,10,8,1,True,mvp_recovery,14,10,0,0,0,6,0,7,True,False,blocked_domains
+MSFT,Microsoft,Information Technology,Systems Software,246,10,8,2,True,mvp_recovery,13,11,0,0,0,5,0,7,True,False,blocked_domains
+NFLX,Netflix,Communication Services,Movies & Entertainment,85,10,10,2,True,mvp_recovery,13,10,0,0,0,5,0,7,True,False,none
+SMCI,Supermicro,Information Technology,"Technology Hardware, Storage & Peripherals",57,10,9,1,True,mvp_recovery,12,11,0,0,0,6,0,7,True,False,blocked_domains
+TJX,TJX Companies,Consumer Discretionary,Apparel Retail,21,10,9,1,True,mvp_recovery,15,15,0,0,0,6,0,7,True,False,blocked_domains
+TMUS,T-Mobile US,Communication Services,Wireless Telecommunication Services,45,10,10,7,True,production_boost,13,8,0,0,0,0,0,7,True,False,none
+ULTA,Ulta Beauty,Consumer Discretionary,Other Specialty Retail,18,10,10,1,True,mvp_recovery,14,11,0,0,0,6,0,7,True,False,none
+UNH,UnitedHealth Group,Health Care,Managed Health Care,57,10,9,2,True,mvp_recovery,14,13,0,0,0,5,0,7,True,False,blocked_domains
+USB,U.S. Bancorp,Financials,Diversified Banks,7,7,7,1,True,mvp_recovery,15,15,0,0,0,6,0,7,True,False,none
+WAB,Wabtec,Industrials,Construction Machinery & Heavy Transportation Equipment,7,7,7,1,True,mvp_recovery,12,12,0,0,0,6,0,7,True,False,none
+WBD,Warner Bros. Discovery,Communication Services,Broadcasting,24,10,9,7,True,production_boost,13,13,0,0,0,0,0,7,True,False,blocked_domains
+WM,Waste Management,Industrials,Environmental & Facilities Services,10,10,8,7,True,production_boost,13,11,0,0,0,0,0,7,True,False,none
+ACGL,Arch Capital Group,Financials,Property & Casualty Insurance,6,6,6,5,True,production_boost,15,14,0,0,0,1,0,6,True,False,none
+ADP,Automatic Data Processing,Industrials,Human Resource & Employment Services,3,3,2,5,True,production_boost,14,11,0,0,0,1,0,6,True,False,blocked_domains
+AMAT,Applied Materials,Information Technology,Semiconductor Materials & Equipment,184,10,7,4,True,production_boost,13,11,0,0,0,2,0,6,True,False,blocked_domains
+APTV,Aptiv,Consumer Discretionary,Automotive Parts & Equipment,12,10,10,6,True,production_boost,12,9,0,0,0,0,0,6,True,False,none
+ATO,Atmos Energy,Utilities,Gas Utilities,11,10,8,1,True,mvp_recovery,13,11,0,0,0,5,0,6,True,False,blocked_domains
+BBY,Best Buy,Consumer Discretionary,Computer & Electronics Retail,18,10,8,6,True,production_boost,14,8,0,0,0,0,0,6,True,False,blocked_domains
+BKR,Baker Hughes,Energy,Oil & Gas Equipment & Services,10,10,10,1,True,mvp_recovery,14,11,0,0,0,5,0,6,True,False,none
+BMY,Bristol Myers Squibb,Health Care,Pharmaceuticals,43,10,8,6,True,production_boost,12,11,0,0,0,0,0,6,True,False,blocked_domains
+BSX,Boston Scientific,Health Care,Health Care Equipment,21,9,8,6,True,production_boost,13,9,0,0,0,0,0,6,True,False,blocked_domains
+CAH,Cardinal Health,Health Care,Health Care Distributors,17,9,7,1,True,mvp_recovery,15,12,0,0,0,5,0,6,True,False,blocked_domains
+CASY,Casey's,Consumer Staples,Food Retail,8,8,6,5,True,production_boost,14,13,0,0,0,1,0,6,True,False,blocked_domains
+CB,Chubb Limited,Financials,Property & Casualty Insurance,14,9,7,5,True,production_boost,15,13,0,0,0,1,0,6,True,False,blocked_domains
+CDNS,Cadence Design Systems,Information Technology,Application Software,10,10,10,6,True,production_boost,13,11,0,0,0,0,0,6,True,False,none
+CDW,CDW Corporation,Information Technology,Technology Distributors,7,7,6,6,True,production_boost,14,11,0,0,0,0,0,6,True,False,blocked_domains
+CLX,Clorox,Consumer Staples,Household Products,12,10,10,1,True,mvp_recovery,15,12,0,0,0,5,0,6,True,False,none
+CMCSA,Comcast,Communication Services,Cable & Satellite,43,10,10,6,True,production_boost,12,12,0,0,0,0,0,6,True,False,none
+CMG,Chipotle Mexican Grill,Consumer Discretionary,Restaurants,21,9,7,6,True,production_boost,13,11,0,0,0,0,0,6,True,False,blocked_domains
+CSX,CSX Corporation,Industrials,Rail Transportation,10,10,9,1,True,mvp_recovery,13,12,0,0,0,5,0,6,True,False,blocked_domains
+CTVA,Corteva,Materials,Fertilizers & Agricultural Chemicals,10,10,9,2,True,mvp_recovery,15,15,0,0,0,4,0,6,True,False,blocked_domains
+DAL,Delta Air Lines,Industrials,Passenger Airlines,61,10,9,1,True,mvp_recovery,13,12,0,0,0,5,0,6,True,False,blocked_domains
+DLTR,Dollar Tree,Consumer Staples,Consumer Staples Merchandise Retail,16,10,8,1,True,mvp_recovery,13,9,0,0,0,5,0,6,True,False,blocked_domains
+EA,Electronic Arts,Communication Services,Interactive Home Entertainment,5,5,4,6,True,production_boost,15,15,0,0,0,0,0,6,True,False,blocked_domains
+EBAY,eBay Inc.,Consumer Discretionary,Broadline Retail,97,10,10,6,True,production_boost,14,11,0,0,0,0,0,6,True,False,none
+EPAM,EPAM Systems,Information Technology,IT Consulting & Other Services,10,10,8,6,True,production_boost,14,10,0,0,0,0,0,6,True,False,blocked_domains
+FCX,Freeport-McMoRan,Materials,Copper,40,10,9,6,True,production_boost,13,13,0,0,0,0,0,6,True,False,blocked_domains
+FFIV,"F5, Inc.",Information Technology,Communications Equipment,5,5,5,6,True,production_boost,13,11,0,0,0,0,0,6,True,False,none
+FISV,Fiserv,Financials,Transaction & Payment Processing Services,30,10,8,6,True,production_boost,14,14,0,0,0,0,0,6,True,False,blocked_domains
+GEHC,GE HealthCare,Health Care,Health Care Equipment,17,10,8,2,True,mvp_recovery,15,12,0,0,0,4,0,6,True,False,blocked_domains
+GIS,General Mills,Consumer Staples,Packaged Foods & Meats,15,10,9,1,True,mvp_recovery,13,10,0,0,0,5,0,6,True,False,blocked_domains
+HD,Home Depot (The),Consumer Discretionary,Home Improvement Retail,63,10,7,6,True,production_boost,13,12,0,0,0,0,0,6,True,False,blocked_domains
+HIG,Hartford (The),Financials,Property & Casualty Insurance,7,7,6,4,True,production_boost,14,13,0,0,0,2,0,6,True,False,blocked_domains
+HON,Honeywell,Industrials,Industrial Conglomerates,17,10,9,6,True,production_boost,13,12,0,0,0,0,0,6,True,False,blocked_domains
+HPE,Hewlett Packard Enterprise,Information Technology,"Technology Hardware, Storage & Peripherals",42,10,10,6,True,production_boost,13,11,0,0,0,0,0,6,True,False,none
+INVH,Invitation Homes,Real Estate,Single-Family Residential REITs,4,4,2,2,True,mvp_recovery,15,13,0,0,0,4,0,6,True,False,blocked_domains
+LMT,Lockheed Martin,Industrials,Aerospace & Defense,53,10,10,3,True,production_boost,13,12,0,0,0,3,0,6,True,False,none
+MKC,McCormick & Company,Consumer Staples,Packaged Foods & Meats,9,9,9,6,True,production_boost,14,12,0,0,0,0,0,6,True,False,none
+NWS,News Corp,Communication Services,Publishing,10,10,10,4,True,production_boost,8,6,0,0,0,2,0,6,True,False,none
+OXY,Occidental Petroleum,Energy,Oil & Gas Exploration & Production,27,9,7,4,True,production_boost,14,12,0,0,0,2,0,6,True,False,blocked_domains
+PTC,PTC Inc.,Information Technology,Application Software,10,10,10,4,True,production_boost,13,10,0,0,0,2,0,6,True,False,none
+SO,Southern Company,Utilities,Electric Utilities,9,9,9,1,True,mvp_recovery,12,10,0,0,0,5,0,6,True,False,none
+STT,State Street Corporation,Financials,Asset Management & Custody Banks,15,10,10,1,True,mvp_recovery,13,12,0,0,0,5,0,6,True,False,none
+SYY,Sysco,Consumer Staples,Food Distributors,8,8,8,1,True,mvp_recovery,15,15,0,0,0,5,0,6,True,False,none
+TROW,T. Rowe Price,Financials,Asset Management & Custody Banks,17,8,8,2,True,mvp_recovery,14,12,0,0,0,4,0,6,True,False,none
+TSN,Tyson Foods,Consumer Staples,Packaged Foods & Meats,22,10,10,1,True,mvp_recovery,15,13,0,0,0,5,0,6,True,False,none
+TXT,Textron,Industrials,Aerospace & Defense,13,10,10,6,True,production_boost,12,11,0,0,0,0,0,6,True,False,none
+VLO,Valero Energy,Energy,Oil & Gas Refining & Marketing,18,10,9,6,True,production_boost,13,10,0,0,0,0,0,6,True,False,blocked_domains
+WAT,Waters Corporation,Health Care,Life Sciences Tools & Services,8,8,7,6,True,production_boost,14,11,0,0,0,0,0,6,True,False,blocked_domains
+WDAY,"Workday, Inc.",Information Technology,Application Software,34,10,10,1,True,mvp_recovery,14,14,0,0,0,5,0,6,True,False,none
+WELL,Welltower,Real Estate,Health Care REITs,7,7,3,6,True,production_boost,14,12,0,0,0,0,0,6,True,False,blocked_domains
+XOM,ExxonMobil,Energy,Integrated Oil & Gas,92,10,8,3,True,production_boost,11,5,0,0,0,3,0,6,True,False,blocked_domains
+ADI,Analog Devices,Information Technology,Semiconductors,35,10,10,5,True,production_boost,14,11,0,0,0,0,0,5,True,False,none
+AME,Ametek,Industrials,Electrical Components & Equipment,5,5,4,5,True,production_boost,13,12,0,0,0,0,0,5,True,False,blocked_domains
+AMT,American Tower,Real Estate,Telecom Tower REITs,12,10,6,1,True,mvp_recovery,14,12,0,0,0,4,0,5,True,False,blocked_domains
+ARE,Alexandria Real Estate Equities,Real Estate,Office REITs,5,5,2,5,True,production_boost,13,9,0,0,0,0,0,5,True,False,blocked_domains
+ARES,Ares Management,Financials,Asset Management & Custody Banks,11,10,8,1,True,mvp_recovery,12,12,0,0,0,4,0,5,True,False,blocked_domains
+BALL,Ball Corporation,Materials,"Metal, Glass & Plastic Containers",5,5,4,5,True,production_boost,12,11,0,0,0,0,0,5,True,False,blocked_domains
+BAX,Baxter International,Health Care,Health Care Equipment,6,6,5,1,True,mvp_recovery,14,9,0,0,0,4,0,5,True,False,blocked_domains
+CAG,Conagra Brands,Consumer Staples,Packaged Foods & Meats,4,4,3,2,True,mvp_recovery,15,12,0,0,0,3,0,5,True,False,blocked_domains
+CCL,Carnival,Consumer Discretionary,"Hotels, Resorts & Cruise Lines",26,10,10,5,True,production_boost,14,11,0,0,0,0,0,5,True,False,none
+CFG,Citizens Financial Group,Financials,Regional Banks,6,6,6,4,True,production_boost,12,9,0,0,0,1,0,5,True,False,none
+CIEN,Ciena,Information Technology,Communications Equipment,22,10,9,5,True,production_boost,12,12,0,0,0,0,0,5,True,False,blocked_domains
+CNP,CenterPoint Energy,Utilities,Multi-Utilities,8,7,6,1,True,mvp_recovery,15,13,0,0,0,4,0,5,True,False,blocked_domains
+COHR,Coherent Corp.,Information Technology,Electronic Components,67,10,8,5,True,production_boost,12,12,0,0,0,0,0,5,True,False,blocked_domains
+COIN,Coinbase,Financials,Financial Exchanges & Data,84,10,8,5,True,production_boost,12,12,0,0,0,0,0,5,True,False,blocked_domains
+COP,ConocoPhillips,Energy,Oil & Gas Exploration & Production,37,10,9,5,True,production_boost,12,12,0,0,0,0,0,5,True,False,blocked_domains
+CSCO,Cisco,Information Technology,Communications Equipment,240,10,9,5,True,production_boost,14,11,0,0,0,0,0,5,True,False,blocked_domains
+CVNA,Carvana,Consumer Discretionary,Automotive Retail,20,10,8,5,True,production_boost,12,12,0,0,0,0,0,5,True,False,blocked_domains
+CVX,Chevron Corporation,Energy,Integrated Oil & Gas,93,10,8,5,True,production_boost,10,8,0,0,0,0,0,5,True,False,blocked_domains
+D,Dominion Energy,Utilities,Multi-Utilities,16,10,10,2,True,mvp_recovery,15,10,0,0,0,3,0,5,True,False,none
+DGX,Quest Diagnostics,Health Care,Health Care Services,5,5,3,1,True,mvp_recovery,14,11,0,0,0,4,0,5,True,False,blocked_domains
+EQIX,Equinix,Real Estate,Data Center REITs,25,10,8,5,True,production_boost,14,12,0,0,0,0,0,5,True,False,blocked_domains
+ESS,Essex Property Trust,Real Estate,Multi-Family Residential REITs,5,5,4,5,True,production_boost,11,8,0,0,0,0,0,5,True,False,blocked_domains
+ETR,Entergy,Utilities,Electric Utilities,5,5,5,5,True,production_boost,14,12,0,0,0,0,0,5,True,False,none
+EVRG,Evergy,Utilities,Electric Utilities,6,6,5,5,True,production_boost,13,11,0,0,0,0,0,5,True,False,blocked_domains
+EXR,Extra Space Storage,Real Estate,Self-Storage REITs,4,4,3,5,True,production_boost,14,9,0,0,0,0,0,5,True,False,blocked_domains
+FANG,Diamondback Energy,Energy,Oil & Gas Exploration & Production,16,10,8,1,True,mvp_recovery,15,12,0,0,0,4,0,5,True,False,blocked_domains
+FDX,FedEx,Industrials,Air Freight & Logistics,51,10,8,5,True,production_boost,13,11,0,0,0,0,0,5,True,False,blocked_domains
+FITB,Fifth Third Bancorp,Financials,Regional Banks,4,4,4,1,True,mvp_recovery,15,12,0,0,0,4,0,5,True,False,none
+FTNT,Fortinet,Information Technology,Systems Software,27,10,9,5,True,production_boost,15,11,0,0,0,0,0,5,True,False,blocked_domains
+GS,Goldman Sachs,Financials,Investment Banking & Brokerage,138,10,9,2,True,mvp_recovery,13,13,0,0,0,3,0,5,True,False,blocked_domains
+HAS,Hasbro,Consumer Discretionary,Leisure Products,13,10,10,1,True,mvp_recovery,15,14,0,0,0,4,0,5,True,False,none
+HPQ,HP Inc.,Information Technology,"Technology Hardware, Storage & Peripherals",8,8,8,1,True,mvp_recovery,14,10,0,0,0,4,0,5,True,False,none
+IBM,IBM,Information Technology,IT Consulting & Other Services,56,10,10,2,True,mvp_recovery,15,14,0,0,0,3,0,5,True,False,none
+IDXX,Idexx Laboratories,Health Care,Health Care Equipment,10,10,9,1,True,mvp_recovery,15,14,0,0,0,4,0,5,True,False,blocked_domains
+IFF,International Flavors & Fragrances,Materials,Specialty Chemicals,6,6,6,1,True,mvp_recovery,13,10,0,0,0,4,0,5,True,False,none
+IT,Gartner,Information Technology,IT Consulting & Other Services,28,10,9,5,True,production_boost,13,12,0,0,0,0,0,5,True,False,blocked_domains
+ITW,Illinois Tool Works,Industrials,Industrial Machinery & Supplies & Components,6,6,6,2,True,mvp_recovery,14,12,0,0,0,3,0,5,True,False,none
+JCI,Johnson Controls,Industrials,Building Products,9,9,9,5,True,production_boost,15,12,0,0,0,0,0,5,True,False,none
+JPM,JPMorgan Chase,Financials,Diversified Banks,188,10,8,1,True,mvp_recovery,11,8,0,0,0,4,0,5,True,False,blocked_domains
+KLAC,KLA Corporation,Information Technology,Semiconductor Materials & Equipment,38,10,6,5,True,production_boost,13,10,0,0,0,0,0,5,True,False,blocked_domains
+KMI,Kinder Morgan,Energy,Oil & Gas Storage & Transportation,18,9,9,1,True,mvp_recovery,14,11,0,0,0,4,0,5,True,False,none
+KO,Coca-Cola Company (The),Consumer Staples,Soft Drinks & Non-alcoholic Beverages,52,10,9,2,True,mvp_recovery,11,11,0,0,0,3,0,5,True,False,blocked_domains
+LYB,LyondellBasell,Materials,Specialty Chemicals,9,9,6,5,True,production_boost,15,13,0,0,0,0,0,5,True,False,blocked_domains
+MCD,McDonald's,Consumer Discretionary,Restaurants,79,9,9,1,True,mvp_recovery,12,10,0,0,0,4,0,5,True,False,none
+MCHP,Microchip Technology,Information Technology,Semiconductors,24,10,8,2,True,mvp_recovery,14,11,0,0,0,3,0,5,True,False,blocked_domains
+MCO,Moody's Corporation,Financials,Financial Exchanges & Data,13,9,8,5,True,production_boost,13,11,0,0,0,0,0,5,True,False,blocked_domains
+MDT,Medtronic,Health Care,Health Care Equipment,32,10,8,1,True,mvp_recovery,15,12,0,0,0,4,0,5,True,False,blocked_domains
+MPC,Marathon Petroleum,Energy,Oil & Gas Refining & Marketing,17,10,10,1,True,mvp_recovery,12,9,0,0,0,4,0,5,True,False,none
+MSI,Motorola Solutions,Information Technology,Communications Equipment,16,10,10,5,True,production_boost,15,15,0,0,0,0,0,5,True,False,none
+NEE,NextEra Energy,Utilities,Multi-Utilities,14,10,10,2,True,mvp_recovery,13,8,0,0,0,3,0,5,True,False,none
+O,Realty Income,Real Estate,Retail REITs,34,10,9,3,True,production_boost,14,12,0,0,0,2,0,5,True,False,blocked_domains
+PM,Philip Morris International,Consumer Staples,Tobacco,14,10,9,2,True,mvp_recovery,15,11,0,0,0,3,0,5,True,False,blocked_domains
+STX,Seagate Technology,Information Technology,"Technology Hardware, Storage & Peripherals",43,10,10,5,True,production_boost,14,10,0,0,0,0,0,5,True,False,none
+SWK,Stanley Black & Decker,Industrials,Industrial Machinery & Supplies & Components,6,6,6,5,True,production_boost,15,15,0,0,0,0,0,5,True,False,none
+TRV,Travelers Companies (The),Financials,Property & Casualty Insurance,15,8,7,5,True,production_boost,14,14,0,0,0,0,0,5,True,False,blocked_domains
+TSCO,Tractor Supply,Consumer Discretionary,Other Specialty Retail,7,7,7,5,True,production_boost,14,10,0,0,0,0,0,5,True,False,none
+UBER,Uber,Industrials,Passenger Ground Transportation,97,10,10,5,True,production_boost,15,14,0,0,0,0,0,5,True,False,none
+URI,United Rentals,Industrials,Trading Companies & Distributors,0,0,0,1,True,mvp_recovery,14,10,0,0,0,4,0,5,True,False,low_finnhub_supply
+V,Visa Inc.,Financials,Transaction & Payment Processing Services,101,10,9,1,True,mvp_recovery,12,9,0,0,0,4,0,5,True,False,blocked_domains
+WDC,Western Digital,Information Technology,"Technology Hardware, Storage & Peripherals",84,10,10,1,True,mvp_recovery,10,8,0,0,0,4,0,5,True,False,none
+WMB,Williams Companies,Energy,Oil & Gas Storage & Transportation,11,10,9,2,True,mvp_recovery,15,15,0,0,0,3,0,5,True,False,blocked_domains
+WMT,Walmart,Consumer Staples,Consumer Staples Merchandise Retail,150,10,8,4,True,production_boost,12,8,0,0,0,1,0,5,True,False,blocked_domains
+WY,Weyerhaeuser,Real Estate,Timber REITs,6,6,5,4,True,production_boost,13,8,0,0,0,1,0,5,True,False,blocked_domains
+WYNN,Wynn Resorts,Consumer Discretionary,Casinos & Gaming,9,9,9,4,True,production_boost,13,8,0,0,0,1,0,5,True,False,none
+XEL,Xcel Energy,Utilities,Multi-Utilities,5,5,5,5,True,production_boost,14,13,0,0,0,0,0,5,True,False,none
+XYL,Xylem Inc.,Industrials,Industrial Machinery & Supplies & Components,5,5,5,2,True,mvp_recovery,13,13,0,0,0,3,0,5,True,False,none
+ZBH,Zimmer Biomet,Health Care,Health Care Equipment,17,10,9,5,True,production_boost,12,7,0,0,0,0,0,5,True,False,blocked_domains
+ZTS,Zoetis,Health Care,Pharmaceuticals,18,10,9,4,True,production_boost,12,9,0,0,0,1,0,5,True,False,blocked_domains
+ADM,Archer Daniels Midland,Consumer Staples,Agricultural Products & Services,17,10,8,4,True,production_boost,13,10,0,0,0,0,0,4,True,False,blocked_domains
+APD,Air Products,Materials,Industrial Gases,2,2,1,4,True,production_boost,12,9,0,0,0,0,0,4,True,False,blocked_domains
+AVB,AvalonBay Communities,Real Estate,Multi-Family Residential REITs,8,8,6,4,True,production_boost,12,9,0,0,0,0,0,4,True,False,blocked_domains
+AVY,Avery Dennison,Materials,Paper & Plastic Packaging Products & Materials,5,5,4,3,True,production_boost,12,10,0,0,0,1,0,4,True,False,blocked_domains
+BG,Bunge Global,Consumer Staples,Agricultural Products & Services,6,6,4,4,True,production_boost,7,5,0,0,0,0,0,4,True,False,blocked_domains
+CHTR,Charter Communications,Communication Services,Cable & Satellite,28,9,8,4,True,production_boost,14,11,0,0,0,0,0,4,True,False,blocked_domains
+CTAS,Cintas,Industrials,Diversified Support Services,3,3,3,2,True,mvp_recovery,15,15,0,0,0,2,0,4,True,False,none
+DDOG,Datadog,Information Technology,Application Software,38,10,6,1,True,mvp_recovery,15,15,0,0,0,3,0,4,True,False,blocked_domains
+DHR,Danaher Corporation,Health Care,Life Sciences Tools & Services,19,10,10,4,True,production_boost,11,9,0,0,0,0,0,4,True,False,none
+DIS,Walt Disney Company (The),Communication Services,Movies & Entertainment,78,10,8,4,True,production_boost,12,11,0,0,0,0,0,4,True,False,blocked_domains
+DVA,DaVita,Health Care,Health Care Services,17,9,7,4,True,production_boost,14,11,0,0,0,0,0,4,True,False,blocked_domains
+ECL,Ecolab,Materials,Specialty Chemicals,9,9,8,4,True,production_boost,14,13,0,0,0,0,0,4,True,False,blocked_domains
+EFX,Equifax,Industrials,Research & Consulting Services,15,10,8,3,True,production_boost,11,8,0,0,0,1,0,4,True,False,blocked_domains
+EL,Estée Lauder Companies (The),Consumer Staples,Personal Care Products,14,10,9,4,True,production_boost,14,14,0,0,0,0,0,4,True,False,blocked_domains
+ELV,Elevance Health,Health Care,Managed Health Care,6,6,5,1,True,mvp_recovery,13,10,0,0,0,3,0,4,True,False,blocked_domains
+EMR,Emerson Electric,Industrials,Electrical Components & Equipment,14,10,10,5,True,production_boost,14,11,0,0,0,0,0,4,True,False,none
+EXE,Expand Energy,Energy,Oil & Gas Exploration & Production,0,0,0,3,True,production_boost,15,14,0,0,0,1,0,4,True,False,low_finnhub_supply
+FAST,Fastenal,Industrials,Trading Companies & Distributors,6,6,5,1,True,mvp_recovery,13,10,0,0,0,3,0,4,True,False,blocked_domains
+FE,FirstEnergy,Utilities,Electric Utilities,6,6,5,1,True,mvp_recovery,12,9,0,0,0,3,0,4,True,False,blocked_domains
+FICO,Fair Isaac,Information Technology,Application Software,16,10,9,4,True,production_boost,12,8,0,0,0,0,0,4,True,False,blocked_domains
+FSLR,First Solar,Information Technology,Semiconductors,22,10,9,4,True,production_boost,13,11,0,0,0,0,0,4,True,False,blocked_domains
+GEV,GE Vernova,Industrials,Heavy Electrical Equipment,46,10,10,4,True,production_boost,13,13,0,0,0,0,0,4,True,False,none
+GILD,Gilead Sciences,Health Care,Biotechnology,20,10,10,1,True,mvp_recovery,14,12,0,0,0,3,0,4,True,False,none
+GL,Globe Life,Financials,Life & Health Insurance,4,4,4,2,True,mvp_recovery,10,8,0,0,0,2,0,4,True,False,none
+GM,General Motors,Consumer Discretionary,Automobile Manufacturers,71,10,10,4,True,production_boost,14,13,0,0,0,0,0,4,True,False,none
+GPN,Global Payments,Financials,Transaction & Payment Processing Services,19,10,10,4,True,production_boost,14,13,0,0,0,0,0,4,True,False,none
+HAL,Halliburton,Energy,Oil & Gas Equipment & Services,30,10,10,4,True,production_boost,14,11,0,0,0,0,0,4,True,False,none
+HLT,Hilton Worldwide,Consumer Discretionary,"Hotels, Resorts & Cruise Lines",9,9,7,4,True,production_boost,15,14,0,0,0,0,0,4,True,False,blocked_domains
+HRL,Hormel Foods,Consumer Staples,Packaged Foods & Meats,16,10,8,4,True,production_boost,13,11,0,0,0,0,0,4,True,False,blocked_domains
+HUM,Humana,Health Care,Managed Health Care,18,10,9,4,True,production_boost,11,8,0,0,0,0,0,4,True,False,blocked_domains
+HWM,Howmet Aerospace,Industrials,Aerospace & Defense,17,10,8,1,True,mvp_recovery,14,11,0,0,0,3,0,4,True,False,blocked_domains
+IBKR,Interactive Brokers,Financials,Investment Banking & Brokerage,19,10,9,2,True,mvp_recovery,12,9,0,0,0,2,0,4,True,False,blocked_domains
+ICE,Intercontinental Exchange,Financials,Financial Exchanges & Data,28,10,10,1,True,mvp_recovery,15,10,0,0,0,3,0,4,True,False,none
+INTU,Intuit,Information Technology,Application Software,33,10,9,2,True,mvp_recovery,15,8,0,0,0,2,0,4,True,False,blocked_domains
+KHC,Kraft Heinz,Consumer Staples,Packaged Foods & Meats,22,9,9,2,True,mvp_recovery,13,12,0,0,0,2,0,4,True,False,none
+LEN,Lennar,Consumer Discretionary,Homebuilding,9,8,7,4,True,production_boost,14,11,0,0,0,0,0,4,True,False,blocked_domains
+LOW,Lowe's,Consumer Discretionary,Home Improvement Retail,46,10,7,4,True,production_boost,10,10,0,0,0,0,0,4,True,False,blocked_domains
+LRCX,Lam Research,Information Technology,Semiconductor Materials & Equipment,50,10,9,4,True,production_boost,15,12,0,0,0,0,0,4,True,False,blocked_domains
+MAA,Mid-America Apartment Communities,Real Estate,Multi-Family Residential REITs,9,9,6,1,True,mvp_recovery,13,11,0,0,0,3,0,4,True,False,blocked_domains
+MAS,Masco,Industrials,Building Products,12,10,7,4,True,production_boost,15,11,0,0,0,0,0,4,True,False,blocked_domains
+MET,MetLife,Financials,Life & Health Insurance,15,10,10,4,True,production_boost,14,12,0,0,0,0,0,4,True,False,none
+MRNA,Moderna,Health Care,Biotechnology,71,10,10,1,True,mvp_recovery,13,9,0,0,0,3,0,4,True,False,none
+MS,Morgan Stanley,Financials,Investment Banking & Brokerage,89,10,7,1,True,mvp_recovery,14,13,0,0,0,3,0,4,True,False,blocked_domains
+NKE,"Nike, Inc.",Consumer Discretionary,"Apparel, Accessories & Luxury Goods",53,10,10,3,True,production_boost,11,10,0,0,0,1,0,4,True,False,none
+NTRS,Northern Trust,Financials,Asset Management & Custody Banks,5,5,5,4,True,production_boost,11,11,0,0,0,0,0,4,True,False,none
+NVR,"NVR, Inc.",Consumer Discretionary,Homebuilding,3,3,3,4,True,production_boost,9,6,0,0,0,0,0,4,True,False,none
+ODFL,Old Dominion,Industrials,Cargo Ground Transportation,6,6,5,3,True,production_boost,15,12,0,0,0,1,0,4,True,False,blocked_domains
+PLTR,Palantir Technologies,Information Technology,Application Software,125,10,8,4,True,production_boost,13,13,0,0,0,0,0,4,True,False,blocked_domains
+SJM,J.M. Smucker Company (The),Consumer Staples,Packaged Foods & Meats,10,10,9,1,True,mvp_recovery,14,12,0,0,0,3,0,4,True,False,blocked_domains
+SNDK,Sandisk,Information Technology,"Technology Hardware, Storage & Peripherals",151,10,10,1,True,mvp_recovery,12,10,0,0,0,3,0,4,True,False,none
+SPG,Simon Property Group,Real Estate,Retail REITs,32,10,7,4,True,production_boost,15,14,0,0,0,0,0,4,True,False,blocked_domains
+STE,Steris,Health Care,Health Care Equipment,27,10,10,4,True,production_boost,12,8,0,0,0,0,0,4,True,False,none
+SW,Smurfit Westrock,Materials,Paper & Plastic Packaging Products & Materials,6,6,4,4,True,production_boost,10,7,0,0,0,0,0,4,True,False,blocked_domains
+SYK,Stryker Corporation,Health Care,Health Care Equipment,22,10,9,1,True,mvp_recovery,13,10,0,0,0,3,0,4,True,False,blocked_domains
+TEL,TE Connectivity,Information Technology,Electronic Manufacturing Services,8,7,6,1,True,mvp_recovery,11,9,0,0,0,3,0,4,True,False,blocked_domains
+TEST,,,,0,0,0,4,True,production_boost,15,13,0,0,0,0,0,4,True,False,low_finnhub_supply
+TPR,"Tapestry, Inc.",Consumer Discretionary,"Apparel, Accessories & Luxury Goods",20,10,10,4,True,production_boost,11,5,0,0,0,0,0,4,True,False,none
+TRMB,Trimble Inc.,Information Technology,Electronic Equipment & Instruments,5,5,5,1,True,mvp_recovery,15,11,0,0,0,3,0,4,True,False,none
+TTWO,Take-Two Interactive,Communication Services,Interactive Home Entertainment,23,10,9,4,True,production_boost,14,13,0,0,0,0,0,4,True,False,blocked_domains
+TXN,Texas Instruments,Information Technology,Semiconductors,38,10,8,4,True,production_boost,10,8,0,0,0,0,0,4,True,False,blocked_domains
+UAL,United Airlines Holdings,Industrials,Passenger Airlines,43,10,10,4,True,production_boost,12,11,0,0,0,0,0,4,True,False,none
+UHS,Universal Health Services,Health Care,Health Care Facilities,3,3,2,1,True,mvp_recovery,14,12,0,0,0,3,0,4,True,False,blocked_domains
+VMC,Vulcan Materials Company,Materials,Construction Materials,8,8,7,4,True,production_boost,13,11,0,0,0,0,0,4,True,False,blocked_domains
+VRTX,Vertex Pharmaceuticals,Health Care,Biotechnology,6,6,6,4,True,production_boost,15,11,0,0,0,0,0,4,True,False,none
+VTRS,Viatris,Health Care,Pharmaceuticals,8,8,4,1,True,mvp_recovery,13,9,0,0,0,3,0,4,True,False,blocked_domains
+WSM,"Williams-Sonoma, Inc.",Consumer Discretionary,Homefurnishing Retail,11,10,9,2,True,mvp_recovery,13,9,0,0,0,2,0,4,True,False,blocked_domains
+ZBRA,Zebra Technologies,Information Technology,Electronic Equipment & Instruments,75,10,9,3,True,production_boost,13,10,0,0,0,1,0,4,True,False,blocked_domains
+COO,Cooper Companies (The),Health Care,Health Care Supplies,6,6,6,3,True,production_boost,14,14,0,0,0,0,0,3,True,False,none
+CPRT,Copart,Industrials,Diversified Support Services,2,2,2,3,True,production_boost,13,10,0,0,0,0,0,3,True,False,none
+CRH,CRH plc,Materials,Construction Materials,6,6,6,3,True,production_boost,13,13,0,0,0,0,0,3,True,False,none
+CTRA,Coterra,Energy,Oil & Gas Exploration & Production,1,1,1,3,True,production_boost,12,12,0,0,0,0,0,3,True,False,none
+DRI,Darden Restaurants,Consumer Discretionary,Restaurants,2,2,1,3,True,production_boost,12,10,0,0,0,0,0,3,True,False,blocked_domains
+DTE,DTE Energy,Utilities,Multi-Utilities,3,3,3,3,True,production_boost,12,10,0,0,0,0,0,3,True,False,none
+EQT,EQT Corporation,Energy,Oil & Gas Exploration & Production,4,4,4,3,True,production_boost,12,9,0,0,0,0,0,3,True,False,none
+ERIE,Erie Indemnity,Financials,Insurance Brokers,1,1,1,3,True,production_boost,9,8,0,0,0,0,0,3,True,False,none
+GDDY,GoDaddy,Information Technology,Internet Services & Infrastructure,7,7,6,3,True,production_boost,13,10,0,0,0,0,0,3,True,False,blocked_domains
+GPC,Genuine Parts Company,Consumer Discretionary,Distributors,6,6,5,4,True,production_boost,14,11,0,0,0,0,0,3,True,False,blocked_domains
+HCA,HCA Healthcare,Health Care,Health Care Facilities,3,3,3,2,True,mvp_recovery,14,11,0,0,0,1,0,3,True,False,none
+HST,Host Hotels & Resorts,Real Estate,Hotel & Resort REITs,14,10,9,3,True,production_boost,11,10,0,0,0,0,0,3,True,False,blocked_domains
+J,Jacobs Solutions,Industrials,Construction & Engineering,11,10,9,3,True,production_boost,12,8,0,0,0,0,0,3,True,False,blocked_domains
+JBL,Jabil,Information Technology,Electronic Manufacturing Services,9,9,7,1,True,mvp_recovery,11,8,0,0,0,2,0,3,True,False,blocked_domains
+KDP,Keurig Dr Pepper,Consumer Staples,Soft Drinks & Non-alcoholic Beverages,6,6,5,3,True,production_boost,9,8,0,0,0,0,0,3,True,False,blocked_domains
+KIM,Kimco Realty,Real Estate,Retail REITs,3,3,2,3,True,production_boost,8,7,0,0,0,0,0,3,True,False,blocked_domains
+KVUE,Kenvue,Consumer Staples,Personal Care Products,11,10,9,3,True,production_boost,11,9,0,0,0,0,0,3,True,False,blocked_domains
+LDOS,Leidos,Industrials,Diversified Support Services,26,10,10,3,True,production_boost,13,10,0,0,0,0,0,3,True,False,none
+LHX,L3Harris,Industrials,Aerospace & Defense,13,10,10,3,True,production_boost,15,12,0,0,0,0,0,3,True,False,none
+LITE,Lumentum,Information Technology,Communications Equipment,89,10,8,3,True,production_boost,13,13,0,0,0,0,0,3,True,False,blocked_domains
+LNT,Alliant Energy,Utilities,Electric Utilities,4,4,4,3,True,production_boost,12,11,0,0,0,0,0,3,True,False,none
+LVS,Las Vegas Sands,Consumer Discretionary,Casinos & Gaming,7,7,7,3,True,production_boost,13,10,0,0,0,0,0,3,True,False,none
+LYV,Live Nation Entertainment,Communication Services,Movies & Entertainment,9,9,8,1,True,mvp_recovery,14,12,0,0,0,2,0,3,True,False,blocked_domains
+MLM,Martin Marietta Materials,Materials,Construction Materials,4,4,3,3,True,production_boost,12,11,0,0,0,0,0,3,True,False,blocked_domains
+NOC,Northrop Grumman,Industrials,Aerospace & Defense,28,10,9,1,True,mvp_recovery,14,11,0,0,0,2,0,3,True,False,blocked_domains
+NRG,NRG Energy,Utilities,Independent Power Producers & Energy Traders,10,10,10,1,True,mvp_recovery,12,8,0,0,0,2,0,3,True,False,none
+NSC,Norfolk Southern,Industrials,Rail Transportation,15,10,9,3,True,production_boost,12,11,0,0,0,0,0,3,True,False,blocked_domains
+OMC,Omnicom Group,Communication Services,Advertising,9,9,8,1,True,mvp_recovery,14,11,0,0,0,2,0,3,True,False,blocked_domains
+PH,Parker Hannifin,Industrials,Industrial Machinery & Supplies & Components,4,4,4,1,True,mvp_recovery,10,9,0,0,0,2,0,3,True,False,none
+PODD,Insulet Corporation,Health Care,Health Care Equipment,12,10,8,2,True,mvp_recovery,12,10,0,0,0,1,0,3,True,False,blocked_domains
+REGN,Regeneron Pharmaceuticals,Health Care,Biotechnology,9,9,9,1,True,mvp_recovery,15,13,0,0,0,2,0,3,True,False,none
+RJF,Raymond James Financial,Financials,Investment Banking & Brokerage,11,10,10,1,True,mvp_recovery,13,10,0,0,0,2,0,3,True,False,none
+RMD,ResMed,Health Care,Health Care Equipment,5,5,4,1,True,mvp_recovery,11,9,0,0,0,2,0,3,True,False,blocked_domains
+ROK,Rockwell Automation,Industrials,Electrical Components & Equipment,11,10,10,1,True,mvp_recovery,15,14,0,0,0,2,0,3,True,False,none
+RTX,RTX Corporation,Industrials,Aerospace & Defense,40,10,10,3,True,production_boost,12,10,0,0,0,0,0,3,True,False,none
+RVTY,Revvity,Health Care,Health Care Equipment,6,6,5,3,True,production_boost,14,11,0,0,0,0,0,3,True,False,blocked_domains
+SOLV,Solventum,Health Care,Health Care Technology,13,10,8,3,True,production_boost,14,12,0,0,0,0,0,3,True,False,blocked_domains
+SRE,Sempra,Utilities,Multi-Utilities,8,7,6,3,True,production_boost,12,12,0,0,0,0,0,3,True,False,blocked_domains
+TDG,TransDigm Group,Industrials,Aerospace & Defense,8,6,6,1,True,mvp_recovery,12,9,0,0,0,2,0,3,True,False,none
+TECH,Bio-Techne,Health Care,Life Sciences Tools & Services,10,9,8,1,True,mvp_recovery,10,6,0,0,0,2,0,3,True,False,blocked_domains
+TER,Teradyne,Information Technology,Semiconductor Materials & Equipment,16,10,9,1,True,mvp_recovery,9,5,0,0,0,2,0,3,True,False,blocked_domains
+TRGP,Targa Resources,Energy,Oil & Gas Storage & Transportation,13,10,10,3,True,production_boost,12,6,0,0,0,0,0,3,True,False,none
+TT,Trane Technologies,Industrials,Building Products,18,10,8,3,True,production_boost,15,13,0,0,0,0,0,3,True,False,blocked_domains
+TYL,Tyler Technologies,Information Technology,Application Software,13,10,10,3,True,production_boost,13,10,0,0,0,0,0,3,True,False,none
+UNP,Union Pacific Corporation,Industrials,Rail Transportation,26,10,10,3,True,production_boost,12,11,0,0,0,0,0,3,True,False,none
+VICI,Vici Properties,Real Estate,Hotel & Resort REITs,13,10,5,3,True,production_boost,11,8,0,0,0,0,0,3,True,False,blocked_domains
+VLTO,Veralto,Industrials,Environmental & Facilities Services,1,1,1,3,True,production_boost,11,10,0,0,0,0,0,3,True,False,none
+VTR,Ventas,Real Estate,Health Care REITs,8,7,5,3,True,production_boost,10,8,0,0,0,0,0,3,True,False,blocked_domains
+VZ,Verizon,Communication Services,Integrated Telecommunication Services,65,10,7,2,True,mvp_recovery,15,13,0,0,0,1,0,3,True,False,blocked_domains
+WEC,WEC Energy Group,Utilities,Electric Utilities,11,10,10,1,True,mvp_recovery,13,11,0,0,0,2,0,3,True,False,none
+WST,West Pharmaceutical Services,Health Care,Health Care Supplies,25,10,9,3,True,production_boost,14,8,0,0,0,0,0,3,True,False,blocked_domains
+WTW,Willis Towers Watson,Financials,Insurance Brokers,6,6,5,3,True,production_boost,10,7,0,0,0,0,0,3,True,False,blocked_domains
+XYZ,"Block, Inc.",Financials,Transaction & Payment Processing Services,37,10,9,2,True,mvp_recovery,12,9,0,0,0,1,0,3,True,False,blocked_domains
+YUM,Yum! Brands,Consumer Discretionary,Restaurants,13,10,7,2,True,mvp_recovery,13,11,0,0,0,1,0,3,True,False,blocked_domains
+BLDR,Builders FirstSource,Industrials,Building Products,3,3,2,2,True,mvp_recovery,11,8,0,0,0,0,0,2,False,False,low_finnhub_supply
+CINF,Cincinnati Financial,Financials,Property & Casualty Insurance,4,4,4,2,True,mvp_recovery,12,10,0,0,0,0,0,2,False,False,low_finnhub_supply
+CNC,Centene Corporation,Health Care,Managed Health Care,14,10,9,2,True,mvp_recovery,13,12,0,0,0,0,0,2,False,False,enrichment_incomplete
+CSGP,CoStar Group,Real Estate,Real Estate Services,23,10,10,2,True,mvp_recovery,14,13,0,0,0,0,0,2,False,False,enrichment_incomplete
+HBAN,Huntington Bancshares,Financials,Regional Banks,9,9,9,2,True,mvp_recovery,14,13,0,0,0,0,0,2,False,False,enrichment_incomplete
+HII,Huntington Ingalls Industries,Industrials,Aerospace & Defense,14,10,9,1,True,mvp_recovery,13,11,0,0,0,1,0,2,False,False,enrichment_incomplete
+HSIC,Henry Schein,Health Care,Health Care Distributors,5,5,4,2,True,mvp_recovery,13,11,0,0,0,0,0,2,False,False,enrichment_incomplete
+HSY,Hershey Company (The),Consumer Staples,Packaged Foods & Meats,10,10,7,2,True,mvp_recovery,14,12,0,0,0,0,0,2,False,False,enrichment_incomplete
+IP,International Paper,Materials,Paper & Plastic Packaging Products & Materials,5,5,4,2,True,mvp_recovery,14,12,0,0,0,0,0,2,False,False,enrichment_incomplete
+IQV,IQVIA,Health Care,Life Sciences Tools & Services,14,10,8,2,True,mvp_recovery,12,10,0,0,0,0,0,2,False,False,enrichment_incomplete
+IR,Ingersoll Rand,Industrials,Industrial Machinery & Supplies & Components,10,10,10,2,True,mvp_recovery,13,10,0,0,0,0,0,2,False,False,enrichment_incomplete
+JBHT,J.B. Hunt,Industrials,Cargo Ground Transportation,13,10,8,2,True,mvp_recovery,14,11,0,0,0,0,0,2,False,False,enrichment_incomplete
+KMB,Kimberly-Clark,Consumer Staples,Household Products,15,10,8,2,True,mvp_recovery,14,14,0,0,0,0,0,2,False,False,enrichment_incomplete
+KR,Kroger,Consumer Staples,Food Retail,18,9,8,2,True,mvp_recovery,15,13,0,0,0,0,0,2,False,False,enrichment_incomplete
+LIN,Linde plc,Materials,Industrial Gases,5,5,4,2,True,mvp_recovery,14,14,0,0,0,0,0,2,False,False,enrichment_incomplete
+LULU,Lululemon Athletica,Consumer Discretionary,"Apparel, Accessories & Luxury Goods",16,10,10,2,True,mvp_recovery,14,11,0,0,0,0,0,2,False,False,enrichment_incomplete
+MA,Mastercard,Financials,Transaction & Payment Processing Services,74,10,8,1,True,mvp_recovery,12,11,0,0,0,1,0,2,False,False,enrichment_incomplete
+MCK,McKesson Corporation,Health Care,Health Care Distributors,16,9,9,1,True,mvp_recovery,14,10,0,0,0,1,0,2,False,False,enrichment_incomplete
+MDLZ,Mondelez International,Consumer Staples,Packaged Foods & Meats,6,6,6,2,True,mvp_recovery,11,7,0,0,0,0,0,2,False,False,enrichment_incomplete
+MGM,MGM Resorts,Consumer Discretionary,Casinos & Gaming,5,5,5,1,True,mvp_recovery,15,13,0,0,0,1,0,2,False,False,enrichment_incomplete
+MPWR,Monolithic Power Systems,Information Technology,Semiconductors,17,10,9,1,True,mvp_recovery,14,11,0,0,0,1,0,2,False,False,enrichment_incomplete
+MRK,Merck & Co.,Health Care,Pharmaceuticals,40,10,8,1,True,mvp_recovery,14,13,0,0,0,1,0,2,False,False,enrichment_incomplete
+NDAQ,"Nasdaq, Inc.",Financials,Financial Exchanges & Data,17,10,10,2,True,mvp_recovery,14,13,0,0,0,0,0,2,False,False,enrichment_incomplete
+NDSN,Nordson Corporation,Industrials,Industrial Machinery & Supplies & Components,5,5,5,2,True,mvp_recovery,13,12,0,0,0,0,0,2,False,False,enrichment_incomplete
+NUE,Nucor,Materials,Steel,16,9,8,2,True,mvp_recovery,14,11,0,0,0,0,0,2,False,False,enrichment_incomplete
+NXPI,NXP Semiconductors,Information Technology,Semiconductors,21,10,9,2,True,mvp_recovery,13,9,0,0,0,0,0,2,False,False,enrichment_incomplete
+ORCL,Oracle Corporation,Information Technology,Application Software,123,10,10,2,True,mvp_recovery,12,9,0,0,0,0,0,2,False,False,enrichment_incomplete
+ORLY,O’Reilly Automotive,Consumer Discretionary,Automotive Retail,5,5,4,1,True,mvp_recovery,11,9,0,0,0,1,0,2,False,False,enrichment_incomplete
+PANW,Palo Alto Networks,Information Technology,Systems Software,43,10,8,2,True,mvp_recovery,11,11,0,0,0,0,0,2,False,False,enrichment_incomplete
+PCAR,Paccar,Industrials,Construction Machinery & Heavy Transportation Equipment,1,1,1,2,True,mvp_recovery,15,14,0,0,0,0,0,2,False,False,low_finnhub_supply
+PEP,PepsiCo,Consumer Staples,Soft Drinks & Non-alcoholic Beverages,32,10,7,2,True,mvp_recovery,14,14,0,0,0,0,0,2,False,False,enrichment_incomplete
+PFE,Pfizer,Health Care,Pharmaceuticals,75,10,9,1,True,mvp_recovery,13,12,0,0,0,1,0,2,False,False,enrichment_incomplete
+PNW,Pinnacle West Capital,Utilities,Multi-Utilities,2,2,2,1,True,mvp_recovery,11,10,0,0,0,1,0,2,False,False,low_finnhub_supply
+POOL,Pool Corporation,Consumer Discretionary,Distributors,11,9,8,1,True,mvp_recovery,13,11,0,0,0,1,0,2,False,False,enrichment_incomplete
+PWR,Quanta Services,Industrials,Construction & Engineering,25,10,7,1,True,mvp_recovery,14,13,0,0,0,1,0,2,False,False,enrichment_incomplete
+QCOM,Qualcomm,Information Technology,Semiconductors,185,10,9,1,True,mvp_recovery,14,14,0,0,0,1,0,2,False,False,enrichment_incomplete
+RCL,Royal Caribbean Group,Consumer Discretionary,"Hotels, Resorts & Cruise Lines",28,10,9,2,True,mvp_recovery,12,12,0,0,0,0,0,2,False,False,enrichment_incomplete
+RF,Regions Financial Corporation,Financials,Regional Banks,4,4,4,2,True,mvp_recovery,15,12,0,0,0,0,0,2,False,False,low_finnhub_supply
+SATS,EchoStar,Communication Services,Wireless Telecommunication Services,33,10,10,2,True,mvp_recovery,13,12,0,0,0,0,0,2,False,False,enrichment_incomplete
+SBAC,SBA Communications,Real Estate,Telecom Tower REITs,8,8,3,2,True,mvp_recovery,15,12,0,0,0,0,0,2,False,False,enrichment_incomplete
+SBUX,Starbucks,Consumer Discretionary,Restaurants,72,10,9,1,True,mvp_recovery,14,10,0,0,0,1,0,2,False,False,enrichment_incomplete
+SLB,Schlumberger,Energy,Oil & Gas Equipment & Services,12,10,8,2,True,mvp_recovery,10,10,0,0,0,0,0,2,False,False,enrichment_incomplete
+SNPS,Synopsys,Information Technology,Application Software,12,9,8,2,True,mvp_recovery,10,10,0,0,0,0,0,2,False,False,enrichment_incomplete
+STLD,Steel Dynamics,Materials,Steel,5,5,5,2,True,mvp_recovery,12,8,0,0,0,0,0,2,False,False,enrichment_incomplete
+SWKS,Skyworks Solutions,Information Technology,Semiconductors,13,10,7,2,True,mvp_recovery,15,10,0,0,0,0,0,2,False,False,enrichment_incomplete
+SYF,Synchrony Financial,Financials,Consumer Finance,5,5,5,2,True,mvp_recovery,15,12,0,0,0,0,0,2,False,False,enrichment_incomplete
+TAP,Molson Coors Beverage Company,Consumer Staples,Brewers,7,7,4,1,True,mvp_recovery,11,6,0,0,0,1,0,2,False,False,enrichment_incomplete
+TDY,Teledyne Technologies,Information Technology,Electronic Equipment & Instruments,9,6,6,2,True,mvp_recovery,11,6,0,0,0,0,0,2,False,False,enrichment_incomplete
+TGT,Target Corporation,Consumer Staples,Consumer Staples Merchandise Retail,75,10,8,2,True,mvp_recovery,14,12,0,0,0,0,0,2,False,False,enrichment_incomplete
+TMO,Thermo Fisher Scientific,Health Care,Life Sciences Tools & Services,14,10,7,2,True,mvp_recovery,15,12,0,0,0,0,0,2,False,False,enrichment_incomplete
+UDR,"UDR, Inc.",Real Estate,Multi-Family Residential REITs,4,4,4,2,True,mvp_recovery,13,11,0,0,0,0,0,2,False,False,low_finnhub_supply
+UPS,United Parcel Service,Industrials,Air Freight & Logistics,24,10,10,2,True,mvp_recovery,12,12,0,0,0,0,0,2,False,False,enrichment_incomplete
+VRSK,Verisk Analytics,Industrials,Research & Consulting Services,9,9,9,2,True,mvp_recovery,14,11,0,0,0,0,0,2,False,False,enrichment_incomplete
+VRSN,Verisign,Information Technology,Internet Services & Infrastructure,1,1,1,2,True,mvp_recovery,15,14,0,0,0,0,0,2,False,False,low_finnhub_supply
+EIX,Edison International,Utilities,Electric Utilities,4,4,4,3,True,production_boost,13,12,0,0,0,0,0,2,False,False,none
+BF.B,Brown–Forman,Consumer Staples,Distillers & Vintners,5,5,5,1,True,mvp_recovery,11,6,0,0,0,0,0,1,False,False,enrichment_incomplete
+BKNG,Booking Holdings,Consumer Discretionary,"Hotels, Resorts & Cruise Lines",23,10,9,1,True,mvp_recovery,14,12,0,0,0,0,0,1,False,False,enrichment_incomplete
+GNRC,Generac,Industrials,Electrical Components & Equipment,7,7,5,1,True,mvp_recovery,9,7,0,0,0,0,0,1,False,False,enrichment_incomplete
+GWW,W. W. Grainger,Industrials,Industrial Machinery & Supplies & Components,7,7,7,2,True,mvp_recovery,11,9,0,0,0,0,0,1,False,False,enrichment_incomplete
+IEX,IDEX Corporation,Industrials,Industrial Machinery & Supplies & Components,4,4,2,1,True,mvp_recovery,9,7,0,0,0,0,0,1,False,False,low_finnhub_supply
+INCY,Incyte,Health Care,Biotechnology,4,4,3,1,True,mvp_recovery,10,6,0,0,0,0,0,1,False,False,low_finnhub_supply
+ISRG,Intuitive Surgical,Health Care,Health Care Equipment,24,10,10,1,True,mvp_recovery,12,9,0,0,0,0,0,1,False,False,enrichment_incomplete
+LH,Labcorp,Health Care,Health Care Services,10,10,9,1,True,mvp_recovery,14,12,0,0,0,0,0,1,False,False,enrichment_incomplete
+LII,Lennox International,Industrials,Building Products,4,4,3,1,True,mvp_recovery,14,11,0,0,0,0,0,1,False,False,low_finnhub_supply
+LUV,Southwest Airlines,Industrials,Passenger Airlines,27,10,10,1,True,mvp_recovery,15,13,0,0,0,0,0,1,False,False,enrichment_incomplete
+NEM,Newmont,Materials,Gold,39,10,9,1,True,mvp_recovery,14,13,0,0,0,0,0,1,False,False,enrichment_incomplete
+NOW,ServiceNow,Information Technology,Systems Software,58,10,10,1,True,mvp_recovery,12,11,0,0,0,0,0,1,False,False,enrichment_incomplete
+OKE,Oneok,Energy,Oil & Gas Storage & Transportation,7,7,4,1,True,mvp_recovery,13,11,0,0,0,0,0,1,False,False,enrichment_incomplete
+ON,ON Semiconductor,Information Technology,Semiconductors,39,10,10,1,True,mvp_recovery,11,7,0,0,0,0,0,1,False,False,enrichment_incomplete
+OTIS,Otis Worldwide,Industrials,Industrial Machinery & Supplies & Components,6,6,5,1,True,mvp_recovery,12,9,0,0,0,0,0,1,False,False,enrichment_incomplete
+PEG,Public Service Enterprise Group,Utilities,Electric Utilities,5,5,5,1,True,mvp_recovery,13,10,0,0,0,0,0,1,False,False,enrichment_incomplete
+PFG,Principal Financial Group,Financials,Life & Health Insurance,2,2,2,1,True,mvp_recovery,14,14,0,0,0,0,0,1,False,False,low_finnhub_supply
+PKG,Packaging Corporation of America,Materials,Paper & Plastic Packaging Products & Materials,5,5,5,1,True,mvp_recovery,10,8,0,0,0,0,0,1,False,False,enrichment_incomplete
+PNC,PNC Financial Services,Financials,Diversified Banks,12,10,9,1,True,mvp_recovery,14,11,0,0,0,0,0,1,False,False,enrichment_incomplete
+PNR,Pentair,Industrials,Industrial Machinery & Supplies & Components,1,1,1,1,True,mvp_recovery,15,11,0,0,0,0,0,1,False,False,low_finnhub_supply
+PRU,Prudential Financial,Financials,Life & Health Insurance,18,10,8,1,True,mvp_recovery,13,12,0,0,0,0,0,1,False,False,enrichment_incomplete
+PSKY,Paramount Skydance Corporation,Communication Services,Movies & Entertainment,29,10,8,1,True,mvp_recovery,9,9,0,0,0,0,0,1,False,False,enrichment_incomplete
+REG,Regency Centers,Real Estate,Retail REITs,2,2,1,1,True,mvp_recovery,14,12,0,0,0,0,0,1,False,False,low_finnhub_supply
+ROP,Roper Technologies,Information Technology,Electronic Equipment & Instruments,13,9,6,1,True,mvp_recovery,13,12,0,0,0,0,0,1,False,False,enrichment_incomplete
+ROST,Ross Stores,Consumer Discretionary,Apparel Retail,16,10,9,1,True,mvp_recovery,13,11,0,0,0,0,0,1,False,False,enrichment_incomplete
+SCHW,Charles Schwab Corporation,Financials,Investment Banking & Brokerage,50,10,8,1,True,mvp_recovery,13,9,0,0,0,0,0,1,False,False,enrichment_incomplete
+SNA,Snap-on,Industrials,Industrial Machinery & Supplies & Components,2,2,1,1,True,mvp_recovery,14,13,0,0,0,0,0,1,False,False,low_finnhub_supply
+STZ,Constellation Brands,Consumer Staples,Distillers & Vintners,8,7,5,1,True,mvp_recovery,14,10,0,0,0,0,0,1,False,False,enrichment_incomplete
+TPL,Texas Pacific Land Corporation,Energy,Oil & Gas Exploration & Production,9,9,8,1,True,mvp_recovery,11,9,0,0,0,0,0,1,False,False,enrichment_incomplete
+WRB,W. R. Berkley Corporation,Financials,Property & Casualty Insurance,4,4,4,1,True,mvp_recovery,7,5,0,0,0,0,0,1,False,False,low_finnhub_supply
+GRMN,Garmin,Consumer Discretionary,Consumer Electronics,2,2,2,0,True,mvp_recovery,14,10,0,0,0,0,0,0,False,False,low_finnhub_supply
+HUBB,Hubbell Incorporated,Industrials,Industrial Machinery & Supplies & Components,2,2,2,0,True,mvp_recovery,14,12,0,0,0,0,0,0,False,False,low_finnhub_supply
+L,Loews Corporation,Financials,Multi-line Insurance,1,1,1,0,True,mvp_recovery,9,8,0,0,0,0,0,0,False,False,low_finnhub_supply
+MNST,Monster Beverage,Consumer Staples,Soft Drinks & Non-alcoholic Beverages,15,9,8,0,True,mvp_recovery,10,9,0,0,0,0,0,0,False,False,enrichment_incomplete
+MSCI,MSCI Inc.,Financials,Financial Exchanges & Data,7,7,6,0,True,mvp_recovery,15,12,0,0,0,0,0,0,False,False,enrichment_incomplete
+MTD,Mettler Toledo,Health Care,Life Sciences Tools & Services,9,9,8,0,True,mvp_recovery,14,11,0,0,0,0,0,0,False,False,enrichment_incomplete
+NCLH,Norwegian Cruise Line Holdings,Consumer Discretionary,"Hotels, Resorts & Cruise Lines",32,10,10,0,True,mvp_recovery,13,10,0,0,0,0,0,0,False,False,enrichment_incomplete
+NI,NiSource,Utilities,Multi-Utilities,7,7,7,0,True,mvp_recovery,12,11,0,0,0,0,0,0,False,False,enrichment_incomplete
+NTAP,NetApp,Information Technology,"Technology Hardware, Storage & Peripherals",10,10,10,0,True,mvp_recovery,14,11,0,0,0,0,0,0,False,False,enrichment_incomplete
+PAYX,Paychex,Industrials,Human Resource & Employment Services,4,4,3,0,True,mvp_recovery,14,11,0,0,0,0,0,0,False,False,low_finnhub_supply
+PGR,Progressive Corporation,Financials,Property & Casualty Insurance,16,10,10,0,True,mvp_recovery,13,10,0,0,0,0,0,0,False,False,enrichment_incomplete
+PHM,PulteGroup,Consumer Discretionary,Homebuilding,2,2,2,0,True,mvp_recovery,13,10,0,0,0,0,0,0,False,False,low_finnhub_supply
+PLD,Prologis,Real Estate,Industrial REITs,15,10,8,0,True,mvp_recovery,15,13,0,0,0,0,0,0,False,False,enrichment_incomplete
+PPG,PPG Industries,Materials,Specialty Chemicals,1,1,1,0,True,mvp_recovery,14,12,0,0,0,0,0,0,False,False,low_finnhub_supply
+PPL,PPL Corporation,Utilities,Electric Utilities,9,9,8,0,True,mvp_recovery,13,11,0,0,0,0,0,0,False,False,enrichment_incomplete
+PSA,Public Storage,Real Estate,Self-Storage REITs,2,2,1,0,True,mvp_recovery,14,13,0,0,0,0,0,0,False,False,low_finnhub_supply
+PSX,Phillips 66,Energy,Oil & Gas Refining & Marketing,17,10,9,0,True,mvp_recovery,13,12,0,0,0,0,0,0,False,False,enrichment_incomplete
+PYPL,PayPal,Financials,Transaction & Payment Processing Services,55,10,8,0,True,mvp_recovery,14,14,0,0,0,0,0,0,False,False,enrichment_incomplete
+Q,Qnity Electronics,Information Technology,Semiconductor Materials & Equipment,38,10,9,0,True,mvp_recovery,14,14,0,0,0,0,0,0,False,False,enrichment_incomplete
+RL,Ralph Lauren Corporation,Consumer Discretionary,"Apparel, Accessories & Luxury Goods",14,10,10,0,True,mvp_recovery,15,12,0,0,0,0,0,0,False,False,enrichment_incomplete
+ROL,"Rollins, Inc.",Industrials,Environmental & Facilities Services,14,10,8,0,True,mvp_recovery,14,12,0,0,0,0,0,0,False,False,enrichment_incomplete
+RSG,Republic Services,Industrials,Environmental & Facilities Services,11,10,8,0,True,mvp_recovery,13,10,0,0,0,0,0,0,False,False,enrichment_incomplete
+SHW,Sherwin-Williams,Materials,Specialty Chemicals,8,8,7,0,True,mvp_recovery,11,10,0,0,0,0,0,0,False,False,enrichment_incomplete

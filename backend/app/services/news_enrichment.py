@@ -11,7 +11,21 @@ from typing import Any
 # Finnhub-first pipeline settings
 NEWS_PRIMARY_PROVIDER: str = "finnhub"
 GOOGLE_NEWS_FALLBACK_ENABLED: bool = os.getenv("GOOGLE_NEWS_FALLBACK_ENABLED", "true").lower() not in {"0", "false", "no", "off"}
-GOOGLE_FALLBACK_MIN_USABLE_ARTICLES: int = int(os.getenv("GOOGLE_FALLBACK_MIN_USABLE_ARTICLES", "3"))
+
+# MVP threshold: Google used if usable < this (previously GOOGLE_FALLBACK_MIN_USABLE_ARTICLES)
+GOOGLE_FALLBACK_MVP_THRESHOLD: int = int(os.getenv("GOOGLE_FALLBACK_MVP_THRESHOLD", "3"))
+# Production ideal: Google used to boost if usable < this (when mode allows)
+GOOGLE_FALLBACK_PRODUCTION_TARGET: int = int(os.getenv("GOOGLE_FALLBACK_PRODUCTION_TARGET", "10"))
+# mvp_only: Google only for usable < MVP_THRESHOLD
+# below_10: Google for usable < PRODUCTION_TARGET (mvp_recovery + production_boost)
+# disabled: no Google at all
+GOOGLE_FALLBACK_MODE: str = os.getenv("GOOGLE_FALLBACK_MODE", "below_10")
+# Per-ticker Google fetch limits
+GOOGLE_FALLBACK_MAX_CANDIDATES_PER_TICKER: int = int(os.getenv("GOOGLE_FALLBACK_MAX_CANDIDATES_PER_TICKER", "15"))
+GOOGLE_FALLBACK_MAX_EXTRACTIONS_PER_TICKER: int = int(os.getenv("GOOGLE_FALLBACK_MAX_EXTRACTIONS_PER_TICKER", "10"))
+
+# Backward-compat alias
+GOOGLE_FALLBACK_MIN_USABLE_ARTICLES: int = GOOGLE_FALLBACK_MVP_THRESHOLD
 
 from .article_scraper import (
     _extract_with_trafilatura,
@@ -542,8 +556,8 @@ async def ingest_and_enrich_ticker_news(
         if t in tickers:
             results[t] = results.get(t, 0) + 1
 
-    # ── 2. Google fallback ────────────────────────────────────────────────────
-    if not GOOGLE_NEWS_FALLBACK_ENABLED:
+    # ── 2. Google tiered fallback ─────────────────────────────────────────────
+    if not GOOGLE_NEWS_FALLBACK_ENABLED or GOOGLE_FALLBACK_MODE == "disabled":
         return results
 
     # Query DB for usable 7-day counts per ticker
@@ -570,28 +584,58 @@ async def ingest_and_enrich_ticker_news(
         ):
             usable_by_ticker[t] = usable_by_ticker.get(t, 0) + 1
 
-    fallback_tickers = [
-        t for t in tickers
-        if usable_by_ticker.get(t, 0) < GOOGLE_FALLBACK_MIN_USABLE_ARTICLES
+    # Tiered fallback: determine which tickers need Google and why
+    need_mvp_recovery = [
+        t for t in tickers if usable_by_ticker.get(t, 0) < GOOGLE_FALLBACK_MVP_THRESHOLD
     ]
+    need_production_boost = (
+        []
+        if GOOGLE_FALLBACK_MODE == "mvp_only"
+        else [
+            t for t in tickers
+            if GOOGLE_FALLBACK_MVP_THRESHOLD <= usable_by_ticker.get(t, 0) < GOOGLE_FALLBACK_PRODUCTION_TARGET
+            and t not in need_mvp_recovery
+        ]
+    )
+    fallback_tickers = need_mvp_recovery + need_production_boost
+    google_mode_map: dict[str, str] = {
+        **{t: "mvp_recovery" for t in need_mvp_recovery},
+        **{t: "production_boost" for t in need_production_boost},
+    }
 
     if not fallback_tickers:
         return results
 
     logger.info(
-        "[NEWS] Google fallback for %d tickers (need more usable): %s",
-        len(fallback_tickers), fallback_tickers,
+        "[NEWS] Google fallback — mvp_recovery: %d, production_boost: %d tickers",
+        len(need_mvp_recovery), len(need_production_boost),
     )
 
     from ..pipeline.rss_ingest import fetch_google_company_rss
 
     metadata_map = get_metadata_map(supabase, fallback_tickers)
+    google_limit = max(
+        limit_per_ticker,
+        GOOGLE_FALLBACK_MAX_CANDIDATES_PER_TICKER,
+    )
     google_raw = await fetch_google_company_rss(
         fallback_tickers,
         ticker_metadata=metadata_map,
-        limit_per_ticker=limit_per_ticker,
+        limit_per_ticker=google_limit,
     )
     google_normalized = normalize_news_batch(google_raw, "company_news") if google_raw else []
+
+    # Cap per-ticker extraction to avoid runaway cost on production_boost tickers
+    if GOOGLE_FALLBACK_MAX_EXTRACTIONS_PER_TICKER > 0:
+        per_t: dict[str, int] = {}
+        capped: list[dict] = []
+        for a in google_normalized:
+            t = str(a.get("ticker") or "").strip().upper()
+            if per_t.get(t, 0) < GOOGLE_FALLBACK_MAX_EXTRACTIONS_PER_TICKER:
+                capped.append(a)
+                per_t[t] = per_t.get(t, 0) + 1
+        google_normalized = capped
+
     google_stored = await enrich_and_store_articles_batch(
         supabase, google_normalized, max_concurrency=max_concurrency, skip_existing=True
     )
