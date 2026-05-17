@@ -209,7 +209,7 @@ async def _score_article_llm(
         headline=headline[:300],
         body_excerpt=_truncate_text(body or "", 1200),
     )
-    result_text, parsed = _request_llm_json(prompt, max_tokens=400)
+    _, parsed = await asyncio.to_thread(_request_llm_json, prompt, 400)
     return parsed if isinstance(parsed, dict) else {}
 
 
@@ -221,7 +221,7 @@ async def _generate_tldr_llm(
         headline=headline[:300],
         body=_truncate_text(body or "", 2000),
     )
-    result_text, parsed = _request_llm_json(prompt, max_tokens=600)
+    _, parsed = await asyncio.to_thread(_request_llm_json, prompt, 600)
     return parsed if isinstance(parsed, dict) else {}
 
 
@@ -349,35 +349,42 @@ async def enrich_and_store_article(
     scoring_text = body if body_has_content else headline
 
     if scoring_text and not is_paywalled and (body_has_content or headline_only):
+        # Run sentiment + TLDR concurrently — each is now truly async via asyncio.to_thread
+        _coro_keys: list[str] = []
+        _coros = []
         if need_sentiment:
-            try:
-                sent = await _score_article_llm(ticker, headline, scoring_text)
-                sentiment_score = sent.get("sentiment_score")
-                sentiment_reason = sanitize_text_field(sent.get("sentiment_reason"), fallback="")
-                impact_tag_val = (sent.get("impact_tag") or "").strip().lower()
-                valid_tags = {"financial-impact", "regulatory", "leadership", "product", "macro", "sector", "other"}
-                impact_tag = impact_tag_val if impact_tag_val in valid_tags else None
-            except Exception as exc:
-                logger.warning("Sentiment scoring failed for %s: %s", ticker, exc)
-
+            _coro_keys.append("sentiment")
+            _coros.append(_score_article_llm(ticker, headline, scoring_text))
         if body_has_content and need_tldr:
-            try:
-                tldr_result = await _generate_tldr_llm(ticker, headline, scoring_text)
-                new_tldr = sanitize_text_field(tldr_result.get("tldr"), fallback="")
-                new_what = sanitize_text_field(tldr_result.get("what_it_means"), fallback="")
-                # Only overwrite a field when the new value is non-empty — preserves
-                # any partially-enriched data if the LLM returns empty for that field.
-                tldr = new_tldr if new_tldr else tldr
-                what_it_means = new_what if new_what else what_it_means
-                raw_imp = tldr_result.get("key_implications")
-                if isinstance(raw_imp, list):
-                    new_imp = [sanitize_text_field(item, fallback="") for item in raw_imp[:4]]
-                    new_imp = [imp for imp in new_imp if imp]
-                    key_implications = new_imp if new_imp else key_implications
-                elif key_implications is None:
-                    key_implications = []
-            except Exception as exc:
-                logger.warning("TLDR generation failed for %s: %s", ticker, exc)
+            _coro_keys.append("tldr")
+            _coros.append(_generate_tldr_llm(ticker, headline, scoring_text))
+
+        if _coros:
+            _llm_results = await asyncio.gather(*_coros, return_exceptions=True)
+            for _key, _result in zip(_coro_keys, _llm_results):
+                if isinstance(_result, Exception):
+                    logger.warning("LLM %s failed for %s: %s", _key, ticker, _result)
+                    continue
+                if _key == "sentiment":
+                    sentiment_score = _result.get("sentiment_score")
+                    sentiment_reason = sanitize_text_field(_result.get("sentiment_reason"), fallback="")
+                    impact_tag_val = (_result.get("impact_tag") or "").strip().lower()
+                    valid_tags = {"financial-impact", "regulatory", "leadership", "product", "macro", "sector", "other"}
+                    impact_tag = impact_tag_val if impact_tag_val in valid_tags else None
+                elif _key == "tldr":
+                    new_tldr = sanitize_text_field(_result.get("tldr"), fallback="")
+                    new_what = sanitize_text_field(_result.get("what_it_means"), fallback="")
+                    # Only overwrite a field when the new value is non-empty — preserves
+                    # any partially-enriched data if the LLM returns empty for that field.
+                    tldr = new_tldr if new_tldr else tldr
+                    what_it_means = new_what if new_what else what_it_means
+                    raw_imp = _result.get("key_implications")
+                    if isinstance(raw_imp, list):
+                        new_imp = [sanitize_text_field(item, fallback="") for item in raw_imp[:4]]
+                        new_imp = [imp for imp in new_imp if imp]
+                        key_implications = new_imp if new_imp else key_implications
+                    elif key_implications is None:
+                        key_implications = []
 
     payload = {
         "ticker": ticker,
@@ -413,11 +420,13 @@ async def enrich_and_store_article(
     }
 
     try:
-        result = (
-            supabase.table("shared_ticker_events")
-            .upsert(payload, on_conflict="ticker,event_hash")
-            .execute()
-        )
+        def _do_upsert():
+            return (
+                supabase.table("shared_ticker_events")
+                .upsert(payload, on_conflict="ticker,event_hash")
+                .execute()
+            )
+        result = await asyncio.to_thread(_do_upsert)
         if result.data:
             return result.data[0]
     except Exception as exc:
@@ -437,16 +446,47 @@ async def enrich_and_store_articles_batch(
     if not articles:
         return []
 
+    articles_to_process = articles
+    if skip_existing:
+        # Batch pre-check: one query instead of N individual per-article SELECTs
+        hash_map: dict[str, dict[str, Any]] = {}
+        for a in articles:
+            _ticker = str(a.get("ticker") or "").strip().upper()
+            _url = str(a.get("url") or a.get("source_url") or "").strip()
+            _resolved = str(a.get("resolved_url") or _url).strip()
+            _headline = str(a.get("title") or a.get("headline") or "").strip()
+            _h = _compute_event_hash(_ticker, _resolved or _url, _headline)
+            hash_map[_h] = a
+
+        def _batch_lookup():
+            return (
+                supabase.table("shared_ticker_events")
+                .select("event_hash")
+                .in_("event_hash", list(hash_map.keys()))
+                .execute()
+                .data or []
+            )
+        try:
+            existing_rows = await asyncio.to_thread(_batch_lookup)
+            existing_hashes = {r["event_hash"] for r in existing_rows}
+        except Exception:
+            existing_hashes = set()
+
+        articles_to_process = [a for h, a in hash_map.items() if h not in existing_hashes]
+
+    if not articles_to_process:
+        return []
+
     sem = asyncio.Semaphore(max_concurrency)
 
     async def _process(article):
         async with sem:
             return await enrich_and_store_article(
                 supabase, article, analysis_run_id=analysis_run_id,
-                skip_existing=skip_existing,
+                skip_existing=False,  # already filtered by batch pre-check above
             )
 
-    results = await asyncio.gather(*(_process(a) for a in articles))
+    results = await asyncio.gather(*(_process(a) for a in articles_to_process))
     return [r for r in results if r is not None]
 
 
