@@ -49,37 +49,33 @@ def _dom(u: str) -> str:
 def main() -> None:
     from app.services.supabase import get_supabase
 
+    from app.scripts._dbpage import fetch_all
+
     sb = get_supabase()
     now = datetime.now(timezone.utc)
     cutoff = (now - timedelta(days=WINDOW_DAYS)).isoformat()
 
-    uni = (
-        sb.table("ticker_universe").select("ticker,sector,index_membership,is_active")
-        .execute().data or []
+    uni = fetch_all(
+        sb, "ticker_universe", "ticker,sector,index_membership,is_active",
+        order_col="ticker",
     )
     sp = [u for u in uni if u.get("index_membership") == "SP500" and u.get("is_active")]
     sp_tickers = sorted({(u["ticker"] or "").upper() for u in sp if u.get("ticker")})
 
     cols = (
-        "ticker,canonical_url,source_url,published_at,headline_only,paywalled,"
+        "id,ticker,canonical_url,source_url,published_at,headline_only,paywalled,"
         "paywall_detected,rejection_reason,analysis_status,extraction_status,"
         "sentiment_score,sentiment_reason,tldr,what_it_means,key_implications"
     )
     rows: list[dict] = []
-    CH, PG = 150, 1000
+    CH = 150
     for i in range(0, len(sp_tickers), CH):
         sub = sp_tickers[i:i + CH]
-        off = 0
-        while True:
-            pg = (sb.table("shared_ticker_events").select(cols)
-                  .in_("ticker", sub).gte("published_at", cutoff)
-                  .range(off, off + PG - 1).execute().data or [])
-            if not pg:
-                break
-            rows.extend(pg)
-            if len(pg) < PG:
-                break
-            off += PG
+        rows.extend(fetch_all(
+            sb, "shared_ticker_events", cols,
+            order_col="id", in_col="ticker", in_values=sub,
+            gte=("published_at", cutoff),
+        ))
 
     usable = Counter()
     ho = gw = 0
@@ -106,22 +102,14 @@ def main() -> None:
     latest_date = snap_sample[0]["snapshot_date"] if snap_sample else None
     snaps = []
     if latest_date:
-        off = 0
-        while True:
-            pg = (sb.table("ticker_risk_snapshots")
-                  .select("ticker,snapshot_date,created_at,methodology_version,"
-                          "news_sentiment,financial_health,macro_exposure,"
-                          "sector_exposure,volatility,composite_score,grade,"
-                          "data_status,is_product_visible,limited_data_dimensions,"
-                          "snapshot_type")
-                  .eq("snapshot_date", latest_date)
-                  .range(off, off + PG - 1).execute().data or [])
-            if not pg:
-                break
-            snaps.extend(pg)
-            if len(pg) < PG:
-                break
-            off += PG
+        snaps = fetch_all(
+            sb, "ticker_risk_snapshots",
+            "id,ticker,snapshot_date,created_at,methodology_version,"
+            "news_sentiment,financial_health,macro_exposure,sector_exposure,"
+            "volatility,composite_score,grade,data_status,is_product_visible,"
+            "limited_data_dimensions,snapshot_type",
+            order_col="id", eq=("snapshot_date", latest_date),
+        )
 
     def _age_days(ts):
         try:
