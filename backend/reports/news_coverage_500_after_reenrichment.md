@@ -1,111 +1,261 @@
-# Post-Re-Enrichment Coverage Report
-*Generated: 2026-05-17 21:53 UTC*
-*Trailing window: 7 days  |  Baseline: news_coverage_500_finnhub_vs_google_corrected.csv*
+# Strict 500/504 News-Coverage Report — Post Re-Enrichment
 
-## A. Executive Summary
+*Generated: 2026-05-18 22:21 UTC  |  Window: trailing 7 days*
+*Definition: strict (mirrors ticker_cache_service._row_is_strict_usable)*
+*Universe: ticker_universe[index_membership=SP500,is_active=True] — 503 active tickers*
+*Events rows in window: 15,453  |  Non-usable candidate rows: 11,756*
 
-| Metric | Before Re-Enrich | After Re-Enrich | Delta |
-|--------|-----------------|-----------------|-------|
-| ≥3 usable (MVP) | 397/504 (78.8%) | 399/504 (79.2%) | +2 |
-| ≥5 usable | 273/504 (54.2%) | 295/504 (58.5%) | +22 |
-| ≥10 usable (prod ideal) | 57/504 (11.3%) | 82/504 (16.3%) | +25 |
-| Tickers rescued <3 → ≥3 | — | 31 | — |
-| Tickers boosted <10 → ≥10 | — | 44 | — |
-| Total articles newly enriched | — | +205 | — |
+## A. Executive Summary — Strict Coverage
 
-## B. Tickers Rescued (<3 → ≥3)
+| Threshold | Strict baseline (pre-repair) | After re-enrichment | Delta |
+|---|---|---|---|
+| ≥3 usable (MVP) | 307/504 | 402/503 (79.9%) | **+95** |
+| ≥5 usable | — | 330/503 (65.6%) | — |
+| ≥10 usable (prod ideal) | 18/504 | 127/503 (25.2%) | **+109** |
+| ≥20 usable | — | 13/503 (2.6%) | — |
 
-| Ticker | Company | Before | After | Delta |
-|--------|---------|--------|-------|-------|
-| MA | Mastercard | 2 | 6 | +4 |
-| QCOM | Qualcomm | 2 | 6 | +4 |
-| LIN | Linde plc | 2 | 5 | +3 |
-| MRK | Merck & Co. | 2 | 5 | +3 |
-| ON | ON Semiconductor | 1 | 4 | +3 |
-| ORLY | O’Reilly Automotive | 2 | 5 | +3 |
-| PWR | Quanta Services | 2 | 5 | +3 |
-| RF | Regions Financial Corporation | 2 | 5 | +3 |
-| SLB | Schlumberger | 2 | 5 | +3 |
-| HBAN | Huntington Bancshares | 2 | 4 | +2 |
-| HSIC | Henry Schein | 2 | 4 | +2 |
-| LULU | Lululemon Athletica | 2 | 4 | +2 |
-| MDLZ | Mondelez International | 2 | 4 | +2 |
-| MPWR | Monolithic Power Systems | 2 | 4 | +2 |
-| NDSN | Nordson Corporation | 2 | 4 | +2 |
-| NXPI | NXP Semiconductors | 2 | 4 | +2 |
-| PANW | Palo Alto Networks | 2 | 4 | +2 |
-| PFG | Principal Financial Group | 1 | 3 | +2 |
-| PKG | Packaging Corporation of America | 1 | 3 | +2 |
-| RCL | Royal Caribbean Group | 2 | 4 | +2 |
-| SBAC | SBA Communications | 2 | 4 | +2 |
-| SNA | Snap-on | 1 | 3 | +2 |
-| UDR | UDR, Inc. | 2 | 4 | +2 |
-| UPS | United Parcel Service | 2 | 4 | +2 |
-| HSY | Hershey Company (The) | 2 | 3 | +1 |
-| JBHT | J.B. Hunt | 2 | 3 | +1 |
-| MCK | McKesson Corporation | 2 | 3 | +1 |
-| NDAQ | Nasdaq, Inc. | 2 | 3 | +1 |
-| PNW | Pinnacle West Capital | 2 | 3 | +1 |
-| POOL | Pool Corporation | 2 | 3 | +1 |
-*…and 1 more — see CSV for full list*
+## B. Per-Ticker Usable-Count Distribution
 
-## C. Largest Gains (top 20)
+| Stat | Value |
+|---|---|
+| min | 0 |
+| p10 | 1.0 |
+| p25 | 3.0 |
+| median | 6.0 |
+| mean | 7.35 |
+| p75 | 10.0 |
+| p90 | 13.0 |
+| max | 61 |
 
-| Ticker | Company | Before | After | Delta |
-|--------|---------|--------|-------|-------|
-| NVDA | Nvidia | 21 | 41 | +20 |
-| MTB | M&T Bank | 15 | 27 | +12 |
-| PCG | PG&E Corporation | 15 | 25 | +10 |
-| UBER | Uber | 5 | 15 | +10 |
-| MMM | 3M | 13 | 22 | +9 |
-| MU | Micron Technology | 8 | 17 | +9 |
-| NWSA | News Corp | 8 | 17 | +9 |
-| T | AT&T | 16 | 25 | +9 |
-| EG | Everest Group | 11 | 19 | +8 |
-| META | Meta Platforms | 8 | 16 | +8 |
-| MO | Altria | 17 | 25 | +8 |
-| PG | Procter & Gamble | 8 | 16 | +8 |
-| TXT | Textron | 6 | 14 | +8 |
-| MSFT | Microsoft | 7 | 14 | +7 |
-| NWS | News Corp | 6 | 13 | +7 |
-| WFC | Wells Fargo | 8 | 15 | +7 |
-| EOG | EOG Resources | 10 | 16 | +6 |
-| LLY | Lilly (Eli) | 7 | 13 | +6 |
-| MCD | McDonald's | 5 | 11 | +6 |
-| MRSH | Marsh McLennan | 9 | 15 | +6 |
+### Histogram (usable strict articles / ticker)
 
-## D. Still Below 3 After Re-Enrichment
+| Bucket | Tickers | % |
+|---|---|---|
+| 0 | 20 | 4.0% |
+| 1-2 | 81 | 16.1% |
+| 3-4 | 72 | 14.3% |
+| 5-9 | 203 | 40.4% |
+| 10-19 | 114 | 22.7% |
+| 20+ | 13 | 2.6% |
 
-| Ticker | Company | Sector | After |
-|--------|---------|--------|-------|
-| GRMN | Garmin | Consumer Discretionary | 0 |
-| HUBB | Hubbell Incorporated | Industrials | 0 |
-| L | Loews Corporation | Financials | 0 |
-| MNST | Monster Beverage | Consumer Staples | 0 |
-| MSCI | MSCI Inc. | Financials | 0 |
-| MTD | Mettler Toledo | Health Care | 0 |
-| NCLH | Norwegian Cruise Line Holdings | Consumer Discretionary | 0 |
-| NTAP | NetApp | Information Technology | 0 |
-| PAYX | Paychex | Industrials | 0 |
-| PGR | Progressive Corporation | Financials | 0 |
-| PHM | PulteGroup | Consumer Discretionary | 0 |
-| PLD | Prologis | Real Estate | 0 |
-| PPG | PPG Industries | Materials | 0 |
-| PPL | PPL Corporation | Utilities | 0 |
-| PSA | Public Storage | Real Estate | 0 |
-| PYPL | PayPal | Financials | 0 |
-| Q | Qnity Electronics | Information Technology | 0 |
-| RL | Ralph Lauren Corporation | Consumer Discretionary | 0 |
-| ROL | Rollins, Inc. | Industrials | 0 |
-| RSG | Republic Services | Industrials | 0 |
-| SHW | Sherwin-Williams | Materials | 0 |
-| PSX | Phillips 66 | Energy | 1 |
-| BF.B | Brown–Forman | Consumer Staples | 1 |
-| BKNG | Booking Holdings | Consumer Discretionary | 1 |
-| GNRC | Generac | Industrials | 1 |
-| INCY | Incyte | Health Care | 1 |
-| ISRG | Intuitive Surgical | Health Care | 1 |
-| LUV | Southwest Airlines | Industrials | 1 |
-| NOW | ServiceNow | Information Technology | 1 |
-| OKE | Oneok | Energy | 1 |
-*…and 75 more — see CSV*
+## C. Sector Breakdown
+
+| Sector | Tickers | Mean usable | Median | % ≥3 | % ≥10 |
+|---|---|---|---|---|---|
+| Communication Services | 23 | 10.87 | 10 | 87.0% | 56.5% |
+| Information Technology | 73 | 9.38 | 7 | 89.0% | 34.2% |
+| Consumer Discretionary | 48 | 8.46 | 7.0 | 79.2% | 31.2% |
+| Utilities | 31 | 8.13 | 8 | 80.6% | 32.3% |
+| Health Care | 58 | 6.97 | 6.0 | 74.1% | 19.0% |
+| Industrials | 79 | 6.87 | 7 | 87.3% | 22.8% |
+| Energy | 22 | 6.5 | 6.5 | 81.8% | 22.7% |
+| Materials | 26 | 6.35 | 5.5 | 69.2% | 7.7% |
+| Financials | 76 | 6.28 | 6.0 | 78.9% | 23.7% |
+| Consumer Staples | 36 | 6.14 | 6.0 | 69.4% | 16.7% |
+| Real Estate | 31 | 4.87 | 4 | 67.7% | 12.9% |
+
+## D. Source Breakdown (top 30, by usable articles)
+
+| Source | Usable articles |
+|---|---|
+| Yahoo | 1663 |
+| Yahoo Finance | 260 |
+| CNBC | 141 |
+| Benzinga | 124 |
+| simplywall.st | 114 |
+| Stock Titan | 97 |
+| Finnhub | 92 |
+| MarketBeat | 81 |
+| PR Newswire | 47 |
+| StockStory | 44 |
+| Trefis | 42 |
+| ChartMill | 30 |
+| Quiver Quantitative | 26 |
+| TradingView | 17 |
+| SeekingAlpha | 16 |
+| Investor's Business Daily | 14 |
+| Sahm | 12 |
+| BBC | 11 |
+| TIKR.com | 10 |
+| The Motley Fool | 10 |
+| Business Wire | 10 |
+| CBS News | 10 |
+| Bloomberg Law News | 9 |
+| AD HOC NEWS | 9 |
+| 24/7 Wall St. | 9 |
+| Kavout | 8 |
+| The Guardian | 8 |
+| Morningstar | 7 |
+| ESPN | 7 |
+| NBC News | 7 |
+
+## E. Domain Breakdown (top 30, by usable articles)
+
+| Domain | Usable articles |
+|---|---|
+| finance.yahoo.com | 1556 |
+| finnhub.io | 211 |
+| cnbc.com | 135 |
+| marketbeat.com | 120 |
+| simplywall.st | 114 |
+| benzinga.com | 102 |
+| stocktitan.net | 97 |
+| 247wallst.com | 82 |
+| barchart.com | 67 |
+| fool.com | 61 |
+| trefis.com | 50 |
+| prnewswire.com | 47 |
+| stockstory.org | 44 |
+| chartmill.com | 28 |
+| quiverquant.com | 26 |
+| seekingalpha.com | 21 |
+| tradingview.com | 16 |
+| investors.com | 14 |
+| sahmcapital.com | 12 |
+| wwd.com | 11 |
+| bbc.com | 11 |
+| tikr.com | 10 |
+| businesswire.com | 10 |
+| cbsnews.com | 10 |
+| news.bloomberglaw.com | 9 |
+| ad-hoc-news.de | 9 |
+| kavout.com | 8 |
+| theguardian.com | 8 |
+| morningstar.com | 7 |
+| espn.com | 7 |
+
+## F. Failure Breakdown (non-usable candidate rows in window)
+
+| Category | Count | % of non-usable |
+|---|---|---|
+| headline_only | 8702 | 74.0% |
+| analysis_status:partial | 805 | 6.8% |
+| missing_key_implications | 707 | 6.0% |
+| extraction_status:failed | 491 | 4.2% |
+| rejection:forbidden_phrase | 350 | 3.0% |
+| missing_sentiment_reason | 172 | 1.5% |
+| missing_sentiment_score | 171 | 1.5% |
+| missing_tldr | 104 | 0.9% |
+| rejection:missing_required_field | 91 | 0.8% |
+| rejection:invalid_sentiment_score | 85 | 0.7% |
+| analysis_status:headline_only | 29 | 0.2% |
+| rejection:blocked | 12 | 0.1% |
+| rejection:forbidden_phrase:buy | 12 | 0.1% |
+| rejection:forbidden_phrase:sell | 9 | 0.1% |
+| missing_what_it_means | 6 | 0.1% |
+| rejection:forbidden_phrase:predict | 6 | 0.1% |
+| rejection:forbidden_phrase:upside potential | 2 | 0.0% |
+| paywalled | 1 | 0.0% |
+| rejection:forbidden_phrase:suggest | 1 | 0.0% |
+
+## G. Bottom 50 (lowest strict-usable coverage)
+
+| Ticker | Company | Sector | Usable | Total 7d |
+|---|---|---|---|---|
+| BAX | Baxter International | Health Care | 0 | 15 |
+| BF.B | Brown–Forman | Consumer Staples | 0 | 19 |
+| BK | BNY Mellon | Financials | 0 | 14 |
+| BKNG | Booking Holdings | Consumer Discretionary | 0 | 14 |
+| BMY | Bristol Myers Squibb | Health Care | 0 | 19 |
+| BX | Blackstone Inc. | Financials | 0 | 13 |
+| CARR | Carrier Global | Industrials | 0 | 12 |
+| CASY | Casey's | Consumer Staples | 0 | 13 |
+| CEG | Constellation Energy | Utilities | 0 | 9 |
+| CNC | Centene Corporation | Health Care | 0 | 19 |
+| COHR | Coherent Corp. | Information Technology | 0 | 10 |
+| COP | ConocoPhillips | Energy | 0 | 18 |
+| CRL | Charles River Laboratories | Health Care | 0 | 14 |
+| CSGP | CoStar Group | Real Estate | 0 | 11 |
+| DDOG | Datadog | Information Technology | 0 | 14 |
+| DECK | Deckers Brands | Consumer Discretionary | 0 | 19 |
+| DG | Dollar General | Consumer Staples | 0 | 22 |
+| DLR | Digital Realty | Real Estate | 0 | 11 |
+| DLTR | Dollar Tree | Consumer Staples | 0 | 13 |
+| INVH | Invitation Homes | Real Estate | 0 | 11 |
+| BDX | Becton Dickinson | Health Care | 1 | 9 |
+| BEN | Franklin Resources | Financials | 1 | 13 |
+| BG | Bunge Global | Consumer Staples | 1 | 16 |
+| BLDR | Builders FirstSource | Industrials | 1 | 20 |
+| BLK | BlackRock | Financials | 1 | 16 |
+| BRK.B | Berkshire Hathaway | Financials | 1 | 11 |
+| BSX | Boston Scientific | Health Care | 1 | 19 |
+| C | Citigroup | Financials | 1 | 15 |
+| CAG | Conagra Brands | Consumer Staples | 1 | 15 |
+| CAH | Cardinal Health | Health Care | 1 | 19 |
+| CBOE | Cboe Global Markets | Financials | 1 | 20 |
+| CCI | Crown Castle | Real Estate | 1 | 17 |
+| CCL | Carnival | Consumer Discretionary | 1 | 11 |
+| CDNS | Cadence Design Systems | Information Technology | 1 | 18 |
+| CF | CF Industries | Materials | 1 | 16 |
+| CHD | Church & Dwight | Consumer Staples | 1 | 56 |
+| CHTR | Charter Communications | Communication Services | 1 | 15 |
+| CIEN | Ciena | Information Technology | 1 | 12 |
+| CL | Colgate-Palmolive | Consumer Staples | 1 | 14 |
+| CLX | Clorox | Consumer Staples | 1 | 8 |
+| CMG | Chipotle Mexican Grill | Consumer Discretionary | 1 | 12 |
+| CNP | CenterPoint Energy | Utilities | 1 | 17 |
+| COIN | Coinbase | Financials | 1 | 23 |
+| COO | Cooper Companies (The) | Health Care | 1 | 17 |
+| CPB | Campbell's Company (The) | Consumer Staples | 1 | 14 |
+| CPRT | Copart | Industrials | 1 | 14 |
+| CRH | CRH plc | Materials | 1 | 17 |
+| CTVA | Corteva | Materials | 1 | 18 |
+| D | Dominion Energy | Utilities | 1 | 13 |
+| DRI | Darden Restaurants | Consumer Discretionary | 1 | 15 |
+
+## H. Top 50 (highest strict-usable coverage)
+
+| Ticker | Company | Sector | Usable | Total 7d |
+|---|---|---|---|---|
+| AMZN | Amazon | Consumer Discretionary | 61 | 167 |
+| AMD | Advanced Micro Devices | Information Technology | 59 | 229 |
+| ADBE | Adobe Inc. | Information Technology | 49 | 104 |
+| ALB | Albemarle Corporation | Materials | 40 | 92 |
+| ABNB | Airbnb | Consumer Discretionary | 39 | 81 |
+| GOOG | Alphabet Inc. | Communication Services | 39 | 102 |
+| ACN | Accenture | Information Technology | 37 | 111 |
+| ABT | Abbott Laboratories | Health Care | 35 | 81 |
+| AKAM | Akamai Technologies | Information Technology | 33 | 109 |
+| GOOGL | Alphabet Inc. | Communication Services | 29 | 75 |
+| ABBV | AbbVie | Health Care | 28 | 80 |
+| EXC | Exelon | Utilities | 27 | 73 |
+| AES | AES Corporation | Utilities | 21 | 62 |
+| AAPL | Apple Inc. | Information Technology | 19 | 84 |
+| NVDA | Nvidia | Information Technology | 19 | 73 |
+| EBAY | eBay Inc. | Consumer Discretionary | 18 | 53 |
+| ECL | Ecolab | Materials | 18 | 39 |
+| EL | Estée Lauder Companies (The) | Consumer Staples | 18 | 54 |
+| MO | Altria | Consumer Staples | 18 | 49 |
+| AFL | Aflac | Financials | 17 | 55 |
+| DVA | DaVita | Health Care | 17 | 49 |
+| EME | Emcor | Industrials | 17 | 63 |
+| EQIX | Equinix | Real Estate | 17 | 60 |
+| AEE | Ameren | Utilities | 16 | 60 |
+| APH | Amphenol | Information Technology | 16 | 49 |
+| AWK | American Water Works | Utilities | 16 | 54 |
+| TSN | Tyson Foods | Consumer Staples | 16 | 33 |
+| ADM | Archer Daniels Midland | Consumer Staples | 15 | 40 |
+| ADSK | Autodesk | Information Technology | 15 | 66 |
+| ALGN | Align Technology | Health Care | 15 | 65 |
+| APTV | Aptiv | Consumer Discretionary | 15 | 47 |
+| EMR | Emerson Electric | Industrials | 15 | 45 |
+| F | Ford Motor Company | Consumer Discretionary | 15 | 54 |
+| T | AT&T | Communication Services | 15 | 122 |
+| AEP | American Electric Power | Utilities | 14 | 51 |
+| DUK | Duke Energy | Utilities | 14 | 50 |
+| EA | Electronic Arts | Communication Services | 14 | 42 |
+| EFX | Equifax | Industrials | 14 | 41 |
+| FANG | Diamondback Energy | Energy | 14 | 50 |
+| MMM | 3M | Industrials | 14 | 47 |
+| MSI | Motorola Solutions | Information Technology | 14 | 31 |
+| NOC | Northrop Grumman | Industrials | 14 | 31 |
+| NTAP | NetApp | Information Technology | 14 | 29 |
+| AON | Aon plc | Financials | 13 | 52 |
+| BA | Boeing | Industrials | 13 | 58 |
+| DXCM | Dexcom | Health Care | 13 | 76 |
+| EG | Everest Group | Financials | 13 | 56 |
+| ELV | Elevance Health | Health Care | 13 | 54 |
+| MAR | Marriott International | Consumer Discretionary | 13 | 31 |
+| MET | MetLife | Financials | 13 | 32 |
+
+*Full per-ticker data: news_coverage_500_after_reenrichment.csv*

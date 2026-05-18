@@ -1,505 +1,504 @@
-ticker,company_name,sector,usable_before,usable_after,delta,reached_3_after,reached_10_after,newly_rescued,newly_boosted
-MA,Mastercard,Financials,2,6,4,True,False,True,False
-QCOM,Qualcomm,Information Technology,2,6,4,True,False,True,False
-LIN,Linde plc,Materials,2,5,3,True,False,True,False
-MRK,Merck & Co.,Health Care,2,5,3,True,False,True,False
-ON,ON Semiconductor,Information Technology,1,4,3,True,False,True,False
-ORLY,O’Reilly Automotive,Consumer Discretionary,2,5,3,True,False,True,False
-PWR,Quanta Services,Industrials,2,5,3,True,False,True,False
-RF,Regions Financial Corporation,Financials,2,5,3,True,False,True,False
-SLB,Schlumberger,Energy,2,5,3,True,False,True,False
-HBAN,Huntington Bancshares,Financials,2,4,2,True,False,True,False
-HSIC,Henry Schein,Health Care,2,4,2,True,False,True,False
-LULU,Lululemon Athletica,Consumer Discretionary,2,4,2,True,False,True,False
-MDLZ,Mondelez International,Consumer Staples,2,4,2,True,False,True,False
-MPWR,Monolithic Power Systems,Information Technology,2,4,2,True,False,True,False
-NDSN,Nordson Corporation,Industrials,2,4,2,True,False,True,False
-NXPI,NXP Semiconductors,Information Technology,2,4,2,True,False,True,False
-PANW,Palo Alto Networks,Information Technology,2,4,2,True,False,True,False
-PFG,Principal Financial Group,Financials,1,3,2,True,False,True,False
-PKG,Packaging Corporation of America,Materials,1,3,2,True,False,True,False
-RCL,Royal Caribbean Group,Consumer Discretionary,2,4,2,True,False,True,False
-SBAC,SBA Communications,Real Estate,2,4,2,True,False,True,False
-SNA,Snap-on,Industrials,1,3,2,True,False,True,False
-UDR,"UDR, Inc.",Real Estate,2,4,2,True,False,True,False
-UPS,United Parcel Service,Industrials,2,4,2,True,False,True,False
-HSY,Hershey Company (The),Consumer Staples,2,3,1,True,False,True,False
-JBHT,J.B. Hunt,Industrials,2,3,1,True,False,True,False
-MCK,McKesson Corporation,Health Care,2,3,1,True,False,True,False
-NDAQ,"Nasdaq, Inc.",Financials,2,3,1,True,False,True,False
-PNW,Pinnacle West Capital,Utilities,2,3,1,True,False,True,False
-POOL,Pool Corporation,Consumer Discretionary,2,3,1,True,False,True,False
-TGT,Target Corporation,Consumer Staples,2,3,1,True,False,True,False
-NVDA,Nvidia,Information Technology,21,41,20,True,True,False,False
-MTB,M&T Bank,Financials,15,27,12,True,True,False,False
-PCG,PG&E Corporation,Utilities,15,25,10,True,True,False,False
-UBER,Uber,Industrials,5,15,10,True,True,False,True
-MMM,3M,Industrials,13,22,9,True,True,False,False
-MU,Micron Technology,Information Technology,8,17,9,True,True,False,True
-NWSA,News Corp,Communication Services,8,17,9,True,True,False,True
-T,AT&T,Communication Services,16,25,9,True,True,False,False
-EG,Everest Group,Financials,11,19,8,True,True,False,False
-META,Meta Platforms,Communication Services,8,16,8,True,True,False,True
-MO,Altria,Consumer Staples,17,25,8,True,True,False,False
-PG,Procter & Gamble,Consumer Staples,8,16,8,True,True,False,True
-TXT,Textron,Industrials,6,14,8,True,True,False,True
-MSFT,Microsoft,Information Technology,7,14,7,True,True,False,True
-NWS,News Corp,Communication Services,6,13,7,True,True,False,True
-WFC,Wells Fargo,Financials,8,15,7,True,True,False,True
-EOG,EOG Resources,Energy,10,16,6,True,True,False,False
-LLY,Lilly (Eli),Health Care,7,13,6,True,True,False,True
-MCD,McDonald's,Consumer Discretionary,5,11,6,True,True,False,True
-MRSH,Marsh McLennan,Financials,9,15,6,True,True,False,True
-NEE,NextEra Energy,Utilities,5,11,6,True,True,False,True
-OXY,Occidental Petroleum,Energy,6,12,6,True,True,False,True
-PLTR,Palantir Technologies,Information Technology,4,10,6,True,True,False,True
-SPGI,S&P Global,Financials,10,16,6,True,True,False,False
-ULTA,Ulta Beauty,Consumer Discretionary,7,13,6,True,True,False,True
-XYL,Xylem Inc.,Industrials,5,11,6,True,True,False,True
-FOX,Fox Corporation,Communication Services,17,22,5,True,True,False,False
-GILD,Gilead Sciences,Health Care,4,9,5,True,False,False,False
-JNJ,Johnson & Johnson,Health Care,12,17,5,True,True,False,False
-LRCX,Lam Research,Information Technology,4,9,5,True,False,False,False
-MOS,Mosaic Company (The),Materials,7,12,5,True,True,False,True
-NFLX,Netflix,Communication Services,7,12,5,True,True,False,True
-NVR,"NVR, Inc.",Consumer Discretionary,4,9,5,True,False,False,False
-PTC,PTC Inc.,Information Technology,6,11,5,True,True,False,True
-REGN,Regeneron Pharmaceuticals,Health Care,3,8,5,True,False,False,False
-SMCI,Supermicro,Information Technology,7,12,5,True,True,False,True
-DE,Deere & Company,Industrials,8,12,4,True,True,False,True
-EXPE,Expedia Group,Consumer Discretionary,9,13,4,True,True,False,True
-FTV,Fortive,Industrials,7,11,4,True,True,False,True
-GM,General Motors,Consumer Discretionary,4,8,4,True,False,False,False
-GPN,Global Payments,Financials,4,8,4,True,False,False,False
-HAL,Halliburton,Energy,4,8,4,True,False,False,False
-HD,Home Depot (The),Consumer Discretionary,6,10,4,True,True,False,True
-HLT,Hilton Worldwide,Consumer Discretionary,4,8,4,True,False,False,False
-HON,Honeywell,Industrials,6,10,4,True,True,False,True
-HPE,Hewlett Packard Enterprise,Information Technology,6,10,4,True,True,False,True
-HRL,Hormel Foods,Consumer Staples,4,8,4,True,False,False,False
-HUM,Humana,Health Care,4,8,4,True,False,False,False
-LHX,L3Harris,Industrials,3,7,4,True,False,False,False
-LVS,Las Vegas Sands,Consumer Discretionary,3,7,4,True,False,False,False
-LYB,LyondellBasell,Materials,5,9,4,True,False,False,False
-MAR,Marriott International,Consumer Discretionary,7,11,4,True,True,False,True
-MCO,Moody's Corporation,Financials,5,9,4,True,False,False,False
-MKC,McCormick & Company,Consumer Staples,6,10,4,True,True,False,True
-NOC,Northrop Grumman,Industrials,3,7,4,True,False,False,False
-NSC,Norfolk Southern,Industrials,3,7,4,True,False,False,False
-O,Realty Income,Real Estate,5,9,4,True,False,False,False
-PM,Philip Morris International,Consumer Staples,5,9,4,True,False,False,False
-RVTY,Revvity,Health Care,3,7,4,True,False,False,False
-TRGP,Targa Resources,Energy,3,7,4,True,False,False,False
-TSLA,"Tesla, Inc.",Consumer Discretionary,9,13,4,True,True,False,True
-WM,Waste Management,Industrials,7,11,4,True,True,False,True
-ZBRA,Zebra Technologies,Information Technology,4,8,4,True,False,False,False
-DECK,Deckers Brands,Consumer Discretionary,7,10,3,True,True,False,True
-EFX,Equifax,Industrials,3,6,3,True,False,False,False
-ES,Eversource Energy,Utilities,10,13,3,True,True,False,False
-EW,Edwards Lifesciences,Health Care,8,11,3,True,True,False,True
-EXPD,Expeditors International,Industrials,7,10,3,True,True,False,True
-FDS,FactSet,Financials,8,11,3,True,True,False,True
-FDX,FedEx,Industrials,5,8,3,True,False,False,False
-FIX,Comfort Systems USA,Industrials,7,10,3,True,True,False,True
-FOXA,Fox Corporation,Communication Services,12,15,3,True,True,False,False
-GE,GE Aerospace,Industrials,10,13,3,True,True,False,False
-GEV,GE Vernova,Industrials,4,7,3,True,False,False,False
-GIS,General Mills,Consumer Staples,6,9,3,True,False,False,False
-HAS,Hasbro,Consumer Discretionary,5,8,3,True,False,False,False
-HPQ,HP Inc.,Information Technology,5,8,3,True,False,False,False
-HST,Host Hotels & Resorts,Real Estate,3,6,3,True,False,False,False
-HWM,Howmet Aerospace,Industrials,4,7,3,True,False,False,False
-KEYS,Keysight Technologies,Information Technology,7,10,3,True,True,False,True
-LITE,Lumentum,Information Technology,3,6,3,True,False,False,False
-LMT,Lockheed Martin,Industrials,6,9,3,True,False,False,False
-MAS,Masco,Industrials,4,7,3,True,False,False,False
-ODFL,Old Dominion,Industrials,4,7,3,True,False,False,False
-OMC,Omnicom Group,Communication Services,3,6,3,True,False,False,False
-PODD,Insulet Corporation,Health Care,3,6,3,True,False,False,False
-ROK,Rockwell Automation,Industrials,3,6,3,True,False,False,False
-SJM,J.M. Smucker Company (The),Consumer Staples,4,7,3,True,False,False,False
-SNDK,Sandisk,Information Technology,4,7,3,True,False,False,False
-SO,Southern Company,Utilities,6,9,3,True,False,False,False
-TDG,TransDigm Group,Industrials,3,6,3,True,False,False,False
-TSN,Tyson Foods,Consumer Staples,6,9,3,True,False,False,False
-VRT,Vertiv,Industrials,8,11,3,True,True,False,True
-WDAY,"Workday, Inc.",Information Technology,6,9,3,True,False,False,False
-CARR,Carrier Global,Industrials,11,13,2,True,True,False,False
-CHD,Church & Dwight,Consumer Staples,16,18,2,True,True,False,False
-CIEN,Ciena,Information Technology,5,7,2,True,False,False,False
-CVNA,Carvana,Consumer Discretionary,5,7,2,True,False,False,False
-CVX,Chevron Corporation,Energy,5,7,2,True,False,False,False
-DD,DuPont,Materials,6,8,2,True,False,False,False
-DHR,Danaher Corporation,Health Care,4,6,2,True,False,False,False
-EA,Electronic Arts,Communication Services,6,8,2,True,False,False,False
-EPAM,EPAM Systems,Information Technology,6,8,2,True,False,False,False
-ESS,Essex Property Trust,Real Estate,5,7,2,True,False,False,False
-ETN,Eaton Corporation,Industrials,10,12,2,True,True,False,False
-EXE,Expand Energy,Energy,3,5,2,True,False,False,False
-F,Ford Motor Company,Consumer Discretionary,9,11,2,True,True,False,True
-FCX,Freeport-McMoRan,Materials,6,8,2,True,False,False,False
-FICO,Fair Isaac,Information Technology,4,6,2,True,False,False,False
-FIS,Fidelity National Information Services,Financials,7,9,2,True,False,False,False
-FISV,Fiserv,Financials,6,8,2,True,False,False,False
-FITB,Fifth Third Bancorp,Financials,4,6,2,True,False,False,False
-FRT,Federal Realty Investment Trust,Real Estate,10,12,2,True,True,False,False
-FSLR,First Solar,Information Technology,4,6,2,True,False,False,False
-GD,General Dynamics,Industrials,8,10,2,True,True,False,True
-GLW,Corning Inc.,Information Technology,7,9,2,True,False,False,False
-HOOD,Robinhood Markets,Financials,7,9,2,True,False,False,False
-IBM,IBM,Information Technology,5,7,2,True,False,False,False
-ICE,Intercontinental Exchange,Financials,4,6,2,True,False,False,False
-KLAC,KLA Corporation,Information Technology,5,7,2,True,False,False,False
-LEN,Lennar,Consumer Discretionary,4,6,2,True,False,False,False
-LOW,Lowe's,Consumer Discretionary,4,6,2,True,False,False,False
-MAA,Mid-America Apartment Communities,Real Estate,4,6,2,True,False,False,False
-MCHP,Microchip Technology,Information Technology,5,7,2,True,False,False,False
-MDT,Medtronic,Health Care,5,7,2,True,False,False,False
-MET,MetLife,Financials,4,6,2,True,False,False,False
-MLM,Martin Marietta Materials,Materials,3,5,2,True,False,False,False
-MPC,Marathon Petroleum,Energy,5,7,2,True,False,False,False
-MS,Morgan Stanley,Financials,4,6,2,True,False,False,False
-NI,NiSource,Utilities,0,2,2,False,False,False,False
-NKE,"Nike, Inc.",Consumer Discretionary,4,6,2,True,False,False,False
-NRG,NRG Energy,Utilities,3,5,2,True,False,False,False
-NTRS,Northern Trust,Financials,4,6,2,True,False,False,False
-PH,Parker Hannifin,Industrials,3,5,2,True,False,False,False
-RJF,Raymond James Financial,Financials,3,5,2,True,False,False,False
-SOLV,Solventum,Health Care,3,5,2,True,False,False,False
-SW,Smurfit Westrock,Materials,4,6,2,True,False,False,False
-SWK,Stanley Black & Decker,Industrials,5,7,2,True,False,False,False
-TFC,Truist Financial,Financials,8,10,2,True,True,False,True
-TJX,TJX Companies,Consumer Discretionary,7,9,2,True,False,False,False
-TKO,TKO Group Holdings,Communication Services,9,11,2,True,True,False,True
-TRV,Travelers Companies (The),Financials,5,7,2,True,False,False,False
-TTWO,Take-Two Interactive,Communication Services,4,6,2,True,False,False,False
-TXN,Texas Instruments,Information Technology,4,6,2,True,False,False,False
-UAL,United Airlines Holdings,Industrials,4,6,2,True,False,False,False
-URI,United Rentals,Industrials,5,7,2,True,False,False,False
-USB,U.S. Bancorp,Financials,7,9,2,True,False,False,False
-VICI,Vici Properties,Real Estate,3,5,2,True,False,False,False
-VTR,Ventas,Real Estate,3,5,2,True,False,False,False
-WAB,Wabtec,Industrials,7,9,2,True,False,False,False
-WBD,Warner Bros. Discovery,Communication Services,7,9,2,True,False,False,False
-WDC,Western Digital,Information Technology,5,7,2,True,False,False,False
-WMB,Williams Companies,Energy,5,7,2,True,False,False,False
-WMT,Walmart,Consumer Staples,5,7,2,True,False,False,False
-WYNN,Wynn Resorts,Consumer Discretionary,5,7,2,True,False,False,False
-XYZ,"Block, Inc.",Financials,3,5,2,True,False,False,False
-ZTS,Zoetis,Health Care,5,7,2,True,False,False,False
-AJG,Arthur J. Gallagher & Co.,Financials,6,7,1,True,False,False,False
-BAC,Bank of America,Financials,8,9,1,True,False,False,False
-BDX,Becton Dickinson,Health Care,7,8,1,True,False,False,False
-CASY,Casey's,Consumer Staples,5,6,1,True,False,False,False
-CMG,Chipotle Mexican Grill,Consumer Discretionary,6,7,1,True,False,False,False
-CMS,CMS Energy,Utilities,7,8,1,True,False,False,False
-COHR,Coherent Corp.,Information Technology,5,6,1,True,False,False,False
-COO,Cooper Companies (The),Health Care,3,4,1,True,False,False,False
-COR,Cencora,Health Care,10,11,1,True,True,False,False
-CRH,CRH plc,Materials,3,4,1,True,False,False,False
-CSX,CSX Corporation,Industrials,6,7,1,True,False,False,False
-DDOG,Datadog,Information Technology,4,5,1,True,False,False,False
-DLR,Digital Realty,Real Estate,7,8,1,True,False,False,False
-DLTR,Dollar Tree,Consumer Staples,6,7,1,True,False,False,False
-DOC,Healthpeak Properties,Real Estate,7,8,1,True,False,False,False
-DRI,Darden Restaurants,Consumer Discretionary,3,4,1,True,False,False,False
-ED,Consolidated Edison,Utilities,8,9,1,True,False,False,False
-EQT,EQT Corporation,Energy,3,4,1,True,False,False,False
-EVRG,Evergy,Utilities,5,6,1,True,False,False,False
-EXC,Exelon,Utilities,9,10,1,True,True,False,True
-EXR,Extra Space Storage,Real Estate,5,6,1,True,False,False,False
-FANG,Diamondback Energy,Energy,5,6,1,True,False,False,False
-FE,FirstEnergy,Utilities,4,5,1,True,False,False,False
-FFIV,"F5, Inc.",Information Technology,6,7,1,True,False,False,False
-FTNT,Fortinet,Information Technology,5,6,1,True,False,False,False
-GEHC,GE HealthCare,Health Care,6,7,1,True,False,False,False
-GEN,Gen Digital,Information Technology,7,8,1,True,False,False,False
-GL,Globe Life,Financials,4,5,1,True,False,False,False
-IBKR,Interactive Brokers,Financials,4,5,1,True,False,False,False
-IEX,IDEX Corporation,Industrials,1,2,1,False,False,False,False
-INTC,Intel,Information Technology,9,10,1,True,True,False,True
-INVH,Invitation Homes,Real Estate,6,7,1,True,False,False,False
-J,Jacobs Solutions,Industrials,3,4,1,True,False,False,False
-KHC,Kraft Heinz,Consumer Staples,4,5,1,True,False,False,False
-LH,Labcorp,Health Care,1,2,1,False,False,False,False
-LII,Lennox International,Industrials,1,2,1,False,False,False,False
-LNT,Alliant Energy,Utilities,3,4,1,True,False,False,False
-LYV,Live Nation Entertainment,Communication Services,3,4,1,True,False,False,False
-NEM,Newmont,Materials,1,2,1,False,False,False,False
-PNC,PNC Financial Services,Financials,1,2,1,False,False,False,False
-PNR,Pentair,Industrials,1,2,1,False,False,False,False
-PRU,Prudential Financial,Financials,1,2,1,False,False,False,False
-PSX,Phillips 66,Energy,0,1,1,False,False,False,False
-REG,Regency Centers,Real Estate,1,2,1,False,False,False,False
-RMD,ResMed,Health Care,3,4,1,True,False,False,False
-ROP,Roper Technologies,Information Technology,1,2,1,False,False,False,False
-RTX,RTX Corporation,Industrials,3,4,1,True,False,False,False
-SCHW,Charles Schwab Corporation,Financials,1,2,1,False,False,False,False
-STT,State Street Corporation,Financials,6,7,1,True,False,False,False
-STZ,Constellation Brands,Consumer Staples,1,2,1,False,False,False,False
-SYK,Stryker Corporation,Health Care,4,5,1,True,False,False,False
-SYY,Sysco,Consumer Staples,6,7,1,True,False,False,False
-TEL,TE Connectivity,Information Technology,4,5,1,True,False,False,False
-TRMB,Trimble Inc.,Information Technology,4,5,1,True,False,False,False
-TT,Trane Technologies,Industrials,3,4,1,True,False,False,False
-TTD,Trade Desk (The),Communication Services,8,9,1,True,False,False,False
-VST,Vistra Corp,Utilities,8,9,1,True,False,False,False
-VZ,Verizon,Communication Services,3,4,1,True,False,False,False
-WEC,WEC Energy Group,Utilities,3,4,1,True,False,False,False
-WSM,"Williams-Sonoma, Inc.",Consumer Discretionary,4,5,1,True,False,False,False
-XOM,ExxonMobil,Energy,6,7,1,True,False,False,False
-YUM,Yum! Brands,Consumer Discretionary,3,4,1,True,False,False,False
-AIZ,Assurant,Financials,9,9,0,True,False,False,False
-AMT,American Tower,Real Estate,5,5,0,True,False,False,False
-AVY,Avery Dennison,Materials,3,3,0,True,False,False,False
-BF.B,Brown–Forman,Consumer Staples,1,1,0,False,False,False,False
-BK,BNY Mellon,Financials,10,10,0,True,True,False,False
-BKNG,Booking Holdings,Consumer Discretionary,1,1,0,False,False,False,False
-BLDR,Builders FirstSource,Industrials,2,2,0,False,False,False,False
-CAH,Cardinal Health,Health Care,5,5,0,True,False,False,False
-CCL,Carnival,Consumer Discretionary,5,5,0,True,False,False,False
-CINF,Cincinnati Financial,Financials,2,2,0,False,False,False,False
-CNC,Centene Corporation,Health Care,2,2,0,False,False,False,False
-COIN,Coinbase,Financials,5,5,0,True,False,False,False
-CPB,Campbell's Company (The),Consumer Staples,7,7,0,True,False,False,False
-CPT,Camden Property Trust,Real Estate,9,9,0,True,False,False,False
-CRL,Charles River Laboratories,Health Care,8,8,0,True,False,False,False
-CRWD,CrowdStrike,Information Technology,9,9,0,True,False,False,False
-CTAS,Cintas,Industrials,4,4,0,True,False,False,False
-CTSH,Cognizant,Information Technology,11,11,0,True,True,False,False
-CVS,CVS Health,Health Care,10,10,0,True,True,False,False
-DG,Dollar General,Consumer Staples,8,8,0,True,False,False,False
-DPZ,Domino's,Consumer Discretionary,7,7,0,True,False,False,False
-DTE,DTE Energy,Utilities,3,3,0,True,False,False,False
-DVA,DaVita,Health Care,4,4,0,True,False,False,False
-DXCM,Dexcom,Health Care,7,7,0,True,False,False,False
-ECL,Ecolab,Materials,4,4,0,True,False,False,False
-EL,Estée Lauder Companies (The),Consumer Staples,4,4,0,True,False,False,False
-ELV,Elevance Health,Health Care,4,4,0,True,False,False,False
-EME,Emcor,Industrials,10,10,0,True,True,False,False
-EMR,Emerson Electric,Industrials,5,5,0,True,False,False,False
-EQIX,Equinix,Real Estate,5,5,0,True,False,False,False
-EQR,Equity Residential,Real Estate,7,7,0,True,False,False,False
-ERIE,Erie Indemnity,Financials,3,3,0,True,False,False,False
-FAST,Fastenal,Industrials,4,4,0,True,False,False,False
-GDDY,GoDaddy,Information Technology,3,3,0,True,False,False,False
-GNRC,Generac,Industrials,1,1,0,False,False,False,False
-GPC,Genuine Parts Company,Consumer Discretionary,4,4,0,True,False,False,False
-GRMN,Garmin,Consumer Discretionary,0,0,0,False,False,False,False
-GS,Goldman Sachs,Financials,5,5,0,True,False,False,False
-GWW,W. W. Grainger,Industrials,2,2,0,False,False,False,False
-HCA,HCA Healthcare,Health Care,3,3,0,True,False,False,False
-HII,Huntington Ingalls Industries,Industrials,2,2,0,False,False,False,False
-HUBB,Hubbell Incorporated,Industrials,0,0,0,False,False,False,False
-INCY,Incyte,Health Care,1,1,0,False,False,False,False
-IP,International Paper,Materials,2,2,0,False,False,False,False
-IQV,IQVIA,Health Care,2,2,0,False,False,False,False
-IR,Ingersoll Rand,Industrials,2,2,0,False,False,False,False
-IRM,Iron Mountain,Real Estate,8,8,0,True,False,False,False
-ISRG,Intuitive Surgical,Health Care,1,1,0,False,False,False,False
-ITW,Illinois Tool Works,Industrials,5,5,0,True,False,False,False
-JCI,Johnson Controls,Industrials,5,5,0,True,False,False,False
-JPM,JPMorgan Chase,Financials,5,5,0,True,False,False,False
-KDP,Keurig Dr Pepper,Consumer Staples,3,3,0,True,False,False,False
-KKR,KKR & Co.,Financials,12,12,0,True,True,False,False
-KMB,Kimberly-Clark,Consumer Staples,2,2,0,False,False,False,False
-KMI,Kinder Morgan,Energy,5,5,0,True,False,False,False
-KO,Coca-Cola Company (The),Consumer Staples,5,5,0,True,False,False,False
-L,Loews Corporation,Financials,0,0,0,False,False,False,False
-LDOS,Leidos,Industrials,3,3,0,True,False,False,False
-LUV,Southwest Airlines,Industrials,1,1,0,False,False,False,False
-MGM,MGM Resorts,Consumer Discretionary,2,2,0,False,False,False,False
-MNST,Monster Beverage,Consumer Staples,0,0,0,False,False,False,False
-MRNA,Moderna,Health Care,4,4,0,True,False,False,False
-MSCI,MSCI Inc.,Financials,0,0,0,False,False,False,False
-MSI,Motorola Solutions,Information Technology,5,5,0,True,False,False,False
-MTD,Mettler Toledo,Health Care,0,0,0,False,False,False,False
-NCLH,Norwegian Cruise Line Holdings,Consumer Discretionary,0,0,0,False,False,False,False
-NOW,ServiceNow,Information Technology,1,1,0,False,False,False,False
-NTAP,NetApp,Information Technology,0,0,0,False,False,False,False
-NUE,Nucor,Materials,2,2,0,False,False,False,False
-OKE,Oneok,Energy,1,1,0,False,False,False,False
-ORCL,Oracle Corporation,Information Technology,2,2,0,False,False,False,False
-OTIS,Otis Worldwide,Industrials,1,1,0,False,False,False,False
-PAYX,Paychex,Industrials,0,0,0,False,False,False,False
-PCAR,Paccar,Industrials,2,2,0,False,False,False,False
-PEG,Public Service Enterprise Group,Utilities,1,1,0,False,False,False,False
-PEP,PepsiCo,Consumer Staples,2,2,0,False,False,False,False
-PFE,Pfizer,Health Care,2,2,0,False,False,False,False
-PGR,Progressive Corporation,Financials,0,0,0,False,False,False,False
-PHM,PulteGroup,Consumer Discretionary,0,0,0,False,False,False,False
-PLD,Prologis,Real Estate,0,0,0,False,False,False,False
-PPG,PPG Industries,Materials,0,0,0,False,False,False,False
-PPL,PPL Corporation,Utilities,0,0,0,False,False,False,False
-PSA,Public Storage,Real Estate,0,0,0,False,False,False,False
-PSKY,Paramount Skydance Corporation,Communication Services,1,1,0,False,False,False,False
-PYPL,PayPal,Financials,0,0,0,False,False,False,False
-Q,Qnity Electronics,Information Technology,0,0,0,False,False,False,False
-RL,Ralph Lauren Corporation,Consumer Discretionary,0,0,0,False,False,False,False
-ROL,"Rollins, Inc.",Industrials,0,0,0,False,False,False,False
-ROST,Ross Stores,Consumer Discretionary,1,1,0,False,False,False,False
-RSG,Republic Services,Industrials,0,0,0,False,False,False,False
-SATS,EchoStar,Communication Services,2,2,0,False,False,False,False
-SBUX,Starbucks,Consumer Discretionary,2,2,0,False,False,False,False
-SHW,Sherwin-Williams,Materials,0,0,0,False,False,False,False
-SNPS,Synopsys,Information Technology,2,2,0,False,False,False,False
-SPG,Simon Property Group,Real Estate,4,4,0,True,False,False,False
-SRE,Sempra,Utilities,3,3,0,True,False,False,False
-STE,Steris,Health Care,4,4,0,True,False,False,False
-STLD,Steel Dynamics,Materials,2,2,0,False,False,False,False
-STX,Seagate Technology,Information Technology,5,5,0,True,False,False,False
-SWKS,Skyworks Solutions,Information Technology,2,2,0,False,False,False,False
-SYF,Synchrony Financial,Financials,2,2,0,False,False,False,False
-TAP,Molson Coors Beverage Company,Consumer Staples,2,2,0,False,False,False,False
-TDY,Teledyne Technologies,Information Technology,2,2,0,False,False,False,False
-TECH,Bio-Techne,Health Care,3,3,0,True,False,False,False
-TER,Teradyne,Information Technology,3,3,0,True,False,False,False
-TEST,,,4,4,0,True,False,False,False
-TMO,Thermo Fisher Scientific,Health Care,2,2,0,False,False,False,False
-TMUS,T-Mobile US,Communication Services,7,7,0,True,False,False,False
-TPL,Texas Pacific Land Corporation,Energy,1,1,0,False,False,False,False
-TPR,"Tapestry, Inc.",Consumer Discretionary,4,4,0,True,False,False,False
-TROW,T. Rowe Price,Financials,6,6,0,True,False,False,False
-TSCO,Tractor Supply,Consumer Discretionary,5,5,0,True,False,False,False
-TYL,Tyler Technologies,Information Technology,3,3,0,True,False,False,False
-UHS,Universal Health Services,Health Care,4,4,0,True,False,False,False
-UNH,UnitedHealth Group,Health Care,7,7,0,True,False,False,False
-UNP,Union Pacific Corporation,Industrials,3,3,0,True,False,False,False
-V,Visa Inc.,Financials,5,5,0,True,False,False,False
-VLO,Valero Energy,Energy,6,6,0,True,False,False,False
-VLTO,Veralto,Industrials,3,3,0,True,False,False,False
-VMC,Vulcan Materials Company,Materials,4,4,0,True,False,False,False
-VRSK,Verisk Analytics,Industrials,2,2,0,False,False,False,False
-VRSN,Verisign,Information Technology,2,2,0,False,False,False,False
-VRTX,Vertex Pharmaceuticals,Health Care,4,4,0,True,False,False,False
-VTRS,Viatris,Health Care,4,4,0,True,False,False,False
-WAT,Waters Corporation,Health Care,6,6,0,True,False,False,False
-WELL,Welltower,Real Estate,6,6,0,True,False,False,False
-WRB,W. R. Berkley Corporation,Financials,1,1,0,False,False,False,False
-WST,West Pharmaceutical Services,Health Care,3,3,0,True,False,False,False
-WTW,Willis Towers Watson,Financials,3,3,0,True,False,False,False
-WY,Weyerhaeuser,Real Estate,5,5,0,True,False,False,False
-XEL,Xcel Energy,Utilities,5,5,0,True,False,False,False
-ZBH,Zimmer Biomet,Health Care,5,5,0,True,False,False,False
-ADP,Automatic Data Processing,Industrials,5,4,-1,True,False,False,False
-AIG,American International Group,Financials,10,9,-1,True,False,False,False
-AMAT,Applied Materials,Information Technology,4,3,-1,True,False,False,False
-AVGO,Broadcom,Information Technology,8,7,-1,True,False,False,False
-BG,Bunge Global,Consumer Staples,4,3,-1,True,False,False,False
-BMY,Bristol Myers Squibb,Health Care,6,5,-1,True,False,False,False
-BRO,Brown & Brown,Financials,18,17,-1,True,True,False,False
-BSX,Boston Scientific,Health Care,6,5,-1,True,False,False,False
-C,Citigroup,Financials,13,12,-1,True,True,False,False
-CB,Chubb Limited,Financials,5,4,-1,True,False,False,False
-CEG,Constellation Energy,Utilities,9,8,-1,True,False,False,False
-CHTR,Charter Communications,Communication Services,4,3,-1,True,False,False,False
-CME,CME Group,Financials,8,7,-1,True,False,False,False
-COST,Costco,Consumer Staples,8,7,-1,True,False,False,False
-CPRT,Copart,Industrials,3,2,-1,False,False,False,False
-CSGP,CoStar Group,Real Estate,2,1,-1,False,False,False,False
-D,Dominion Energy,Utilities,5,4,-1,True,False,False,False
-DASH,DoorDash,Consumer Discretionary,7,6,-1,True,False,False,False
-DELL,Dell Technologies,Information Technology,10,9,-1,True,False,False,False
-DOV,Dover Corporation,Industrials,8,7,-1,True,False,False,False
-DOW,Dow Inc.,Materials,10,9,-1,True,False,False,False
-DUK,Duke Energy,Utilities,10,9,-1,True,False,False,False
-DVN,Devon Energy,Energy,7,6,-1,True,False,False,False
-EIX,Edison International,Utilities,3,2,-1,False,False,False,False
-HIG,Hartford (The),Financials,6,5,-1,True,False,False,False
-IDXX,Idexx Laboratories,Health Care,5,4,-1,True,False,False,False
-IT,Gartner,Information Technology,5,4,-1,True,False,False,False
-KR,Kroger,Consumer Staples,2,1,-1,False,False,False,False
-KVUE,Kenvue,Consumer Staples,3,2,-1,False,False,False,False
-ADM,Archer Daniels Midland,Consumer Staples,4,2,-2,False,False,False,False
-APP,AppLovin,Information Technology,7,5,-2,True,False,False,False
-APTV,Aptiv,Consumer Discretionary,6,4,-2,True,False,False,False
-ATO,Atmos Energy,Utilities,6,4,-2,True,False,False,False
-AVB,AvalonBay Communities,Real Estate,4,2,-2,False,False,False,False
-AXON,Axon Enterprise,Industrials,8,6,-2,True,False,False,False
-BALL,Ball Corporation,Materials,5,3,-2,True,False,False,False
-BBY,Best Buy,Consumer Discretionary,6,4,-2,True,False,False,False
-BKR,Baker Hughes,Energy,6,4,-2,True,False,False,False
-BLK,BlackRock,Financials,11,9,-2,True,False,False,False
-BX,Blackstone Inc.,Financials,7,5,-2,True,False,False,False
-CAG,Conagra Brands,Consumer Staples,5,3,-2,True,False,False,False
-CFG,Citizens Financial Group,Financials,4,2,-2,False,False,False,False
-CL,Colgate-Palmolive,Consumer Staples,7,5,-2,True,False,False,False
-CMI,Cummins,Industrials,7,5,-2,True,False,False,False
-COF,Capital One,Financials,7,5,-2,True,False,False,False
-CPAY,Corpay,Financials,8,6,-2,True,False,False,False
-CSCO,Cisco,Information Technology,5,3,-2,True,False,False,False
-CTRA,Coterra,Energy,3,1,-2,False,False,False,False
-DHI,D. R. Horton,Consumer Discretionary,7,5,-2,True,False,False,False
-DIS,Walt Disney Company (The),Communication Services,4,2,-2,False,False,False,False
-EBAY,eBay Inc.,Consumer Discretionary,6,4,-2,True,False,False,False
-ETR,Entergy,Utilities,5,3,-2,True,False,False,False
-INTU,Intuit,Information Technology,4,2,-2,False,False,False,False
-JBL,Jabil,Information Technology,3,1,-2,False,False,False,False
-JKHY,Jack Henry & Associates,Financials,7,5,-2,True,False,False,False
-KIM,Kimco Realty,Real Estate,3,1,-2,False,False,False,False
-ADI,Analog Devices,Information Technology,5,2,-3,False,False,False,False
-AEP,American Electric Power,Utilities,7,4,-3,True,False,False,False
-AME,Ametek,Industrials,5,2,-3,False,False,False,False
-AMGN,Amgen,Health Care,7,4,-3,True,False,False,False
-APD,Air Products,Materials,4,1,-3,False,False,False,False
-ARE,Alexandria Real Estate Equities,Real Estate,5,2,-3,False,False,False,False
-ARES,Ares Management,Financials,5,2,-3,False,False,False,False
-AWK,American Water Works,Utilities,9,6,-3,True,False,False,False
-BAX,Baxter International,Health Care,5,2,-3,False,False,False,False
-BEN,Franklin Resources,Financials,9,6,-3,True,False,False,False
-BIIB,Biogen,Health Care,8,5,-3,True,False,False,False
-CAT,Caterpillar Inc.,Industrials,8,5,-3,True,False,False,False
-CDNS,Cadence Design Systems,Information Technology,6,3,-3,True,False,False,False
-CF,CF Industries,Materials,7,4,-3,True,False,False,False
-CI,Cigna,Health Care,10,7,-3,True,False,False,False
-CMCSA,Comcast,Communication Services,6,3,-3,True,False,False,False
-CNP,CenterPoint Energy,Utilities,5,2,-3,False,False,False,False
-CRM,Salesforce,Information Technology,11,8,-3,True,False,False,False
-DAL,Delta Air Lines,Industrials,6,3,-3,True,False,False,False
-DGX,Quest Diagnostics,Health Care,5,2,-3,False,False,False,False
-IFF,International Flavors & Fragrances,Materials,5,2,-3,False,False,False,False
-IVZ,Invesco,Financials,7,4,-3,True,False,False,False
-ACGL,Arch Capital Group,Financials,5,1,-4,False,False,False,False
-ANET,Arista Networks,Information Technology,8,4,-4,True,False,False,False
-AON,Aon plc,Financials,10,6,-4,True,False,False,False
-APA,APA Corporation,Energy,8,4,-4,True,False,False,False
-AXP,American Express,Financials,9,5,-4,True,False,False,False
-BA,Boeing,Industrials,8,4,-4,True,False,False,False
-BRK.B,Berkshire Hathaway,Financials,7,3,-4,True,False,False,False
-BXP,"BXP, Inc.",Real Estate,7,3,-4,True,False,False,False
-CBOE,Cboe Global Markets,Financials,8,4,-4,True,False,False,False
-CDW,CDW Corporation,Information Technology,6,2,-4,False,False,False,False
-CLX,Clorox,Consumer Staples,6,2,-4,False,False,False,False
-COP,ConocoPhillips,Energy,5,1,-4,False,False,False,False
-CTVA,Corteva,Materials,6,2,-4,False,False,False,False
-A,Agilent Technologies,Health Care,10,5,-5,True,False,False,False
-ADSK,Autodesk,Information Technology,7,2,-5,False,False,False,False
-AMP,Ameriprise Financial,Financials,8,3,-5,True,False,False,False
-APH,Amphenol,Information Technology,11,6,-5,True,False,False,False
-AZO,AutoZone,Consumer Discretionary,7,2,-5,False,False,False,False
-BR,Broadridge Financial Solutions,Industrials,12,7,-5,True,False,False,False
-CBRE,CBRE Group,Real Estate,8,3,-5,True,False,False,False
-CCI,Crown Castle,Real Estate,7,2,-5,False,False,False,False
-CHRW,C.H. Robinson,Industrials,7,2,-5,False,False,False,False
-KEY,KeyCorp,Financials,9,4,-5,True,False,False,False
-AES,AES Corporation,Utilities,16,10,-6,True,True,False,False
-AFL,Aflac,Financials,11,5,-6,True,False,False,False
-AMCR,Amcor,Materials,12,6,-6,True,False,False,False
-APO,Apollo Global Management,Financials,9,3,-6,True,False,False,False
-AAPL,Apple Inc.,Information Technology,22,15,-7,True,True,False,False
-ALL,Allstate,Financials,14,7,-7,True,False,False,False
-AEE,Ameren,Utilities,11,3,-8,True,False,False,False
-AOS,A. O. Smith,Industrials,12,4,-8,True,False,False,False
-ALGN,Align Technology,Health Care,13,4,-9,True,False,False,False
-ALLE,Allegion,Industrials,15,6,-9,True,False,False,False
-ALB,Albemarle Corporation,Materials,24,13,-11,True,True,False,False
-ABBV,AbbVie,Health Care,23,10,-13,True,True,False,False
-GOOGL,Alphabet Inc.,Communication Services,61,48,-13,True,True,False,False
-ABT,Abbott Laboratories,Health Care,28,14,-14,True,True,False,False
-AKAM,Akamai Technologies,Information Technology,34,20,-14,True,True,False,False
-ADBE,Adobe Inc.,Information Technology,39,22,-17,True,True,False,False
-ACN,Accenture,Information Technology,27,8,-19,True,False,False,False
-ABNB,Airbnb,Consumer Discretionary,33,13,-20,True,True,False,False
-AMD,Advanced Micro Devices,Information Technology,75,55,-20,True,True,False,False
-AMZN,Amazon,Consumer Discretionary,57,36,-21,True,True,False,False
-GOOG,Alphabet Inc.,Communication Services,74,50,-24,True,True,False,False
+ticker,company_name,sector,usable_strict,total_rows_7d,bucket,reached_3,reached_5,reached_10,reached_20
+A,Agilent Technologies,Health Care,9,45,5-9,True,True,False,False
+AAPL,Apple Inc.,Information Technology,19,84,10-19,True,True,True,False
+ABBV,AbbVie,Health Care,28,80,20+,True,True,True,True
+ABNB,Airbnb,Consumer Discretionary,39,81,20+,True,True,True,True
+ABT,Abbott Laboratories,Health Care,35,81,20+,True,True,True,True
+ACGL,Arch Capital Group,Financials,8,49,5-9,True,True,False,False
+ACN,Accenture,Information Technology,37,111,20+,True,True,True,True
+ADBE,Adobe Inc.,Information Technology,49,104,20+,True,True,True,True
+ADI,Analog Devices,Information Technology,10,57,10-19,True,True,True,False
+ADM,Archer Daniels Midland,Consumer Staples,15,40,10-19,True,True,True,False
+ADP,Automatic Data Processing,Industrials,6,48,5-9,True,True,False,False
+ADSK,Autodesk,Information Technology,15,66,10-19,True,True,True,False
+AEE,Ameren,Utilities,16,60,10-19,True,True,True,False
+AEP,American Electric Power,Utilities,14,51,10-19,True,True,True,False
+AES,AES Corporation,Utilities,21,62,20+,True,True,True,True
+AFL,Aflac,Financials,17,55,10-19,True,True,True,False
+AIG,American International Group,Financials,7,45,5-9,True,True,False,False
+AIZ,Assurant,Financials,10,49,10-19,True,True,True,False
+AJG,Arthur J. Gallagher & Co.,Financials,9,62,5-9,True,True,False,False
+AKAM,Akamai Technologies,Information Technology,33,109,20+,True,True,True,True
+ALB,Albemarle Corporation,Materials,40,92,20+,True,True,True,True
+ALGN,Align Technology,Health Care,15,65,10-19,True,True,True,False
+ALL,Allstate,Financials,12,38,10-19,True,True,True,False
+ALLE,Allegion,Industrials,11,41,10-19,True,True,True,False
+AMAT,Applied Materials,Information Technology,11,54,10-19,True,True,True,False
+AMCR,Amcor,Materials,7,50,5-9,True,True,False,False
+AMD,Advanced Micro Devices,Information Technology,59,229,20+,True,True,True,True
+AME,Ametek,Industrials,4,17,3-4,True,False,False,False
+AMGN,Amgen,Health Care,11,47,10-19,True,True,True,False
+AMP,Ameriprise Financial,Financials,12,47,10-19,True,True,True,False
+AMT,American Tower,Real Estate,9,47,5-9,True,True,False,False
+AMZN,Amazon,Consumer Discretionary,61,167,20+,True,True,True,True
+ANET,Arista Networks,Information Technology,9,54,5-9,True,True,False,False
+AON,Aon plc,Financials,13,52,10-19,True,True,True,False
+AOS,A. O. Smith,Industrials,9,61,5-9,True,True,False,False
+APA,APA Corporation,Energy,11,55,10-19,True,True,True,False
+APD,Air Products,Materials,6,35,5-9,True,True,False,False
+APH,Amphenol,Information Technology,16,49,10-19,True,True,True,False
+APO,Apollo Global Management,Financials,8,45,5-9,True,True,False,False
+APP,AppLovin,Information Technology,10,47,10-19,True,True,True,False
+APTV,Aptiv,Consumer Discretionary,15,47,10-19,True,True,True,False
+ARE,Alexandria Real Estate Equities,Real Estate,8,37,5-9,True,True,False,False
+ARES,Ares Management,Financials,4,51,3-4,True,False,False,False
+ATO,Atmos Energy,Utilities,11,46,10-19,True,True,True,False
+AVB,AvalonBay Communities,Real Estate,3,24,3-4,True,False,False,False
+AVGO,Broadcom,Information Technology,4,54,3-4,True,False,False,False
+AVY,Avery Dennison,Materials,7,50,5-9,True,True,False,False
+AWK,American Water Works,Utilities,16,54,10-19,True,True,True,False
+AXON,Axon Enterprise,Industrials,6,37,5-9,True,True,False,False
+AXP,American Express,Financials,9,54,5-9,True,True,False,False
+AZO,AutoZone,Consumer Discretionary,11,38,10-19,True,True,True,False
+BA,Boeing,Industrials,13,58,10-19,True,True,True,False
+BAC,Bank of America,Financials,10,46,10-19,True,True,True,False
+BALL,Ball Corporation,Materials,4,36,3-4,True,False,False,False
+BAX,Baxter International,Health Care,0,15,0,False,False,False,False
+BBY,Best Buy,Consumer Discretionary,2,15,1-2,False,False,False,False
+BDX,Becton Dickinson,Health Care,1,9,1-2,False,False,False,False
+BEN,Franklin Resources,Financials,1,13,1-2,False,False,False,False
+BF.B,Brown–Forman,Consumer Staples,0,19,0,False,False,False,False
+BG,Bunge Global,Consumer Staples,1,16,1-2,False,False,False,False
+BIIB,Biogen,Health Care,2,17,1-2,False,False,False,False
+BK,BNY Mellon,Financials,0,14,0,False,False,False,False
+BKNG,Booking Holdings,Consumer Discretionary,0,14,0,False,False,False,False
+BKR,Baker Hughes,Energy,2,15,1-2,False,False,False,False
+BLDR,Builders FirstSource,Industrials,1,20,1-2,False,False,False,False
+BLK,BlackRock,Financials,1,16,1-2,False,False,False,False
+BMY,Bristol Myers Squibb,Health Care,0,19,0,False,False,False,False
+BR,Broadridge Financial Solutions,Industrials,3,17,3-4,True,False,False,False
+BRK.B,Berkshire Hathaway,Financials,1,11,1-2,False,False,False,False
+BRO,Brown & Brown,Financials,2,57,1-2,False,False,False,False
+BSX,Boston Scientific,Health Care,1,19,1-2,False,False,False,False
+BX,Blackstone Inc.,Financials,0,13,0,False,False,False,False
+BXP,"BXP, Inc.",Real Estate,4,19,3-4,True,False,False,False
+C,Citigroup,Financials,1,15,1-2,False,False,False,False
+CAG,Conagra Brands,Consumer Staples,1,15,1-2,False,False,False,False
+CAH,Cardinal Health,Health Care,1,19,1-2,False,False,False,False
+CARR,Carrier Global,Industrials,0,12,0,False,False,False,False
+CASY,Casey's,Consumer Staples,0,13,0,False,False,False,False
+CAT,Caterpillar Inc.,Industrials,4,22,3-4,True,False,False,False
+CB,Chubb Limited,Financials,2,19,1-2,False,False,False,False
+CBOE,Cboe Global Markets,Financials,1,20,1-2,False,False,False,False
+CBRE,CBRE Group,Real Estate,2,18,1-2,False,False,False,False
+CCI,Crown Castle,Real Estate,1,17,1-2,False,False,False,False
+CCL,Carnival,Consumer Discretionary,1,11,1-2,False,False,False,False
+CDNS,Cadence Design Systems,Information Technology,1,18,1-2,False,False,False,False
+CDW,CDW Corporation,Information Technology,4,17,3-4,True,False,False,False
+CEG,Constellation Energy,Utilities,0,9,0,False,False,False,False
+CF,CF Industries,Materials,1,16,1-2,False,False,False,False
+CFG,Citizens Financial Group,Financials,4,13,3-4,True,False,False,False
+CHD,Church & Dwight,Consumer Staples,1,56,1-2,False,False,False,False
+CHRW,C.H. Robinson,Industrials,2,17,1-2,False,False,False,False
+CHTR,Charter Communications,Communication Services,1,15,1-2,False,False,False,False
+CI,Cigna,Health Care,2,15,1-2,False,False,False,False
+CIEN,Ciena,Information Technology,1,12,1-2,False,False,False,False
+CINF,Cincinnati Financial,Financials,2,15,1-2,False,False,False,False
+CL,Colgate-Palmolive,Consumer Staples,1,14,1-2,False,False,False,False
+CLX,Clorox,Consumer Staples,1,8,1-2,False,False,False,False
+CMCSA,Comcast,Communication Services,2,15,1-2,False,False,False,False
+CME,CME Group,Financials,2,27,1-2,False,False,False,False
+CMG,Chipotle Mexican Grill,Consumer Discretionary,1,12,1-2,False,False,False,False
+CMI,Cummins,Industrials,3,14,3-4,True,False,False,False
+CMS,CMS Energy,Utilities,2,18,1-2,False,False,False,False
+CNC,Centene Corporation,Health Care,0,19,0,False,False,False,False
+CNP,CenterPoint Energy,Utilities,1,17,1-2,False,False,False,False
+COF,Capital One,Financials,2,16,1-2,False,False,False,False
+COHR,Coherent Corp.,Information Technology,0,10,0,False,False,False,False
+COIN,Coinbase,Financials,1,23,1-2,False,False,False,False
+COO,Cooper Companies (The),Health Care,1,17,1-2,False,False,False,False
+COP,ConocoPhillips,Energy,0,18,0,False,False,False,False
+COR,Cencora,Health Care,2,17,1-2,False,False,False,False
+COST,Costco,Consumer Staples,2,16,1-2,False,False,False,False
+CPAY,Corpay,Financials,2,11,1-2,False,False,False,False
+CPB,Campbell's Company (The),Consumer Staples,1,14,1-2,False,False,False,False
+CPRT,Copart,Industrials,1,14,1-2,False,False,False,False
+CPT,Camden Property Trust,Real Estate,2,16,1-2,False,False,False,False
+CRH,CRH plc,Materials,1,17,1-2,False,False,False,False
+CRL,Charles River Laboratories,Health Care,0,14,0,False,False,False,False
+CRM,Salesforce,Information Technology,4,20,3-4,True,False,False,False
+CRWD,CrowdStrike,Information Technology,3,16,3-4,True,False,False,False
+CSCO,Cisco,Information Technology,3,17,3-4,True,False,False,False
+CSGP,CoStar Group,Real Estate,0,11,0,False,False,False,False
+CSX,CSX Corporation,Industrials,2,22,1-2,False,False,False,False
+CTAS,Cintas,Industrials,3,14,3-4,True,False,False,False
+CTRA,Coterra,Energy,2,6,1-2,False,False,False,False
+CTSH,Cognizant,Information Technology,2,15,1-2,False,False,False,False
+CTVA,Corteva,Materials,1,18,1-2,False,False,False,False
+CVNA,Carvana,Consumer Discretionary,2,18,1-2,False,False,False,False
+CVS,CVS Health,Health Care,3,14,3-4,True,False,False,False
+CVX,Chevron Corporation,Energy,2,20,1-2,False,False,False,False
+D,Dominion Energy,Utilities,1,13,1-2,False,False,False,False
+DAL,Delta Air Lines,Industrials,2,18,1-2,False,False,False,False
+DASH,DoorDash,Consumer Discretionary,3,15,3-4,True,False,False,False
+DD,DuPont,Materials,2,13,1-2,False,False,False,False
+DDOG,Datadog,Information Technology,0,14,0,False,False,False,False
+DE,Deere & Company,Industrials,2,25,1-2,False,False,False,False
+DECK,Deckers Brands,Consumer Discretionary,0,19,0,False,False,False,False
+DELL,Dell Technologies,Information Technology,2,12,1-2,False,False,False,False
+DG,Dollar General,Consumer Staples,0,22,0,False,False,False,False
+DGX,Quest Diagnostics,Health Care,2,15,1-2,False,False,False,False
+DHI,D. R. Horton,Consumer Discretionary,3,16,3-4,True,False,False,False
+DHR,Danaher Corporation,Health Care,2,15,1-2,False,False,False,False
+DIS,Walt Disney Company (The),Communication Services,2,17,1-2,False,False,False,False
+DLR,Digital Realty,Real Estate,0,11,0,False,False,False,False
+DLTR,Dollar Tree,Consumer Staples,0,13,0,False,False,False,False
+DOC,Healthpeak Properties,Real Estate,2,15,1-2,False,False,False,False
+DOV,Dover Corporation,Industrials,5,20,5-9,True,True,False,False
+DOW,Dow Inc.,Materials,2,21,1-2,False,False,False,False
+DPZ,Domino's,Consumer Discretionary,3,11,3-4,True,False,False,False
+DRI,Darden Restaurants,Consumer Discretionary,1,15,1-2,False,False,False,False
+DTE,DTE Energy,Utilities,2,14,1-2,False,False,False,False
+DUK,Duke Energy,Utilities,14,50,10-19,True,True,True,False
+DVA,DaVita,Health Care,17,49,10-19,True,True,True,False
+DVN,Devon Energy,Energy,6,42,5-9,True,True,False,False
+DXCM,Dexcom,Health Care,13,76,10-19,True,True,True,False
+EA,Electronic Arts,Communication Services,14,42,10-19,True,True,True,False
+EBAY,eBay Inc.,Consumer Discretionary,18,53,10-19,True,True,True,False
+ECL,Ecolab,Materials,18,39,10-19,True,True,True,False
+ED,Consolidated Edison,Utilities,9,45,5-9,True,True,False,False
+EFX,Equifax,Industrials,14,41,10-19,True,True,True,False
+EG,Everest Group,Financials,13,56,10-19,True,True,True,False
+EIX,Edison International,Utilities,3,24,3-4,True,False,False,False
+EL,Estée Lauder Companies (The),Consumer Staples,18,54,10-19,True,True,True,False
+ELV,Elevance Health,Health Care,13,54,10-19,True,True,True,False
+EME,Emcor,Industrials,17,63,10-19,True,True,True,False
+EMR,Emerson Electric,Industrials,15,45,10-19,True,True,True,False
+EOG,EOG Resources,Energy,10,49,10-19,True,True,True,False
+EPAM,EPAM Systems,Information Technology,11,45,10-19,True,True,True,False
+EQIX,Equinix,Real Estate,17,60,10-19,True,True,True,False
+EQR,Equity Residential,Real Estate,5,42,5-9,True,True,False,False
+EQT,EQT Corporation,Energy,7,54,5-9,True,True,False,False
+ERIE,Erie Indemnity,Financials,4,35,3-4,True,False,False,False
+ES,Eversource Energy,Utilities,3,39,3-4,True,False,False,False
+ESS,Essex Property Trust,Real Estate,3,46,3-4,True,False,False,False
+ETN,Eaton Corporation,Industrials,11,46,10-19,True,True,True,False
+ETR,Entergy,Utilities,12,40,10-19,True,True,True,False
+EVRG,Evergy,Utilities,8,37,5-9,True,True,False,False
+EW,Edwards Lifesciences,Health Care,7,35,5-9,True,True,False,False
+EXC,Exelon,Utilities,27,73,20+,True,True,True,True
+EXE,Expand Energy,Energy,9,41,5-9,True,True,False,False
+EXPD,Expeditors International,Industrials,11,47,10-19,True,True,True,False
+EXPE,Expedia Group,Consumer Discretionary,11,43,10-19,True,True,True,False
+EXR,Extra Space Storage,Real Estate,6,61,5-9,True,True,False,False
+F,Ford Motor Company,Consumer Discretionary,15,54,10-19,True,True,True,False
+FANG,Diamondback Energy,Energy,14,50,10-19,True,True,True,False
+FAST,Fastenal,Industrials,6,54,5-9,True,True,False,False
+FCX,Freeport-McMoRan,Materials,2,55,1-2,False,False,False,False
+FDS,FactSet,Financials,5,31,5-9,True,True,False,False
+FDX,FedEx,Industrials,8,21,5-9,True,True,False,False
+FE,FirstEnergy,Utilities,3,22,3-4,True,False,False,False
+FFIV,"F5, Inc.",Information Technology,7,19,5-9,True,True,False,False
+FICO,Fair Isaac,Information Technology,4,20,3-4,True,False,False,False
+FIS,Fidelity National Information Services,Financials,6,17,5-9,True,True,False,False
+FISV,Fiserv,Financials,10,30,10-19,True,True,True,False
+FITB,Fifth Third Bancorp,Financials,3,11,3-4,True,False,False,False
+FIX,Comfort Systems USA,Industrials,2,13,1-2,False,False,False,False
+FOX,Fox Corporation,Communication Services,4,11,3-4,True,False,False,False
+FOXA,Fox Corporation,Communication Services,6,11,5-9,True,True,False,False
+FRT,Federal Realty Investment Trust,Real Estate,3,21,3-4,True,False,False,False
+FSLR,First Solar,Information Technology,2,16,1-2,False,False,False,False
+FTNT,Fortinet,Information Technology,8,20,5-9,True,True,False,False
+FTV,Fortive,Industrials,6,30,5-9,True,True,False,False
+GD,General Dynamics,Industrials,3,22,3-4,True,False,False,False
+GDDY,GoDaddy,Information Technology,6,18,5-9,True,True,False,False
+GE,GE Aerospace,Industrials,6,22,5-9,True,True,False,False
+GEHC,GE HealthCare,Health Care,4,25,3-4,True,False,False,False
+GEN,Gen Digital,Information Technology,7,20,5-9,True,True,False,False
+GEV,GE Vernova,Industrials,3,23,3-4,True,False,False,False
+GILD,Gilead Sciences,Health Care,6,15,5-9,True,True,False,False
+GIS,General Mills,Consumer Staples,5,19,5-9,True,True,False,False
+GL,Globe Life,Financials,4,14,3-4,True,False,False,False
+GLW,Corning Inc.,Information Technology,5,18,5-9,True,True,False,False
+GM,General Motors,Consumer Discretionary,6,16,5-9,True,True,False,False
+GNRC,Generac,Industrials,4,22,3-4,True,False,False,False
+GOOG,Alphabet Inc.,Communication Services,39,102,20+,True,True,True,True
+GOOGL,Alphabet Inc.,Communication Services,29,75,20+,True,True,True,True
+GPC,Genuine Parts Company,Consumer Discretionary,4,19,3-4,True,False,False,False
+GPN,Global Payments,Financials,9,18,5-9,True,True,False,False
+GRMN,Garmin,Consumer Discretionary,4,22,3-4,True,False,False,False
+GS,Goldman Sachs,Financials,2,22,1-2,False,False,False,False
+GWW,W. W. Grainger,Industrials,5,18,5-9,True,True,False,False
+HAL,Halliburton,Energy,9,20,5-9,True,True,False,False
+HAS,Hasbro,Consumer Discretionary,4,17,3-4,True,False,False,False
+HBAN,Huntington Bancshares,Financials,9,23,5-9,True,True,False,False
+HCA,HCA Healthcare,Health Care,2,16,1-2,False,False,False,False
+HD,Home Depot (The),Consumer Discretionary,7,29,5-9,True,True,False,False
+HIG,Hartford (The),Financials,7,25,5-9,True,True,False,False
+HII,Huntington Ingalls Industries,Industrials,7,23,5-9,True,True,False,False
+HLT,Hilton Worldwide,Consumer Discretionary,5,26,5-9,True,True,False,False
+HON,Honeywell,Industrials,7,25,5-9,True,True,False,False
+HOOD,Robinhood Markets,Financials,3,29,3-4,True,False,False,False
+HPE,Hewlett Packard Enterprise,Information Technology,8,31,5-9,True,True,False,False
+HPQ,HP Inc.,Information Technology,6,21,5-9,True,True,False,False
+HRL,Hormel Foods,Consumer Staples,6,20,5-9,True,True,False,False
+HSIC,Henry Schein,Health Care,5,22,5-9,True,True,False,False
+HST,Host Hotels & Resorts,Real Estate,5,18,5-9,True,True,False,False
+HSY,Hershey Company (The),Consumer Staples,6,15,5-9,True,True,False,False
+HUBB,Hubbell Incorporated,Industrials,5,22,5-9,True,True,False,False
+HUM,Humana,Health Care,9,27,5-9,True,True,False,False
+HWM,Howmet Aerospace,Industrials,5,27,5-9,True,True,False,False
+IBKR,Interactive Brokers,Financials,3,29,3-4,True,False,False,False
+IBM,IBM,Information Technology,8,23,5-9,True,True,False,False
+ICE,Intercontinental Exchange,Financials,6,28,5-9,True,True,False,False
+IDXX,Idexx Laboratories,Health Care,7,23,5-9,True,True,False,False
+IEX,IDEX Corporation,Industrials,5,20,5-9,True,True,False,False
+IFF,International Flavors & Fragrances,Materials,6,35,5-9,True,True,False,False
+INCY,Incyte,Health Care,3,19,3-4,True,False,False,False
+INTC,Intel,Information Technology,10,23,10-19,True,True,True,False
+INTU,Intuit,Information Technology,5,31,5-9,True,True,False,False
+INVH,Invitation Homes,Real Estate,0,11,0,False,False,False,False
+IP,International Paper,Materials,5,24,5-9,True,True,False,False
+IQV,IQVIA,Health Care,7,15,5-9,True,True,False,False
+IR,Ingersoll Rand,Industrials,9,26,5-9,True,True,False,False
+IRM,Iron Mountain,Real Estate,6,27,5-9,True,True,False,False
+ISRG,Intuitive Surgical,Health Care,7,18,5-9,True,True,False,False
+IT,Gartner,Information Technology,6,25,5-9,True,True,False,False
+ITW,Illinois Tool Works,Industrials,6,21,5-9,True,True,False,False
+IVZ,Invesco,Financials,11,21,10-19,True,True,True,False
+J,Jacobs Solutions,Industrials,6,26,5-9,True,True,False,False
+JBHT,J.B. Hunt,Industrials,7,27,5-9,True,True,False,False
+JBL,Jabil,Information Technology,6,31,5-9,True,True,False,False
+JCI,Johnson Controls,Industrials,7,21,5-9,True,True,False,False
+JKHY,Jack Henry & Associates,Financials,3,32,3-4,True,False,False,False
+JNJ,Johnson & Johnson,Health Care,6,60,5-9,True,True,False,False
+JPM,JPMorgan Chase,Financials,5,43,5-9,True,True,False,False
+KDP,Keurig Dr Pepper,Consumer Staples,5,20,5-9,True,True,False,False
+KEY,KeyCorp,Financials,3,32,3-4,True,False,False,False
+KEYS,Keysight Technologies,Information Technology,7,29,5-9,True,True,False,False
+KHC,Kraft Heinz,Consumer Staples,10,22,10-19,True,True,True,False
+KIM,Kimco Realty,Real Estate,2,16,1-2,False,False,False,False
+KKR,KKR & Co.,Financials,7,49,5-9,True,True,False,False
+KLAC,KLA Corporation,Information Technology,5,27,5-9,True,True,False,False
+KMB,Kimberly-Clark,Consumer Staples,5,30,5-9,True,True,False,False
+KMI,Kinder Morgan,Energy,11,21,10-19,True,True,True,False
+KO,Coca-Cola Company (The),Consumer Staples,7,33,5-9,True,True,False,False
+KR,Kroger,Consumer Staples,6,22,5-9,True,True,False,False
+KVUE,Kenvue,Consumer Staples,5,21,5-9,True,True,False,False
+L,Loews Corporation,Financials,3,16,3-4,True,False,False,False
+LDOS,Leidos,Industrials,10,29,10-19,True,True,True,False
+LEN,Lennar,Consumer Discretionary,7,23,5-9,True,True,False,False
+LH,Labcorp,Health Care,11,25,10-19,True,True,True,False
+LHX,L3Harris,Industrials,10,26,10-19,True,True,True,False
+LII,Lennox International,Industrials,4,16,3-4,True,False,False,False
+LIN,Linde plc,Materials,3,23,3-4,True,False,False,False
+LITE,Lumentum,Information Technology,6,26,5-9,True,True,False,False
+LLY,Lilly (Eli),Health Care,8,23,5-9,True,True,False,False
+LMT,Lockheed Martin,Industrials,7,25,5-9,True,True,False,False
+LNT,Alliant Energy,Utilities,2,14,1-2,False,False,False,False
+LOW,Lowe's,Consumer Discretionary,8,45,5-9,True,True,False,False
+LRCX,Lam Research,Information Technology,5,28,5-9,True,True,False,False
+LULU,Lululemon Athletica,Consumer Discretionary,12,28,10-19,True,True,True,False
+LUV,Southwest Airlines,Industrials,9,27,5-9,True,True,False,False
+LVS,Las Vegas Sands,Consumer Discretionary,6,19,5-9,True,True,False,False
+LYB,LyondellBasell,Materials,1,22,1-2,False,False,False,False
+LYV,Live Nation Entertainment,Communication Services,3,16,3-4,True,False,False,False
+MA,Mastercard,Financials,5,23,5-9,True,True,False,False
+MAA,Mid-America Apartment Communities,Real Estate,4,22,3-4,True,False,False,False
+MAR,Marriott International,Consumer Discretionary,13,31,10-19,True,True,True,False
+MAS,Masco,Industrials,8,30,5-9,True,True,False,False
+MCD,McDonald's,Consumer Discretionary,11,27,10-19,True,True,True,False
+MCHP,Microchip Technology,Information Technology,6,27,5-9,True,True,False,False
+MCK,McKesson Corporation,Health Care,10,28,10-19,True,True,True,False
+MCO,Moody's Corporation,Financials,11,29,10-19,True,True,True,False
+MDLZ,Mondelez International,Consumer Staples,8,21,5-9,True,True,False,False
+MDT,Medtronic,Health Care,6,26,5-9,True,True,False,False
+MET,MetLife,Financials,13,32,10-19,True,True,True,False
+META,Meta Platforms,Communication Services,11,43,10-19,True,True,True,False
+MGM,MGM Resorts,Consumer Discretionary,3,24,3-4,True,False,False,False
+MKC,McCormick & Company,Consumer Staples,5,24,5-9,True,True,False,False
+MLM,Martin Marietta Materials,Materials,4,34,3-4,True,False,False,False
+MMM,3M,Industrials,14,47,10-19,True,True,True,False
+MNST,Monster Beverage,Consumer Staples,7,36,5-9,True,True,False,False
+MO,Altria,Consumer Staples,18,49,10-19,True,True,True,False
+MOS,Mosaic Company (The),Materials,9,24,5-9,True,True,False,False
+MPC,Marathon Petroleum,Energy,5,22,5-9,True,True,False,False
+MPWR,Monolithic Power Systems,Information Technology,6,31,5-9,True,True,False,False
+MRK,Merck & Co.,Health Care,9,24,5-9,True,True,False,False
+MRNA,Moderna,Health Care,5,17,5-9,True,True,False,False
+MRSH,Marsh McLennan,Financials,7,56,5-9,True,True,False,False
+MS,Morgan Stanley,Financials,4,35,3-4,True,False,False,False
+MSCI,MSCI Inc.,Financials,4,25,3-4,True,False,False,False
+MSFT,Microsoft,Information Technology,13,42,10-19,True,True,True,False
+MSI,Motorola Solutions,Information Technology,14,31,10-19,True,True,True,False
+MTB,M&T Bank,Financials,7,76,5-9,True,True,False,False
+MTD,Mettler Toledo,Health Care,4,27,3-4,True,False,False,False
+MU,Micron Technology,Information Technology,4,24,3-4,True,False,False,False
+NCLH,Norwegian Cruise Line Holdings,Consumer Discretionary,7,29,5-9,True,True,False,False
+NDAQ,"Nasdaq, Inc.",Financials,12,28,10-19,True,True,True,False
+NDSN,Nordson Corporation,Industrials,7,20,5-9,True,True,False,False
+NEE,NextEra Energy,Utilities,9,34,5-9,True,True,False,False
+NEM,Newmont,Materials,6,34,5-9,True,True,False,False
+NFLX,Netflix,Communication Services,12,29,10-19,True,True,True,False
+NI,NiSource,Utilities,6,24,5-9,True,True,False,False
+NKE,"Nike, Inc.",Consumer Discretionary,11,42,10-19,True,True,True,False
+NOC,Northrop Grumman,Industrials,14,31,10-19,True,True,True,False
+NOW,ServiceNow,Information Technology,7,32,5-9,True,True,False,False
+NRG,NRG Energy,Utilities,9,24,5-9,True,True,False,False
+NSC,Norfolk Southern,Industrials,9,32,5-9,True,True,False,False
+NTAP,NetApp,Information Technology,14,29,10-19,True,True,True,False
+NTRS,Northern Trust,Financials,4,20,3-4,True,False,False,False
+NUE,Nucor,Materials,6,28,5-9,True,True,False,False
+NVDA,Nvidia,Information Technology,19,73,10-19,True,True,True,False
+NVR,"NVR, Inc.",Consumer Discretionary,2,21,1-2,False,False,False,False
+NWS,News Corp,Communication Services,13,41,10-19,True,True,True,False
+NWSA,News Corp,Communication Services,13,31,10-19,True,True,True,False
+NXPI,NXP Semiconductors,Information Technology,13,35,10-19,True,True,True,False
+O,Realty Income,Real Estate,10,27,10-19,True,True,True,False
+ODFL,Old Dominion,Industrials,8,34,5-9,True,True,False,False
+OKE,Oneok,Energy,4,29,3-4,True,False,False,False
+OMC,Omnicom Group,Communication Services,11,33,10-19,True,True,True,False
+ON,ON Semiconductor,Information Technology,7,36,5-9,True,True,False,False
+ORCL,Oracle Corporation,Information Technology,10,38,10-19,True,True,True,False
+ORLY,O’Reilly Automotive,Consumer Discretionary,2,18,1-2,False,False,False,False
+OTIS,Otis Worldwide,Industrials,5,20,5-9,True,True,False,False
+OXY,Occidental Petroleum,Energy,5,32,5-9,True,True,False,False
+PANW,Palo Alto Networks,Information Technology,9,39,5-9,True,True,False,False
+PAYX,Paychex,Industrials,1,25,1-2,False,False,False,False
+PCAR,Paccar,Industrials,6,13,5-9,True,True,False,False
+PCG,PG&E Corporation,Utilities,11,51,10-19,True,True,True,False
+PEG,Public Service Enterprise Group,Utilities,5,23,5-9,True,True,False,False
+PEP,PepsiCo,Consumer Staples,9,31,5-9,True,True,False,False
+PFE,Pfizer,Health Care,9,31,5-9,True,True,False,False
+PFG,Principal Financial Group,Financials,3,13,3-4,True,False,False,False
+PG,Procter & Gamble,Consumer Staples,9,37,5-9,True,True,False,False
+PGR,Progressive Corporation,Financials,8,34,5-9,True,True,False,False
+PH,Parker Hannifin,Industrials,7,28,5-9,True,True,False,False
+PHM,PulteGroup,Consumer Discretionary,1,23,1-2,False,False,False,False
+PKG,Packaging Corporation of America,Materials,7,28,5-9,True,True,False,False
+PLD,Prologis,Real Estate,10,29,10-19,True,True,True,False
+PLTR,Palantir Technologies,Information Technology,8,29,5-9,True,True,False,False
+PM,Philip Morris International,Consumer Staples,8,29,5-9,True,True,False,False
+PNC,PNC Financial Services,Financials,11,31,10-19,True,True,True,False
+PNR,Pentair,Industrials,2,14,1-2,False,False,False,False
+PNW,Pinnacle West Capital,Utilities,3,26,3-4,True,False,False,False
+PODD,Insulet Corporation,Health Care,8,30,5-9,True,True,False,False
+POOL,Pool Corporation,Consumer Discretionary,6,19,5-9,True,True,False,False
+PPG,PPG Industries,Materials,2,22,1-2,False,False,False,False
+PPL,PPL Corporation,Utilities,9,19,5-9,True,True,False,False
+PRU,Prudential Financial,Financials,8,39,5-9,True,True,False,False
+PSA,Public Storage,Real Estate,1,13,1-2,False,False,False,False
+PSKY,Paramount Skydance Corporation,Communication Services,9,27,5-9,True,True,False,False
+PSX,Phillips 66,Energy,3,31,3-4,True,False,False,False
+PTC,PTC Inc.,Information Technology,10,29,10-19,True,True,True,False
+PWR,Quanta Services,Industrials,7,29,5-9,True,True,False,False
+PYPL,PayPal,Financials,9,25,5-9,True,True,False,False
+Q,Qnity Electronics,Information Technology,13,32,10-19,True,True,True,False
+QCOM,Qualcomm,Information Technology,7,27,5-9,True,True,False,False
+RCL,Royal Caribbean Group,Consumer Discretionary,6,31,5-9,True,True,False,False
+REG,Regency Centers,Real Estate,8,29,5-9,True,True,False,False
+REGN,Regeneron Pharmaceuticals,Health Care,10,27,10-19,True,True,True,False
+RF,Regions Financial Corporation,Financials,4,22,3-4,True,False,False,False
+RJF,Raymond James Financial,Financials,10,27,10-19,True,True,True,False
+RL,Ralph Lauren Corporation,Consumer Discretionary,10,29,10-19,True,True,True,False
+RMD,ResMed,Health Care,2,18,1-2,False,False,False,False
+ROK,Rockwell Automation,Industrials,12,29,10-19,True,True,True,False
+ROL,"Rollins, Inc.",Industrials,7,31,5-9,True,True,False,False
+ROP,Roper Technologies,Information Technology,2,31,1-2,False,False,False,False
+ROST,Ross Stores,Consumer Discretionary,7,20,5-9,True,True,False,False
+RSG,Republic Services,Industrials,7,24,5-9,True,True,False,False
+RTX,RTX Corporation,Industrials,13,31,10-19,True,True,True,False
+RVTY,Revvity,Health Care,6,23,5-9,True,True,False,False
+SATS,EchoStar,Communication Services,10,23,10-19,True,True,True,False
+SBAC,SBA Communications,Real Estate,4,36,3-4,True,False,False,False
+SBUX,Starbucks,Consumer Discretionary,9,34,5-9,True,True,False,False
+SCHW,Charles Schwab Corporation,Financials,7,36,5-9,True,True,False,False
+SHW,Sherwin-Williams,Materials,9,27,5-9,True,True,False,False
+SJM,J.M. Smucker Company (The),Consumer Staples,6,29,5-9,True,True,False,False
+SLB,Schlumberger,Energy,11,25,10-19,True,True,True,False
+SMCI,Supermicro,Information Technology,10,35,10-19,True,True,True,False
+SNA,Snap-on,Industrials,3,24,3-4,True,False,False,False
+SNDK,Sandisk,Information Technology,4,38,3-4,True,False,False,False
+SNPS,Synopsys,Information Technology,5,27,5-9,True,True,False,False
+SO,Southern Company,Utilities,10,28,10-19,True,True,True,False
+SOLV,Solventum,Health Care,5,31,5-9,True,True,False,False
+SPG,Simon Property Group,Real Estate,12,31,10-19,True,True,True,False
+SPGI,S&P Global,Financials,6,45,5-9,True,True,False,False
+SRE,Sempra,Utilities,5,22,5-9,True,True,False,False
+STE,Steris,Health Care,9,25,5-9,True,True,False,False
+STLD,Steel Dynamics,Materials,6,27,5-9,True,True,False,False
+STT,State Street Corporation,Financials,12,37,10-19,True,True,True,False
+STX,Seagate Technology,Information Technology,12,26,10-19,True,True,True,False
+STZ,Constellation Brands,Consumer Staples,7,24,5-9,True,True,False,False
+SW,Smurfit Westrock,Materials,4,31,3-4,True,False,False,False
+SWK,Stanley Black & Decker,Industrials,4,22,3-4,True,False,False,False
+SWKS,Skyworks Solutions,Information Technology,6,31,5-9,True,True,False,False
+SYF,Synchrony Financial,Financials,4,20,3-4,True,False,False,False
+SYK,Stryker Corporation,Health Care,8,30,5-9,True,True,False,False
+SYY,Sysco,Consumer Staples,9,23,5-9,True,True,False,False
+T,AT&T,Communication Services,15,122,10-19,True,True,True,False
+TAP,Molson Coors Beverage Company,Consumer Staples,5,20,5-9,True,True,False,False
+TDG,TransDigm Group,Industrials,7,20,5-9,True,True,False,False
+TDY,Teledyne Technologies,Information Technology,4,24,3-4,True,False,False,False
+TECH,Bio-Techne,Health Care,7,40,5-9,True,True,False,False
+TEL,TE Connectivity,Information Technology,9,27,5-9,True,True,False,False
+TER,Teradyne,Information Technology,10,39,10-19,True,True,True,False
+TFC,Truist Financial,Financials,6,27,5-9,True,True,False,False
+TGT,Target Corporation,Consumer Staples,8,32,5-9,True,True,False,False
+TJX,TJX Companies,Consumer Discretionary,8,26,5-9,True,True,False,False
+TKO,TKO Group Holdings,Communication Services,8,27,5-9,True,True,False,False
+TMO,Thermo Fisher Scientific,Health Care,9,34,5-9,True,True,False,False
+TMUS,T-Mobile US,Communication Services,13,34,10-19,True,True,True,False
+TPL,Texas Pacific Land Corporation,Energy,4,36,3-4,True,False,False,False
+TPR,"Tapestry, Inc.",Consumer Discretionary,11,27,10-19,True,True,True,False
+TRGP,Targa Resources,Energy,4,35,3-4,True,False,False,False
+TRMB,Trimble Inc.,Information Technology,6,19,5-9,True,True,False,False
+TROW,T. Rowe Price,Financials,12,27,10-19,True,True,True,False
+TRV,Travelers Companies (The),Financials,8,23,5-9,True,True,False,False
+TSCO,Tractor Supply,Consumer Discretionary,11,26,10-19,True,True,True,False
+TSLA,"Tesla, Inc.",Consumer Discretionary,5,38,5-9,True,True,False,False
+TSN,Tyson Foods,Consumer Staples,16,33,10-19,True,True,True,False
+TT,Trane Technologies,Industrials,9,28,5-9,True,True,False,False
+TTD,Trade Desk (The),Communication Services,10,28,10-19,True,True,True,False
+TTWO,Take-Two Interactive,Communication Services,3,36,3-4,True,False,False,False
+TXN,Texas Instruments,Information Technology,6,31,5-9,True,True,False,False
+TXT,Textron,Industrials,13,31,10-19,True,True,True,False
+TYL,Tyler Technologies,Information Technology,10,25,10-19,True,True,True,False
+UAL,United Airlines Holdings,Industrials,10,38,10-19,True,True,True,False
+UBER,Uber,Industrials,12,32,10-19,True,True,True,False
+UDR,"UDR, Inc.",Real Estate,4,19,3-4,True,False,False,False
+UHS,Universal Health Services,Health Care,5,24,5-9,True,True,False,False
+ULTA,Ulta Beauty,Consumer Discretionary,12,29,10-19,True,True,True,False
+UNH,UnitedHealth Group,Health Care,10,29,10-19,True,True,True,False
+UNP,Union Pacific Corporation,Industrials,8,25,5-9,True,True,False,False
+UPS,United Parcel Service,Industrials,10,32,10-19,True,True,True,False
+URI,United Rentals,Industrials,6,31,5-9,True,True,False,False
+USB,U.S. Bancorp,Financials,11,24,10-19,True,True,True,False
+V,Visa Inc.,Financials,12,33,10-19,True,True,True,False
+VICI,Vici Properties,Real Estate,5,37,5-9,True,True,False,False
+VLO,Valero Energy,Energy,8,27,5-9,True,True,False,False
+VLTO,Veralto,Industrials,4,22,3-4,True,False,False,False
+VMC,Vulcan Materials Company,Materials,6,26,5-9,True,True,False,False
+VRSK,Verisk Analytics,Industrials,5,25,5-9,True,True,False,False
+VRSN,Verisign,Information Technology,3,12,3-4,True,False,False,False
+VRT,Vertiv,Industrials,10,32,10-19,True,True,True,False
+VRTX,Vertex Pharmaceuticals,Health Care,5,25,5-9,True,True,False,False
+VST,Vistra Corp,Utilities,9,28,5-9,True,True,False,False
+VTR,Ventas,Real Estate,2,26,1-2,False,False,False,False
+VTRS,Viatris,Health Care,8,29,5-9,True,True,False,False
+VZ,Verizon,Communication Services,9,35,5-9,True,True,False,False
+WAB,Wabtec,Industrials,7,29,5-9,True,True,False,False
+WAT,Waters Corporation,Health Care,5,29,5-9,True,True,False,False
+WBD,Warner Bros. Discovery,Communication Services,13,31,10-19,True,True,True,False
+WDAY,"Workday, Inc.",Information Technology,10,34,10-19,True,True,True,False
+WDC,Western Digital,Information Technology,9,27,5-9,True,True,False,False
+WEC,WEC Energy Group,Utilities,5,27,5-9,True,True,False,False
+WELL,Welltower,Real Estate,4,29,3-4,True,False,False,False
+WFC,Wells Fargo,Financials,7,42,5-9,True,True,False,False
+WM,Waste Management,Industrials,9,25,5-9,True,True,False,False
+WMB,Williams Companies,Energy,7,28,5-9,True,True,False,False
+WMT,Walmart,Consumer Staples,10,47,10-19,True,True,True,False
+WRB,W. R. Berkley Corporation,Financials,1,18,1-2,False,False,False,False
+WSM,"Williams-Sonoma, Inc.",Consumer Discretionary,7,28,5-9,True,True,False,False
+WST,West Pharmaceutical Services,Health Care,9,23,5-9,True,True,False,False
+WTW,Willis Towers Watson,Financials,5,22,5-9,True,True,False,False
+WY,Weyerhaeuser,Real Estate,9,28,5-9,True,True,False,False
+WYNN,Wynn Resorts,Consumer Discretionary,8,21,5-9,True,True,False,False
+XEL,Xcel Energy,Utilities,6,19,5-9,True,True,False,False
+XOM,ExxonMobil,Energy,9,39,5-9,True,True,False,False
+XYL,Xylem Inc.,Industrials,7,22,5-9,True,True,False,False
+XYZ,"Block, Inc.",Financials,9,30,5-9,True,True,False,False
+YUM,Yum! Brands,Consumer Discretionary,7,29,5-9,True,True,False,False
+ZBH,Zimmer Biomet,Health Care,6,30,5-9,True,True,False,False
+ZBRA,Zebra Technologies,Information Technology,5,41,5-9,True,True,False,False
+ZTS,Zoetis,Health Care,9,27,5-9,True,True,False,False
