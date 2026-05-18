@@ -1,0 +1,159 @@
+{
+  "generated_at": "2026-05-18 23:08 UTC",
+  "phase1_counts": {
+    "headline_only_total": 7758,
+    "google_wrapper_total": 5803,
+    "google_wrapper_pct_of_headline_only": 74.8,
+    "tickers_with_google_wrapper_rows": 501,
+    "affected_tickers_lt3_strict": 21,
+    "affected_tickers_3to9_strict": 343,
+    "affected_tickers_ge10_strict": 137
+  },
+  "resolver_comparison": {
+    "sample_size": 100,
+    "batchexecute": {
+      "resolved": 100,
+      "pct": 100.0,
+      "runtime_ms": {
+        "p50": 155,
+        "mean": 160,
+        "p90": 184,
+        "max": 318
+      },
+      "failure_reasons": {}
+    },
+    "playwright": {
+      "resolved": 99,
+      "pct": 99.0,
+      "runtime_ms": {
+        "p50": 4743,
+        "mean": 4945,
+        "p90": 8241,
+        "max": 8472
+      },
+      "failure_reasons": {
+        "error": 1
+      }
+    },
+    "both_resolved": 99,
+    "same_publisher_url": 99,
+    "disagreements": 0,
+    "faster": "batchexecute (~31x)",
+    "more_reliable": "tie (100% vs 99%)",
+    "safer_failure_modes": "batchexecute (granular reason codes, no browser/Chromium, lighter)"
+  },
+  "extraction_results": {
+    "applies_to": "both (identical resolved URLs)",
+    "attempts": 100,
+    "eligible_for_minimax": 48,
+    "eligible_pct": 48,
+    "body_ge_300": 48,
+    "quality_pass": 48,
+    "reject_reasons": {
+      "no_body": 51,
+      "null": 48,
+      "too_little_prose": 1
+    },
+    "scrape_status": {
+      "ok": 35,
+      "ok_proxy": 28,
+      "error:Client error '403 Forbidden' for url 'https:": 18,
+      "error:Client error '401 HTTP Forbidden' for url 'h": 18,
+      "error:Client error '405 Not Allowed' for url 'http": 1
+    },
+    "best_domains": [
+      [
+        "finance.yahoo.com",
+        7
+      ],
+      [
+        "www.marketbeat.com",
+        7
+      ],
+      [
+        "www.chartmill.com",
+        5
+      ],
+      [
+        "www.stocktitan.net",
+        5
+      ],
+      [
+        "www.ad-hoc-news.de",
+        5
+      ],
+      [
+        "www.sahmcapital.com",
+        4
+      ],
+      [
+        "www.cnn.com",
+        3
+      ],
+      [
+        "www.barchart.com",
+        2
+      ],
+      [
+        "ca.finance.yahoo.com",
+        1
+      ],
+      [
+        "www.theglobeandmail.com",
+        1
+      ]
+    ],
+    "worst_domains": [
+      [
+        "www.marketwatch.com",
+        16
+      ],
+      [
+        "www.msn.com",
+        12
+      ],
+      [
+        "www.gurufocus.com",
+        8
+      ],
+      [
+        "www.barrons.com",
+        2
+      ],
+      [
+        "seekingalpha.com",
+        2
+      ],
+      [
+        "www.moomoo.com",
+        2
+      ],
+      [
+        "ng.investing.com",
+        1
+      ],
+      [
+        "www.investing.com",
+        1
+      ],
+      [
+        "www.utilitydive.com",
+        1
+      ],
+      [
+        "www.wwlp.com",
+        1
+      ]
+    ],
+    "sample_by_band": {
+      "lt3": 55,
+      "b3_9": 35,
+      "ge10": 10
+    },
+    "eligible_by_band": {
+      "lt3": 26,
+      "b3_9": 17,
+      "ge10": 5
+    }
+  }
+}
