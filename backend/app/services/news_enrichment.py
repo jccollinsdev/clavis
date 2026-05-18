@@ -246,11 +246,18 @@ _FORBIDDEN_PHRASES: tuple[str, ...] = (
     "upside potential",
 )
 
-ENRICHMENT_PROMPT = """You are validating one news article for a stock-risk system.
+ENRICHMENT_PROMPT = """You are a risk-rating agency, not an investment analyst.
+You are rating one news article for a stock-risk system.
 
 Return exactly one JSON object and nothing else.
 Do not include markdown, prefaces, apologies, analysis outside JSON, or trailing text.
-Never use investment advice or recommendation language.
+
+Write only as a risk-rating agency:
+- Describe observed risk signals only.
+- Do not imply or recommend any action.
+- Do not mention investment decisions or what an investor should do.
+- Never use these words anywhere in any field: buy, sell, advise, suggest, recommendation, recommend, predict, forecast, bullish outlook, bearish call, upside potential.
+- Use neutral risk language instead: indicates, reflects, signals, points to, raises, lowers, pressure, risk, evidence, uncertainty, exposure.
 
 Required JSON schema:
 {{
@@ -266,9 +273,8 @@ Rules:
 - sentiment_score must be a number from 0 to 100.
 - sentiment_reason must explain the score using article evidence only.
 - tldr must describe what happened, factually.
-- what_it_means must explain the likely implication for the company/stock, not for an investor.
+- what_it_means must explain the likely implication for the company/stock as a risk signal, not advice for an investor.
 - key_implications must contain 2-3 short bullets, each at most 18 words; use [] only if the article truly lacks enough evidence. Keep total output compact so the JSON is never truncated.
-- Do not use these phrases anywhere in any field: buy, sell, advise, suggest, predict, forecast, recommendation, bullish outlook, bearish call, upside potential.
 - If the article is descriptive and balanced, use sentiment_score 50.
 
 Ticker: {ticker}
@@ -283,7 +289,10 @@ ENRICHMENT_RETRY_PROMPT = """Return one strict JSON object only.
 The previous response was unusable because it was empty, malformed, incomplete, or used forbidden language.
 Do not output any prose outside JSON.
 Do not omit any required key.
-Do not use investment advice terms.
+
+Write only as a risk-rating agency, not an analyst. Describe observed risk signals only.
+Never use these words anywhere: buy, sell, advise, suggest, recommendation, recommend, predict, forecast, bullish outlook, bearish call, upside potential.
+Prefer: indicates, reflects, signals, points to, raises, lowers, pressure, risk, evidence, uncertainty, exposure.
 
 Required keys: sentiment_score, sentiment_reason, tldr, what_it_means, key_implications, impact_tag.
 key_implications: 2-3 short bullets, each at most 18 words. Keep the whole object compact so it is never truncated.
@@ -293,6 +302,24 @@ Company: {company_name}
 Headline: {headline}
 Shorter article excerpt:
 {body_excerpt}
+"""
+
+ENRICHMENT_FORBIDDEN_RETRY_PROMPT = """Return one strict JSON object only. No markdown, no prose outside JSON.
+
+Your previous JSON was rejected because it used investment-advice / action language.
+Forbidden wording detected: "{forbidden_phrase}".
+
+Rewrite the SAME analysis as a risk-rating agency, not an analyst:
+- Keep every factual claim and the exact same sentiment_score.
+- Describe observed risk signals only. Do not imply any action or investment decision.
+- Do NOT use any of these words anywhere: buy, sell, advise, suggest, recommendation, recommend, predict, forecast, bullish outlook, bearish call, upside potential.
+- Prefer: indicates, reflects, signals, points to, raises, lowers, pressure, risk, evidence, uncertainty, exposure.
+- Keep the JSON schema identical. key_implications: 2-3 short bullets, each at most 18 words. Keep it compact so it is never truncated.
+
+Required keys: sentiment_score, sentiment_reason, tldr, what_it_means, key_implications, impact_tag.
+
+Previous JSON to fix (rewrite the wording, keep the meaning):
+{prior_json}
 """
 
 SENTIMENT_PROMPT = """Analyze the following news article about {ticker} and return a JSON object.
@@ -509,6 +536,71 @@ def _find_forbidden_phrase(payload: dict[str, Any]) -> str | None:
         if phrase in combined:
             return phrase
     return None
+
+
+# Conservative, meaning-preserving substitutions for advisory wording that does
+# NOT change the factual claim. Ordered longest-stem-first so inflections are
+# replaced before their shorter roots. buy / sell / advise / predict / "upside
+# potential" are intentionally absent — rewriting those could alter meaning, so
+# they keep tripping the validator and must go to retry or be rejected.
+# Replacement text is verified below to contain no forbidden substring.
+_SAFE_PHRASE_REWRITES: tuple[tuple["re.Pattern[str]", str], ...] = (
+    (re.compile(r"\bsuggesting\b", re.I), "indicating"),
+    (re.compile(r"\bsuggested\b", re.I), "indicated"),
+    (re.compile(r"\bsuggestions\b", re.I), "indications"),
+    (re.compile(r"\bsuggestion\b", re.I), "indication"),
+    (re.compile(r"\bsuggests\b", re.I), "indicates"),
+    (re.compile(r"\bsuggest\b", re.I), "indicate"),
+    (re.compile(r"\brecommendations\b", re.I), "rating observations"),
+    (re.compile(r"\brecommendation\b", re.I), "rating observation"),
+    (re.compile(r"\bforecasted\b", re.I), "projected"),
+    (re.compile(r"\bforecasting\b", re.I), "projecting"),
+    (re.compile(r"\bforecasts\b", re.I), "forward-looking estimates"),
+    (re.compile(r"\bforecast\b", re.I), "forward-looking estimate"),
+    (re.compile(r"\bbullish outlook\b", re.I), "positive outlook"),
+    (re.compile(r"\bbearish call\b", re.I), "negative assessment"),
+)
+
+
+def _case_like(matched: str, replacement: str) -> str:
+    if matched[:1].isupper():
+        return replacement[:1].upper() + replacement[1:]
+    return replacement
+
+
+def _rewrite_safe_text(text: str) -> str:
+    out = text
+    for pattern, replacement in _SAFE_PHRASE_REWRITES:
+        out = pattern.sub(
+            lambda m, r=replacement: _case_like(m.group(0), r), out
+        )
+    return out
+
+
+def _safe_rewrite_forbidden(
+    payload: dict[str, Any],
+) -> tuple[dict[str, Any], bool]:
+    """Conservatively rewrite low-risk advisory wording in user-visible fields.
+
+    Returns ``(possibly_rewritten_payload, cleared)``. ``cleared`` is True only
+    if NO forbidden phrase remains after rewrite. Never rewrites
+    buy/sell/advise/predict/"upside potential" — if those are present the
+    payload stays forbidden and the caller must retry or reject it. Assumes the
+    required fields are already complete (caller checks this first).
+    """
+    rewritten: dict[str, Any] = dict(payload)
+    for key in ("sentiment_reason", "tldr", "what_it_means"):
+        value = payload.get(key)
+        if isinstance(value, str) and value:
+            rewritten[key] = _rewrite_safe_text(value)
+    implications = payload.get("key_implications")
+    if isinstance(implications, list):
+        rewritten["key_implications"] = [
+            _rewrite_safe_text(item) if isinstance(item, str) else item
+            for item in implications
+        ]
+    cleared = _find_forbidden_phrase(rewritten) is None
+    return rewritten, cleared
 
 
 def _coerce_enrichment_payload(payload: Any) -> dict[str, Any]:
@@ -799,19 +891,51 @@ async def enrich_article_with_retry(
         "llm_429s": 0,
         "failure_reason": None,
         "raw_llm_preview": "",
+        "forbidden_rewritten": False,
     }
     excerpts = [1600, 900]
-    prompts = [ENRICHMENT_PROMPT, ENRICHMENT_RETRY_PROMPT]
+    last_forbidden: str | None = None
+    last_parsed: dict[str, Any] | None = None
 
     for index, excerpt_limit in enumerate(excerpts):
         diagnostics["attempts"] += 1
         diagnostics["llm_calls"] += 1
-        prompt = prompts[index].format(
-            ticker=ticker,
-            company_name=company_name or ticker,
-            headline=headline[:300],
-            body_excerpt=_truncate_text(body or "", excerpt_limit),
-        )
+        if index > 0 and last_forbidden and last_parsed:
+            # Targeted correction: tell the model exactly which advisory phrase
+            # tripped the validator and ask it to rewrite the SAME analysis
+            # without changing the facts or the score.
+            prior_json = json.dumps(
+                {
+                    k: last_parsed.get(k)
+                    for k in (
+                        "sentiment_score",
+                        "sentiment_reason",
+                        "tldr",
+                        "what_it_means",
+                        "key_implications",
+                        "impact_tag",
+                    )
+                },
+                ensure_ascii=False,
+            )[:1400]
+            prompt = ENRICHMENT_FORBIDDEN_RETRY_PROMPT.format(
+                forbidden_phrase=last_forbidden,
+                prior_json=prior_json,
+            )
+        elif index > 0:
+            prompt = ENRICHMENT_RETRY_PROMPT.format(
+                ticker=ticker,
+                company_name=company_name or ticker,
+                headline=headline[:300],
+                body_excerpt=_truncate_text(body or "", excerpt_limit),
+            )
+        else:
+            prompt = ENRICHMENT_PROMPT.format(
+                ticker=ticker,
+                company_name=company_name or ticker,
+                headline=headline[:300],
+                body_excerpt=_truncate_text(body or "", excerpt_limit),
+            )
         response = await asyncio.to_thread(
             _request_llm_json_diagnostic,
             prompt,
@@ -841,12 +965,23 @@ async def enrich_article_with_retry(
                 failure_reason = "missing_required_field"
             else:
                 forbidden = _find_forbidden_phrase(parsed)
-                if forbidden:
-                    diagnostics["failure_reason"] = f"forbidden_phrase:{forbidden}"
-                    failure_reason = "forbidden_phrase"
-                else:
+                if not forbidden:
                     diagnostics["failure_reason"] = None
                     return parsed, diagnostics
+                # Deterministic safe rewrite of low-risk advisory wording
+                # (suggests->indicates, recommendation->rating observation,
+                # forecast->forward-looking estimate, bullish/bearish->...).
+                # buy/sell/advise/predict are never rewritten — those still
+                # fall through to the targeted retry / rejection.
+                rewritten, cleared = _safe_rewrite_forbidden(parsed)
+                if cleared:
+                    diagnostics["failure_reason"] = None
+                    diagnostics["forbidden_rewritten"] = True
+                    return rewritten, diagnostics
+                last_forbidden = forbidden
+                last_parsed = parsed
+                diagnostics["failure_reason"] = f"forbidden_phrase:{forbidden}"
+                continue
 
         diagnostics["failure_reason"] = failure_reason
 

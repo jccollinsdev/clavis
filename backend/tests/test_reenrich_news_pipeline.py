@@ -1081,3 +1081,223 @@ class TestSafetyBreakers:
 
         assert stats["enriched"] == 0
         assert stats["tickers_enriched"] == []
+
+
+class TestSafeRewriteForbidden:
+    """Deterministic, meaning-preserving rewrite of low-risk advisory wording."""
+
+    def test_low_risk_terms_are_rewritten_and_cleared(self):
+        from app.services.news_enrichment import (
+            _find_forbidden_phrase,
+            _safe_rewrite_forbidden,
+        )
+
+        payload = {
+            "sentiment_score": 60,
+            "sentiment_reason": "The data suggests improving margins.",
+            "tldr": "Analyst recommendation cited a strong forecast.",
+            "what_it_means": "The bullish outlook reflects demand strength.",
+            "key_implications": ["A bearish call was withdrawn"],
+            "impact_tag": "financial-impact",
+        }
+        assert _find_forbidden_phrase(payload) is not None
+
+        rewritten, cleared = _safe_rewrite_forbidden(payload)
+
+        assert cleared is True
+        assert _find_forbidden_phrase(rewritten) is None
+        # meaning preserved, wording neutralised
+        assert "indicates" in rewritten["sentiment_reason"].lower()
+        assert "rating observation" in rewritten["tldr"].lower()
+        assert "forward-looking estimate" in rewritten["tldr"].lower()
+        assert "positive outlook" in rewritten["what_it_means"].lower()
+        assert "negative assessment" in rewritten["key_implications"][0].lower()
+        # score and structure untouched
+        assert rewritten["sentiment_score"] == 60
+        assert rewritten["impact_tag"] == "financial-impact"
+
+    def test_sentence_start_capitalization_preserved(self):
+        from app.services.news_enrichment import _safe_rewrite_forbidden
+
+        payload = {
+            "sentiment_score": 50,
+            "sentiment_reason": "Suggests caution on guidance.",
+            "tldr": "Summary.",
+            "what_it_means": "Implication.",
+            "key_implications": ["One"],
+            "impact_tag": "other",
+        }
+        rewritten, cleared = _safe_rewrite_forbidden(payload)
+        assert cleared is True
+        assert rewritten["sentiment_reason"].startswith("Indicates ")
+
+    def test_buy_sell_advise_predict_are_never_rewritten(self):
+        from app.services.news_enrichment import (
+            _find_forbidden_phrase,
+            _safe_rewrite_forbidden,
+        )
+
+        for bad in (
+            "Investors should buy the stock now.",
+            "Time to sell this position.",
+            "We advise reducing exposure.",
+            "We predict the price will double.",
+            "Upside potential remains very large.",
+        ):
+            payload = {
+                "sentiment_score": 70,
+                "sentiment_reason": bad,
+                "tldr": "Summary.",
+                "what_it_means": "Implication.",
+                "key_implications": ["One"],
+                "impact_tag": "other",
+            }
+            rewritten, cleared = _safe_rewrite_forbidden(payload)
+            assert cleared is False, f"must not auto-clear: {bad!r}"
+            # original advisory wording is left intact (not silently mangled)
+            assert _find_forbidden_phrase(rewritten) is not None
+
+    def test_replacement_text_introduces_no_forbidden_substring(self):
+        from app.services.news_enrichment import (
+            _FORBIDDEN_PHRASES,
+            _SAFE_PHRASE_REWRITES,
+        )
+
+        for _pattern, replacement in _SAFE_PHRASE_REWRITES:
+            low = replacement.lower()
+            for phrase in _FORBIDDEN_PHRASES:
+                assert phrase not in low, (
+                    f"replacement {replacement!r} reintroduces {phrase!r}"
+                )
+
+
+class TestForbiddenPhraseHandling:
+    @pytest.mark.asyncio
+    async def test_low_risk_forbidden_cleared_without_extra_llm_call(self):
+        """suggests/recommendation/forecast etc. are fixed deterministically."""
+        from app.services.news_enrichment import enrich_article_with_retry
+
+        responses = [
+            {
+                "raw_text": "{...}",
+                "parsed": {
+                    "sentiment_score": 62,
+                    "sentiment_reason": "The report suggests margin pressure.",
+                    "tldr": "Costs rose during the quarter.",
+                    "what_it_means": "The company faces near-term cost risk.",
+                    "key_implications": ["Input costs increased"],
+                    "impact_tag": "financial-impact",
+                },
+                "error": None,
+            },
+        ]
+        with patch(
+            "app.services.news_enrichment._request_llm_json_diagnostic",
+            side_effect=responses,
+        ):
+            payload, diagnostics = await enrich_article_with_retry(
+                ticker="KO", headline="H", body="Body text", company_name="Coca-Cola"
+            )
+
+        assert payload is not None
+        assert diagnostics["llm_calls"] == 1  # no second call needed
+        assert diagnostics["forbidden_rewritten"] is True
+        assert diagnostics["failure_reason"] is None
+        assert "suggest" not in payload["sentiment_reason"].lower()
+        assert "indicates" in payload["sentiment_reason"].lower()
+
+    @pytest.mark.asyncio
+    async def test_hard_advice_triggers_targeted_retry_with_phrase_and_prior_json(self):
+        from app.services.news_enrichment import enrich_article_with_retry
+
+        seen_prompts: list[str] = []
+
+        def fake_diag(prompt, *args, **kwargs):
+            seen_prompts.append(prompt)
+            if len(seen_prompts) == 1:
+                return {
+                    "raw_text": "{...}",
+                    "parsed": {
+                        "sentiment_score": 75,
+                        "sentiment_reason": "Investors should buy this stock.",
+                        "tldr": "Strong quarter reported.",
+                        "what_it_means": "Results beat expectations.",
+                        "key_implications": ["Revenue grew"],
+                        "impact_tag": "financial-impact",
+                    },
+                    "error": None,
+                }
+            return {
+                "raw_text": "{...}",
+                "parsed": {
+                    "sentiment_score": 75,
+                    "sentiment_reason": "Results point to stronger demand.",
+                    "tldr": "Strong quarter reported.",
+                    "what_it_means": "Results beat expectations and lower execution risk.",
+                    "key_implications": ["Revenue grew"],
+                    "impact_tag": "financial-impact",
+                },
+                "error": None,
+            }
+
+        with patch(
+            "app.services.news_enrichment._request_llm_json_diagnostic",
+            side_effect=fake_diag,
+        ):
+            payload, diagnostics = await enrich_article_with_retry(
+                ticker="NKE", headline="H", body="Body text", company_name="Nike"
+            )
+
+        assert payload is not None
+        assert diagnostics["llm_calls"] == 2
+        assert diagnostics["failure_reason"] is None
+        # the correction prompt named the exact phrase + carried prior JSON
+        assert "buy" in seen_prompts[1]
+        assert "Previous JSON to fix" in seen_prompts[1]
+        assert '"sentiment_score": 75' in seen_prompts[1]
+        # nothing advisory survived into the stored payload
+        from app.services.news_enrichment import _find_forbidden_phrase
+
+        assert _find_forbidden_phrase(payload) is None
+
+    @pytest.mark.asyncio
+    async def test_forbidden_still_rejected_if_retry_also_forbidden(self):
+        from app.services.news_enrichment import enrich_article_with_retry
+
+        bad = {
+            "sentiment_score": 80,
+            "sentiment_reason": "Investors should buy now.",
+            "tldr": "Sell pressure eased.",
+            "what_it_means": "Time to buy the dip.",
+            "key_implications": ["Sell signal cleared"],
+            "impact_tag": "other",
+        }
+        responses = [
+            {"raw_text": "{...}", "parsed": dict(bad), "error": None},
+            {"raw_text": "{...}", "parsed": dict(bad), "error": None},
+        ]
+        with patch(
+            "app.services.news_enrichment._request_llm_json_diagnostic",
+            side_effect=responses,
+        ):
+            payload, diagnostics = await enrich_article_with_retry(
+                ticker="F", headline="H", body="Body text", company_name="Ford"
+            )
+
+        assert payload is None  # nothing advisory is ever stored
+        assert str(diagnostics["failure_reason"]).startswith("forbidden_phrase")
+        assert diagnostics["forbidden_rewritten"] is False
+
+    @pytest.mark.asyncio
+    async def test_forbidden_validator_rule_not_weakened(self):
+        """The ban itself is unchanged — buy/sell/advise/predict still caught."""
+        from app.services.news_enrichment import _find_forbidden_phrase
+
+        for word in ("buy", "sell", "advise", "predict"):
+            payload = {
+                "sentiment_reason": f"We {word} action here.",
+                "tldr": "x",
+                "what_it_means": "y",
+                "key_implications": [],
+            }
+            assert _find_forbidden_phrase(payload) == word
