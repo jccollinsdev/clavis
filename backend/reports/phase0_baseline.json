@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-05-18 23:45 UTC",
+  "generated_at": "2026-05-18 23:48 UTC",
   "window_days": 7,
   "universe": {
     "ticker_universe_total": 504,
     "sp500_active": 503
   },
   "articles_7d": {
-    "total_rows": 15378,
+    "total_rows": 15368,
     "strict_usable_total": 4023,
-    "headline_only": 7740,
-    "google_wrapper": 5787,
+    "headline_only": 7731,
+    "google_wrapper": 5779,
     "coverage_ge3": 482,
     "coverage_ge5": 414,
     "coverage_ge10": 139,
