@@ -802,3 +802,282 @@ class TestEnrichmentRetryPath:
         assert fake_supabase.query.payload["tldr"]
         assert fake_supabase.query.payload["what_it_means"]
         assert fake_supabase.query.payload["analysis_status"] == "complete"
+
+
+# ── Phase 2: strengthened truncated-JSON recovery ──────────────────────────────
+class TestPartialJsonRecovery:
+    """The reasoning model emits a correct object whose tail (usually inside
+    key_implications) is cut off by the token limit. Recovery must salvage the
+    complete leading scalar fields without fabricating content."""
+
+    def _recover(self, raw: str):
+        from app.services.news_enrichment import _recover_partial_json_object
+        return _recover_partial_json_object(raw)
+
+    def test_full_json_parses_normally(self):
+        raw = ('{"sentiment_score": 55, "sentiment_reason": "Balanced report.", '
+               '"tldr": "A summary.", "what_it_means": "An implication.", '
+               '"key_implications": ["One", "Two"], "impact_tag": "other"}')
+        obj = self._recover(raw)
+        assert obj.get("sentiment_score") == 55
+        assert obj.get("key_implications") == ["One", "Two"]
+
+    def test_truncated_inside_key_implications_keeps_scalars(self):
+        # Real ITW-style payload cut off mid-string inside key_implications.
+        raw = ('{"sentiment_score": 55, "sentiment_reason": "Positive 4.40% CAGR '
+               'growth projection but broad industry focus, not ITW-specific.", '
+               '"tldr": "A research report forecasts automotive fastener market '
+               'growth through 2031.", "what_it_means": "ITW participates in this '
+               'market but the article gives no company-specific detail.", '
+               '"key_implications": ["ITW operates in the automotive fastener '
+               'market", "EV trends shift fastening demand toward battery and '
+               'electronic assemblies", "Rising standards for safety, corrosion '
+               'protection, and')
+        obj = self._recover(raw)
+        assert obj.get("sentiment_score") == 55
+        assert obj.get("sentiment_reason", "").startswith("Positive 4.40% CAGR")
+        assert obj.get("tldr", "").startswith("A research report")
+        assert obj.get("what_it_means", "").startswith("ITW participates")
+
+    def test_truncated_with_complete_array_items_recovers_array(self):
+        raw = ('{"sentiment_score": 60, "sentiment_reason": "Solid quarter.", '
+               '"tldr": "Summary.", "what_it_means": "Implication.", '
+               '"key_implications": ["First complete bullet", "Second complete bullet"')
+        obj = self._recover(raw)
+        assert obj.get("sentiment_score") == 60
+        assert obj.get("what_it_means") == "Implication."
+        # the two completed array items survive when only the closer was lost
+        assert obj.get("key_implications") == ["First complete bullet", "Second complete bullet"]
+
+    def test_truncated_mid_scalar_value_keeps_earlier_pairs(self):
+        raw = '{"sentiment_score": 42, "sentiment_reason": "Margins compressed because'
+        obj = self._recover(raw)
+        assert obj.get("sentiment_score") == 42
+
+    def test_malformed_unrecoverable_json_fails_cleanly(self):
+        assert self._recover("not json at all, just prose about the company") == {}
+        assert self._recover("") == {}
+        assert self._recover("```\nI cannot answer this question.\n```") == {}
+
+    def test_recovery_never_fabricates_missing_fields(self):
+        raw = '{"sentiment_score": 70, "sentiment_reason": "Strong demand growth reported'
+        obj = self._recover(raw)
+        # tldr / what_it_means were never present — must NOT be invented
+        assert "tldr" not in obj
+        assert "what_it_means" not in obj
+
+    def test_diagnostic_recovers_truncated_first_attempt_no_retry(self):
+        """A truncated-but-recoverable first response should yield a usable
+        payload via recovery, without burning a retry call."""
+        from app.services import news_enrichment as ne
+
+        truncated = ('{"sentiment_score": 58, "sentiment_reason": "Demand and '
+                     'margins improved this quarter.", "tldr": "The company '
+                     'posted higher revenue.", "what_it_means": "Near-term '
+                     'operating results look stable.", "key_implications": '
+                     '["Revenue rose", "Margins held steady'  # cut off here
+                     )
+
+        def fake_chat(*args, **kwargs):
+            return truncated
+
+        with patch.object(ne, "chatcompletion_text", side_effect=fake_chat):
+            out = ne._request_llm_json_diagnostic("prompt", max_tokens=2000)
+
+        assert out["error"] is None
+        assert out["parsed"].get("sentiment_score") == 58
+        assert out["parsed"].get("what_it_means", "").startswith("Near-term")
+
+
+class TestRetryUsesHigherMaxTokens:
+    @pytest.mark.asyncio
+    async def test_enrich_retry_requests_2000_max_tokens(self):
+        from app.services.news_enrichment import enrich_article_with_retry
+
+        seen_kwargs = []
+
+        def fake_diag(prompt, *, max_tokens=700, system_prompt=None):
+            seen_kwargs.append(max_tokens)
+            # first call fails so a retry happens, exercising both attempts
+            if len(seen_kwargs) == 1:
+                return {"raw_text": "garbage", "parsed": {}, "error": None}
+            return {
+                "raw_text": "{}",
+                "parsed": {
+                    "sentiment_score": 50,
+                    "sentiment_reason": "Balanced.",
+                    "tldr": "Summary.",
+                    "what_it_means": "Implication.",
+                    "key_implications": ["One"],
+                    "impact_tag": "other",
+                },
+                "error": None,
+            }
+
+        with patch("app.services.news_enrichment._request_llm_json_diagnostic", side_effect=fake_diag):
+            payload, diagnostics = await enrich_article_with_retry(
+                ticker="MSFT", headline="Headline", body="Body text", company_name="Microsoft"
+            )
+
+        assert payload is not None
+        assert diagnostics["llm_calls"] == 2
+        # both the first attempt and the retry must request the raised limit
+        assert seen_kwargs == [2000, 2000]
+
+
+# ── Phase 4: safety breakers + 429 retryability ────────────────────────────────
+class _ChainSupabase:
+    """Chainable no-op supabase fake (every builder method returns self)."""
+    def __getattr__(self, _name):
+        def _f(*a, **k):
+            return self
+        return _f
+
+    def execute(self):
+        return types.SimpleNamespace(data=[])
+
+
+class TestLlm429StaysRetryable:
+    @pytest.mark.asyncio
+    async def test_429_row_not_marked_rejected_and_is_retryable(self):
+        from app.scripts.reenrich_news import _enrich_one
+
+        class _FakeQuery:
+            def __init__(self):
+                self.payload = None
+            def update(self, payload):
+                self.payload = payload
+                return self
+            def eq(self, *_):
+                return self
+            def execute(self):
+                return types.SimpleNamespace(data=[])
+
+        class _FakeSupabase:
+            def __init__(self):
+                self.query = _FakeQuery()
+            def table(self, _):
+                return self.query
+
+        fake = _FakeSupabase()
+        row = {
+            "id": "row-429", "ticker": "NVDA", "company_name": "NVIDIA",
+            "title": "Headline",
+            "body": "Real article body with enough words to pass the usable body length and word-count gate for enrichment processing here.",
+        }
+        with (
+            patch("app.services.news_enrichment.assess_article_body_quality", return_value=(True, None, row["body"])),
+            patch("app.services.news_enrichment.enrich_article_with_retry",
+                  new=AsyncMock(return_value=(None, {"failure_reason": "llm_429", "llm_calls": 2, "llm_429s": 2, "raw_llm_preview": ""}))),
+        ):
+            result = await _enrich_one(fake, row, dry_run=False)
+
+        assert result["status"] == "llm_429_transient"
+        assert result.get("retryable") is True
+        # CRITICAL: no rejection_reason persisted → row stays selectable next run
+        assert fake.query.payload is None
+
+
+class TestSafetyBreakers:
+    def _candidates(self, n):
+        return [{"ticker": f"T{i}", "id": str(i)} for i in range(n)]
+
+    def _result(self, status, **over):
+        r = {
+            "id": "x", "ticker": "T0", "source": "s", "body_length": 500,
+            "status": status, "issues": [], "raw_llm_preview": "",
+            "body_quality_reason": None, "llm_calls": 1, "llm_429s": 0,
+            "sent_to_llm": True,
+        }
+        r.update(over)
+        return r
+
+    @pytest.mark.asyncio
+    async def test_failure_rate_breaker_aborts_safely(self):
+        from app.scripts import reenrich_news
+
+        async def fake_enrich_one(supabase, row, dry_run=False):
+            return {
+                "id": row["id"], "ticker": row["ticker"], "source": "s",
+                "body_length": 500, "status": "validation_failed",
+                "issues": ["missing_required_field"], "raw_llm_preview": "",
+                "body_quality_reason": None, "llm_calls": 1, "llm_429s": 0,
+                "sent_to_llm": True,
+            }
+
+        with (
+            patch.object(reenrich_news, "_select_candidates", return_value=(self._candidates(100), [])),
+            patch.object(reenrich_news, "_enrich_one", side_effect=fake_enrich_one),
+            patch("app.services.supabase.get_supabase", return_value=_ChainSupabase()),
+        ):
+            stats = await reenrich_news.run_reenrichment(
+                window_days=7, batch_size=25, max_concurrency=1,
+                max_failure_rate=0.6, max_429=5,
+            )
+
+        assert stats["aborted"] is True
+        assert stats["abort_reason"] == "failure_rate_exceeded"
+        assert stats["valid_measurement"] is True
+        assert stats["batches"] == 1            # stopped after first batch
+        assert stats["enriched"] == 0
+
+    @pytest.mark.asyncio
+    async def test_429_storm_breaker_aborts_and_marks_not_measured(self):
+        from app.scripts import reenrich_news
+
+        async def fake_enrich_one(supabase, row, dry_run=False):
+            r = {
+                "id": "x", "ticker": "T0", "source": "s", "body_length": 500,
+                "status": "llm_429_transient", "issues": ["llm_429"],
+                "raw_llm_preview": "", "body_quality_reason": None,
+                "llm_calls": 2, "llm_429s": 2, "sent_to_llm": True,
+                "retryable": True,
+            }
+            return r
+
+        with (
+            patch.object(reenrich_news, "_select_candidates", return_value=(self._candidates(100), [])),
+            patch.object(reenrich_news, "_enrich_one", side_effect=fake_enrich_one),
+            patch("app.services.supabase.get_supabase", return_value=_ChainSupabase()),
+        ):
+            stats = await reenrich_news.run_reenrichment(
+                window_days=7, batch_size=25, max_concurrency=1,
+                max_failure_rate=0.6, max_429=5,
+            )
+
+        assert stats["aborted"] is True
+        assert stats["abort_reason"] == "quota_exhausted_429_storm"
+        assert stats["valid_measurement"] is False
+        assert stats["batches"] == 1
+        # transient 429s are NOT counted as article failures
+        assert stats["failed"] == 0
+        assert stats["llm_429_transient"] == 25
+
+    @pytest.mark.asyncio
+    async def test_no_failed_or_transient_rows_count_as_enriched(self):
+        from app.scripts import reenrich_news
+
+        async def fake_enrich_one(supabase, row, dry_run=False):
+            # alternate failed / transient — none should ever count as enriched
+            idx = int(row["id"])
+            status = "validation_failed" if idx % 2 == 0 else "llm_429_transient"
+            return {
+                "id": row["id"], "ticker": row["ticker"], "source": "s",
+                "body_length": 500, "status": status,
+                "issues": ["x"], "raw_llm_preview": "", "body_quality_reason": None,
+                "llm_calls": 1, "llm_429s": 1 if status == "llm_429_transient" else 0,
+                "sent_to_llm": True,
+            }
+
+        with (
+            patch.object(reenrich_news, "_select_candidates", return_value=(self._candidates(8), [])),
+            patch.object(reenrich_news, "_enrich_one", side_effect=fake_enrich_one),
+            patch("app.services.supabase.get_supabase", return_value=_ChainSupabase()),
+        ):
+            stats = await reenrich_news.run_reenrichment(
+                window_days=7, batch_size=25, max_concurrency=1,
+                max_failure_rate=1.1, max_429=9999,   # disable breakers for this test
+            )
+
+        assert stats["enriched"] == 0
+        assert stats["tickers_enriched"] == []

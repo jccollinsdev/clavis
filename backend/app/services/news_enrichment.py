@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import json
 import os
 import re
 import logging
@@ -257,7 +258,7 @@ Required JSON schema:
   "sentiment_reason": "<one sentence>",
   "tldr": "<1-2 sentence factual summary>",
   "what_it_means": "<1-2 sentence implication for the company/stock>",
-  "key_implications": ["<bullet 1>", "<bullet 2>", "<bullet 3>", "<bullet 4>"],
+  "key_implications": ["<short bullet>", "<short bullet>", "<short bullet>"],
   "impact_tag": "<financial-impact|regulatory|leadership|product|macro|sector|other>"
 }}
 
@@ -266,7 +267,7 @@ Rules:
 - sentiment_reason must explain the score using article evidence only.
 - tldr must describe what happened, factually.
 - what_it_means must explain the likely implication for the company/stock, not for an investor.
-- key_implications must contain 2-4 concise bullets; use [] only if the article truly lacks enough evidence.
+- key_implications must contain 2-3 short bullets, each at most 18 words; use [] only if the article truly lacks enough evidence. Keep total output compact so the JSON is never truncated.
 - Do not use these phrases anywhere in any field: buy, sell, advise, suggest, predict, forecast, recommendation, bullish outlook, bearish call, upside potential.
 - If the article is descriptive and balanced, use sentiment_score 50.
 
@@ -285,6 +286,7 @@ Do not omit any required key.
 Do not use investment advice terms.
 
 Required keys: sentiment_score, sentiment_reason, tldr, what_it_means, key_implications, impact_tag.
+key_implications: 2-3 short bullets, each at most 18 words. Keep the whole object compact so it is never truncated.
 
 Ticker: {ticker}
 Company: {company_name}
@@ -556,14 +558,76 @@ def _classify_json_failure(raw_text: str, parsed: dict[str, Any], error: str | N
 
 
 def _recover_partial_json_object(raw_text: str) -> dict[str, Any]:
+    """Salvage a truncated-but-mostly-valid JSON object.
+
+    The reasoning model frequently emits a correct object whose tail (usually
+    inside ``key_implications``) is cut off by the token limit, leaving
+    unbalanced quotes/brackets. We recover by closing the structure, and if
+    that fails, by falling back to the last fully-completed top-level pair —
+    so the complete leading scalar fields (sentiment_score, sentiment_reason,
+    tldr, what_it_means) survive even when key_implications is truncated.
+
+    Only fields actually present in the raw output are recovered; nothing is
+    fabricated. Returns {} when nothing valid can be salvaged.
+    """
     cleaned = _strip_model_wrappers(raw_text).strip()
     if not cleaned.startswith("{"):
         return {}
-    if cleaned.count('"') % 2 != 0:
-        return {}
-    if cleaned.count("{") == 1 and cleaned.count("}") == 0:
-        recovered = extract_json_object(cleaned + "}", {})
-        return recovered if isinstance(recovered, dict) else {}
+
+    # Scan once, tracking string/escape state and the container stack, and
+    # record the index just before the last depth-1 comma — the boundary at
+    # which every preceding key:value pair is complete.
+    stack: list[str] = []
+    in_str = False
+    esc = False
+    last_pair_end: int | None = None
+    for i, ch in enumerate(cleaned):
+        if in_str:
+            if esc:
+                esc = False
+            elif ch == "\\":
+                esc = True
+            elif ch == '"':
+                in_str = False
+            continue
+        if ch == '"':
+            in_str = True
+        elif ch in "{[":
+            stack.append(ch)
+        elif ch in "}]":
+            if stack:
+                stack.pop()
+        elif ch == "," and len(stack) == 1 and stack[0] == "{":
+            last_pair_end = i
+
+    def _closers(container_stack: list[str]) -> str:
+        return "".join("}" if c == "{" else "]" for c in reversed(container_stack))
+
+    candidates: list[str] = []
+
+    # 1. Structure intact, not inside a string: drop a dangling trailing
+    #    comma / colon / whitespace, then close open containers.
+    if not in_str:
+        trimmed = cleaned.rstrip()
+        while trimmed and trimmed[-1] in ",:":
+            trimmed = trimmed[:-1].rstrip()
+        candidates.append(trimmed + _closers(stack))
+
+    # 2. Truncated inside a string value: close the string, then containers.
+    if in_str and not esc:
+        candidates.append(cleaned + '"' + _closers(stack))
+
+    # 3. Graceful degradation: keep only fully-completed leading pairs.
+    if last_pair_end is not None:
+        candidates.append(cleaned[:last_pair_end] + "}")
+
+    for cand in candidates:
+        try:
+            obj = json.loads(cand)
+        except Exception:
+            obj = extract_json_object(cand, {})
+        if isinstance(obj, dict) and obj:
+            return obj
     return {}
 
 
@@ -751,7 +815,11 @@ async def enrich_article_with_retry(
         response = await asyncio.to_thread(
             _request_llm_json_diagnostic,
             prompt,
-            max_tokens=750,
+            # 2000 (was 750): the reasoning model's verbose key_implications
+            # overran 750 and truncated otherwise-valid JSON mid-string,
+            # which dominated enrichment failures (missing_required_field).
+            # Applies to both the first attempt and the retry.
+            max_tokens=2000,
             system_prompt="Return one strict JSON object only. No markdown. No extra text. No commentary.",
         )
         raw_text = str(response.get("raw_text") or "")

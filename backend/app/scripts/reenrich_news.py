@@ -267,6 +267,16 @@ async def _enrich_one(
 
     if enrichment is None:
         failure_reason = str(diagnostics.get("failure_reason") or "true_llm_failure")
+        # llm_429 is a TRANSIENT quota/rate failure, not a property of the
+        # article. Do NOT persist rejection_reason — that would make the row
+        # non-selectable on the next run (_select_candidates filters
+        # rejection_reason IS NULL). Leave the row pristine so it stays
+        # retryable once quota recovers.
+        if failure_reason == "llm_429":
+            result["status"] = "llm_429_transient"
+            result["issues"] = ["llm_429"]
+            result["retryable"] = True
+            return result
         result["status"] = "validation_failed"
         result["issues"] = [failure_reason]
         if dry_run:
@@ -382,6 +392,8 @@ async def run_reenrichment(
     max_articles: int | None = None,
     max_concurrency: int = MAX_CONCURRENCY_DEFAULT,
     dry_run: bool = False,
+    max_failure_rate: float = 0.6,
+    max_429: int = 5,
 ) -> dict[str, Any]:
     """Main entry point. Returns aggregate stats dict."""
     from ..services.supabase import get_supabase
@@ -453,6 +465,7 @@ async def run_reenrichment(
         "enriched": 0,
         "failed": 0,
         "skipped": 0,
+        "llm_429_transient": 0,
         "validation_failed": 0,
         "llm_exception": 0,
         "db_write_failed": 0,
@@ -460,6 +473,9 @@ async def run_reenrichment(
         "tickers_enriched": set(),
         "failures_by_issue": {},
         "failure_rows": [],
+        "aborted": False,
+        "abort_reason": None,
+        "valid_measurement": True,
     }
 
     sem = asyncio.Semaphore(max_concurrency)
@@ -479,10 +495,16 @@ async def run_reenrichment(
         elapsed = time.monotonic() - t_batch
 
         enriched_n = sum(1 for r in batch_results if r["status"] == "enriched")
+        # llm_429_transient is a quota/rate failure, NOT an article failure —
+        # exclude it from the failure-rate breaker so a quota storm trips the
+        # 429 breaker (NOT measured) rather than the failure-rate breaker.
+        transient_429_n = sum(1 for r in batch_results if r["status"] == "llm_429_transient")
         failed_n   = sum(
             1
             for r in batch_results
-            if r["status"] not in ("enriched", "skipped_missing_fields", "rejected_garbage")
+            if r["status"] not in (
+                "enriched", "skipped_missing_fields", "rejected_garbage", "llm_429_transient",
+            )
         )
         skipped_n  = sum(1 for r in batch_results if r["status"] == "skipped_missing_fields")
         rejected_n = sum(1 for r in batch_results if r["status"] == "rejected_garbage")
@@ -491,6 +513,7 @@ async def run_reenrichment(
         stats["enriched"] += enriched_n
         stats["failed"]   += failed_n
         stats["skipped"]  += skipped_n
+        stats["llm_429_transient"] += transient_429_n
         stats["rejected_garbage"] += rejected_n
         stats["sent_to_llm"] += sum(1 for r in batch_results if r.get("sent_to_llm"))
         stats["llm_calls"] += sum(int(r.get("llm_calls") or 0) for r in batch_results)
@@ -533,12 +556,43 @@ async def run_reenrichment(
 
         logger.info(
             "[BATCH %d/%d] Done in %.1fs — enriched=%d failed=%d skipped=%d rejected=%d "
-            "(total so far: enriched=%d failed=%d rejected=%d) issues=%s",
+            "429_transient=%d (total so far: enriched=%d failed=%d rejected=%d 429=%d) issues=%s",
             batch_num, total_batches, elapsed,
-            enriched_n, failed_n, skipped_n, rejected_n,
-            stats["enriched"], stats["failed"], stats["rejected_garbage"],
+            enriched_n, failed_n, skipped_n, rejected_n, transient_429_n,
+            stats["enriched"], stats["failed"], stats["rejected_garbage"], stats["llm_429s"],
             batch_issue_counts or "none",
         )
+
+        # ── Safety breakers ───────────────────────────────────────────────────
+        # 1. 429 storm → quota exhausted: this is NOT a valid measurement.
+        if stats["llm_429s"] >= max_429:
+            stats["aborted"] = True
+            stats["abort_reason"] = "quota_exhausted_429_storm"
+            stats["valid_measurement"] = False
+            logger.error(
+                "[ABORT] MiniMax 429 storm: %d 429s >= --max-429=%d. "
+                "QUOTA EXHAUSTED / NOT MEASURED — stopping early to avoid burning "
+                "calls. 429-failed rows were left retryable (no rejection_reason).",
+                stats["llm_429s"], max_429,
+            )
+            break
+        # 2. Failure-rate breaker: valid (bad) measurement — stop wasting calls.
+        sent = stats["sent_to_llm"]
+        min_sample = max(batch_size, 20)
+        if sent >= min_sample:
+            failure_rate = stats["failed"] / sent
+            if failure_rate > max_failure_rate:
+                stats["aborted"] = True
+                stats["abort_reason"] = "failure_rate_exceeded"
+                stats["valid_measurement"] = True
+                logger.error(
+                    "[ABORT] Failure rate %.1f%% (%d/%d) > --max-failure-rate=%.0f%% "
+                    "after %d sent to LLM. Stopping early — measurement is VALID but "
+                    "UNHEALTHY.",
+                    100 * failure_rate, stats["failed"], sent,
+                    100 * max_failure_rate, sent,
+                )
+                break
 
     total_elapsed = time.monotonic() - t_start
     stats["runtime_s"] = round(total_elapsed, 1)
@@ -592,13 +646,25 @@ async def run_reenrichment(
                 stats["enriched"],
                 100 * stats["enriched"] / max(1, stats["total_candidates"]))
     logger.info("  Failed     : %d", stats["failed"])
+    logger.info("  429 transient (retryable): %d", stats["llm_429_transient"])
     logger.info("  MiniMax calls : %d", stats["llm_calls"])
     logger.info("  MiniMax 429s  : %d", stats["llm_429s"])
     logger.info("  Skipped    : %d", stats["skipped"])
     logger.info("  Runtime    : %.1fs", stats["runtime_s"])
+    sent = stats["sent_to_llm"]
+    success_rate = (100 * stats["enriched"] / sent) if sent else 0.0
+    logger.info("  Success rate (enriched / sent_to_llm): %.1f%% (%d/%d)",
+                success_rate, stats["enriched"], sent)
     if stats["failures_by_issue"]:
         logger.info("  Top failure reasons: %s",
                     sorted(stats["failures_by_issue"].items(), key=lambda x: -x[1])[:5])
+
+    if stats["aborted"] and stats["abort_reason"] == "quota_exhausted_429_storm":
+        logger.error("  RESULT: QUOTA EXHAUSTED / NOT MEASURED (aborted on 429 storm).")
+    elif stats["aborted"] and stats["abort_reason"] == "failure_rate_exceeded":
+        logger.error("  RESULT: VALID MEASUREMENT but UNHEALTHY (aborted on failure rate).")
+    elif stats["valid_measurement"]:
+        logger.info("  RESULT: VALID MEASUREMENT.")
 
     return stats
 
@@ -617,6 +683,12 @@ def main() -> None:
                         help="Concurrent LLM calls per batch (default: 4)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Show what would be enriched without writing to DB")
+    parser.add_argument("--max-failure-rate", type=float, default=0.6,
+                        help="Abort early if failed/sent_to_llm exceeds this "
+                             "(default: 0.6). Measurement stays valid but unhealthy.")
+    parser.add_argument("--max-429", type=int, default=5,
+                        help="Abort early once cumulative MiniMax 429s reach this "
+                             "(default: 5). Result is treated as NOT MEASURED.")
     args = parser.parse_args()
 
     stats = asyncio.run(
@@ -626,6 +698,8 @@ def main() -> None:
             max_articles=args.max_articles,
             max_concurrency=args.max_concurrency,
             dry_run=args.dry_run,
+            max_failure_rate=args.max_failure_rate,
+            max_429=args.max_429,
         )
     )
 

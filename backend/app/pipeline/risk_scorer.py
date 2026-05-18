@@ -322,6 +322,43 @@ def _risk_direction_value(direction: str | None) -> int:
     return 0
 
 
+# Truth-spec "usable" article: fully enriched and complete. Headline-only,
+# paywalled/blocked, rejected, partial, or failed rows must NOT count toward
+# the news dimension or its evidence — otherwise a ticker with zero usable
+# articles can present a confident (false) news_sentiment.
+_NON_USABLE_STATUSES = {"partial", "enrichment_failed", "rejected", "headline_only", "failed"}
+
+# Required for News Sentiment to be scored at all (MVP threshold). Below this
+# the dimension is Limited Data (None) and excluded from the composite.
+MIN_USABLE_ARTICLES_FOR_NEWS = 3
+
+
+def _is_strict_usable_event(event: dict | None) -> bool:
+    if not isinstance(event, dict):
+        return False
+    if event.get("sentiment_score") is None:
+        return False
+    if not str(event.get("tldr") or "").strip():
+        return False
+    if not str(event.get("what_it_means") or "").strip():
+        return False
+    if not (event.get("key_implications") or []):
+        return False
+    if event.get("headline_only"):
+        return False
+    if event.get("paywalled") or event.get("paywall_detected"):
+        return False
+    if str(event.get("rejection_reason") or "").strip():
+        return False
+    if str(event.get("analysis_status") or "").strip().lower() in _NON_USABLE_STATUSES:
+        return False
+    return True
+
+
+def _strict_usable_events(events: list[dict] | None) -> list[dict]:
+    return [e for e in (events or []) if _is_strict_usable_event(e)]
+
+
 def _deterministic_dimension_scores(
     position_data: dict,
     portfolio_total_value: float,
@@ -351,22 +388,31 @@ def _deterministic_dimension_scores(
     fin_rationale = _fin_rationale(ticker_metadata, fin)
 
     # --- Dimension 2: News Sentiment (0-100) ---
-    news_delta = 0.0
-    for event in event_analyses:
-        direction = _risk_direction_value(event.get("risk_direction"))
-        significance = str(event.get("significance") or "minor").strip().lower()
-        confidence = min(max(_safe_float(event.get("confidence"), 0.5), 0.2), 1.0)
-        age_days = _event_age_days(event)
-        recency = max(0.35, 1.0 - min(age_days, 14.0) / 20.0)
-        magnitude = 15 if significance == "major" else 7
-        news_delta += direction * magnitude * confidence * recency
-
-    news_sentiment = clamp_score(round(50 + news_delta), 0)
-    news_rationale = (
-        f"News risk is driven by {worsening_major} major negative development(s) and improved by {improving_major} positive one(s)."
-        if event_analyses
-        else "No recent news with a clear directional signal — rating defaults to neutral pending new data."
-    )
+    # Only fully-usable articles drive this dimension. Below the MVP threshold
+    # it is Limited Data (None) so calculate_weighted_score excludes it from
+    # the composite rather than diluting toward a false neutral 50.
+    usable_events = _strict_usable_events(event_analyses)
+    if len(usable_events) < MIN_USABLE_ARTICLES_FOR_NEWS:
+        news_sentiment = None
+        news_rationale = (
+            f"Limited data: only {len(usable_events)} fully-usable recent article(s) "
+            f"(need {MIN_USABLE_ARTICLES_FOR_NEWS}). News Sentiment is excluded from the composite."
+        )
+    else:
+        news_delta = 0.0
+        for event in usable_events:
+            direction = _risk_direction_value(event.get("risk_direction"))
+            significance = str(event.get("significance") or "minor").strip().lower()
+            confidence = min(max(_safe_float(event.get("confidence"), 0.5), 0.2), 1.0)
+            age_days = _event_age_days(event)
+            recency = max(0.35, 1.0 - min(age_days, 14.0) / 20.0)
+            magnitude = 15 if significance == "major" else 7
+            news_delta += direction * magnitude * confidence * recency
+        news_sentiment = clamp_score(round(50 + news_delta), 0)
+        news_rationale = (
+            f"News risk is driven by {worsening_major} major negative development(s) "
+            f"and improved by {improving_major} positive one(s)."
+        )
 
     # --- Dimension 3: Macro Exposure (0-100) ---
     macro_exposure = _score_macro_exposure(ticker_metadata)
@@ -845,23 +891,26 @@ def score_position_structural(
     sector = _score_sector_exposure(ticker_metadata)
     vol = _score_volatility(ticker_metadata, worsening_major, improving_major)
 
+    # Only fully-usable articles drive News Sentiment. Do not fall back to
+    # `confidence` for unenriched rows — that previously let headline-only /
+    # partial rows produce a confident (false) score (the MRK case).
+    usable_events = _strict_usable_events(recent_events)
     weighted_news = 0.0
     total_weight = 0.0
-    article_count = len(recent_events)
-    for e in recent_events:
+    article_count = len(usable_events)
+    for e in usable_events:
         recency_w = _safe_float(e.get("recency_weight"), 1.0)
         source_w = _safe_float(e.get("source_weight"), 1.0)
-        sent = _safe_float(e.get("sentiment_score") or e.get("confidence"))
-        if sent is not None:
-            w = recency_w * source_w
-            weighted_news += sent * w
-            total_weight += w
-    if total_weight > 0 and article_count >= 3:
+        sent = _safe_float(e.get("sentiment_score"))
+        w = recency_w * source_w
+        weighted_news += sent * w
+        total_weight += w
+    if article_count >= MIN_USABLE_ARTICLES_FOR_NEWS and total_weight > 0:
         news = clamp_score(round(weighted_news / total_weight), 0)
-    elif article_count >= 3:
+    elif article_count >= MIN_USABLE_ARTICLES_FOR_NEWS:
         news = clamp_score(round(50 + sum(
             _risk_direction_value(e.get("risk_direction")) * 7
-            for e in recent_events
+            for e in usable_events
         )), 0)
     else:
         news = None

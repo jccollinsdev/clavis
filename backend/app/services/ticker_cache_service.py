@@ -48,6 +48,18 @@ SECTOR_ETF_MAP = {
     "utilities": "XLU",
 }
 
+CANONICAL_DIMENSION_KEYS = (
+    "financial_health",
+    "news_sentiment",
+    "macro_exposure",
+    "sector_exposure",
+    "volatility",
+)
+
+OUTSIDE_UNIVERSE_LIMITED_DATA_REASON = (
+    "This ticker isn't in the Clavix tracked universe. Risk data may be limited."
+)
+
 
 @lru_cache(maxsize=1)
 def load_sp500_seed_rows() -> list[dict[str, Any]]:
@@ -200,6 +212,90 @@ def _current_factor_levels(factor_bars_map: dict[str, list[dict[str, Any]]]) -> 
     return {
         factor: _latest_close_from_bars(factor_bars_map.get(factor, []))
         for factor in FACTOR_TICKERS
+    }
+
+
+def outside_universe_limited_data_reason() -> str:
+    return OUTSIDE_UNIVERSE_LIMITED_DATA_REASON
+
+
+def _canonical_snapshot_dimensions(snapshot: dict[str, Any] | None) -> dict[str, float | None]:
+    snapshot = snapshot or {}
+    return {
+        "financial_health": _coerce_float(snapshot.get("financial_health")),
+        "news_sentiment": _coerce_float(
+            snapshot.get("news_sentiment") or snapshot.get("news_sentiment_dim")
+        ),
+        "macro_exposure": _coerce_float(
+            snapshot.get("macro_exposure") or snapshot.get("macro_exposure_dim")
+        ),
+        "sector_exposure": _coerce_float(snapshot.get("sector_exposure")),
+        "volatility": _coerce_float(snapshot.get("volatility")),
+    }
+
+
+def _json_dict(value: Any) -> dict[str, Any]:
+    if isinstance(value, dict):
+        return value
+    if isinstance(value, str):
+        import json
+
+        try:
+            parsed = json.loads(value)
+        except Exception:
+            return {}
+        return parsed if isinstance(parsed, dict) else {}
+    return {}
+
+
+def _dimension_updated_at_map(snapshot: dict[str, Any] | None) -> dict[str, Any]:
+    snapshot = snapshot or {}
+    dimension_last_refreshed = _json_dict(snapshot.get("dimension_last_refreshed"))
+    fallback = snapshot.get("analysis_as_of")
+    return {
+        key: dimension_last_refreshed.get(key) or fallback for key in CANONICAL_DIMENSION_KEYS
+    }
+
+
+def _dimension_limited_reason_map(
+    snapshot: dict[str, Any] | None,
+    *,
+    outside_universe: bool = False,
+) -> dict[str, str | None]:
+    snapshot = snapshot or {}
+    limited_data_dimensions = _json_dict(snapshot.get("limited_data_dimensions"))
+    reasons: dict[str, str | None] = {}
+    for key in CANONICAL_DIMENSION_KEYS:
+        raw = limited_data_dimensions.get(key)
+        if isinstance(raw, str):
+            reasons[key] = raw
+        elif raw:
+            reasons[key] = str(raw)
+        elif outside_universe:
+            reasons[key] = OUTSIDE_UNIVERSE_LIMITED_DATA_REASON
+        else:
+            reasons[key] = None
+    return reasons
+
+
+def _score_history_row(snapshot: dict[str, Any]) -> dict[str, Any]:
+    composite_score = _coerce_float(
+        snapshot.get("composite_score") or snapshot.get("safety_score")
+    )
+    snapshot_grade = snapshot.get("grade")
+    if composite_score is not None and not snapshot_grade:
+        snapshot_grade = score_to_grade(composite_score)
+    canonical_dimensions = _canonical_snapshot_dimensions(snapshot)
+    return {
+        "snapshot_date": snapshot.get("snapshot_date"),
+        "analysis_as_of": snapshot.get("analysis_as_of"),
+        "composite_score": composite_score,
+        "grade": snapshot_grade,
+        "financial_health": canonical_dimensions.get("financial_health"),
+        "news_sentiment": canonical_dimensions.get("news_sentiment"),
+        "macro_exposure": canonical_dimensions.get("macro_exposure"),
+        "sector_exposure": canonical_dimensions.get("sector_exposure"),
+        "volatility": canonical_dimensions.get("volatility"),
     }
 
 
@@ -519,6 +615,24 @@ def require_supported_ticker(supabase, ticker: str) -> dict:
     return supported
 
 
+def lookup_outside_universe_ticker(supabase, ticker: str) -> dict[str, Any] | None:
+    normalized = (ticker or "").strip().upper()
+    if not normalized:
+        return None
+    metadata = upsert_ticker_metadata(supabase, normalized)
+    if not metadata:
+        return None
+    return {
+        "ticker": normalized,
+        "company_name": metadata.get("company_name") or normalized,
+        "exchange": metadata.get("exchange"),
+        "sector": metadata.get("sector"),
+        "industry": metadata.get("industry"),
+        "is_supported": False,
+        "outside_universe_reason": OUTSIDE_UNIVERSE_LIMITED_DATA_REASON,
+    }
+
+
 def search_supported_tickers(
     supabase, query: str | None, limit: int = 20, user_id: str | None = None
 ) -> list[dict[str, Any]]:
@@ -627,6 +741,34 @@ def search_supported_tickers(
             "portfolio_overlay": portfolio_overlay,
         }
         results.append(sanitize_public_analysis_text(result))
+
+    if term and len(results) < limit and all(result.get("ticker") != term for result in results):
+        outside_candidate = lookup_outside_universe_ticker(supabase, term)
+        if outside_candidate and not get_supported_ticker(supabase, term):
+            metadata = get_metadata_map(supabase, [term]).get(term, {})
+            position = held_ticker_to_position.get(term)
+            portfolio_overlay = build_portfolio_overlay(
+                ticker=term,
+                position=position,
+                held_positions=[position] if position else [],
+                is_in_watchlist=term in watchlist_tickers,
+                current_price=metadata.get("price"),
+            )
+            results.append(
+                sanitize_public_analysis_text(
+                    {
+                        **outside_candidate,
+                        "price": metadata.get("price"),
+                        "price_as_of": metadata.get("price_as_of"),
+                        "grade": None,
+                        "safety_score": None,
+                        "analysis_as_of": None,
+                        "summary": OUTSIDE_UNIVERSE_LIMITED_DATA_REASON,
+                        "shared_analysis": None,
+                        "portfolio_overlay": portfolio_overlay,
+                    }
+                )
+            )
     return results
 
 
@@ -670,6 +812,51 @@ def get_latest_risk_snapshot_map(
 ) -> dict[str, dict[str, Any]]:
     history = get_latest_risk_snapshot_history_map(supabase, tickers, per_ticker=1)
     return {ticker: rows[0] for ticker, rows in history.items() if rows}
+
+
+def get_ticker_score_history(
+    supabase,
+    ticker: str,
+    *,
+    limit: int = 90,
+) -> dict[str, Any]:
+    normalized_ticker = (ticker or "").strip().upper()
+    rows = get_latest_risk_snapshot_history_map(
+        supabase, [normalized_ticker], per_ticker=max(limit, 2)
+    ).get(normalized_ticker, [])
+    ordered = sorted(rows, key=_canonical_snapshot_sort_key)
+    snapshots = [_score_history_row(row) for row in ordered if row]
+
+    state = "new" if len(snapshots) < 2 else "ready"
+    latest = snapshots[-1] if snapshots else None
+    previous = snapshots[-2] if len(snapshots) >= 2 else None
+
+    current_score = latest.get("composite_score") if latest else None
+    previous_score = previous.get("composite_score") if previous else None
+    current_grade = latest.get("grade") if latest else None
+    previous_grade = previous.get("grade") if previous else None
+
+    return sanitize_public_analysis_text(
+        {
+            "ticker": normalized_ticker,
+            "history_state": state,
+            "snapshots": snapshots[-limit:],
+            "current_score": current_score,
+            "current_grade": current_grade,
+            "previous_score": previous_score,
+            "previous_grade": previous_grade,
+            "score_delta": (
+                round(current_score - previous_score, 1)
+                if current_score is not None and previous_score is not None
+                else None
+            ),
+            "grade_direction": (
+                grade_direction(current_score, previous_score)
+                if current_score is not None and previous_score is not None
+                else None
+            ),
+        }
+    )
 
 
 def enrich_positions_with_ticker_cache(
@@ -756,7 +943,15 @@ def enrich_positions_with_ticker_cache(
             shared_summary=shared_summary,
             portfolio_overlay=portfolio_overlay,
             previous_grade=previous.get("grade"),
+            previous_score=_coerce_float(
+                previous.get("composite_score") or previous.get("safety_score")
+            ),
             risk_dimensions=_shared_risk_dimensions(latest),
+        )
+        projected = _attach_position_market_fields(
+            projected,
+            metadata=metadata,
+            portfolio_overlay=portfolio_overlay,
         )
         position.clear()
         position.update(projected)
@@ -1615,6 +1810,123 @@ def build_portfolio_overlay(
     return sanitize_public_analysis_text(overlay)
 
 
+def _attach_position_market_fields(
+    payload: dict[str, Any],
+    *,
+    metadata: dict[str, Any] | None,
+    portfolio_overlay: dict[str, Any] | None,
+) -> dict[str, Any]:
+    metadata = metadata or {}
+    portfolio_overlay = portfolio_overlay or {}
+    current_price = _coerce_float(
+        portfolio_overlay.get("current_price")
+        or payload.get("current_price")
+        or metadata.get("price")
+    )
+    shares = _coerce_float(payload.get("shares"))
+    purchase_price = _coerce_float(payload.get("purchase_price"))
+    previous_close = _coerce_float(metadata.get("previous_close"))
+
+    current_value = _coerce_float(portfolio_overlay.get("market_value"))
+    if current_value is None and current_price is not None and shares is not None:
+        current_value = round(current_price * shares, 2)
+
+    unrealized_pl = None
+    unrealized_pl_percent = None
+    if current_price is not None and purchase_price is not None and shares is not None:
+        unrealized_pl = round((current_price - purchase_price) * shares, 2)
+        if purchase_price > 0:
+            unrealized_pl_percent = round(
+                ((current_price - purchase_price) / purchase_price) * 100.0,
+                2,
+            )
+
+    day_change_amount = None
+    day_change_percent = None
+    if current_price is not None and previous_close not in {None, 0}:
+        day_change_amount = round(current_price - previous_close, 2)
+        day_change_percent = round(
+            ((current_price - previous_close) / previous_close) * 100.0,
+            2,
+        )
+
+    return {
+        **payload,
+        "current_price": current_price,
+        "current_value": current_value,
+        "portfolio_weight": _coerce_float(portfolio_overlay.get("portfolio_weight")),
+        "day_change_amount": day_change_amount,
+        "day_change_percent": day_change_percent,
+        "unrealized_pl": unrealized_pl,
+        "unrealized_pl_percent": unrealized_pl_percent,
+    }
+
+
+def build_holdings_portfolio_summary(positions: list[dict[str, Any]]) -> dict[str, Any]:
+    weighted_positions = []
+    for position in positions or []:
+        value = _coerce_float(position.get("current_value"))
+        score = _coerce_float(
+            position.get("composite_score")
+            or position.get("total_score")
+            or position.get("safety_score")
+        )
+        previous_score = _coerce_float(position.get("previous_score"))
+        if value is None or value <= 0 or score is None:
+            continue
+        weighted_positions.append(
+            {
+                "value": value,
+                "score": score,
+                "previous_score": previous_score,
+            }
+        )
+
+    total_value = round(sum(item["value"] for item in weighted_positions), 2)
+    if not weighted_positions or total_value <= 0:
+        return {
+            "portfolio_value": total_value if total_value > 0 else None,
+            "composite_score": None,
+            "grade": None,
+            "previous_score": None,
+            "previous_grade": None,
+            "score_delta": None,
+            "grade_direction": None,
+            "positions_count": len(positions or []),
+        }
+
+    composite_score = round(
+        sum(item["value"] * item["score"] for item in weighted_positions) / total_value,
+        1,
+    )
+    previous_score = None
+    if weighted_positions and all(
+        item.get("previous_score") is not None for item in weighted_positions
+    ):
+        previous_total_value = sum(item["value"] for item in weighted_positions)
+        if previous_total_value > 0:
+            previous_score = round(
+                sum(item["value"] * item["previous_score"] for item in weighted_positions)
+                / previous_total_value,
+                1,
+            )
+
+    return {
+        "portfolio_value": total_value,
+        "composite_score": composite_score,
+        "grade": score_to_grade(composite_score),
+        "previous_score": previous_score,
+        "previous_grade": score_to_grade(previous_score) if previous_score is not None else None,
+        "score_delta": round(composite_score - previous_score, 1)
+        if previous_score is not None
+        else None,
+        "grade_direction": grade_direction(composite_score, previous_score)
+        if previous_score is not None
+        else None,
+        "positions_count": len(positions or []),
+    }
+
+
 def _build_exec_summary_from_news_rows(
     recent_news_rows: list[dict[str, Any]],
     ticker: str,
@@ -1746,6 +2058,7 @@ def _project_shared_summary_compatibility(
     shared_summary: dict[str, Any],
     portfolio_overlay: dict[str, Any] | None = None,
     previous_grade: str | None = None,
+    previous_score: float | None = None,
     risk_dimensions: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     overlay = portfolio_overlay or {}
@@ -1757,8 +2070,10 @@ def _project_shared_summary_compatibility(
         "grade": shared_summary.get("current_grade"),
         "risk_grade": shared_summary.get("current_grade"),
         "safety_score": shared_summary.get("current_score"),
+        "composite_score": shared_summary.get("current_score"),
         "total_score": shared_summary.get("current_score"),
         "previous_grade": previous_grade,
+        "previous_score": previous_score,
         "grade_direction": shared_summary.get("grade_direction"),
         "score_delta": shared_summary.get("score_delta"),
         "summary": shared_summary.get("grade_rationale"),
@@ -1782,6 +2097,8 @@ def _project_shared_summary_compatibility(
         or ("cached" if freshness.get("news_as_of") else None),
         "source": shared_summary.get("analysis_source"),
         "company_name": shared_summary.get("company_name"),
+        "outside_universe": bool(base.get("outside_universe")),
+        "limited_data_reason": base.get("limited_data_reason"),
     }
     return sanitize_public_analysis_text(projected)
 
@@ -1794,15 +2111,18 @@ def _project_shared_detail_compatibility(
     base_position: dict[str, Any],
     metadata: dict[str, Any],
     snapshot: dict[str, Any] | None,
+    previous_snapshot: dict[str, Any] | None,
     latest_refresh_job: dict[str, Any] | None,
     latest_analysis_run: dict[str, Any] | None,
     latest_alerts: list[dict[str, Any]],
     recent_news_rows: list[dict[str, Any]],
     is_selected_held: bool,
+    score_history: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     summary = shared_detail.get("summary") or {}
     freshness = summary.get("freshness") or {}
     snapshot = snapshot or {}
+    previous_snapshot = previous_snapshot or {}
     factor_breakdown = _sanitize_factor_breakdown_payload(snapshot.get("factor_breakdown")) or {
         "ai_dimensions": shared_detail.get("risk_dimensions") or {}
     }
@@ -1812,10 +2132,23 @@ def _project_shared_detail_compatibility(
         shared_summary=summary,
         portfolio_overlay=portfolio_overlay,
         previous_grade=previous_grade,
+        previous_score=_coerce_float(
+            previous_snapshot.get("composite_score") or previous_snapshot.get("safety_score")
+        ),
         risk_dimensions=shared_detail.get("risk_dimensions") or {},
     )
-    position["current_price"] = portfolio_overlay.get("current_price") or metadata.get("price")
+    position = _attach_position_market_fields(
+        position,
+        metadata=metadata,
+        portfolio_overlay=portfolio_overlay,
+    )
     position["evidence_strength"] = summary.get("evidence_strength")
+    outside_universe = bool(base_position.get("outside_universe"))
+    dimension_updated_at = _dimension_updated_at_map(snapshot)
+    dimension_limited_reasons = _dimension_limited_reason_map(
+        snapshot,
+        outside_universe=outside_universe,
+    )
     compat_status = freshness.get("status")
     latest_run_status = (latest_analysis_run or {}).get("status")
     if latest_run_status == "queued":
@@ -1911,6 +2244,15 @@ def _project_shared_detail_compatibility(
         and not (shared_detail.get("risk_drivers") or [])
     ):
         snapshot_reasoning = None
+    canonical_dimension_scores = _canonical_snapshot_dimensions(snapshot)
+    canonical_dimensions = {
+        key: {
+            "score": canonical_dimension_scores.get(key),
+            "last_updated": dimension_updated_at.get(key),
+            "limited_data_reason": dimension_limited_reasons.get(key),
+        }
+        for key in CANONICAL_DIMENSION_KEYS
+    }
     return sanitize_public_analysis_text(
         {
             "ticker": ticker,
@@ -2005,6 +2347,26 @@ def _project_shared_detail_compatibility(
             "shared_analysis": shared_detail,
             "portfolio_overlay": portfolio_overlay,
             "selected_position_held": is_selected_held,
+            "is_supported": not outside_universe,
+            "outside_universe": outside_universe,
+            "limited_data_reason": base_position.get("limited_data_reason"),
+            "score_history": score_history,
+            "v2": {
+                "current_price": position.get("current_price") or shared_detail.get("latest_price"),
+                "day_change_amount": position.get("day_change_amount"),
+                "day_change_percent": position.get("day_change_percent"),
+                "composite_score": summary.get("current_score"),
+                "grade": summary.get("current_grade"),
+                "dimensions": canonical_dimensions,
+                "recent_news": _news_rows_to_response(
+                    recent_news_rows,
+                    user_id=base_position.get("user_id") or "",
+                    ticker=ticker,
+                ),
+                "score_history": score_history,
+                "outside_universe": outside_universe,
+                "limited_data_reason": base_position.get("limited_data_reason"),
+            },
         }
     )
 
@@ -2690,8 +3052,42 @@ def _build_event_analyses_from_news_rows(
     as event-shaped objects with real TLDR/what_it_means/key_implications.
     Provenance is 'shared_ticker_events'.
     """
+    # Only surface fully-usable rows as news evidence. Headline-only,
+    # paywalled/blocked, rejected, partial/failed, or rows missing
+    # sentiment/tldr/what_it_means/key_implications must NOT count — otherwise
+    # a ticker with zero usable articles shows a confident (false)
+    # news_sentiment backed by stale/non-usable rows (the MRK case).
+    _non_usable_statuses = {
+        "partial", "enrichment_failed", "rejected", "headline_only", "failed",
+    }
+
+    def _row_is_strict_usable(r: dict[str, Any]) -> bool:
+        if r.get("sentiment_score") is None:
+            return False
+        if not str(r.get("sentiment_reason") or "").strip():
+            return False
+        if not str(r.get("tldr") or "").strip():
+            return False
+        if not str(r.get("what_it_means") or "").strip():
+            return False
+        if not (r.get("key_implications") or []):
+            return False
+        if r.get("headline_only"):
+            return False
+        if r.get("paywalled") or r.get("paywall_detected"):
+            return False
+        if str(r.get("rejection_reason") or "").strip():
+            return False
+        if str(r.get("analysis_status") or "").strip().lower() in _non_usable_statuses:
+            return False
+        if str(r.get("extraction_status") or "").strip().lower() not in {"", "success"}:
+            return False
+        return True
+
+    usable_rows = [r for r in news_rows if _row_is_strict_usable(r)]
+
     events: list[dict[str, Any]] = []
-    for row in news_rows[:10]:
+    for row in usable_rows[:10]:
         sentiment_score = row.get("sentiment_score")
         if sentiment_score is not None:
             if sentiment_score <= 30:
@@ -2728,6 +3124,10 @@ def _build_event_analyses_from_news_rows(
                 "what_happened": row.get("tldr") or "",
                 "tldr": row.get("tldr") or "",
                 "what_it_means": row.get("what_it_means") or "",
+                "sentiment_score": row.get("sentiment_score"),
+                "sentiment_reason": row.get("sentiment_reason"),
+                "recency_weight": row.get("recency_weight"),
+                "source_weight": row.get("source_weight"),
                 "confidence": row.get("sentiment_score"),
                 "impact_horizon": "near_term",
                 "risk_direction": risk_direction,
@@ -3133,7 +3533,7 @@ def build_holding_workflow_response(
             supabase, [position_id]
         ),
         coverage_context=latest_position_analysis,
-    )
+    ) or {}
     analysis_state = _analysis_state_from_context(
         snapshot=snapshot,
         latest_position_analysis=latest_position_analysis,
@@ -3143,6 +3543,12 @@ def build_holding_workflow_response(
         current_score=current_score,
         latest_news_row=latest_news_row,
     )
+    if position.get("outside_universe") and not analysis_state.get("coverage_note"):
+        analysis_state["coverage_note"] = position.get(
+            "limited_data_reason"
+        ) or OUTSIDE_UNIVERSE_LIMITED_DATA_REASON
+        analysis_state["coverage_state"] = "provisional"
+        analysis_state["status"] = "thin"
     enriched_position = sanitize_public_analysis_text(
         {
             **position,
@@ -3191,16 +3597,24 @@ def get_ticker_detail_bundle(
     ticker: str,
     position_id: str | None = None,
 ) -> dict[str, Any]:
-    supported = require_supported_ticker(supabase, ticker)
-    ticker = supported["ticker"]
+    normalized_ticker = (ticker or "").strip().upper()
+    supported = get_supported_ticker(supabase, normalized_ticker)
+    ticker = supported["ticker"] if supported else normalized_ticker
 
     metadata = get_metadata_map(supabase, [ticker]).get(ticker, {})
+    if not metadata and not supported:
+        metadata = upsert_ticker_metadata(supabase, ticker) or {}
+
+    if not supported and not metadata:
+        raise HTTPException(404, "Ticker not found")
+
     history = get_latest_risk_snapshot_history_map(
         supabase, [ticker], per_ticker=10
     ).get(ticker, [])
     history = sorted(history, key=_canonical_snapshot_sort_key, reverse=True)
     snapshot = history[0] if history else None
     previous_snapshot = history[1] if len(history) > 1 else None
+    score_history = get_ticker_score_history(supabase, ticker, limit=90)
     news_result = (
         supabase.table("shared_ticker_events")
         .select("*")
@@ -3287,11 +3701,18 @@ def get_ticker_detail_bundle(
         "ticker": ticker,
         "shares": 0.0,
         "purchase_price": metadata.get("price") or 0.0,
+        "purchase_date": None,
         "archetype": "growth",
         "created_at": _utcnow_iso(),
         "updated_at": _utcnow_iso(),
         "current_price": metadata.get("price"),
+        "outside_universe": not bool(supported),
+        "limited_data_reason": OUTSIDE_UNIVERSE_LIMITED_DATA_REASON if not supported else None,
     }
+    if selected_position:
+        base_position["outside_universe"] = bool(selected_position.get("outside_universe"))
+        if selected_position.get("limited_data_reason"):
+            base_position["limited_data_reason"] = selected_position.get("limited_data_reason")
     shared_current_analysis = _backfill_legacy_driver_cards(
         shared_current_analysis,
         base_position,
@@ -3339,11 +3760,13 @@ def get_ticker_detail_bundle(
         base_position=base_position,
         metadata=metadata,
         snapshot=snapshot,
+        previous_snapshot=previous_snapshot,
         latest_refresh_job=latest_refresh_job,
         latest_analysis_run=latest_analysis_run,
         latest_alerts=alerts_result.data or [],
         recent_news_rows=news_result.data or [],
         is_selected_held=bool(selected_position),
+        score_history=score_history,
     )
 
 

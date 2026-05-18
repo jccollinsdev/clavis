@@ -244,3 +244,130 @@ def test_build_risk_score_response_ignores_draft_position_analysis_summary():
     _assert_strict_rationale(response["reasoning"], "BB")
     assert "Quick brief ready" not in response["reasoning"]
     assert "started the deeper analysis" not in response["reasoning"]
+
+
+# ── Phase 3: Limited Data truth — News Sentiment must not be fabricated ────────
+def _usable_event(score=60, direction="improving", **over):
+    e = {
+        "sentiment_score": score,
+        "sentiment_reason": "Real enriched reason.",
+        "tldr": "A real factual summary of what happened.",
+        "what_it_means": "A real implication for the company.",
+        "key_implications": ["Implication one", "Implication two"],
+        "headline_only": False,
+        "paywalled": False,
+        "rejection_reason": None,
+        "analysis_status": "enriched",
+        "significance": "minor",
+        "risk_direction": direction,
+        "recency_weight": 1.0,
+        "source_weight": 1.0,
+        "confidence": score,
+    }
+    e.update(over)
+    return e
+
+
+def _non_usable_event(**over):
+    # headline-only / unenriched: no tldr/what_it_means/key_implications, sentiment None
+    e = {
+        "sentiment_score": None,
+        "tldr": "",
+        "what_it_means": "",
+        "key_implications": [],
+        "headline_only": True,
+        "analysis_status": "headline_only",
+        "significance": "minor",
+        "risk_direction": "neutral",
+        "confidence": None,
+    }
+    e.update(over)
+    return e
+
+
+class TestLimitedDataNewsSentiment:
+    def test_zero_usable_articles_news_is_limited_data(self):
+        r = risk_scorer.score_position_structural({"id": "p1"}, ticker_metadata={}, recent_events=[])
+        assert r["news_sentiment"] is None
+
+    def test_one_or_two_usable_articles_news_is_limited_data(self):
+        for n in (1, 2):
+            r = risk_scorer.score_position_structural(
+                {"id": "p1"}, ticker_metadata={}, recent_events=[_usable_event() for _ in range(n)]
+            )
+            assert r["news_sentiment"] is None, f"{n} usable should be Limited Data"
+
+    def test_three_usable_articles_get_real_news_sentiment(self):
+        r = risk_scorer.score_position_structural(
+            {"id": "p1"}, ticker_metadata={},
+            recent_events=[_usable_event(score=80) for _ in range(3)],
+        )
+        assert r["news_sentiment"] is not None
+        assert r["news_sentiment"] == 80
+
+    def test_composite_excludes_limited_data_news_dimension(self):
+        # news None -> composite is the mean of the other 4 dims only
+        r = risk_scorer.score_position_structural({"id": "p1"}, ticker_metadata={}, recent_events=[])
+        from app.pipeline.analysis_utils import calculate_weighted_score
+        expected = calculate_weighted_score({
+            "financial_health": r["financial_health"],
+            "news_sentiment": None,
+            "macro_exposure": r["macro_exposure"],
+            "sector_exposure": r["sector_exposure"],
+            "volatility": r["volatility"],
+        })
+        assert abs(r["total_score"] - round(expected, 1)) < 0.05
+        assert r["news_sentiment"] is None
+
+    def test_mrk_like_case_cannot_show_confident_news_from_non_usable_rows(self):
+        # 15 non-usable rows (the MRK pattern) must NOT yield a confident score
+        r = risk_scorer.score_position_structural(
+            {"id": "p1"}, ticker_metadata={},
+            recent_events=[_non_usable_event() for _ in range(15)],
+        )
+        assert r["news_sentiment"] is None
+
+    def test_mixed_usable_and_non_usable_counts_only_usable(self):
+        events = [_usable_event(score=70) for _ in range(2)] + [_non_usable_event() for _ in range(20)]
+        r = risk_scorer.score_position_structural({"id": "p1"}, ticker_metadata={}, recent_events=events)
+        assert r["news_sentiment"] is None  # only 2 usable < 3
+
+    def test_deterministic_scores_news_none_below_threshold(self):
+        result = risk_scorer._deterministic_dimension_scores(
+            {"ticker": "MRK", "ticker_metadata": {}, "event_analyses": [_non_usable_event() for _ in range(15)]},
+            portfolio_total_value=1.0,
+        )
+        assert result["news_sentiment"] is None
+
+    def test_deterministic_scores_news_real_at_threshold(self):
+        result = risk_scorer._deterministic_dimension_scores(
+            {"ticker": "AMD", "ticker_metadata": {},
+             "event_analyses": [_usable_event(direction="worsening", significance="major") for _ in range(3)]},
+            portfolio_total_value=1.0,
+        )
+        assert result["news_sentiment"] is not None
+
+    def test_build_event_analyses_filters_non_usable_rows(self):
+        from app.services.ticker_cache_service import _build_event_analyses_from_news_rows
+        rows = [
+            {  # usable
+                "id": "1", "sentiment_score": 65, "sentiment_reason": "Reason.",
+                "tldr": "Summary.", "what_it_means": "Implication.",
+                "key_implications": ["A", "B"], "analysis_status": "enriched",
+                "extraction_status": "success", "title": "T", "published_at": "2026-05-17T00:00:00Z",
+            },
+            {  # headline-only -> excluded
+                "id": "2", "sentiment_score": None, "tldr": "", "what_it_means": "",
+                "key_implications": [], "headline_only": True, "analysis_status": "headline_only",
+                "title": "T2",
+            },
+            {  # partial (missing what_it_means) -> excluded
+                "id": "3", "sentiment_score": 50, "sentiment_reason": "R", "tldr": "S",
+                "what_it_means": "", "key_implications": ["x"], "analysis_status": "partial",
+                "title": "T3",
+            },
+        ]
+        events = _build_event_analyses_from_news_rows(rows, ticker="TST", position_id="p1")
+        assert len(events) == 1
+        assert events[0]["sentiment_score"] == 65
+        assert events[0]["sentiment_reason"] == "Reason."
