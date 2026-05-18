@@ -1,0 +1,50 @@
+{
+  "generated_at": "2026-05-18 23:45 UTC",
+  "window_days": 7,
+  "universe": {
+    "ticker_universe_total": 504,
+    "sp500_active": 503
+  },
+  "articles_7d": {
+    "total_rows": 15378,
+    "strict_usable_total": 4023,
+    "headline_only": 7740,
+    "google_wrapper": 5787,
+    "coverage_ge3": 482,
+    "coverage_ge5": 414,
+    "coverage_ge10": 139,
+    "coverage_ge20": 10,
+    "coverage_ge3_pct": 95.8,
+    "coverage_ge10_pct": 27.6,
+    "tickers_zero": 1
+  },
+  "snapshots": {
+    "latest_snapshot_date": "2026-05-16",
+    "rows_at_latest_date": 250,
+    "distinct_tickers_at_latest": 244,
+    "product_visible": 10,
+    "methodology_versions": {
+      "v2": 247,
+      "sp500-ai-analysis-v2": 3
+    },
+    "snapshot_types": {
+      "daily": 217,
+      "manual_refresh": 33
+    },
+    "data_status": {
+      "None": 217,
+      "complete": 33
+    },
+    "freshness_by_created_at": {
+      "<=72h": 250
+    },
+    "dimension_scored_counts": {
+      "financial_health": 249,
+      "news_sentiment": 235,
+      "macro_exposure": 249,
+      "sector_exposure": 249,
+      "volatility": 249
+    },
+    "news_sentiment_null": 15
+  }
+}
