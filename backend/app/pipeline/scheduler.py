@@ -317,6 +317,8 @@ def _upsert_shared_ticker_event(
     if not event_record.get("event_hash"):
         return None
 
+    from ..services.news_enrichment import classify_source_tier, classify_recency_weight
+
     source = str(event_record.get("source") or "").strip()
     source_tier = classify_source_tier(source) if source else 3
     published_at_str = str(event_record.get("published_at") or "")
