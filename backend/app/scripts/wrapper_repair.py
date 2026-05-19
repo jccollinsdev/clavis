@@ -76,14 +76,17 @@ def _select_candidates(sb, window_days: int, limit: int) -> list[dict]:
         ))
     out = []
     for r in rows:
-        if r.get("sentiment_score") is not None:
-            continue
+        # rejection_reason rows stay out of scope (handled elsewhere, kept
+        # retryable). NOTE: sentiment_score is intentionally NOT a filter —
+        # ~99% of these rows carry a STALE headline-only sentiment that is
+        # never counted usable (headline_only=True). Repair resolves the
+        # wrapper, extracts the real body, and resets those stale LLM
+        # fields so the proven enricher re-derives from the real article.
         if str(r.get("rejection_reason") or "").strip():
             continue
         url = str(r.get("canonical_url") or r.get("source_url") or "")
         if "news.google.com" not in url:
             continue
-        # strict non-usable: headline_only flag, or extraction failed, or no body
         body = str(r.get("body") or "")
         non_usable = (
             r.get("headline_only")
@@ -92,7 +95,16 @@ def _select_candidates(sb, window_days: int, limit: int) -> list[dict]:
             or len(body.strip()) < MIN_BODY
             or body.startswith("[No body extracted]")
         )
-        if non_usable:
+        # already a real, usable, non-wrapper-flagged row -> skip (idempotent)
+        already_good = (
+            str(r.get("extraction_status") or "").lower() == "success"
+            and not r.get("headline_only")
+            and str(r.get("analysis_status") or "").lower() != "headline_only"
+            and len(body.strip()) >= MIN_BODY
+            and not body.startswith("[No body extracted]")
+            and r.get("sentiment_score") is not None
+        )
+        if non_usable and not already_good:
             out.append(r)
     out.sort(key=lambda x: str(x.get("id")))
     return out[:limit] if limit else out
@@ -139,7 +151,16 @@ async def _process_row(sb, row, client, *, timeout, dry_run):
         out["stage"] = "extract_unusable"  # blocked/paywall/js-shell — not bypassed
         return out
     out["stage"] = "eligible"
+    out["stale_sentiment_reset"] = row.get("sentiment_score") is not None
     if not dry_run:
+        # Replace the explicitly-non-usable headline_only state with the
+        # real publisher body, and RESET the stale headline-derived LLM
+        # fields so the proven reenrich_news enricher re-derives them from
+        # the real article (it selects sentiment_score IS NULL). The old
+        # values were never counted usable (headline_only=True), so this is
+        # a correctness improvement, not loss of usable data. Provenance of
+        # original google url -> publisher is preserved in
+        # gnews_wrapper_resolution + this run's report.
         sb.table("shared_ticker_events").update({
             "canonical_url": pub,
             "body": body,
@@ -148,6 +169,12 @@ async def _process_row(sb, row, client, *, timeout, dry_run):
             "headline_only": False,
             "analysis_status": None,
             "rejection_reason": None,
+            "sentiment_score": None,
+            "sentiment_reason": None,
+            "tldr": None,
+            "what_it_means": None,
+            "key_implications": None,
+            "impact_tag": None,
             "extraction_provider_used": "gnews_wrapper_resolved",
             "updated_at": _now(),
         }).eq("id", row["id"]).execute()
@@ -198,6 +225,8 @@ async def run(window_days, batch_size, concurrency, timeout, limit,
                     dom_ok[o.get("final_domain") or "?"] += 1
                     if o.get("written"):
                         stats["written"] += 1
+                        if o.get("stale_sentiment_reset"):
+                            stats["stale_sentiment_reset"] += 1
                 elif o.get("stage") in ("extract_unusable", "extract_error"):
                     dom_bad[o.get("final_domain") or "?"] += 1
             done = stats["attempted"]

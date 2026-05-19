@@ -45,10 +45,16 @@ def test_selection_filters_to_unusable_google_wrappers():
         {"id": "1", "ticker": "AAA", "canonical_url": "https://news.google.com/x1",
          "headline_only": True, "extraction_status": "failed", "body": "",
          "sentiment_score": None, "rejection_reason": None, "analysis_status": "headline_only"},
-        # google wrapper but already enriched (sentiment) -> EXCLUDED
+        # google wrapper, real body, already usable -> EXCLUDED (idempotent)
         {"id": "2", "ticker": "AAA", "canonical_url": "https://news.google.com/x2",
          "headline_only": False, "extraction_status": "success", "body": "x" * 500,
          "sentiment_score": 55, "rejection_reason": None, "analysis_status": None},
+        # google wrapper, headline_only WITH stale headline-derived
+        # sentiment -> SELECTED (the ~99% real-world case)
+        {"id": "6", "ticker": "AAA", "canonical_url": "https://news.google.com/x6",
+         "headline_only": True, "extraction_status": "failed", "body": "",
+         "sentiment_score": 50, "rejection_reason": None,
+         "analysis_status": "headline_only"},
         # google wrapper but rejected -> EXCLUDED (stays retryable elsewhere)
         {"id": "3", "ticker": "AAA", "canonical_url": "https://news.google.com/x3",
          "headline_only": True, "extraction_status": "failed", "body": "",
@@ -65,7 +71,7 @@ def test_selection_filters_to_unusable_google_wrappers():
     ]
     sb = _SB(uni, events)
     got = {r["id"] for r in wr._select_candidates(sb, window_days=7, limit=0)}
-    assert got == {"1", "5"}
+    assert got == {"1", "5", "6"}
 
 
 def test_min_body_constant_is_strict():
