@@ -6,21 +6,17 @@ struct ContentView: View {
 
     var body: some View {
         Group {
-            if debugVisualQAEnabled {
+            #if DEBUG
+            if hifiReferenceEnabled {
+                ClavixHiFiReferenceView()
+            } else if debugVisualQAEnabled {
                 ClavixVisualQARoot(open: debugVisualQAOpen)
-            } else if authViewModel.isLoadingPreferences && !hasCheckedSession {
-                LoadingView()
-            } else if authViewModel.isAuthenticated && authViewModel.isLoadingPreferences {
-                LoadingView()
-            } else if authViewModel.isAuthenticated {
-                if authViewModel.hasCompletedOnboarding {
-                    MainTabView()
-                } else {
-                    OnboardingContainerView()
-                }
             } else {
-                LoginView()
+                authRoot
             }
+            #else
+            authRoot
+            #endif
         }
         .onAppear {
             guard !debugVisualQAEnabled else { return }
@@ -42,6 +38,34 @@ struct ContentView: View {
             Task { await authViewModel.handleAuthDeepLink(url: url) }
         }
         .preferredColorScheme(.light)
+    }
+
+    @ViewBuilder
+    private var authRoot: some View {
+        if authViewModel.isLoadingPreferences && !hasCheckedSession {
+            LoadingView()
+        } else if authViewModel.isAuthenticated && authViewModel.isLoadingPreferences {
+            LoadingView()
+        } else if authViewModel.isAuthenticated {
+            if authViewModel.hasCompletedOnboarding {
+                MainTabView()
+            } else {
+                OnboardingContainerView()
+            }
+        } else {
+            LoginView()
+        }
+    }
+
+    /// Loads the bundled Clavix Hi-Fi v2 HTML in WKWebView for pixel-level
+    /// parity comparison during the design build. Enable with
+    /// `CLAVIX_USE_HIFI_REFERENCE=1` in the Xcode scheme env vars.
+    private var hifiReferenceEnabled: Bool {
+        #if DEBUG
+        ProcessInfo.processInfo.environment["CLAVIX_USE_HIFI_REFERENCE"] == "1"
+        #else
+        false
+        #endif
     }
 
     // Live tabs are now the default everywhere. The static VisualQA mock is

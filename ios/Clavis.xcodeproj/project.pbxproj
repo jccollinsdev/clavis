@@ -12,6 +12,7 @@
 		1BCA71D523BEDF92D78F7089 /* HoldingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C38C07B0CF0ED9A35F1AC9 /* HoldingsViewModel.swift */; };
 		1D9280D845895C4B75AC1C71 /* JetBrainsMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2179397FC5DAEEF86E5A5C71 /* JetBrainsMono-Regular.ttf */; };
 		1F29992CC73FA2AF8A5053C7 /* DigestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 109D64880EF83D2FC224A3F4 /* DigestView.swift */; };
+		226D8D4CFD22EFF6B4F06AE7 /* ClavixHiFiReferenceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6865E9629A6E4707A21F1107 /* ClavixHiFiReferenceView.swift */; };
 		260312ED46C93D4855AA49AF /* SharedTickerAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32583580F21DC84D7740A433 /* SharedTickerAnalysis.swift */; };
 		2968C7B9D5B0CD322BFC6BA5 /* AlertsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8722709AAABD33C139625D0 /* AlertsView.swift */; };
 		2D0A2D28435796BB5DF7C2ED /* PushNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 473421A47E2CCB53FC0AEAF7 /* PushNotificationManager.swift */; };
@@ -25,6 +26,7 @@
 		4541BC98D2D1F6C144CF8016 /* HoldingsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B47422C72E57F1AD65337925 /* HoldingsListView.swift */; };
 		47F6465272C3A8E4EE32DDA1 /* NetworkStatusMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9027BA75CB22430CF3A61B46 /* NetworkStatusMonitor.swift */; };
 		4C67DB796D30B8B099615B2E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3EF9D33F89ABA37D1B82F8FF /* Assets.xcassets */; };
+		4D460994A1250C58933CBE7A /* clavix-hifi-v2.html in Resources */ = {isa = PBXBuildFile; fileRef = 80FF9274D7054F9FFD043346 /* clavix-hifi-v2.html */; };
 		4E2788D874AA22953477EE2A /* PriceChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F46151C0C929856200978D9 /* PriceChartView.swift */; };
 		5325BE30E38E60F995043C32 /* OnboardingContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E39592197B205D7C5872DC4B /* OnboardingContainerView.swift */; };
 		59E27730391F02665109EBB6 /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C394F153A0BBF81D597DFF4 /* SafariView.swift */; };
@@ -106,12 +108,14 @@
 		64339F378E9D1A25949DCD60 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		661F4F5923CFE0B8A301B005 /* UserPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPreferences.swift; sourceTree = "<group>"; };
 		6758D1ED48A934CA8F640A80 /* MorningReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningReportView.swift; sourceTree = "<group>"; };
+		6865E9629A6E4707A21F1107 /* ClavixHiFiReferenceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClavixHiFiReferenceView.swift; sourceTree = "<group>"; };
 		6C7B7E052980D0A7FF3CFA16 /* ClavisCardComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClavisCardComponents.swift; sourceTree = "<group>"; };
 		6DE04452D246D5FAAB52974D /* DisplayText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayText.swift; sourceTree = "<group>"; };
 		70EE5F0AE203E42FD2BDAC80 /* DriverCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverCard.swift; sourceTree = "<group>"; };
 		723C913265F4BD04FE9F014C /* ArticleDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArticleDetailSheet.swift; sourceTree = "<group>"; };
 		741B24BE5B94DBF045AACBD4 /* Dashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dashboard.swift; sourceTree = "<group>"; };
 		770F7DC8D4FA49517326EDF6 /* ClavixVQAComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClavixVQAComponents.swift; sourceTree = "<group>"; };
+		80FF9274D7054F9FFD043346 /* clavix-hifi-v2.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "clavix-hifi-v2.html"; sourceTree = "<group>"; };
 		865D86FE1054F68F98487739 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		87747037B87C524712EB60CE /* Alert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Alert.swift; sourceTree = "<group>"; };
 		8910D50BF14EAA9555D441B0 /* ClavixVisualQA.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClavixVisualQA.swift; sourceTree = "<group>"; };
@@ -158,6 +162,7 @@
 		0B3B3A8D03A92CEAF99BD0BD /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				6865E9629A6E4707A21F1107 /* ClavixHiFiReferenceView.swift */,
 				0C394F153A0BBF81D597DFF4 /* SafariView.swift */,
 				2403BCBC89FFD00BA0591F3D /* Components */,
 			);
@@ -264,11 +269,20 @@
 			path = Onboarding;
 			sourceTree = "<group>";
 		};
+		59513A3D375BB66DD30123D5 /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				80FF9274D7054F9FFD043346 /* clavix-hifi-v2.html */,
+			);
+			path = Design;
+			sourceTree = "<group>";
+		};
 		77D100D22D580D259613F232 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
 				3EF9D33F89ABA37D1B82F8FF /* Assets.xcassets */,
 				29A809E82D0C86C833E0C7B3 /* Info.plist */,
+				59513A3D375BB66DD30123D5 /* Design */,
 				C80DBCD1ED8D72314EE63837 /* Fonts */,
 			);
 			path = Resources;
@@ -466,6 +480,7 @@
 				4C67DB796D30B8B099615B2E /* Assets.xcassets in Resources */,
 				16BF21C4806ED2A1C51A21FF /* Inter-Variable.ttf in Resources */,
 				1D9280D845895C4B75AC1C71 /* JetBrainsMono-Regular.ttf in Resources */,
+				4D460994A1250C58933CBE7A /* clavix-hifi-v2.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -489,6 +504,7 @@
 				F0F488E4218A118D1566EB56 /* ClavisCopy.swift in Sources */,
 				B61BCC248F71D8DB1FB4DCCB /* ClavisDesignSystem.swift in Sources */,
 				85F2CDB453871DA17A0835F4 /* ClavixDesignTokens.swift in Sources */,
+				226D8D4CFD22EFF6B4F06AE7 /* ClavixHiFiReferenceView.swift in Sources */,
 				394A41DC223DF84E206FDE95 /* ClavixVQAComponents.swift in Sources */,
 				2F08F77D5C5FD634CE90B8C0 /* ClavixVisualQA.swift in Sources */,
 				8DAD521FBA34344E7E3DE207 /* ContentView.swift in Sources */,

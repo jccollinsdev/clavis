@@ -36,6 +36,7 @@ targets:
       Release: Clavis/Config/Secrets.xcconfig
     resources:
       - path: Clavis/Resources/Fonts
+      - path: Clavis/Resources/Design
     dependencies:
       - package: Supabase
 
