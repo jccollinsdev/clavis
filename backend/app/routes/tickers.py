@@ -152,3 +152,60 @@ async def get_refresh_status(ticker: str, user_id: str = Depends(get_user_id)):
         "completed_at": job.get("completed_at") if job else None,
         "error_message": job.get("error_message") if job else None,
     }
+
+
+@router.get("/{ticker}/score-history")
+async def get_score_history(
+    ticker: str,
+    days: int = Query(default=90, ge=2, le=365),
+    user_id: str = Depends(get_user_id),
+):
+    """Ordered composite + per-dimension score history from ticker_risk_snapshots.
+
+    Returns points sorted ascending by date. When <2 points exist, the iOS
+    `ScoreHistoryChart` renders the "New" indicator per CLAVIX_TRUTH §8.
+    """
+    supabase = get_supabase()
+    normalized = ticker.upper()
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).date().isoformat()
+
+    rows = (
+        supabase.table("ticker_risk_snapshots")
+        .select(
+            "snapshot_date,composite_score,safety_score,grade,"
+            "financial_health,news_sentiment_dim,macro_exposure_dim,"
+            "sector_exposure,volatility,methodology_version"
+        )
+        .eq("ticker", normalized)
+        .gte("snapshot_date", cutoff)
+        .order("snapshot_date", desc=False)
+        .execute()
+        .data
+        or []
+    )
+
+    points = []
+    for row in rows:
+        composite = row.get("composite_score")
+        if composite is None:
+            composite = row.get("safety_score")
+        if composite is None:
+            continue
+        points.append({
+            "date": row.get("snapshot_date"),
+            "composite": composite,
+            "grade": row.get("grade"),
+            "financial_health": row.get("financial_health"),
+            "news_sentiment": row.get("news_sentiment_dim"),
+            "macro_exposure": row.get("macro_exposure_dim"),
+            "sector_exposure": row.get("sector_exposure"),
+            "volatility": row.get("volatility"),
+            "methodology_version": row.get("methodology_version"),
+        })
+
+    return {
+        "ticker": normalized,
+        "points": points,
+        "history_count": len(points),
+        "days_requested": days,
+    }

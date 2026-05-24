@@ -62,10 +62,22 @@ async def create_holding(
     supabase = get_supabase()
 
     supported = ensure_ticker_in_universe(supabase, position.ticker)
+    is_outside_universe = False
     if not supported:
-        raise HTTPException(400, "Ticker is not available in Clavix yet")
+        # CLAVIX_TRUTH §5: outside-universe tickers may be added in degraded
+        # mode when the user explicitly opts in. Otherwise reject with copy
+        # explaining the path forward.
+        if not getattr(position, "allow_outside_universe", False):
+            raise HTTPException(
+                400,
+                f"{position.ticker.upper()} isn't in the Clavix tracked universe yet. "
+                "Re-submit with allow_outside_universe=true to add it in degraded mode.",
+            )
+        is_outside_universe = True
+        normalized_ticker = position.ticker.strip().upper()
+    else:
+        normalized_ticker = supported["ticker"]
 
-    normalized_ticker = supported["ticker"]
     existing_position = (
         supabase.table("positions")
         .select("*")
@@ -85,18 +97,35 @@ async def create_holding(
             position=existing,
         )
 
+    # Strip non-DB fields before insert (model includes UX-only flags).
+    payload = position.model_dump(exclude_none=True)
+    payload.pop("allow_outside_universe", None)
     data = {
-        **position.model_dump(exclude_none=True),
+        **payload,
         "ticker": normalized_ticker,
         "user_id": user_id,
         "current_price": None,
         "analysis_started_at": datetime.now(timezone.utc).isoformat(),
+        "outside_universe": is_outside_universe,
     }
     result = supabase.table("positions").insert(data).execute()
     if not result.data:
         raise HTTPException(500, "Failed to create position")
     created = result.data[0]
     background_tasks.add_task(refresh_position_price, created["id"], created["ticker"])
+
+    # Outside-universe positions skip the structural refresh (we have neither
+    # metadata nor a snapshot row to enrich from). Return immediately with
+    # honest limited-data state.
+    if is_outside_universe:
+        return build_holding_workflow_response(
+            supabase,
+            user_id=user_id,
+            ticker=created["ticker"],
+            position_id=created["id"],
+            position=enrich_positions_with_ticker_cache([created], supabase)[0],
+            latest_refresh_job=None,
+        )
 
     try:
         refresh_job = await asyncio.to_thread(

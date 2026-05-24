@@ -7,6 +7,7 @@ from collections import Counter
 from datetime import date, datetime, timedelta, timezone
 from itertools import zip_longest
 from typing import Any
+from urllib.parse import urlparse
 from dateutil.parser import isoparse
 from zoneinfo import ZoneInfo
 
@@ -18,6 +19,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 from .analysis_utils import utcnow_iso, clamp_score, score_to_grade, sanitize_text_field, normalize_event_analysis_payload
 from .news_normalizer import normalize_news_batch, _evidence_quality
 from ..services.backfill_artifacts import record_stage, get_run_artifact_dir, begin_artifact_session, write_named_json, end_artifact_session, record_position_artifact
+from ..services.news_enrichment import classify_recency_weight, classify_source_tier
 from ..services.ticker_cache_service import ensure_sp500_universe_seeded, list_active_sp500_tickers, refresh_ticker_snapshot
 from ..services.ticker_metadata import upsert_ticker_metadata
 
@@ -302,6 +304,85 @@ def _project_shared_event_analysis(
     }
 
 
+def _is_google_news_wrapper_url(value: str | None) -> bool:
+    raw = str(value or "").strip()
+    lowered = raw.lower()
+    if not lowered:
+        return False
+    # Be intentionally defensive here: live RSS rows can arrive with slightly
+    # malformed/escaped wrapper strings, and the DB has a hard no-wrapper
+    # constraint on shared_ticker_events.source_url.
+    if any(
+        marker in lowered
+        for marker in (
+            "news.google.com/rss/articles/",
+            "news.google.com/articles/",
+            "news.google.com/read/",
+        )
+    ):
+        return True
+    parsed = urlparse(raw)
+    host = (parsed.hostname or "").lower()
+    if host != "news.google.com":
+        return False
+    return parsed.path.startswith(("/rss/articles/", "/articles/", "/read/"))
+
+
+def _is_root_or_homepage_url(value: str | None) -> bool:
+    parsed = urlparse(str(value or "").strip())
+    path = (parsed.path or "").strip("/")
+    return not path
+
+
+def _canonical_article_url_for_shared_event(article: dict) -> str:
+    """Return a real publisher article URL, never an unresolved Google wrapper."""
+    raw = article.get("raw") if isinstance(article.get("raw"), dict) else {}
+    candidates: list[str] = []
+    for key in (
+        "canonical_url",
+        "resolved_publisher_url",
+        "publisher_url",
+        "decoded_google_url",
+        "resolved_url",
+        "source_url",
+        "url",
+    ):
+        candidates.append(str(article.get(key) or "").strip())
+        candidates.append(str(raw.get(key) or "").strip())
+
+    for value in candidates:
+        if not value or _is_google_news_wrapper_url(value):
+            continue
+        if _is_root_or_homepage_url(value):
+            continue
+        return value
+    return ""
+
+
+def _normalize_shared_event_impact_horizon(value: object) -> str:
+    allowed = {"immediate", "near_term", "long_term"}
+    normalized = str(value or "").strip().lower()
+    return normalized if normalized in allowed else "near_term"
+
+
+def _normalize_shared_event_risk_direction(value: object) -> str:
+    allowed = {"improving", "neutral", "worsening"}
+    normalized = str(value or "").strip().lower()
+    return normalized if normalized in allowed else "neutral"
+
+
+def _news_classifiers():
+    try:
+        return classify_source_tier, classify_recency_weight
+    except NameError:
+        from ..services.news_enrichment import (
+            classify_source_tier as _classify_source_tier,
+            classify_recency_weight as _classify_recency_weight,
+        )
+
+        return _classify_source_tier, _classify_recency_weight
+
+
 def _upsert_shared_ticker_event(
     supabase,
     *,
@@ -316,20 +397,36 @@ def _upsert_shared_ticker_event(
     """
     if not event_record.get("event_hash"):
         return None
+    source_url = str(event_record.get("source_url") or "").strip()
+    if not source_url:
+        print(
+            "[SHARED_EVENT] Skipping event without canonical publisher URL "
+            f"ticker={ticker} event_hash={event_record.get('event_hash')}",
+            flush=True,
+        )
+        return None
+    if _is_google_news_wrapper_url(source_url):
+        print(
+            "[SHARED_EVENT] Skipping unresolved Google News wrapper "
+            f"ticker={ticker} event_hash={event_record.get('event_hash')}",
+            flush=True,
+        )
+        return None
 
     source = str(event_record.get("source") or "").strip()
-    source_tier = classify_source_tier(source) if source else 3
+    classify_source_tier_fn, classify_recency_weight_fn = _news_classifiers()
+    source_tier = classify_source_tier_fn(source) if source else 3
     published_at_str = str(event_record.get("published_at") or "")
-    recency_weight = classify_recency_weight(published_at_str)[0] if published_at_str else 1.0
+    recency_weight = (
+        classify_recency_weight_fn(published_at_str)[0] if published_at_str else 1.0
+    )
     risk_direction = str(event_record.get("risk_direction") or "").strip().lower()
+    risk_direction = _normalize_shared_event_risk_direction(risk_direction)
     sentiment_score = None
-    if risk_direction:
-        if "negative" in risk_direction:
-            sentiment_score = 30
-        elif "positive" in risk_direction:
-            sentiment_score = 70
-        else:
-            sentiment_score = 50
+    if risk_direction == "worsening":
+        sentiment_score = 30
+    elif risk_direction == "improving":
+        sentiment_score = 70
     classification_raw = event_record.get("classification")
     classification_str = (
         ",".join(str(c) for c in classification_raw)
@@ -357,7 +454,7 @@ def _upsert_shared_ticker_event(
         "title": event_record.get("title", ""),
         "summary": event_record.get("summary"),
         "source": source or event_record.get("source"),
-        "source_url": event_record.get("source_url"),
+        "source_url": source_url or None,
         "published_at": event_record.get("published_at"),
         "event_type": event_record.get("event_type"),
         "significance": event_record.get("significance"),
@@ -368,8 +465,10 @@ def _upsert_shared_ticker_event(
         "what_it_means": event_record.get("what_it_means"),
         "long_analysis": event_record.get("long_analysis"),
         "confidence": event_record.get("confidence"),
-        "impact_horizon": event_record.get("impact_horizon"),
-        "risk_direction": event_record.get("risk_direction"),
+        "impact_horizon": _normalize_shared_event_impact_horizon(
+            event_record.get("impact_horizon")
+        ),
+        "risk_direction": risk_direction,
         "scenario_summary": event_record.get("scenario_summary"),
         "key_implications": event_record.get("key_implications") or [],
         "follow_up_notes": event_record.get("recommended_followups") or [],
@@ -596,6 +695,24 @@ def _execute_supabase_with_retry(
     raise last_exc
 
 
+def _execute_supabase_with_fresh_client_retry(
+    operation,
+    *,
+    context: str,
+    attempts: int = 3,
+    base_delay: float = 1.0,
+):
+    """Retry transient PostgREST disconnects with a new Supabase client each time."""
+    from ..services.supabase import get_supabase
+
+    return _execute_supabase_with_retry(
+        lambda: operation(get_supabase()),
+        context=context,
+        attempts=attempts,
+        base_delay=base_delay,
+    )
+
+
 def _update_analysis_run(supabase, analysis_run_id: str, **fields):
     _execute_supabase_with_retry(
         lambda: (
@@ -792,31 +909,17 @@ def _store_analysis_cache(
     cache_key: str,
     payload: dict,
 ):
-    existing = (
-        supabase.table(CACHE_TABLE)
-        .select("cache_key")
-        .eq("kind", kind)
-        .eq("cache_key", cache_key)
-        .limit(1)
-        .execute()
-        .data
-    )
     row = {
         "kind": kind,
         "cache_key": cache_key,
         "payload": payload,
         "updated_at": utcnow_iso(),
     }
-    if existing:
-        (
-            supabase.table(CACHE_TABLE)
-            .update(row)
-            .eq("kind", kind)
-            .eq("cache_key", cache_key)
-            .execute()
-        )
-    else:
-        supabase.table(CACHE_TABLE).insert(row).execute()
+    (
+        supabase.table(CACHE_TABLE)
+        .upsert(row, on_conflict="kind,cache_key")
+        .execute()
+    )
 
 
 def _should_enrich_company_article(article: dict) -> bool:
@@ -2608,7 +2711,7 @@ async def execute_analysis_run(
                     "summary": sanitize_text_field(article.get("summary", ""),
                                                    fallback=article.get("title", "")),
                     "source": sanitize_text_field(article.get("source", "")) or article.get("source", ""),
-                    "source_url": article.get("url", ""),
+                    "source_url": _canonical_article_url_for_shared_event(article),
                     "published_at": article.get("published_at"),
                     "event_type": significance.get("event_type", "other"),
                     "significance": significance.get("significance", "minor"),
@@ -2634,6 +2737,12 @@ async def execute_analysis_run(
                     "recommended_followups": [sanitize_text_field(fu, fallback="") or fu
                                               for fu in (result.get("recommended_followups", []) if result else [])],
                 }
+                event_record["impact_horizon"] = _normalize_shared_event_impact_horizon(
+                    event_record.get("impact_horizon")
+                )
+                event_record["risk_direction"] = _normalize_shared_event_risk_direction(
+                    event_record.get("risk_direction")
+                )
                 normalized = normalize_event_analysis_payload(event_record, ticker=ticker)
                 event_record["what_happened"] = normalized["what_happened"]
                 event_record["tldr"] = normalized["tldr"]
@@ -2662,7 +2771,7 @@ async def execute_analysis_run(
                     "summary": sanitize_text_field(article.get("summary", ""),
                                                    fallback=article.get("title", "")),
                     "source": sanitize_text_field(article.get("source", "")) or article.get("source", ""),
-                    "source_url": article.get("url", ""),
+                    "source_url": _canonical_article_url_for_shared_event(article),
                     "published_at": article.get("published_at"),
                     "event_type": significance.get("event_type", "other"),
                     "significance": significance.get("significance", "major"),
@@ -2688,6 +2797,12 @@ async def execute_analysis_run(
                     "recommended_followups": [sanitize_text_field(fu, fallback="") or fu
                                               for fu in (result.get("recommended_followups", []) if result else [])],
                 }
+                event_record["impact_horizon"] = _normalize_shared_event_impact_horizon(
+                    event_record.get("impact_horizon")
+                )
+                event_record["risk_direction"] = _normalize_shared_event_risk_direction(
+                    event_record.get("risk_direction")
+                )
                 normalized = normalize_event_analysis_payload(event_record, ticker=ticker)
                 event_record["what_happened"] = normalized["what_happened"]
                 event_record["tldr"] = normalized["tldr"]
@@ -3490,6 +3605,7 @@ async def enqueue_analysis_run(
         and user_id == SYSTEM_SP500_USER_ID
         and triggered_by == "scheduled"
         and target_tickers
+        and not allow_parallel_runs
     ):
         return {
             "status": "paused",
@@ -3696,6 +3812,7 @@ async def _execute_sp500_backfill_run(
             backfill_run_id=analysis_run_id,
             skip_structural=skip_structural,
         )
+        cleanup_report = await _run_sp500_post_run_wrapper_cleanup()
         refreshed = int(result.get("refreshed") or 0)
         failed = result.get("failed") or []
         if result.get("status") == "ok":
@@ -3703,7 +3820,10 @@ async def _execute_sp500_backfill_run(
                 supabase,
                 analysis_run_id,
                 "completed",
-                f"Completed S&P 500 {job_type} run. Synced {refreshed} tickers.",
+                (
+                    f"Completed S&P 500 {job_type} run. Synced {refreshed} tickers. "
+                    f"Wrapper leaks after cleanup: {cleanup_report.get('remaining_leaks', 0)}."
+                ),
                 status="completed",
                 completed_at=utcnow_iso(),
                 error_message=None,
@@ -3716,7 +3836,11 @@ async def _execute_sp500_backfill_run(
                 supabase,
                 analysis_run_id,
                 "completed",
-                f"Completed S&P 500 {job_type} run with {len(failed)} failures. Synced {refreshed} tickers.",
+                (
+                    f"Completed S&P 500 {job_type} run with {len(failed)} failures. "
+                    f"Synced {refreshed} tickers. "
+                    f"Wrapper leaks after cleanup: {cleanup_report.get('remaining_leaks', 0)}."
+                ),
                 status="partial",
                 completed_at=utcnow_iso(),
                 error_message=(str(failed[:3])[:500] if failed else None),
@@ -3747,6 +3871,19 @@ async def _execute_sp500_backfill_run(
         raise
     finally:
         active_sp500_backfills.pop(analysis_run_id, None)
+
+
+async def _run_sp500_post_run_wrapper_cleanup() -> dict:
+    from app.scripts.wrapper_storage_cleanup import run_cleanup
+
+    return await run_cleanup(
+        apply=True,
+        days=30,
+        tickers=None,
+        concurrency=20,
+        timeout=8.0,
+        batch_size=50,
+    )
 
 
 def run_sp500_backfill_worker(
@@ -4145,38 +4282,50 @@ def _sync_ai_scores_to_ticker_snapshots_sync(
     from ..services.ticker_cache_service import _upsert_ticker_snapshot
 
     user_id = SYSTEM_SP500_USER_ID
-    position_rows = (
-        supabase.table("positions")
-        .select("id, ticker")
-        .eq("user_id", user_id)
-        .eq("ticker", ticker.upper())
-        .limit(1)
-        .execute()
-        .data
+    ticker_upper = ticker.upper()
+    position_rows = _execute_supabase_with_fresh_client_retry(
+        lambda client: (
+            client.table("positions")
+            .select("id, ticker")
+            .eq("user_id", user_id)
+            .eq("ticker", ticker_upper)
+            .limit(1)
+            .execute()
+            .data
+        ),
+        context=f"positions lookup for ticker snapshot sync {ticker_upper}",
     )
     if not position_rows:
         return
     position_id = position_rows[0]["id"]
-    latest_snap_rows = (
-        supabase.table("ticker_risk_snapshots")
-        .select("*")
-        .eq("ticker", ticker.upper())
-        .eq("snapshot_type", job_type)
-        .order("created_at", desc=True)
-        .limit(1)
-        .execute()
-        .data
+    latest_snap_rows = _execute_supabase_with_fresh_client_retry(
+        lambda client: (
+            client.table("ticker_risk_snapshots")
+            .select("*")
+            .eq("ticker", ticker_upper)
+            .eq("snapshot_type", job_type)
+            .order("created_at", desc=True)
+            .limit(1)
+            .execute()
+            .data
+        ),
+        context=f"latest ticker_risk_snapshots load for sync {ticker_upper}",
     )
     if not latest_snap_rows:
         return
     ai_score = latest_snap_rows[0]
-    analysis_query = (
-        supabase.table("position_analyses").select("*").eq("position_id", position_id)
-    )
-    if analysis_run_id:
-        analysis_query = analysis_query.eq("analysis_run_id", analysis_run_id)
-    latest_analysis_rows = (
-        analysis_query.order("updated_at", desc=True).limit(1).execute().data
+
+    def _load_latest_analysis(client):
+        analysis_query = (
+            client.table("position_analyses").select("*").eq("position_id", position_id)
+        )
+        if analysis_run_id:
+            analysis_query = analysis_query.eq("analysis_run_id", analysis_run_id)
+        return analysis_query.order("updated_at", desc=True).limit(1).execute().data
+
+    latest_analysis_rows = _execute_supabase_with_fresh_client_retry(
+        _load_latest_analysis,
+        context=f"position_analyses load for ticker snapshot sync {ticker_upper}",
     )
     analysis = latest_analysis_rows[0] if latest_analysis_rows else {}
     now_iso = utcnow_iso()
@@ -4225,13 +4374,16 @@ def _sync_ai_scores_to_ticker_snapshots_sync(
     if llm_scoring_used is None:
         llm_scoring_used = factor_breakdown.get("llm_scoring_used")
     if llm_scoring_used is None and analysis_run_id:
-        run_rows = (
-            supabase.table("analysis_runs")
-            .select("user_id, triggered_by, target_tickers")
-            .eq("id", analysis_run_id)
-            .limit(1)
-            .execute()
-            .data
+        run_rows = _execute_supabase_with_fresh_client_retry(
+            lambda client: (
+                client.table("analysis_runs")
+                .select("user_id, triggered_by, target_tickers")
+                .eq("id", analysis_run_id)
+                .limit(1)
+                .execute()
+                .data
+            ),
+            context=f"analysis_runs load for ticker snapshot sync {ticker_upper}",
         )
         if run_rows:
             run = run_rows[0]
@@ -4240,17 +4392,20 @@ def _sync_ai_scores_to_ticker_snapshots_sync(
                 and run.get("triggered_by") == "scheduled"
                 and run.get("target_tickers")
             )
-    previous_snapshot_rows = (
-        supabase.table("ticker_risk_snapshots")
-        .select("safety_score")
-        .eq("ticker", ticker.upper())
-        .eq("snapshot_type", job_type)
-        .order("analysis_as_of", desc=True)
-        .order("updated_at", desc=True)
-        .order("created_at", desc=True)
-        .limit(5)
-        .execute()
-        .data
+    previous_snapshot_rows = _execute_supabase_with_fresh_client_retry(
+        lambda client: (
+            client.table("ticker_risk_snapshots")
+            .select("safety_score")
+            .eq("ticker", ticker_upper)
+            .eq("snapshot_type", job_type)
+            .order("analysis_as_of", desc=True)
+            .order("updated_at", desc=True)
+            .order("created_at", desc=True)
+            .limit(5)
+            .execute()
+            .data
+        ),
+        context=f"ticker_risk_snapshots history load for sync {ticker_upper}",
     )
     previous_score = None
     for row in previous_snapshot_rows or []:
@@ -4266,12 +4421,18 @@ def _sync_ai_scores_to_ticker_snapshots_sync(
         scores=ai_score,
         source_count=source_count,
     )
+    ai_dimensions = factor_breakdown.get("ai_dimensions") or {}
     payload = {
         "ticker": ticker.upper(),
         "snapshot_date": datetime.utcnow().date().isoformat(),
         "snapshot_type": job_type,
         "grade": grade,
         "safety_score": round(float(public_score), 1),
+        "financial_health": ai_dimensions.get("financial_health"),
+        "news_sentiment": ai_dimensions.get("news_sentiment"),
+        "macro_exposure": ai_dimensions.get("macro_exposure"),
+        "sector_exposure": ai_dimensions.get("sector_exposure"),
+        "volatility": ai_dimensions.get("volatility"),
         "structural_base_score": ai_score.get("structural_base_score"),
         "macro_adjustment": ai_score.get("macro_adjustment") or 0.0,
         "event_adjustment": ai_score.get("event_adjustment") or 0.0,
@@ -4298,11 +4459,14 @@ def _sync_ai_scores_to_ticker_snapshots_sync(
         "refresh_triggered_by_user_id": None,
         "updated_at": now_iso,
     }
-    _upsert_ticker_snapshot(
-        supabase,
-        ticker=ticker.upper(),
-        snapshot_type=job_type,
-        payload=payload,
+    _execute_supabase_with_fresh_client_retry(
+        lambda client: _upsert_ticker_snapshot(
+            client,
+            ticker=ticker_upper,
+            snapshot_type=job_type,
+            payload=dict(payload),
+        ),
+        context=f"ticker_risk_snapshots sync upsert {ticker_upper}",
     )
 
 
@@ -5111,7 +5275,7 @@ def _upsert_ticker_snapshot_from_scores(
 
     payload = {
         "ticker": ticker,
-        "snapshot_date": today,
+        "snapshot_date": today.isoformat(),
         "snapshot_type": "daily",
         "grade": grade,
         "safety_score": structural_scores.get("safety_score"),

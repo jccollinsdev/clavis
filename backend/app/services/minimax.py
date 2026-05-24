@@ -33,10 +33,31 @@ def _is_minimax_auth_failure(exc: Exception) -> bool:
     )
 
 
+def _is_retryable_minimax_failure(exc: Exception) -> bool:
+    error_text = str(exc).lower()
+    return any(
+        marker in error_text
+        for marker in (
+            "high traffic",
+            "rate limit",
+            "too many requests",
+            "overloaded",
+            "temporarily unavailable",
+            "bad gateway",
+            "502",
+            "503",
+            "529",
+            "server disconnected",
+        )
+    )
+
+
 def _wait_for_minimax_slot() -> None:
     global _MINIMAX_NEXT_ALLOWED_AT
 
-    min_interval_seconds = max(float(settings.minimax_min_interval_seconds), 0.0)
+    # Enforce a floor above 1s so concurrent workers never back-to-back MiniMax
+    # requests within the same second, even if env config is lowered.
+    min_interval_seconds = max(float(settings.minimax_min_interval_seconds), 1.05)
     if min_interval_seconds == 0:
         return
 
@@ -60,20 +81,10 @@ def chatcompletion_text(messages: list, model: str = "MiniMax-M2.7", **kwargs) -
     response = None
     cleaned = ""
     error = None
-    retryable_markers = (
-        "high traffic",
-        "rate limit",
-        "too many requests",
-        "overloaded",
-        "temporarily unavailable",
-        "bad gateway",
-        "502",
-        "503",
-        "529",
-    )
     try:
         delay = 0.8
-        for attempt in range(3):
+        max_attempts = 5
+        for attempt in range(max_attempts):
             try:
                 _wait_for_minimax_slot()
                 response = chatcompletion(messages, model, **kwargs)
@@ -88,11 +99,9 @@ def chatcompletion_text(messages: list, model: str = "MiniMax-M2.7", **kwargs) -
                 if _is_minimax_auth_failure(exc):
                     error = f"MiniMax auth failure: {error}"
                     raise MiniMaxAuthError(error) from exc
-                if attempt < 2 and any(
-                    marker in error.lower() for marker in retryable_markers
-                ):
+                if attempt < max_attempts - 1 and _is_retryable_minimax_failure(exc):
                     time.sleep(delay)
-                    delay *= 2
+                    delay = min(delay * 2, 8.0)
                     continue
                 raise
     except Exception as exc:

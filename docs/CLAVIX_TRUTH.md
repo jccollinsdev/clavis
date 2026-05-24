@@ -560,10 +560,10 @@ Cost optimization: macro section is generated once per day and shared across all
 
 ### Discovery
 
-**Source:** Google News RSS feed, queried per ticker.
+**Source (current, 2026-05-24 override):** **Finnhub `company_news`** per ticker. Google News RSS exists in code (`rss_ingest.py`) and is used in some auxiliary paths, but Finnhub is the canonical discovery source for v1. Do not silently switch back to Google News RSS without an explicit product decision.
 
 For each ticker in the universe:
-- Query: `site:* "[ticker]" OR "[company name]"` against Google News RSS
+- Call Finnhub `company_news` with a 48h trailing window
 - Pull headlines + URLs
 - Deduplicate by canonical URL (strip tracking params)
 - Filter: drop articles with low ticker relevance (the article must mention the ticker or company prominently, not as a passing mention)

@@ -74,3 +74,27 @@ def test_chatcompletion_text_retries_502_errors(monkeypatch):
 
     assert result == "{}"
     assert len(attempts) == 2
+
+
+def test_chatcompletion_text_retries_529_errors(monkeypatch):
+    attempts = []
+
+    monkeypatch.setattr(minimax.settings, "minimax_min_interval_seconds", 0.0)
+    monkeypatch.setattr(minimax, "_MINIMAX_NEXT_ALLOWED_AT", 0.0)
+    monkeypatch.setattr(minimax.time, "perf_counter", lambda: 0.0)
+    monkeypatch.setattr(minimax.time, "sleep", lambda seconds: None)
+
+    def fake_chatcompletion(*args, **kwargs):
+        attempts.append(1)
+        if len(attempts) == 1:
+            raise RuntimeError(
+                "Error code: 529 - {'type': 'error', 'error': {'type': 'overloaded_error', 'message': 'The server cluster is currently under high load.'}}"
+            )
+        return _FakeResponse('{"ok":true}')
+
+    monkeypatch.setattr(minimax, "chatcompletion", fake_chatcompletion)
+
+    result = minimax.chatcompletion_text([{"role": "user", "content": "hi"}])
+
+    assert result == '{"ok":true}'
+    assert len(attempts) == 2

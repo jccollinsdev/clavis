@@ -1,5 +1,6 @@
 from __future__ import annotations
 from ..services.minimax import chatcompletion_text
+from ..services.minimax import MiniMaxAuthError, _is_retryable_minimax_failure
 from .analysis_utils import extract_json_list, extract_json_object
 
 SYSTEM_PROMPT = """You are a portfolio risk rater. Given a news item and a stock position, state the primary risk implication — not just what happened, but what it means for the position.
@@ -100,6 +101,18 @@ def _fallback_shared_minor_event_analysis(news_item: dict) -> dict:
     }
 
 
+def _normalize_impact_horizon(value: object, fallback: str = "near_term") -> str:
+    allowed = {"immediate", "near_term", "long_term"}
+    value_str = str(value or "").strip().lower()
+    return value_str if value_str in allowed else fallback
+
+
+def _normalize_risk_direction(value: object, fallback: str = "neutral") -> str:
+    allowed = {"improving", "neutral", "worsening"}
+    value_str = str(value or "").strip().lower()
+    return value_str if value_str in allowed else fallback
+
+
 async def analyze_minor_event(
     news_item: dict, position: dict, inferred_labels: list[str] | None = None
 ) -> dict:
@@ -113,11 +126,18 @@ async def analyze_minor_event(
         evidence_quality=news_item.get("evidence_quality", "title_only"),
     )
 
-    result = chatcompletion_text(
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.3,
-        max_tokens=800,
-    )
+    try:
+        result = chatcompletion_text(
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+            max_tokens=800,
+        )
+    except MiniMaxAuthError:
+        raise
+    except Exception as exc:
+        if not _is_retryable_minimax_failure(exc):
+            raise
+        return _fallback_minor_event_analysis(news_item, position)
     parsed = extract_json_object(result, {})
     fallback = _fallback_minor_event_analysis(news_item, position)
     return {
@@ -206,11 +226,18 @@ async def analyze_minor_events_batch(
         articles="\n\n".join(news_texts),
     )
 
-    result = chatcompletion_text(
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.3,
-        max_tokens=4000,
-    )
+    try:
+        result = chatcompletion_text(
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+            max_tokens=4000,
+        )
+    except MiniMaxAuthError:
+        raise
+    except Exception as exc:
+        if not _is_retryable_minimax_failure(exc):
+            raise
+        return [_fallback_minor_event_analysis(item, position) for item in articles]
 
     from .analysis_utils import extract_json_value
 
@@ -220,13 +247,20 @@ async def analyze_minor_events_batch(
     if isinstance(parsed, list) and len(parsed) == len(articles):
         for i, p in enumerate(parsed):
             fallback = _fallback_minor_event_analysis(articles[i], position)
+            if not isinstance(p, dict):
+                results.append(fallback)
+                continue
             results.append(
                 {
                     "analysis_text": p.get("analysis_text")
                     or fallback["analysis_text"],
-                    "impact_horizon": p.get("impact_horizon")
+                    "impact_horizon": _normalize_impact_horizon(
+                        p.get("impact_horizon"), fallback["impact_horizon"]
+                    )
                     or fallback["impact_horizon"],
-                    "risk_direction": p.get("risk_direction")
+                    "risk_direction": _normalize_risk_direction(
+                        p.get("risk_direction"), fallback["risk_direction"]
+                    )
                     or fallback["risk_direction"],
                     "confidence": float(p.get("confidence") or fallback["confidence"]),
                     "scenario_summary": p.get("scenario_summary")
@@ -263,24 +297,38 @@ async def analyze_minor_events_shared_batch(articles: list[dict]) -> list[dict]:
         articles="\n\n".join(news_texts),
     )
 
-    result = chatcompletion_text(
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.2,
-        max_tokens=2400,
-    )
+    try:
+        result = chatcompletion_text(
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2,
+            max_tokens=2400,
+        )
+    except MiniMaxAuthError:
+        raise
+    except Exception as exc:
+        if not _is_retryable_minimax_failure(exc):
+            raise
+        return [_fallback_shared_minor_event_analysis(item) for item in articles]
 
     parsed = extract_json_list(result, None)
     results = []
     if isinstance(parsed, list) and len(parsed) == len(articles):
         for i, payload in enumerate(parsed):
             fallback = _fallback_shared_minor_event_analysis(articles[i])
+            if not isinstance(payload, dict):
+                results.append(fallback)
+                continue
             results.append(
                 {
                     "analysis_text": payload.get("analysis_text")
                     or fallback["analysis_text"],
-                    "impact_horizon": payload.get("impact_horizon")
+                    "impact_horizon": _normalize_impact_horizon(
+                        payload.get("impact_horizon"), fallback["impact_horizon"]
+                    )
                     or fallback["impact_horizon"],
-                    "risk_direction": payload.get("risk_direction")
+                    "risk_direction": _normalize_risk_direction(
+                        payload.get("risk_direction"), fallback["risk_direction"]
+                    )
                     or fallback["risk_direction"],
                     "confidence": float(
                         payload.get("confidence") or fallback["confidence"]

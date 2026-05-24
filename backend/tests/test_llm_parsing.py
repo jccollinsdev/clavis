@@ -1,9 +1,12 @@
+import asyncio
+
 from app.pipeline.analysis_utils import (
     extract_json_list,
     extract_json_object,
     extract_json_value,
 )
-from app.pipeline.classifier import classify_significance_keyword
+from app.pipeline import classifier
+from app.pipeline.classifier import classify_significance_batch, classify_significance_keyword
 from app.pipeline.relevance import _parse_batch_relevance
 from app.pipeline.risk_scorer import _parse_batch_scores
 
@@ -97,3 +100,33 @@ def test_classify_significance_keyword_keeps_analyst_updates_minor():
 
     assert result is not None
     assert result["significance"] == "minor"
+
+
+def test_classify_significance_batch_tolerates_scalar_llm_items(monkeypatch):
+    monkeypatch.setattr(
+        classifier,
+        "chatcompletion_text",
+        lambda **_kwargs: (
+            '[42, {"significance": "major", "event_type": "product", '
+            '"why_it_matters": "New product launch matters.", "confidence": 0.82}]'
+        ),
+    )
+
+    results = asyncio.run(
+        classify_significance_batch(
+            [
+                {"title": "Routine item", "summary": "No keyword match", "body": ""},
+                {"title": "Strategic update", "summary": "No keyword match", "body": ""},
+            ]
+        )
+    )
+
+    assert results[0] == {
+        "significance": "minor",
+        "event_type": "other",
+        "why_it_matters": "Classification payload malformed.",
+        "confidence": 0.3,
+    }
+    assert results[1]["significance"] == "major"
+    assert results[1]["event_type"] == "product"
+    assert results[1]["confidence"] == 0.82

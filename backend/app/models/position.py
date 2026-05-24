@@ -13,7 +13,11 @@ class PositionBase(BaseModel):
 
 
 class PositionCreate(PositionBase):
-    pass
+    # Optional purchase date so the iOS add-holding sheet can persist it.
+    purchase_date: Optional[datetime] = None
+    # When true, the user has acknowledged that the ticker is outside the
+    # tracked universe and wants to add it in degraded-data mode.
+    allow_outside_universe: Optional[bool] = False
 
 
 class PositionUpdate(BaseModel):

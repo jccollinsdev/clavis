@@ -98,6 +98,36 @@ MAJOR_KEYWORDS = [
 ]
 
 
+def _coerce_confidence(value, default: float = 0.5) -> float:
+    try:
+        confidence = float(value)
+    except (TypeError, ValueError):
+        return default
+    return min(1.0, max(0.0, confidence))
+
+
+def _normalize_significance_prediction(prediction) -> dict:
+    if not isinstance(prediction, dict):
+        return {
+            "significance": "minor",
+            "event_type": "other",
+            "why_it_matters": "Classification payload malformed.",
+            "confidence": 0.3,
+        }
+
+    significance = prediction.get("significance", "minor")
+    if significance not in {"major", "minor"}:
+        significance = "minor"
+
+    return {
+        "significance": significance,
+        "event_type": prediction.get("event_type") or "other",
+        "why_it_matters": prediction.get("why_it_matters")
+        or "Classification evidence unavailable.",
+        "confidence": _coerce_confidence(prediction.get("confidence")),
+    }
+
+
 def classify_significance_keyword(title: str, summary: str) -> dict | None:
     text = f"{title} {summary}".lower()
     for kw in MAJOR_KEYWORDS:
@@ -142,13 +172,7 @@ async def classify_significance(title: str, summary: str, body: str = "") -> dic
     if significance not in {"major", "minor"}:
         significance = "minor"
 
-    return {
-        "significance": significance,
-        "event_type": parsed.get("event_type") or "other",
-        "why_it_matters": parsed.get("why_it_matters")
-        or "Classification evidence unavailable.",
-        "confidence": float(parsed.get("confidence") or 0.5),
-    }
+    return _normalize_significance_prediction({**parsed, "significance": significance})
 
 
 async def classify_significance_batch(
@@ -201,17 +225,9 @@ async def classify_significance_batch(
         if isinstance(parsed, list):
             for local_idx, article_idx in enumerate(chunk_indices):
                 if local_idx < len(parsed):
-                    p = parsed[local_idx]
-                    significance = p.get("significance", "minor")
-                    if significance not in {"major", "minor"}:
-                        significance = "minor"
-                    results[article_idx] = {
-                        "significance": significance,
-                        "event_type": p.get("event_type") or "other",
-                        "why_it_matters": p.get("why_it_matters")
-                        or "Classification evidence unavailable.",
-                        "confidence": float(p.get("confidence") or 0.5),
-                    }
+                    results[article_idx] = _normalize_significance_prediction(
+                        parsed[local_idx]
+                    )
                 else:
                     results[article_idx] = {
                         "significance": "minor",

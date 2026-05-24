@@ -741,6 +741,11 @@ def enrich_positions_with_ticker_cache(
             latest_event_analyses=shared_event_rows,
             analysis_run_id=(shared_analysis or {}).get("analysis_run_id"),
         )
+        # Propagate the position-level outside_universe flag so iOS can render
+        # the degraded-mode banner without a separate query.
+        if position.get("outside_universe"):
+            shared_summary["outside_universe"] = True
+            shared_summary["is_supported"] = False
         if position.get("current_price") is None:
             position["current_price"] = metadata.get("price")
         portfolio_overlay = build_portfolio_overlay(
@@ -1516,6 +1521,23 @@ def build_shared_ticker_analysis_summary(
                 source_count=int(source_count or 0),
             )
 
+    # Price + day-change snapshot so Position summary can render day change without
+    # a second backend round-trip. None-safe; falls back to None if either side missing.
+    latest_price = metadata.get("price")
+    previous_close = metadata.get("previous_close")
+    day_change_amount = None
+    day_change_pct = None
+    if latest_price is not None and previous_close not in (None, 0):
+        try:
+            day_change_amount = float(latest_price) - float(previous_close)
+            day_change_pct = (day_change_amount / float(previous_close)) * 100.0
+        except (TypeError, ValueError):
+            day_change_amount = None
+            day_change_pct = None
+
+    # Five-axis dimensions extracted from the latest snapshot.
+    dimensions_payload = _shared_risk_dimensions(snapshot) or {}
+
     summary = {
         "ticker": ticker,
         "company_name": metadata.get("company_name"),
@@ -1531,6 +1553,15 @@ def build_shared_ticker_analysis_summary(
         else None,
         "grade_rationale": grade_rationale,
         "source_count": source_count,
+        # New v2 fields (post-backfill 2026-05-24) — let iOS render real day change
+        # and five-axis snapshot without a separate detail fetch per holding.
+        "latest_price": latest_price,
+        "previous_close": previous_close,
+        "day_change_amount": day_change_amount,
+        "day_change_pct": day_change_pct,
+        "risk_dimensions": dimensions_payload,
+        "is_supported": True,
+        "outside_universe": False,
         "major_event_count": current_analysis.get("major_event_count"),
         "minor_event_count": current_analysis.get("minor_event_count"),
         "evidence_strength": snapshot.get("evidence_strength")

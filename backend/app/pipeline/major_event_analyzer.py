@@ -1,9 +1,16 @@
 from __future__ import annotations
 import logging
-from ..services.minimax import chatcompletion_text
+from ..services.minimax import (
+    MiniMaxAuthError,
+    _is_retryable_minimax_failure,
+    chatcompletion_text,
+)
 from .analysis_utils import safe_json_loads, extract_json_list
 
 logger = logging.getLogger(__name__)
+
+_ALLOWED_IMPACT_HORIZONS = {"immediate", "near_term", "long_term"}
+_ALLOWED_RISK_DIRECTIONS = {"improving", "neutral", "worsening"}
 
 
 MAJOR_EVENT_SYSTEM_PROMPT = """You are a senior equity risk rater evaluating a significant market event.
@@ -23,16 +30,30 @@ Return strict JSON:
 """
 
 
-def _normalize_result(payload: dict | None) -> dict | None:
-    if not payload:
+def _normalize_impact_horizon(value: object, fallback: str = "near_term") -> str:
+    value_str = str(value or "").strip().lower()
+    return value_str if value_str in _ALLOWED_IMPACT_HORIZONS else fallback
+
+
+def _normalize_risk_direction(value: object, fallback: str = "neutral") -> str:
+    value_str = str(value or "").strip().lower()
+    return value_str if value_str in _ALLOWED_RISK_DIRECTIONS else fallback
+
+
+def _normalize_result(payload: object | None) -> dict | None:
+    if not isinstance(payload, dict):
         return None
     analysis_text = payload.get("analysis_text") or payload.get("analysis") or ""
     if not analysis_text:
         return None
     return {
         "analysis_text": analysis_text,
-        "impact_horizon": payload.get("impact_horizon") or "near_term",
-        "risk_direction": payload.get("risk_direction") or "neutral",
+        "impact_horizon": _normalize_impact_horizon(
+            payload.get("impact_horizon"), "near_term"
+        ),
+        "risk_direction": _normalize_risk_direction(
+            payload.get("risk_direction"), "neutral"
+        ),
         "confidence": float(payload.get("confidence") or 0.6),
         "scenario_summary": payload.get("scenario_summary")
         or "Major event analysis completed.",
@@ -153,12 +174,12 @@ Each object has: analysis_text, impact_horizon, risk_direction, confidence, scen
     parsed = extract_json_list(result, None)
     results = []
     if isinstance(parsed, list) and len(parsed) == len(articles):
-        for p in parsed:
+        for i, p in enumerate(parsed):
             normalized = _normalize_result(p)
             results.append(
                 normalized
                 if normalized
-                else _limited_data_result(articles[len(results)])
+                else _limited_data_result(articles[i])
             )
     else:
         results = [_limited_data_result(item) for item in articles]
@@ -191,14 +212,21 @@ Events:
 Return a JSON array with one object per event in order.
 Each object has: analysis_text, impact_horizon, risk_direction, confidence, scenario_summary, key_implications, followup_notes."""
 
-    result = chatcompletion_text(
-        messages=[
-            {"role": "system", "content": MAJOR_EVENT_SYSTEM_PROMPT},
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.2,
-        max_tokens=2600,
-    )
+    try:
+        result = chatcompletion_text(
+            messages=[
+                {"role": "system", "content": MAJOR_EVENT_SYSTEM_PROMPT},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.2,
+            max_tokens=2600,
+        )
+    except MiniMaxAuthError:
+        raise
+    except Exception as exc:
+        if not _is_retryable_minimax_failure(exc):
+            raise
+        return [_limited_data_result(item) for item in articles]
 
     parsed = extract_json_list(result, None)
     results = []

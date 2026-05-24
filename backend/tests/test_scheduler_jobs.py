@@ -3,7 +3,7 @@ import sys
 import types
 from datetime import datetime, timezone
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 _fake_supabase_module = types.ModuleType("supabase")
 _fake_supabase_module.create_client = lambda *args, **kwargs: None
@@ -79,6 +79,158 @@ def test_schedule_news_cleanup_registers_cron_job():
 
     job = fake_scheduler.jobs[scheduler.NEWS_CLEANUP_JOB_ID]
     assert job.func is scheduler._cleanup_old_articles
+
+
+class _AnalysisCacheStoreResult:
+    data = []
+
+
+class _AnalysisCacheStoreQuery:
+    def __init__(self):
+        self.upsert_calls = []
+
+    def upsert(self, row, on_conflict=None):
+        self.upsert_calls.append({"row": row, "on_conflict": on_conflict})
+        return self
+
+    def execute(self):
+        return _AnalysisCacheStoreResult()
+
+
+class _AnalysisCacheStoreSupabase:
+    def __init__(self):
+        self.query = _AnalysisCacheStoreQuery()
+
+    def table(self, table_name):
+        assert table_name == scheduler.CACHE_TABLE
+        return self.query
+
+
+def test_store_analysis_cache_uses_conflict_safe_upsert():
+    supabase = _AnalysisCacheStoreSupabase()
+
+    scheduler._store_analysis_cache(
+        supabase,
+        kind="relevance",
+        cache_key="race-key",
+        payload={"relevant": True},
+    )
+
+    assert len(supabase.query.upsert_calls) == 1
+    call = supabase.query.upsert_calls[0]
+    assert call["on_conflict"] == "kind,cache_key"
+    assert call["row"]["kind"] == "relevance"
+    assert call["row"]["cache_key"] == "race-key"
+    assert call["row"]["payload"] == {"relevant": True}
+
+
+class _TickerSnapshotUpsertResult:
+    def __init__(self, data):
+        self.data = data
+
+
+class _TickerSnapshotUpsertQuery:
+    def __init__(self):
+        self.upsert_calls = []
+
+    def upsert(self, row, on_conflict=None):
+        self.upsert_calls.append({"row": row, "on_conflict": on_conflict})
+        return self
+
+    def execute(self):
+        return _TickerSnapshotUpsertResult([{"id": "snapshot-1"}])
+
+
+class _TickerSnapshotUpsertSupabase:
+    def __init__(self):
+        self.query = _TickerSnapshotUpsertQuery()
+
+    def table(self, table_name):
+        assert table_name == "ticker_risk_snapshots"
+        return self.query
+
+
+def test_upsert_ticker_snapshot_from_scores_serializes_snapshot_date():
+    supabase = _TickerSnapshotUpsertSupabase()
+    today = datetime.now(timezone.utc).date().isoformat()
+
+    scheduler._upsert_ticker_snapshot_from_scores(
+        supabase,
+        ticker="EXPD",
+        ai_scores={
+            "grade": "A",
+            "total_score": 88.5,
+            "financial_health": 82,
+            "news_sentiment": 79,
+            "macro_exposure": 77,
+            "sector_exposure": 80,
+            "volatility": 84,
+            "structural_base_score": 71.0,
+            "macro_adjustment": 1.2,
+            "event_adjustment": 2.3,
+            "confidence": 0.91,
+            "factor_breakdown": {"ai_dimensions": {"news_sentiment": 79}},
+            "dimension_rationale": {},
+            "reasoning": "Reasoning",
+            "calculated_at": "2026-05-23T00:00:00+00:00",
+        },
+        structural_scores={"safety_score": 71.0, "grade": "B", "confidence": 0.72},
+        analysis_run_id="run-1",
+    )
+
+    assert len(supabase.query.upsert_calls) == 1
+    call = supabase.query.upsert_calls[0]
+    assert call["on_conflict"] == "ticker,snapshot_date,snapshot_type"
+    assert call["row"]["snapshot_date"] == today
+    assert call["row"]["ticker"] == "EXPD"
+
+
+def test_enqueue_analysis_run_pauses_autonomous_system_child_when_scheduler_paused(monkeypatch):
+    monkeypatch.setenv("PAUSE_SYSTEM_SCHEDULER", "true")
+
+    with patch.object(scheduler, "create_analysis_run", new_callable=AsyncMock) as create_mock:
+        result = asyncio.run(
+            scheduler.enqueue_analysis_run(
+                scheduler.SYSTEM_SP500_USER_ID,
+                triggered_by="scheduled",
+                target_tickers=["AAPL"],
+            )
+        )
+
+    assert result["status"] == "paused"
+    assert result["analysis_run_id"] is None
+    create_mock.assert_not_called()
+
+
+def test_enqueue_analysis_run_allows_supervised_backfill_child_when_scheduler_paused(monkeypatch):
+    monkeypatch.setenv("PAUSE_SYSTEM_SCHEDULER", "true")
+
+    async def fake_create_analysis_run(*_args, **_kwargs):
+        return {"id": "supervised-child-run"}
+
+    with (
+        patch.object(scheduler, "create_analysis_run", side_effect=fake_create_analysis_run) as create_mock,
+        patch.object(scheduler, "_fail_stale_runs") as fail_stale_mock,
+        patch.object(scheduler, "_run_analysis_in_thread", return_value=True),
+        patch("app.services.supabase.get_supabase", return_value=object()),
+    ):
+        result = asyncio.run(
+            scheduler.enqueue_analysis_run(
+                scheduler.SYSTEM_SP500_USER_ID,
+                triggered_by="scheduled",
+                target_tickers=["AAPL", "MSFT"],
+                allow_parallel_runs=True,
+            )
+        )
+
+    task = scheduler.active_runs.pop("supervised-child-run", None)
+    if task is not None and not task.done():
+        task.cancel()
+
+    assert result["status"] == "queued"
+    assert result["analysis_run_id"] == "supervised-child-run"
+    create_mock.assert_called_once()
+    fail_stale_mock.assert_called_once()
 
 
 def test_sync_user_job_keeps_structural_refresh_when_notifications_disabled():
@@ -292,6 +444,8 @@ class _FakeQuery:
             )
         if self.table_name == "asset_safety_profiles":
             return _FakeResult([])
+        if self.table_name == "shared_ticker_events":
+            return _FakeResult([{"id": "id-1"}])
         return _FakeResult([])
 
 
@@ -332,6 +486,219 @@ def test_trigger_structural_refresh_upserts_once_per_unique_ticker():
         "tickers_refreshed": 1,
     }
     assert len(fake_supabase.upserts) == 0
+
+
+def test_upsert_shared_ticker_event_skips_unresolved_google_wrapper():
+    fake_supabase = _FakeSupabase()
+
+    result = scheduler._upsert_shared_ticker_event(
+        fake_supabase,
+        ticker="TTD",
+        event_record={
+            "event_hash": "hash-1",
+            "title": "Wrapped article",
+            "source": "Seeking Alpha",
+            "source_url": "https://news.google.com/rss/articles/CBMi123?oc=5",
+            "published_at": "2026-05-20T15:40:06+00:00",
+            "risk_direction": "neutral",
+        },
+    )
+
+    assert result is None
+    assert fake_supabase.upserts == []
+
+
+def test_upsert_shared_ticker_event_skips_missing_canonical_url():
+    fake_supabase = _FakeSupabase()
+
+    result = scheduler._upsert_shared_ticker_event(
+        fake_supabase,
+        ticker="RSG",
+        event_record={
+            "event_hash": "hash-rsg",
+            "title": "Wrapped article",
+            "source": "Simply Wall St",
+            "source_url": "",
+            "published_at": "2026-05-20T15:40:06+00:00",
+            "risk_direction": "neutral",
+        },
+    )
+
+    assert result is None
+    assert fake_supabase.upserts == []
+
+
+def test_upsert_shared_ticker_event_normalizes_invalid_horizon_and_direction():
+    fake_supabase = _FakeSupabase()
+
+    result = scheduler._upsert_shared_ticker_event(
+        fake_supabase,
+        ticker="RSG",
+        event_record={
+            "event_hash": "hash-rsg-valid",
+            "title": "Resolved article",
+            "source": "Stock Titan",
+            "source_url": "https://www.stocktitan.net/sec-filings/RSG/example",
+            "published_at": "2026-05-20T15:40:06+00:00",
+            "impact_horizon": "future",
+            "risk_direction": "sideways",
+        },
+    )
+
+    assert result == "id-1"
+    assert len(fake_supabase.upserts) == 1
+    payload = fake_supabase.upserts[0]["payload"]
+    assert payload["impact_horizon"] == "near_term"
+    assert payload["risk_direction"] == "neutral"
+    assert payload["sentiment_score"] is None
+
+
+def test_google_news_wrapper_detector_catches_embedded_rss_shape():
+    assert scheduler._is_google_news_wrapper_url(
+        " https://news.google.com/rss/articles/CBMi3AFBVV95cUxOVllicmFi?oc=5 "
+    )
+
+
+def test_canonical_article_url_for_shared_event_prefers_resolved_publisher_url():
+    article = {
+        "url": "https://news.google.com/rss/articles/CBMi123?oc=5",
+        "source_url": "https://seekingalpha.com",
+        "resolved_url": "https://seekingalpha.com/article/123-the-trade-desk",
+    }
+
+    assert (
+        scheduler._canonical_article_url_for_shared_event(article)
+        == "https://seekingalpha.com/article/123-the-trade-desk"
+    )
+
+
+def test_canonical_article_url_for_shared_event_rejects_unresolved_wrapper():
+    article = {
+        "url": "https://news.google.com/rss/articles/CBMi123?oc=5",
+        "source_url": "https://seekingalpha.com",
+    }
+
+    assert scheduler._canonical_article_url_for_shared_event(article) == ""
+
+
+def test_canonical_article_url_for_shared_event_uses_canonical_url_key():
+    article = {
+        "url": "https://news.google.com/rss/articles/CBMi123?oc=5",
+        "source_url": "https://simplywall.st",
+        "canonical_url": "https://simplywall.st/stocks/us/commercial-services/nyse-rsg/republic-services/news/pricing-update",
+    }
+
+    assert scheduler._canonical_article_url_for_shared_event(article) == (
+        "https://simplywall.st/stocks/us/commercial-services/nyse-rsg/republic-services/news/pricing-update"
+    )
+
+
+def test_sp500_post_run_wrapper_cleanup_imports_cleanup_hook(monkeypatch):
+    async def _fake_run_cleanup(**kwargs):
+        return {"remaining_leaks": 0, "kwargs": kwargs}
+
+    monkeypatch.setattr(
+        "app.scripts.wrapper_storage_cleanup.run_cleanup",
+        _fake_run_cleanup,
+    )
+
+    result = asyncio.run(scheduler._run_sp500_post_run_wrapper_cleanup())
+
+    assert result["remaining_leaks"] == 0
+    assert result["kwargs"]["apply"] is True
+    assert result["kwargs"]["days"] == 30
+
+
+class _SyncSnapshotFakeQuery:
+    def __init__(self, table_name):
+        self.table_name = table_name
+        self.selected = ""
+        self.filters = {}
+
+    def select(self, columns):
+        self.selected = columns
+        return self
+
+    def eq(self, key, value):
+        self.filters[key] = value
+        return self
+
+    def order(self, *_args, **_kwargs):
+        return self
+
+    def limit(self, *_args, **_kwargs):
+        return self
+
+    def execute(self):
+        if self.table_name == "positions":
+            return _FakeResult([{"id": "pos-amd", "ticker": "AMD"}])
+        if self.table_name == "position_analyses":
+            return _FakeResult([{"summary": "Real analysis summary.", "source_count": 5}])
+        if self.table_name == "ticker_risk_snapshots" and self.selected == "safety_score":
+            return _FakeResult([{"safety_score": 70.0}])
+        if self.table_name == "ticker_risk_snapshots":
+            return _FakeResult(
+                [
+                    {
+                        "ticker": "AMD",
+                        "safety_score": 82.0,
+                        "total_score": 82.0,
+                        "confidence": 0.91,
+                        "source_count": 5,
+                        "llm_scoring_used": True,
+                        "calculated_at": "2026-05-22T12:00:00+00:00",
+                        "factor_breakdown": {
+                            "ai_dimensions": {
+                                "financial_health": 80,
+                                "news_sentiment": 84,
+                                "macro_exposure": 78,
+                                "sector_exposure": 79,
+                                "volatility": 83,
+                            }
+                        },
+                    }
+                ]
+            )
+        return _FakeResult([])
+
+
+class _SyncSnapshotFakeSupabase:
+    def table(self, table_name):
+        return _SyncSnapshotFakeQuery(table_name)
+
+
+def test_sync_ai_scores_retries_transient_snapshot_upsert_disconnect(monkeypatch):
+    calls = {"upsert": 0}
+
+    def _flaky_upsert(_client, **kwargs):
+        calls["upsert"] += 1
+        if calls["upsert"] == 1:
+            raise RuntimeError("Server disconnected")
+        calls["payload"] = kwargs["payload"]
+        return kwargs["payload"]
+
+    monkeypatch.setattr(
+        "app.services.supabase.get_supabase",
+        lambda: _SyncSnapshotFakeSupabase(),
+    )
+    monkeypatch.setattr(
+        "app.services.ticker_cache_service._upsert_ticker_snapshot",
+        _flaky_upsert,
+    )
+    monkeypatch.setattr(scheduler.time, "sleep", lambda _seconds: None)
+
+    scheduler._sync_ai_scores_to_ticker_snapshots_sync(
+        _SyncSnapshotFakeSupabase(),
+        ticker="AMD",
+        job_type="backfill",
+        analysis_run_id="run-1",
+    )
+
+    assert calls["upsert"] == 2
+    assert calls["payload"]["ticker"] == "AMD"
+    assert calls["payload"]["safety_score"] == 82.0
+    assert calls["payload"]["news_sentiment"] == 84
+    assert calls["payload"]["macro_exposure"] == 78
 
 
 class _StatusFakeResult:
