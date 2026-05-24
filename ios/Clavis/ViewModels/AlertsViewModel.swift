@@ -12,6 +12,15 @@ class AlertsViewModel: ObservableObject {
     @Published var quietHoursEnd: String?
 
     private let api = APIService.shared
+
+    // Local "last seen" tracking until backend ships alerts.read_at (P1).
+    private let lastSeenKey = "clavix.alerts.lastSeenAt"
+
+    private var lastSeenAt: Date? {
+        get { UserDefaults.standard.object(forKey: lastSeenKey) as? Date }
+        set { UserDefaults.standard.set(newValue, forKey: lastSeenKey) }
+    }
+
     func loadAlerts() async {
         isLoading = true
         errorMessage = nil
@@ -45,8 +54,23 @@ class AlertsViewModel: ObservableObject {
         return holdings.first(where: { $0.ticker.caseInsensitiveCompare(ticker) == .orderedSame })?.id
     }
 
+    /// Alerts newer than the locally-stored last-seen timestamp. When the user
+    /// has never opened the alerts screen, every alert counts as unread.
     var unreadCount: Int {
-        alerts.prefix(4).count
+        guard !alerts.isEmpty else { return 0 }
+        let cutoff = lastSeenAt
+        if let cutoff {
+            return alerts.filter { $0.createdAt > cutoff }.count
+        }
+        return alerts.count
+    }
+
+    /// Call when the user opens the alerts screen so future loads reflect
+    /// "new since last visit".
+    func markAlertsSeen() {
+        let mostRecent = alerts.map(\.createdAt).max() ?? Date()
+        lastSeenAt = mostRecent
+        objectWillChange.send()
     }
 
     var quietHoursBannerText: String? {

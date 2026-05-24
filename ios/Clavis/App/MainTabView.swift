@@ -6,16 +6,17 @@ struct MainTabView: View {
     @State private var pendingTickerDetail: String?
 
     init() {
+        // Cream/paper nav + tab bar appearance to match the VisualQA design.
         let navAppearance = UINavigationBarAppearance()
         navAppearance.configureWithOpaqueBackground()
-        navAppearance.backgroundColor = UIColor(Color.backgroundPrimary)
+        navAppearance.backgroundColor = UIColor(Color.clavixPage)
         navAppearance.shadowColor = .clear
         navAppearance.titleTextAttributes = [
-            .foregroundColor: UIColor(Color.textPrimary),
+            .foregroundColor: UIColor(Color.clavixInk),
             .font: UIFont(name: "Inter", size: 17) ?? UIFont.systemFont(ofSize: 17, weight: .medium)
         ]
         navAppearance.largeTitleTextAttributes = [
-            .foregroundColor: UIColor(Color.textPrimary)
+            .foregroundColor: UIColor(Color.clavixInk)
         ]
         UINavigationBar.appearance().standardAppearance = navAppearance
         UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
@@ -23,11 +24,11 @@ struct MainTabView: View {
 
         let tabAppearance = UITabBarAppearance()
         tabAppearance.configureWithOpaqueBackground()
-        tabAppearance.backgroundColor = UIColor(Color.backgroundPrimary)
-        tabAppearance.shadowColor = UIColor(Color.borderSubtle)
+        tabAppearance.backgroundColor = UIColor(Color.clavixPaper)
+        tabAppearance.shadowColor = UIColor(Color.clavixRule)
 
-        let selectedColor = UIColor(Color.textPrimary)
-        let normalColor = UIColor(Color.textSecondary)
+        let selectedColor = UIColor(Color.clavixAccent)
+        let normalColor = UIColor(Color.clavixInk4)
         let compactFont = UIFont(name: "Inter", size: 10) ?? UIFont.systemFont(ofSize: 10, weight: .medium)
         let selectedFont = UIFont(name: "Inter", size: 10) ?? UIFont.systemFont(ofSize: 10, weight: .semibold)
         let appearances = [
@@ -85,7 +86,7 @@ struct MainTabView: View {
                 }
                 .tag(4)
         }
-        .tint(Color.textPrimary)
+        .tint(Color.clavixAccent)
         .onReceive(NotificationCenter.default.publisher(for: .openDigest)) { _ in
             selectedTab = 0
         }

@@ -45,7 +45,7 @@ struct FinancialHealthAuditView: View {
             .padding(.horizontal, ClavisTheme.screenPadding)
             .padding(.vertical, ClavisTheme.sectionSpacing)
         }
-        .background(ClavisAtmosphereBackground())
+        .background(Color.clavixPage.ignoresSafeArea())
         .navigationTitle("Financial Health")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -76,7 +76,7 @@ struct AuditHeaderCard: View {
     let subtitle: String
 
     var body: some View {
-        ClavisStandardCard(fill: .surface) {
+        ClavixCard(fill: .clavixPaper) {
             VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
                 Text(title)
                     .font(ClavisTypography.h2)
@@ -119,7 +119,7 @@ struct AuditSectionCard<Content: View>: View {
     @ViewBuilder let content: Content
 
     var body: some View {
-        ClavisStandardCard(fill: .surface) {
+        ClavixCard(fill: .clavixPaper) {
             VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
                 Text(title)
                     .font(ClavisTypography.label)
@@ -155,7 +155,7 @@ struct AuditLimitedDataView: View {
     let message: String
 
     var body: some View {
-        ClavisStandardCard(fill: .surface) {
+        ClavixCard(fill: .clavixPaper) {
             Text(message)
                 .font(ClavisTypography.body)
                 .foregroundColor(.textSecondary)

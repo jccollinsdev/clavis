@@ -201,10 +201,11 @@ enum ClavisCopy {
         value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
     }
 
+    // CLAVIX_TRUTH §2 bans raw .capitalized backend status strings in UI.
+    // When no explicit copy mapping exists, return a neutral "Updating"
+    // rather than surfacing the internal status token.
     private static func titleCase(_ value: String) -> String {
-        value
-            .replacingOccurrences(of: "_", with: " ")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .capitalized
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? Status.updating : Status.updating
     }
 }

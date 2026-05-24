@@ -15,6 +15,7 @@ enum DigestLengthOption: String, CaseIterable {
 final class DigestViewModel: ObservableObject {
     @Published var todayDigest: Digest?
     @Published var holdings: [Position] = []
+    @Published var alerts: [Alert] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var activeRun: AnalysisRun?
@@ -34,14 +35,17 @@ final class DigestViewModel: ObservableObject {
             async let holdingsResponse = api.fetchHoldings()
             async let preferencesResponse = api.fetchPreferences()
             async let latestRunResponse = api.fetchLatestAnalysisRun()
+            async let alertsResponse = api.fetchAlerts()
 
             let digest = try await digestResponse
             let holdings = try await holdingsResponse
             let preferences = try await preferencesResponse
             let latestRun = try await latestRunResponse
+            let alerts = (try? await alertsResponse) ?? []
 
             self.todayDigest = digest.digest ?? digest.generatedDigest ?? digest.savedDigest
             self.holdings = holdings
+            self.alerts = alerts
             self.activeRun = digest.analysisRun ?? latestRun
             self.summaryLength = DigestLengthOption(rawValue: preferences.summaryLength?.lowercased() ?? "standard") ?? .standard
             self.subscriptionTier = preferences.subscriptionTier?.lowercased() ?? "free"

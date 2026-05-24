@@ -25,7 +25,7 @@ struct ArticleDetailSheet: View {
                 .padding(.horizontal, ClavisTheme.screenPadding)
                 .padding(.vertical, ClavisTheme.sectionSpacing)
             }
-            .background(Color.backgroundPrimary.ignoresSafeArea())
+            .background(Color.clavixPage.ignoresSafeArea())
             .navigationTitle("Article Detail")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

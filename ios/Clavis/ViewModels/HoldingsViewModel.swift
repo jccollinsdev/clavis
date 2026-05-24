@@ -280,8 +280,6 @@ class HoldingsViewModel: ObservableObject {
             return 0.46
         case "analyzing_events":
             return 0.62
-        case "running_mirofish":
-            return 0.7
         case "scoring_position":
             return 0.76
         case "refreshing_prices":

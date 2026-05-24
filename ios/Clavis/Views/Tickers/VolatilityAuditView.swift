@@ -40,7 +40,7 @@ struct VolatilityAuditView: View {
             .padding(.horizontal, ClavisTheme.screenPadding)
             .padding(.vertical, ClavisTheme.sectionSpacing)
         }
-        .background(ClavisAtmosphereBackground())
+        .background(Color.clavixPage.ignoresSafeArea())
         .navigationTitle("Volatility")
         .navigationBarTitleDisplayMode(.inline)
     }

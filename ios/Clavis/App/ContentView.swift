@@ -6,7 +6,9 @@ struct ContentView: View {
 
     var body: some View {
         Group {
-            if authViewModel.isLoadingPreferences && !hasCheckedSession {
+            if debugVisualQAEnabled {
+                ClavixVisualQARoot(open: debugVisualQAOpen)
+            } else if authViewModel.isLoadingPreferences && !hasCheckedSession {
                 LoadingView()
             } else if authViewModel.isAuthenticated && authViewModel.isLoadingPreferences {
                 LoadingView()
@@ -21,6 +23,7 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            guard !debugVisualQAEnabled else { return }
             guard !hasCheckedSession else { return }
             hasCheckedSession = true
 
@@ -34,10 +37,29 @@ struct ContentView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .supabaseAuthCallbackReceived)) { notification in
+            guard !debugVisualQAEnabled else { return }
             guard let url = notification.object as? URL else { return }
             Task { await authViewModel.handleAuthDeepLink(url: url) }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(.light)
+    }
+
+    // Live tabs are now the default everywhere. The static VisualQA mock is
+    // reachable in DEBUG only by explicitly setting CLAVIX_USE_VQA_MOCK=1.
+    private var debugVisualQAEnabled: Bool {
+        #if DEBUG
+        ProcessInfo.processInfo.environment["CLAVIX_USE_VQA_MOCK"] == "1"
+        #else
+        false
+        #endif
+    }
+
+    private var debugVisualQAOpen: String? {
+        #if DEBUG
+        ProcessInfo.processInfo.environment["CLAVIX_DEBUG_OPEN"]
+        #else
+        nil
+        #endif
     }
 }
 

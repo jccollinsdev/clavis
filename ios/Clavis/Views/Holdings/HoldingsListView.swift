@@ -31,19 +31,11 @@ struct HoldingsListView: View {
     }
 
     private var weightedScore: Double? {
-        let weightedPairs = viewModel.holdings.compactMap { position -> (Double, Double)? in
-            guard let value = position.currentValue, value > 0, let score = position.resolvedTotalScore else { return nil }
-            return (value, score)
-        }
-
-        let totalWeight = weightedPairs.reduce(0) { $0 + $1.0 }
-        guard totalWeight > 0 else { return nil }
-        return weightedPairs.reduce(0) { $0 + ($1.0 * $1.1) } / totalWeight
+        PortfolioMath.weightedScore(viewModel.holdings)
     }
 
     private var weightedGrade: String {
-        guard let score = weightedScore else { return "—" }
-        return grade(for: score)
+        PortfolioMath.weightedGrade(viewModel.holdings)
     }
 
     private var biggestMover: Position? {
@@ -76,9 +68,27 @@ struct HoldingsListView: View {
                 .padding(.top, ClavisTheme.sectionSpacing)
                 .padding(.bottom, ClavisTheme.extraLargeSpacing)
             }
-            .background(ClavisAtmosphereBackground())
+            .background(Color.clavixPage.ignoresSafeArea())
             .safeAreaInset(edge: .top, spacing: 0) {
-                topHeader
+                ClavixLargeHeader(
+                    eyebrow: "Portfolio",
+                    title: "Holdings",
+                    trailing: AnyView(
+                        HStack(spacing: 18) {
+                            Button(action: openAddHolding) {
+                                Image(systemName: "plus")
+                                    .foregroundColor(.clavixInk)
+                            }
+                            .buttonStyle(.plain)
+                            Button(action: { Task { await viewModel.refreshHoldings() } }) {
+                                Image(systemName: viewModel.isRefreshing ? "hourglass" : "arrow.clockwise")
+                                    .foregroundColor(.clavixInk)
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(viewModel.isRefreshing)
+                        }
+                    )
+                )
             }
             .toolbar(.hidden, for: .navigationBar)
             .task {
@@ -158,20 +168,21 @@ struct HoldingsListView: View {
     }
 
     private var portfolioHeader: some View {
-        ClavisStandardCard(fill: .surface) {
-            HStack(alignment: .center, spacing: ClavisTheme.mediumSpacing) {
-                GradeBadge(grade: weightedGrade, size: .large)
+        ClavixCard {
+            HStack(alignment: .center, spacing: 14) {
+                ClavixGradeBadge(weightedGrade, size: 44)
 
-                VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text("Portfolio composite · weighted")
-                        .font(ClavisTypography.label)
-                        .foregroundColor(.textSecondary)
+                        .font(ClavisTypography.clavixMono(10, weight: .bold))
+                        .tracking(0.7)
+                        .foregroundColor(.clavixInk3)
                     Text(weightedScore.map { "\(Int($0.rounded()))/100" } ?? "—")
-                        .font(ClavisTypography.metric)
-                        .foregroundColor(.textPrimary)
+                        .font(ClavisTypography.clavixMono(22, weight: .semibold))
+                        .foregroundColor(.clavixInk)
                     Text(biggestMoverSummary)
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.textSecondary)
+                        .font(ClavisTypography.clavixCaption)
+                        .foregroundColor(.clavixInk2)
                 }
 
                 Spacer()
@@ -180,13 +191,13 @@ struct HoldingsListView: View {
     }
 
     private var searchBar: some View {
-        ClavisStandardCard(fill: .surface) {
+        ClavixCard(padding: 12) {
             HStack(spacing: ClavisTheme.smallSpacing) {
                 Image(systemName: "magnifyingglass")
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixInk3)
                 TextField("Search ticker or company", text: $searchQuery)
-                    .font(ClavisTypography.body)
-                    .foregroundColor(.textPrimary)
+                    .font(ClavisTypography.clavixSerif(15))
+                    .foregroundColor(.clavixInk)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.characters)
                 if !trimmedSearchQuery.isEmpty {
@@ -213,7 +224,7 @@ struct HoldingsListView: View {
             } else if viewModel.holdings.isEmpty {
                 HoldingsEmptyState(onAddPosition: openAddHolding)
             } else {
-                ClavisStandardCard(fill: .surface) {
+                ClavixCard(fill: .clavixPaper) {
                     VStack(spacing: 0) {
                         ForEach(Array(viewModel.holdings.enumerated()), id: \.element.id) { index, position in
                             NavigationLink(value: position.ticker) {
@@ -253,7 +264,7 @@ struct HoldingsListView: View {
             }
 
             if viewModel.watchlistItems.isEmpty {
-                ClavisStandardCard(fill: .surface) {
+                ClavixCard(fill: .clavixPaper) {
                     Button(action: { selectedTab = 2 }) {
                         Text("Add tickers to watch")
                             .font(ClavisTypography.bodyEmphasis)
@@ -262,7 +273,7 @@ struct HoldingsListView: View {
                     .buttonStyle(.plain)
                 }
             } else {
-                ClavisStandardCard(fill: .surface) {
+                ClavixCard(fill: .clavixPaper) {
                     VStack(spacing: 0) {
                         ForEach(Array(viewModel.watchlistItems.enumerated()), id: \.element.id) { index, item in
                             NavigationLink(value: item.ticker) {
@@ -290,13 +301,13 @@ struct HoldingsListView: View {
             } else if isSearchingTickers {
                 ClavisLoadingCard(title: "Searching tickers", subtitle: "Checking the tracked universe.")
             } else if tickerSearchResults.isEmpty {
-                ClavisStandardCard(fill: .surface) {
+                ClavixCard(fill: .clavixPaper) {
                     Text("No search results yet.")
                         .font(ClavisTypography.body)
                         .foregroundColor(.textSecondary)
                 }
             } else {
-                ClavisStandardCard(fill: .surface) {
+                ClavixCard(fill: .clavixPaper) {
                     VStack(spacing: 0) {
                         ForEach(Array(tickerSearchResults.enumerated()), id: \.element.id) { index, result in
                             NavigationLink(value: result) {
@@ -337,9 +348,10 @@ struct HoldingsListView: View {
     }
 
     private func sectionHeader(_ text: String) -> some View {
-        Text(text)
-            .font(ClavisTypography.label)
-            .foregroundColor(.textSecondary)
+        Text(text.uppercased())
+            .font(ClavisTypography.clavixMono(10, weight: .bold))
+            .tracking(0.7)
+            .foregroundColor(.clavixInk3)
     }
 
     private func scheduleTickerSearch(for query: String) {
@@ -382,20 +394,6 @@ struct HoldingsListView: View {
         }
     }
 
-    private func grade(for score: Double) -> String {
-        switch score {
-        case 90...100: return "AAA"
-        case 80..<90: return "AA"
-        case 70..<80: return "A"
-        case 60..<70: return "BBB"
-        case 50..<60: return "BB"
-        case 40..<50: return "B"
-        case 30..<40: return "CCC"
-        case 20..<30: return "CC"
-        case 10..<20: return "C"
-        default: return "F"
-        }
-    }
 }
 
 private struct HoldingsRow: View {
@@ -405,46 +403,48 @@ private struct HoldingsRow: View {
     private var companyName: String { position.resolvedCompanyName ?? "Unknown company" }
 
     var body: some View {
-        HStack(alignment: .top, spacing: ClavisTheme.mediumSpacing) {
-            GradeBadge(grade: grade, size: .compact)
+        HStack(alignment: .top, spacing: 12) {
+            ClavixGradeBadge(grade, size: 28)
 
-            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                HStack(spacing: ClavisTheme.smallSpacing) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
                     Text(companyName)
-                        .font(ClavisTypography.bodyEmphasis)
-                        .foregroundColor(.textPrimary)
+                        .font(ClavisTypography.clavixSerif(15, weight: .medium))
+                        .foregroundColor(.clavixInk)
                         .lineLimit(1)
                     Text(position.ticker)
-                        .font(ClavisTypography.footnoteEmphasis)
-                        .foregroundColor(.accentBurnt)
+                        .font(ClavisTypography.clavixMono(11, weight: .bold))
+                        .foregroundColor(.clavixAccent)
                 }
 
-                HStack(spacing: ClavisTheme.smallSpacing) {
+                HStack(spacing: 4) {
                     Text("\(position.shares.formatted()) sh")
                     Text("·")
                     Text(currency(position.currentValue))
-                    Text("·")
-                    // TODO: backend holdings payload should return real day-change values per position.
-                    Text("Day —")
+                    if let dayPct = position.sharedAnalysis?.dayChangePct {
+                        Text("·")
+                        Text(dayChangeText(dayPct))
+                            .foregroundColor(dayChangeColor(dayPct))
+                    }
                 }
-                .font(ClavisTypography.footnote)
-                .foregroundColor(.textSecondary)
+                .font(ClavisTypography.clavixMono(11, weight: .regular))
+                .foregroundColor(.clavixInk3)
 
                 Text(unrealizedText)
-                    .font(ClavisTypography.footnoteEmphasis)
+                    .font(ClavisTypography.clavixMono(11, weight: .semibold))
                     .foregroundColor(unrealizedColor)
             }
 
             Spacer()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, ClavisTheme.mediumSpacing)
-        .padding(.horizontal, ClavisTheme.smallSpacing)
+        .padding(.vertical, 12)
+        .padding(.horizontal, 12)
         .background(backgroundTint)
     }
 
     private var backgroundTint: Color {
-        position.riskTrend == .worsening ? .warnSoft : .clear
+        position.riskTrend == .worsening ? .clavixWarnSoft : .clear
     }
 
     private var unrealizedText: String {
@@ -454,8 +454,8 @@ private struct HoldingsRow: View {
     }
 
     private var unrealizedColor: Color {
-        guard let pnl = position.unrealizedPL else { return .textSecondary }
-        return pnl >= 0 ? .good : .bad
+        guard let pnl = position.unrealizedPL else { return .clavixInk3 }
+        return pnl >= 0 ? .clavixGood : .clavixBad
     }
 
     private func currency(_ value: Double?) -> String {
@@ -464,6 +464,16 @@ private struct HoldingsRow: View {
         formatter.numberStyle = .currency
         formatter.maximumFractionDigits = 0
         return formatter.string(from: NSNumber(value: value)) ?? "—"
+    }
+
+    private func dayChangeText(_ pct: Double) -> String {
+        String(format: "%@%.2f%%", pct >= 0 ? "+" : "", pct)
+    }
+
+    private func dayChangeColor(_ pct: Double) -> Color {
+        if pct > 0.05 { return .clavixGood }
+        if pct < -0.05 { return .clavixBad }
+        return .clavixInk3
     }
 }
 
@@ -577,7 +587,7 @@ struct HoldingsEmptyState: View {
     let onAddPosition: () -> Void
 
     var body: some View {
-        ClavisStandardCard(fill: .surface) {
+        ClavixCard(fill: .clavixPaper) {
             VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
                 Text("Add your first holding")
                     .font(ClavisTypography.h2)
@@ -645,7 +655,7 @@ private struct HoldingsAddSheet: View {
                     }
 
                     if !tickerSuggestions.isEmpty {
-                        ClavisStandardCard(fill: .surface) {
+                        ClavixCard(fill: .clavixPaper) {
                             VStack(spacing: 0) {
                                 ForEach(Array(tickerSuggestions.enumerated()), id: \.element.id) { index, suggestion in
                                     Button(action: { applySuggestion(suggestion) }) {
@@ -709,7 +719,7 @@ private struct HoldingsAddSheet: View {
     }
 
     private func fieldCard<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
-        ClavisStandardCard(fill: .surface) {
+        ClavixCard(fill: .clavixPaper) {
             VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
                 Text(title)
                     .font(ClavisTypography.label)
@@ -782,7 +792,7 @@ struct AddPositionProgressView: View {
             VStack(spacing: ClavisTheme.extraLargeSpacing) {
                 Spacer()
 
-                ClavisStandardCard(fill: .surface) {
+                ClavixCard(fill: .clavixPaper) {
                     VStack(spacing: ClavisTheme.mediumSpacing) {
                         Image(systemName: viewModel.progressValue >= 1.0 ? "checkmark" : "chart.line.uptrend.xyaxis")
                             .font(.system(size: 28, weight: .medium))
@@ -858,7 +868,7 @@ private struct HoldingsUpgradeSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    ClavisStandardCard(fill: .surface) {
+                    ClavixCard(fill: .clavixPaper) {
                         VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
                             Text("Free vs Pro")
                                 .font(ClavisTypography.h2)
@@ -867,7 +877,7 @@ private struct HoldingsUpgradeSheet: View {
                                 .font(ClavisTypography.body)
                                 .foregroundColor(.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
-                            ClavisPrimaryButton(title: "Start 14-day trial", action: {})
+                            ClavisPrimaryButton(title: "Pro is coming soon", action: { dismiss() })
                         }
                     }
                 }

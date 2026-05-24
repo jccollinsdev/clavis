@@ -26,9 +26,9 @@ struct SettingsView: View {
                 .padding(.top, ClavisTheme.sectionSpacing)
                 .padding(.bottom, ClavisTheme.extraLargeSpacing)
             }
-            .background(ClavisAtmosphereBackground())
+            .background(Color.clavixPage.ignoresSafeArea())
             .safeAreaInset(edge: .top, spacing: 0) {
-                topHeader
+                ClavixLargeHeader(eyebrow: "Account", title: "Settings")
             }
             .toolbar(.hidden, for: .navigationBar)
             .task {
@@ -87,7 +87,7 @@ struct SettingsView: View {
     }
 
     private var accountHeader: some View {
-        ClavisStandardCard(fill: .surface) {
+        ClavixCard(fill: .clavixPaper) {
             VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
                 Text(viewModel.userName.isEmpty ? viewModel.userEmail : viewModel.userName)
                     .font(ClavisTypography.cardTitle)
@@ -264,11 +264,12 @@ struct SettingsView: View {
     }
 
     private func settingsGroup<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-            Text(title)
-                .font(ClavisTypography.label)
-                .foregroundColor(.textSecondary)
-            ClavisStandardCard(fill: .surface) {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title.uppercased())
+                .font(ClavisTypography.clavixMono(10, weight: .bold))
+                .tracking(0.7)
+                .foregroundColor(.clavixInk3)
+            ClavixCard(fill: .clavixPaper) {
                 VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
                     content()
                 }
@@ -364,7 +365,7 @@ struct SettingsUpgradeSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    ClavisStandardCard(fill: .surface) {
+                    ClavixCard(fill: .clavixPaper) {
                         VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
                             Text("Upgrade to Pro")
                                 .font(ClavisTypography.h2)
@@ -373,7 +374,7 @@ struct SettingsUpgradeSheet: View {
                                 .font(ClavisTypography.body)
                                 .foregroundColor(.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
-                            ClavisPrimaryButton(title: "Start 14-day trial", action: {})
+                            ClavisPrimaryButton(title: "Pro is coming soon", action: { dismiss() })
                         }
                     }
                 }
@@ -475,21 +476,12 @@ struct MethodologyView: View {
                 }
 
                 VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                    NavigationLink(destination: FinancialHealthAuditView(ticker: "Sample", methodology: nil)) {
-                        settingsAuditLink("Financial Health audit")
-                    }
-                    NavigationLink(destination: NewsSentimentAuditView(ticker: "Sample", methodology: nil)) {
-                        settingsAuditLink("News Sentiment audit")
-                    }
-                    NavigationLink(destination: MacroExposureAuditView(ticker: "Sample", methodology: nil)) {
-                        settingsAuditLink("Macro Exposure audit")
-                    }
-                    NavigationLink(destination: SectorExposureAuditView(ticker: "Sample", methodology: nil)) {
-                        settingsAuditLink("Sector Exposure audit")
-                    }
-                    NavigationLink(destination: VolatilityAuditView(ticker: "Sample", methodology: nil, scoreHistory: [])) {
-                        settingsAuditLink("Volatility audit")
-                    }
+                    Text("Open any ticker to drill into its full methodology audit.")
+                        .font(ClavisTypography.footnote)
+                        .foregroundColor(.textTertiary)
+                        .padding(ClavisTheme.cardPadding)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .clavisSecondaryCardStyle(fill: .surfaceElevated)
                 }
             }
             .padding(.horizontal, ClavisTheme.screenPadding)

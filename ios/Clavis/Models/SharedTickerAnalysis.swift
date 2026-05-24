@@ -58,6 +58,16 @@ struct SharedTickerAnalysisSummary: Codable, Hashable {
     let analysisSource: String?
     let freshness: SharedTickerFreshness
 
+    // v2 enrichment fields (post-2026-05-24 backfill). Backend may omit them on
+    // older payloads — always optional, always nil-safe.
+    let latestPrice: Double?
+    let previousClose: Double?
+    let dayChangeAmount: Double?
+    let dayChangePct: Double?
+    let riskDimensions: SharedRiskDimensions?
+    let isSupported: Bool?
+    let outsideUniverse: Bool?
+
     enum CodingKeys: String, CodingKey {
         case ticker
         case companyName = "company_name"
@@ -77,6 +87,42 @@ struct SharedTickerAnalysisSummary: Codable, Hashable {
         case methodologyVersion = "methodology_version"
         case analysisSource = "analysis_source"
         case freshness
+        case latestPrice = "latest_price"
+        case previousClose = "previous_close"
+        case dayChangeAmount = "day_change_amount"
+        case dayChangePct = "day_change_pct"
+        case riskDimensions = "risk_dimensions"
+        case isSupported = "is_supported"
+        case outsideUniverse = "outside_universe"
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        ticker = try c.decode(String.self, forKey: .ticker)
+        companyName = try c.decodeIfPresent(String.self, forKey: .companyName)
+        exchange = try c.decodeIfPresent(String.self, forKey: .exchange)
+        sector = try c.decodeIfPresent(String.self, forKey: .sector)
+        industry = try c.decodeIfPresent(String.self, forKey: .industry)
+        currentScore = try c.decodeFlexibleDoubleIfPresent(forKey: .currentScore)
+        currentGrade = try c.decodeIfPresent(String.self, forKey: .currentGrade)
+        gradeDirection = try c.decodeIfPresent(String.self, forKey: .gradeDirection)
+        scoreDelta = try c.decodeIfPresent(Int.self, forKey: .scoreDelta)
+        gradeRationale = try c.decodeIfPresent(String.self, forKey: .gradeRationale)
+        sourceCount = try c.decodeIfPresent(Int.self, forKey: .sourceCount)
+        majorEventCount = try c.decodeIfPresent(Int.self, forKey: .majorEventCount)
+        minorEventCount = try c.decodeIfPresent(Int.self, forKey: .minorEventCount)
+        evidenceStrength = try? c.decodeIfPresent(EvidenceStrength.self, forKey: .evidenceStrength)
+        analysisRunId = try c.decodeIfPresent(String.self, forKey: .analysisRunId)
+        methodologyVersion = try c.decodeIfPresent(String.self, forKey: .methodologyVersion)
+        analysisSource = try c.decodeIfPresent(String.self, forKey: .analysisSource)
+        freshness = try c.decode(SharedTickerFreshness.self, forKey: .freshness)
+        latestPrice = try c.decodeFlexibleDoubleIfPresent(forKey: .latestPrice)
+        previousClose = try c.decodeFlexibleDoubleIfPresent(forKey: .previousClose)
+        dayChangeAmount = try c.decodeFlexibleDoubleIfPresent(forKey: .dayChangeAmount)
+        dayChangePct = try c.decodeFlexibleDoubleIfPresent(forKey: .dayChangePct)
+        riskDimensions = try c.decodeIfPresent(SharedRiskDimensions.self, forKey: .riskDimensions)
+        isSupported = try c.decodeIfPresent(Bool.self, forKey: .isSupported)
+        outsideUniverse = try c.decodeIfPresent(Bool.self, forKey: .outsideUniverse)
     }
 
     var displayGrade: String {

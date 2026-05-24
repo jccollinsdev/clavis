@@ -196,3 +196,33 @@ struct HeroScoreSparkline: View {
         }
     }
 }
+
+struct HeroPriceSparkline: View {
+    let prices: [PricePoint]
+
+    var body: some View {
+        if prices.count < 2 {
+            EmptyView()
+        } else {
+            let values = prices.map { $0.price }
+            let minPrice = values.min() ?? 0
+            let maxPrice = values.max() ?? 0
+            let lastPrice = prices.last?.price ?? 0
+            let firstPrice = prices.first?.price ?? 0
+            let lineColor: Color = lastPrice >= firstPrice ? .good : .bad
+
+            Chart(prices) { point in
+                LineMark(
+                    x: .value("Date", point.recordedAt),
+                    y: .value("Price", point.price)
+                )
+                .foregroundStyle(lineColor)
+                .lineStyle(StrokeStyle(lineWidth: 1.5))
+            }
+            .chartYScale(domain: minPrice...max(maxPrice, minPrice + 0.01))
+            .chartXAxis(.hidden)
+            .chartYAxis(.hidden)
+            .frame(height: 44)
+        }
+    }
+}

@@ -8,6 +8,7 @@ struct TickerDetailView: View {
     @State private var detail: TickerDetailResponse?
     @State private var methodology: MethodologyResponse?
     @State private var priceHistory: [PricePoint] = []
+    @State private var scoreHistory: [ScoreHistoryPoint] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
     @State private var hasLoaded = false
@@ -41,7 +42,7 @@ struct TickerDetailView: View {
             .padding(.top, ClavisTheme.sectionSpacing)
             .padding(.bottom, ClavisTheme.extraLargeSpacing)
         }
-        .background(ClavisAtmosphereBackground())
+        .background(Color.clavixPage.ignoresSafeArea())
         .safeAreaInset(edge: .top, spacing: 0) {
             topHeader
         }
@@ -79,21 +80,21 @@ struct TickerDetailView: View {
     }
 
     private var topHeader: some View {
-        HStack(spacing: ClavisTheme.smallSpacing) {
+        HStack(spacing: 10) {
             Button(action: { dismiss() }) {
                 Image(systemName: "chevron.left")
-                    .foregroundColor(.textPrimary)
+                    .foregroundColor(.clavixInk)
             }
             .buttonStyle(.plain)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(detail?.profile.companyName ?? ticker)
-                    .font(ClavisTypography.cardTitle)
-                    .foregroundColor(.textPrimary)
+                    .font(ClavisTypography.clavixSerif(17, weight: .medium))
+                    .foregroundColor(.clavixInk)
                     .lineLimit(1)
                 Text(ticker)
-                    .font(ClavisTypography.footnoteEmphasis)
-                    .foregroundColor(.accentBurnt)
+                    .font(ClavisTypography.clavixMono(11, weight: .bold))
+                    .foregroundColor(.clavixAccent)
             }
 
             Spacer()
@@ -101,36 +102,78 @@ struct TickerDetailView: View {
             Button(action: { Task { await toggleWatchlist() } }) {
                 if isMutatingWatchlist {
                     ProgressView()
-                        .tint(.textPrimary)
+                        .tint(.clavixInk)
                 } else {
                     Image(systemName: isInWatchlist ? "star.fill" : "star")
-                        .foregroundColor(isInWatchlist ? .accentBurnt : .textPrimary)
+                        .foregroundColor(isInWatchlist ? .clavixAccent : .clavixInk)
                 }
             }
             .buttonStyle(.plain)
         }
-        .padding(.horizontal, ClavisTheme.screenPadding)
-        .padding(.top, ClavisTheme.smallSpacing)
-        .padding(.bottom, ClavisTheme.smallSpacing)
-        .background(
-            Color.backgroundPrimary.opacity(0.9)
-                .background(.ultraThinMaterial)
-                .ignoresSafeArea(edges: .top)
-        )
+        .padding(.horizontal, ClavixLayout.pad)
+        .padding(.top, 8)
+        .padding(.bottom, 8)
+        .background(Color.clavixPage.ignoresSafeArea(edges: .top))
         .overlay(alignment: .bottom) {
             Rectangle()
-                .fill(Color.border.opacity(0.5))
-                .frame(height: 0.5)
+                .fill(Color.clavixRule)
+                .frame(height: 1)
         }
     }
 
     @ViewBuilder
     private func content(_ detail: TickerDetailResponse) -> some View {
+        if isOutsideUniverse(detail) {
+            outsideUniverseBanner
+        }
         heroSection(detail)
         riskDimensionsSection(detail)
         driversSection(detail)
+        scoreHistorySection
         recentNewsSection(detail)
         bottomCtas(detail)
+    }
+
+    private func isOutsideUniverse(_ detail: TickerDetailResponse) -> Bool {
+        if detail.sharedAnalysis?.summary.outsideUniverse == true { return true }
+        if detail.sharedAnalysis?.summary.isSupported == false { return true }
+        return false
+    }
+
+    private var outsideUniverseBanner: some View {
+        ClavixCard(fill: .clavixWarnSoft) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("OUTSIDE TRACKED UNIVERSE")
+                    .font(ClavisTypography.clavixMono(10, weight: .bold))
+                    .tracking(0.7)
+                    .foregroundColor(.clavixWarnInk)
+                Text("This ticker isn't in the Clavix tracked universe. Risk data may be limited until coverage is added.")
+                    .font(ClavisTypography.clavixCaption)
+                    .foregroundColor(.clavixWarnInk)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private var scoreHistorySection: some View {
+        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+            sectionHeader(title: "Score History")
+            ClavixCard(fill: .clavixPaper) {
+                let snapshots = ScoreHistoryConversion.snapshots(from: scoreHistory)
+                if snapshots.count >= 2 {
+                    ScoreHistoryChart(
+                        snapshots: snapshots,
+                        showAllDimensions: false,
+                        toggledDimensions: .constant([])
+                    )
+                    .frame(height: 160)
+                } else {
+                    Text("New — score history requires at least 2 days of data.")
+                        .font(ClavisTypography.clavixCaption)
+                        .foregroundColor(.clavixInk3)
+                }
+            }
+        }
     }
 
     private var loadingState: some View {
@@ -143,43 +186,42 @@ struct TickerDetailView: View {
     }
 
     private func heroSection(_ detail: TickerDetailResponse) -> some View {
-        ClavisStandardCard(fill: .surface) {
-            VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-                HStack(alignment: .top, spacing: ClavisTheme.mediumSpacing) {
-                    VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+        ClavixCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 6) {
                         Text(detail.profile.companyName ?? ticker)
-                            .font(ClavisTypography.h2)
-                            .foregroundColor(.textPrimary)
+                            .font(ClavisTypography.clavixSerif(22, weight: .medium))
+                            .foregroundColor(.clavixInk)
                             .fixedSize(horizontal: false, vertical: true)
                         Text(ticker)
-                            .font(ClavisTypography.footnoteEmphasis)
-                            .foregroundColor(.accentBurnt)
+                            .font(ClavisTypography.clavixMono(11, weight: .bold))
+                            .foregroundColor(.clavixAccent)
 
-                        HStack(alignment: .firstTextBaseline, spacing: ClavisTheme.smallSpacing) {
+                        HStack(alignment: .firstTextBaseline, spacing: 8) {
                             Text(currency(latestPrice))
-                                .font(ClavisTypography.metric)
-                                .foregroundColor(.textPrimary)
+                                .font(ClavisTypography.clavixMono(22, weight: .semibold))
+                                .foregroundColor(.clavixInk)
                             Text(dayChangeText(detail))
-                                .font(ClavisTypography.footnoteEmphasis)
+                                .font(ClavisTypography.clavixMono(11, weight: .semibold))
                                 .foregroundColor(dayChangeColor(detail))
-                        }
-
-                        HStack(alignment: .center, spacing: ClavisTheme.smallSpacing) {
-                            Text(displayScoreText)
-                                .font(ClavisTypography.portfolioScore)
-                                .foregroundColor(.textPrimary)
-                            GradeBadge(grade: displayGrade, size: .standard)
                         }
                     }
 
-                    Spacer(minLength: ClavisTheme.smallSpacing)
+                    Spacer(minLength: 8)
+
+                    VStack(alignment: .trailing, spacing: 6) {
+                        ClavixGradeBadge(displayGrade, size: 44)
+                        Text(displayScoreText)
+                            .font(ClavisTypography.clavixMono(13, weight: .semibold))
+                            .foregroundColor(.clavixInk3)
+                    }
                 }
 
-                if let score = displayScoreValue {
-                    Text("New")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundColor(.gradeCBBB)
-                        .padding(.vertical, 4)
+                if displayScoreValue != nil {
+                    if priceHistory.count >= 2 {
+                        HeroPriceSparkline(prices: priceHistory)
+                    }
                 } else {
                     ratingPendingCard
                 }
@@ -205,7 +247,7 @@ struct TickerDetailView: View {
         return VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
             sectionHeader(title: "Risk Dimensions")
 
-            ClavisStandardCard(fill: .surface) {
+            ClavixCard(fill: .clavixPaper) {
                 VStack(spacing: 0) {
                     ForEach(Array(dimensions.enumerated()), id: \.element.key) { index, dimension in
                         VStack(spacing: 0) {
@@ -259,7 +301,7 @@ struct TickerDetailView: View {
         VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
             sectionHeader(title: "What's Driving It")
 
-            ClavisStandardCard(fill: .surface) {
+            ClavixCard(fill: .clavixPaper) {
                 VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
                     Text(driverSummary(detail))
                         .font(ClavisTypography.body)
@@ -291,13 +333,13 @@ struct TickerDetailView: View {
             }
 
             if visibleArticles.isEmpty {
-                ClavisStandardCard(fill: .surface) {
+                ClavixCard(fill: .clavixPaper) {
                     Text("No recent news for this ticker")
                         .font(ClavisTypography.body)
                         .foregroundColor(.textSecondary)
                 }
             } else {
-                ClavisStandardCard(fill: .surface) {
+                ClavixCard(fill: .clavixPaper) {
                     VStack(spacing: 0) {
                         ForEach(Array(visibleArticles.enumerated()), id: \.element.id) { index, article in
                             Button(action: { selectedArticle = article }) {
@@ -343,7 +385,7 @@ struct TickerDetailView: View {
     }
 
     private func bottomCtas(_ detail: TickerDetailResponse) -> some View {
-        ClavisStandardCard(fill: .surface) {
+        ClavixCard(fill: .clavixPaper) {
             VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
                 if isHeld {
                     VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
@@ -402,13 +444,16 @@ struct TickerDetailView: View {
         do {
             async let detailResponse = APIService.shared.fetchTickerDetail(ticker: ticker, positionId: positionId)
             async let priceResponse = APIService.shared.fetchPriceHistory(ticker: ticker, days: 30)
+            async let scoreResponse = APIService.shared.fetchScoreHistory(ticker: ticker, days: 90)
 
             let loadedDetail = try await detailResponse
             let loadedPrice = try await priceResponse
+            let loadedScore = (try? await scoreResponse)?.points ?? []
 
             await MainActor.run {
                 detail = loadedDetail
                 priceHistory = loadedPrice.prices
+                scoreHistory = loadedScore
                 errorMessage = nil
             }
 
@@ -418,7 +463,8 @@ struct TickerDetailView: View {
                     methodology = loadedMethodology
                 }
             } catch {
-                // TODO: backend should always return methodology payloads for rated tickers.
+                // Methodology payload is optional on Ticker Detail; the dimension
+                // rows fall back to honest "Limited Data" labels when absent.
                 await MainActor.run {
                     methodology = nil
                 }
@@ -689,7 +735,7 @@ private struct TickerAddHoldingSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    ClavisStandardCard(fill: .surface) {
+                    ClavixCard(fill: .clavixPaper) {
                         VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
                             Text(companyName ?? ticker)
                                 .font(ClavisTypography.cardTitle)
@@ -703,7 +749,7 @@ private struct TickerAddHoldingSheet: View {
                     field(title: "Shares", text: $shares)
                     field(title: "Cost basis per share", text: $costBasis)
 
-                    ClavisStandardCard(fill: .surface) {
+                    ClavixCard(fill: .clavixPaper) {
                         VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
                             Text("Purchase date")
                                 .font(ClavisTypography.label)
@@ -718,13 +764,6 @@ private struct TickerAddHoldingSheet: View {
                         DashboardErrorCard(message: errorMessage)
                     }
 
-                    ClavisStandardCard(fill: .surfaceElevated) {
-                        // TODO: backend add-holding contract does not yet accept purchase_date; send it once supported.
-                        Text("The purchase date is collected for the V2 flow and will be sent once the backend add-holding contract is updated.")
-                            .font(ClavisTypography.footnote)
-                            .foregroundColor(.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
                 }
                 .padding(.horizontal, ClavisTheme.screenPadding)
                 .padding(.vertical, ClavisTheme.sectionSpacing)
@@ -750,7 +789,7 @@ private struct TickerAddHoldingSheet: View {
     }
 
     private func field(title: String, text: Binding<String>) -> some View {
-        ClavisStandardCard(fill: .surface) {
+        ClavixCard(fill: .clavixPaper) {
             VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
                 Text(title)
                     .font(ClavisTypography.label)

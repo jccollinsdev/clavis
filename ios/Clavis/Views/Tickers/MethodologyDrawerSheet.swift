@@ -95,7 +95,7 @@ struct MethodologyDrawerSheet: View {
                 .padding(.horizontal, ClavisTheme.screenPadding)
                 .padding(.vertical, ClavisTheme.sectionSpacing)
             }
-            .background(ClavisAtmosphereBackground())
+            .background(Color.clavixPage.ignoresSafeArea())
             .navigationTitle("Methodology")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

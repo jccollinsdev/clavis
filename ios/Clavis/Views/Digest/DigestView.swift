@@ -1,241 +1,326 @@
 import SwiftUI
 
+/// Today tab. Cream/paper VisualQA design ported to live data.
+/// Heavy editorial content lives in `MorningReportView`, presented from the
+/// Morning Report card.
 struct DigestView: View {
     @Binding var selectedTab: Int
-    @StateObject private var viewModel = DigestViewModel()
+    @StateObject var viewModel = DigestViewModel()
     @State private var hasLoaded = false
-    @State private var showUpgradeSheet = false
+    @State private var showMorningReport = false
 
     var body: some View {
         NavigationStack {
+            content
+                .background(Color.clavixPage.ignoresSafeArea())
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    ClavixLargeHeader(
+                        eyebrow: "Morning Report",
+                        title: "Today",
+                        trailing: AnyView(
+                            HStack(spacing: 18) {
+                                Button(action: { selectedTab = 2 }) {
+                                    Image(systemName: "magnifyingglass")
+                                        .foregroundColor(.clavixInk)
+                                }
+                                Button(action: { selectedTab = 3 }) {
+                                    Image(systemName: "bell")
+                                        .foregroundColor(.clavixInk)
+                                }
+                            }
+                        )
+                    )
+                }
+                .toolbar(.hidden, for: .navigationBar)
+                .task {
+                    guard !hasLoaded else { return }
+                    hasLoaded = true
+                    await viewModel.loadDigest()
+                }
+                .refreshable {
+                    await viewModel.loadDigest(showLoading: false)
+                }
+                .navigationDestination(isPresented: $showMorningReport) {
+                    MorningReportView(viewModel: viewModel)
+                }
+                .navigationDestination(for: String.self) { ticker in
+                    TickerDetailView(ticker: ticker)
+                }
+        }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        if let errorMessage = viewModel.errorMessage, viewModel.todayDigest == nil {
             ScrollView {
-                VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    lengthToggle
-
-                    if let errorMessage = viewModel.errorMessage, viewModel.todayDigest == nil {
-                        DigestMessageCard(
-                            title: "Briefing unavailable — tap to retry",
-                            message: errorMessage,
-                            actionTitle: "Retry",
-                            action: { Task { await viewModel.loadDigest() } }
-                        )
-                    } else if viewModel.isLoading && viewModel.todayDigest == nil && !viewModel.isGenerating {
-                        loadingState
-                    } else if !viewModel.hasHoldings {
-                        DigestMessageCard(
-                            title: "Add holdings to get your personalized morning briefing",
-                            message: "Today stays empty until Clavix knows what you hold.",
-                            actionTitle: "Open Holdings",
-                            action: { selectedTab = 1 }
-                        )
-                    } else if viewModel.isGenerating && viewModel.todayDigest == nil {
-                        generatingState
-                    } else if let digest = viewModel.todayDigest {
-                        headerCard(digest)
-                        macroSection(digest)
-                        sectorSection(digest)
-                        positionsSection(digest)
-                        watchlistSection(digest)
-                        whatToWatchSection(digest)
-                    }
+                stateCard(
+                    title: "Briefing unavailable",
+                    body: errorMessage,
+                    cta: "Retry"
+                ) {
+                    Task { await viewModel.loadDigest() }
                 }
-                .padding(.horizontal, ClavisTheme.screenPadding)
-                .padding(.top, ClavisTheme.sectionSpacing)
-                .padding(.bottom, ClavisTheme.extraLargeSpacing)
+                .padding(.horizontal, ClavixLayout.pad)
+                .padding(.top, 8)
             }
-            .background(ClavisAtmosphereBackground())
-            .safeAreaInset(edge: .top, spacing: 0) {
-                topHeader
-            }
-            .toolbar(.hidden, for: .navigationBar)
-            .task {
-                guard !hasLoaded else { return }
-                hasLoaded = true
-                await viewModel.loadDigest()
-            }
-            .refreshable {
-                await viewModel.loadDigest(showLoading: false)
-            }
-            .sheet(isPresented: $showUpgradeSheet) {
-                DigestUpgradeSheet()
-            }
-        }
-    }
-
-    private var topHeader: some View {
-        ClavixPageHeader(
-            title: "Today",
-            subtitle: Date().formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day())
-        ) {
-            Button(action: { selectedTab = 1 }) {
-                Image(systemName: "briefcase")
-                    .foregroundColor(.textPrimary)
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, ClavisTheme.screenPadding)
-        .padding(.top, ClavisTheme.smallSpacing)
-        .padding(.bottom, 6)
-        .background(
-            Color.backgroundPrimary.opacity(0.9)
-                .background(.ultraThinMaterial)
-                .ignoresSafeArea(edges: .top)
-        )
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .fill(Color.border.opacity(0.5))
-                .frame(height: 0.5)
-        }
-    }
-
-    private var lengthToggle: some View {
-        ClavisStandardCard(fill: .surface) {
-            HStack(spacing: ClavisTheme.smallSpacing) {
-                ForEach(DigestLengthOption.allCases, id: \.rawValue) { option in
-                    Button(action: { handleLengthTap(option) }) {
-                        HStack(spacing: ClavisTheme.microSpacing) {
-                            Text(option.title)
-                                .font(ClavisTypography.footnoteEmphasis)
-                            if option == .verbose {
-                                Text("Pro")
-                                    .font(ClavisTypography.label)
-                            }
-                        }
-                        .foregroundColor(lengthForeground(option))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, ClavisTheme.smallSpacing)
-                        .background(lengthBackground(option))
-                        .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
-    }
-
-    private var loadingState: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-            ClavisLoadingCard(title: "Loading briefing", subtitle: "Pulling today’s portfolio digest.")
-            ClavisLoadingCard(title: "Loading macro", subtitle: "Checking the overnight market backdrop.")
-            ClavisLoadingCard(title: "Loading positions", subtitle: "Ranking your biggest risk movers.")
-        }
-    }
-
-    private var generatingState: some View {
-                        DigestMessageCard(
-                            title: "Your briefing is being prepared...",
-                            message: viewModel.activeRun?.currentStageMessage ?? "Clavix is compiling the latest macro, sector, and position changes.",
-                            actionTitle: nil,
-                            action: nil
-                        )
-    }
-
-    private func headerCard(_ digest: Digest) -> some View {
-        ClavisStandardCard(fill: .surface) {
-            VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-                Text(digest.structuredSections?.header?.date ?? digest.generatedAt.formatted(date: .abbreviated, time: .shortened))
-                    .font(ClavisTypography.label)
-                    .foregroundColor(.textSecondary)
-
-                HStack(alignment: .center, spacing: ClavisTheme.mediumSpacing) {
-                    GradeBadge(grade: digest.structuredSections?.header?.portfolioGrade ?? digest.overallGrade ?? "—", size: .large)
-                    VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                        Text("Portfolio composite")
-                            .font(ClavisTypography.label)
-                            .foregroundColor(.textSecondary)
-                        Text(digest.overallScore.map { "\(Int($0.rounded()))" } ?? "—")
-                            .font(ClavisTypography.portfolioScore)
-                            .foregroundColor(.textPrimary)
-                    }
-                }
-
-                Text(digest.structuredSections?.header?.summaryLine ?? digest.summary?.sanitizedDisplayText ?? "Your portfolio briefing is ready.")
-                    .font(ClavisTypography.body)
-                    .foregroundColor(.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-    }
-
-    private func macroSection(_ digest: Digest) -> some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-            sectionTitle("Overnight Macro")
-            ClavisStandardCard(fill: .surface) {
-                Text(digest.structuredSections?.overnightMacro?.brief.sanitizedDisplayText ?? "No overnight macro summary is available yet.")
-                    .font(ClavisTypography.body)
-                    .foregroundColor(.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-    }
-
-    private func sectorSection(_ digest: Digest) -> some View {
-        let sectors = digest.structuredSections?.sectorHeat ?? []
-
-        return VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-            sectionTitle("Sector Heat")
-
-            if sectors.isEmpty {
-                ClavisStandardCard(fill: .surface) {
-                    Text("Sector detail is still being assembled for your current holdings.")
-                        .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
-                }
-            } else {
-                ClavisStandardCard(fill: .surface) {
-                    VStack(spacing: 0) {
-                        // TODO: backend should return ETF performance and user exposure per held sector.
-                        ForEach(Array(sectors.enumerated()), id: \.element.id) { index, sector in
-                            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                                Text(sector.sector.humanizedTitleCasedDisplayText)
-                                    .font(ClavisTypography.bodyEmphasis)
-                                    .foregroundColor(.textPrimary)
-                                Text(sector.brief.sanitizedDisplayText)
-                                    .font(ClavisTypography.footnote)
-                                    .foregroundColor(.textSecondary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.vertical, ClavisTheme.mediumSpacing)
-
-                            if index < sectors.count - 1 {
-                                Divider().overlay(Color.border)
+        } else if viewModel.isLoading && viewModel.todayDigest == nil {
+            ScrollView {
+                VStack(spacing: 16) {
+                    ForEach(0..<3, id: \.self) { _ in
+                        ClavixCard {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Rectangle().fill(Color.clavixRule2).frame(height: 10).cornerRadius(2)
+                                Rectangle().fill(Color.clavixRule2).frame(height: 10).cornerRadius(2)
+                                Rectangle().fill(Color.clavixRule2).frame(width: 120, height: 10).cornerRadius(2)
                             }
                         }
                     }
                 }
+                .padding(.horizontal, ClavixLayout.pad)
+                .padding(.top, 8)
+            }
+        } else if !viewModel.hasHoldings {
+            ScrollView {
+                stateCard(
+                    title: "No positions yet",
+                    body: "Add positions to generate a Morning Report and portfolio risk grade.",
+                    cta: "Add positions"
+                ) { selectedTab = 1 }
+                .padding(.horizontal, ClavixLayout.pad)
+                .padding(.top, 8)
+            }
+        } else {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    portfolioHero
+                    morningReportCard
+                    dimensionSnapshot
+                    sectorExposure
+                    attention
+                    bookPreview
+                    calendar
+                }
+                .padding(.horizontal, ClavixLayout.pad)
+                .padding(.top, 8)
+                .padding(.bottom, ClavixLayout.bottomPad)
             }
         }
     }
 
-    private func positionsSection(_ digest: Digest) -> some View {
-        let positions = digest.structuredSections?.positions ?? []
+    // MARK: - Portfolio hero
 
-        return VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-            sectionTitle("Your Positions")
+    private var portfolioHero: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text(headerDateText)
+                Spacer()
+                Text(freshnessLabel)
+            }
+            .font(ClavisTypography.clavixMono(10, weight: .regular))
+            .tracking(0.7)
+            .foregroundColor(.clavixInk3)
 
-            if positions.isEmpty {
-                ClavisStandardCard(fill: .surface) {
-                    Text("No position updates were returned in this digest.")
-                        .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
+            HStack(alignment: .bottom, spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Portfolio value")
+                        .font(ClavisTypography.clavixCaption)
+                        .foregroundColor(.clavixInk3)
+                    Text(portfolioValueText)
+                        .font(ClavisTypography.clavixMono(29, weight: .semibold))
+                        .tracking(-0.6)
+                        .foregroundColor(.clavixInk)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.76)
+                    // Day-change line intentionally absent until backend exposes
+                    // per-position previous_close on /holdings (P1-2).
+                    Text("Today —")
+                        .font(ClavisTypography.clavixMono(12, weight: .regular))
+                        .foregroundColor(.clavixInk3)
+                }
+                Spacer()
+                VStack(alignment: .trailing, spacing: 4) {
+                    ClavixGradeBadge(portfolioGradeText)
+                    Text(compositeLine)
+                        .font(ClavisTypography.clavixMono(11, weight: .regular))
+                        .foregroundColor(.clavixInk3)
+                }
+            }
+        }
+        .padding(.bottom, 14)
+        .overlay(alignment: .bottom) { Rectangle().fill(Color.clavixRule).frame(height: 1) }
+    }
+
+    // MARK: - Morning Report card
+
+    private var morningReportCard: some View {
+        Button { showMorningReport = true } label: {
+            ClavixCard {
+                HStack(alignment: .top, spacing: 14) {
+                    VStack(alignment: .leading, spacing: 5) {
+                        ClavixEyebrow("Morning Report")
+                        Text(morningReportTitle)
+                            .font(ClavisTypography.clavixSerif(18, weight: .medium))
+                            .foregroundColor(.clavixInk)
+                        Text(morningReportPreview)
+                            .font(ClavisTypography.clavixCaption)
+                            .foregroundColor(.clavixInk2)
+                            .lineLimit(3)
+                            .multilineTextAlignment(.leading)
+                            .truncationMode(.tail)
+                    }
+                    Spacer()
+                    Text("Open →")
+                        .font(ClavisTypography.clavixMono(11, weight: .semibold))
+                        .foregroundColor(.clavixAccent)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Five-axis snapshot
+
+    private var dimensionSnapshot: some View {
+        ClavixSection(eyebrow: "Portfolio risk by dimension", title: "Five-axis snapshot") {
+            HStack(spacing: 1) {
+                ForEach(dimensionTuples, id: \.0) { code, score in
+                    VStack(spacing: 8) {
+                        Text(code)
+                            .font(ClavisTypography.clavixMono(10, weight: .bold))
+                            .foregroundColor(.clavixInk3)
+                        Text(score)
+                            .font(ClavisTypography.clavixMono(22, weight: .semibold))
+                            .foregroundColor(.clavixInk)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(Color.clavixPaper)
+                }
+            }
+            .overlay(Rectangle().stroke(Color.clavixRule, lineWidth: 1))
+        }
+    }
+
+    // MARK: - Sector exposure
+
+    private var sectorExposure: some View {
+        ClavixSection(eyebrow: "Portfolio sectors", title: "Sector exposure") {
+            if sectorRows.isEmpty {
+                ClavixCard {
+                    Text("Sector breakdown will appear once positions have analysis data.")
+                        .font(ClavisTypography.clavixCaption)
+                        .foregroundColor(.clavixInk3)
                 }
             } else {
-                ClavisStandardCard(fill: .surface) {
-                    VStack(spacing: 0) {
-                        ForEach(Array(positions.enumerated()), id: \.element.id) { index, item in
-                            NavigationLink(destination: TickerDetailView(ticker: item.ticker)) {
-                                DigestPositionRow(
-                                    ticker: item.ticker,
-                                    grade: viewModel.grade(for: item.ticker),
-                                    delta: viewModel.scoreDelta(for: item.ticker),
-                                    summary: item.impactSummary.sanitizedDisplayText
-                                )
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 1), count: 3), spacing: 1) {
+                    ForEach(sectorRows, id: \.sector) { row in
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(row.sector)
+                                .font(ClavisTypography.clavixMono(11, weight: .bold))
+                                .foregroundColor(.clavixInk)
+                            Text("w\(row.weightInt)%")
+                                .font(ClavisTypography.clavixMono(11, weight: .regular))
+                                .foregroundColor(.clavixInk3)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(14)
+                        .background(Color.clavixPaper)
+                    }
+                }
+                .overlay(Rectangle().stroke(Color.clavixRule, lineWidth: 1))
+            }
+        }
+    }
+
+    // MARK: - Attention (alerts preview)
+
+    private var attention: some View {
+        ClavixSection(eyebrow: attentionEyebrow, title: "Attention") {
+            HStack {
+                Spacer()
+                Button("See all →") { selectedTab = 3 }
+                    .font(ClavisTypography.clavixCaption)
+                    .foregroundColor(.clavixAccent)
+            }
+            .offset(y: -48)
+            .padding(.bottom, -38)
+
+            if viewModel.alerts.isEmpty {
+                ClavixCard {
+                    Text("All quiet.")
+                        .font(ClavisTypography.clavixCaption)
+                        .foregroundColor(.clavixInk3)
+                }
+            } else {
+                ForEach(viewModel.alerts.prefix(2), id: \.id) { alert in
+                    alertRow(alert)
+                }
+            }
+        }
+    }
+
+    private func alertRow(_ alert: Alert) -> some View {
+        ClavixCard(padding: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(alertCategoryLabel(alert).uppercased())
+                        .font(ClavisTypography.clavixMono(10, weight: .bold))
+                        .tracking(0.7)
+                        .foregroundColor(.clavixInk3)
+                    Spacer()
+                    Text(alert.createdAt.formatted(date: .omitted, time: .shortened))
+                        .font(ClavisTypography.clavixMono(10, weight: .regular))
+                        .foregroundColor(.clavixInk3)
+                }
+                Text(alert.message.sanitizedDisplayText)
+                    .font(ClavisTypography.clavixSerif(14, weight: .medium))
+                    .foregroundColor(.clavixInk)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+            }
+        }
+    }
+
+    // MARK: - Top movers
+
+    private var bookPreview: some View {
+        ClavixSection(eyebrow: bookEyebrow, title: "Your book") {
+            HStack {
+                Spacer()
+                Button("Holdings →") { selectedTab = 1 }
+                    .font(ClavisTypography.clavixCaption)
+                    .foregroundColor(.clavixAccent)
+            }
+            .offset(y: -48)
+            .padding(.bottom, -38)
+
+            ClavixCard(padding: 0) {
+                VStack(spacing: 0) {
+                    HStack {
+                        Text("SYM")
+                        Spacer()
+                        Text("GRADE · DELTA")
+                    }
+                    .font(ClavisTypography.clavixMono(9, weight: .bold))
+                    .foregroundColor(.clavixInk3)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    Rectangle().fill(Color.clavixRule).frame(height: 1)
+
+                    let movers = topMovers
+                    if movers.isEmpty {
+                        Text("Holdings load once analysis completes.")
+                            .font(ClavisTypography.clavixCaption)
+                            .foregroundColor(.clavixInk3)
+                            .padding(14)
+                    } else {
+                        ForEach(Array(movers.enumerated()), id: \.element.id) { index, position in
+                            NavigationLink(value: position.ticker) {
+                                bookRow(position)
                             }
                             .buttonStyle(.plain)
-
-                            if index < positions.count - 1 {
-                                Divider().overlay(Color.border)
+                            if index < movers.count - 1 {
+                                Rectangle().fill(Color.clavixRule).frame(height: 1)
                             }
                         }
                     }
@@ -244,68 +329,58 @@ struct DigestView: View {
         }
     }
 
-    private func watchlistSection(_ digest: Digest) -> some View {
-        let items = digest.structuredSections?.watchlistUpdates?.alerts ?? []
-
-        return VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-            sectionTitle("Watchlist Updates")
-
-            if items.isEmpty {
-                ClavisStandardCard(fill: .surface) {
-                    Text("No watchlist updates in this briefing.")
-                        .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
-                }
-            } else {
-                ClavisStandardCard(fill: .surface) {
-                    VStack(spacing: 0) {
-                        // TODO: backend should return watchlist ticker cards with grade and delta fields.
-                        ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                            Text(item.sanitizedDisplayText)
-                                .font(ClavisTypography.body)
-                                .foregroundColor(.textSecondary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.vertical, ClavisTheme.mediumSpacing)
-
-                            if index < items.count - 1 {
-                                Divider().overlay(Color.border)
-                            }
-                        }
-                    }
+    private func bookRow(_ position: Position) -> some View {
+        HStack {
+            Text(position.ticker)
+                .font(ClavisTypography.clavixMono(13, weight: .bold))
+                .foregroundColor(.clavixInk)
+            Spacer()
+            HStack(spacing: 8) {
+                ClavixGradeBadge(position.resolvedRiskGrade ?? "—", size: 22)
+                if let delta = position.scoreDelta, delta != 0 {
+                    Text(delta > 0 ? "+\(delta)" : "\(delta)")
+                        .font(ClavisTypography.clavixMono(11, weight: .semibold))
+                        .foregroundColor(delta > 0 ? .clavixGood : .clavixBad)
+                } else {
+                    Text("—")
+                        .font(ClavisTypography.clavixMono(11, weight: .regular))
+                        .foregroundColor(.clavixInk3)
                 }
             }
         }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
     }
 
-    private func whatToWatchSection(_ digest: Digest) -> some View {
-        let items = digest.structuredSections?.whatToWatchToday?.catalysts ?? []
+    // MARK: - Calendar
 
-        return VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-            sectionTitle("What to Watch Today")
-
+    private var calendar: some View {
+        ClavixSection(eyebrow: "Today", title: "Calendar") {
+            let items = viewModel.todayDigest?.structuredSections?.whatToWatchToday?.catalysts ?? []
             if items.isEmpty {
-                ClavisStandardCard(fill: .surface) {
-                    Text("No calendar items are scheduled for your portfolio today.")
-                        .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
+                ClavixCard {
+                    Text("No scheduled events surfaced for your portfolio today.")
+                        .font(ClavisTypography.clavixCaption)
+                        .foregroundColor(.clavixInk3)
                 }
             } else {
-                ClavisStandardCard(fill: .surface) {
+                ClavixCard(padding: 0) {
                     VStack(spacing: 0) {
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                            VStack(alignment: .leading, spacing: 4) {
                                 Text(item.catalyst.sanitizedDisplayText)
-                                    .font(ClavisTypography.bodyEmphasis)
-                                    .foregroundColor(.textPrimary)
-                                Text(item.impactedPositions.joined(separator: ", "))
-                                    .font(ClavisTypography.footnote)
-                                    .foregroundColor(.textSecondary)
+                                    .font(ClavisTypography.clavixSerif(14, weight: .medium))
+                                    .foregroundColor(.clavixInk)
+                                if !item.impactedPositions.isEmpty {
+                                    Text(item.impactedPositions.joined(separator: ", "))
+                                        .font(ClavisTypography.clavixMono(10, weight: .regular))
+                                        .foregroundColor(.clavixInk3)
+                                }
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.vertical, ClavisTheme.mediumSpacing)
-
+                            .padding(14)
                             if index < items.count - 1 {
-                                Divider().overlay(Color.border)
+                                Rectangle().fill(Color.clavixRule).frame(height: 1)
                             }
                         }
                     }
@@ -314,138 +389,171 @@ struct DigestView: View {
         }
     }
 
-    private func handleLengthTap(_ option: DigestLengthOption) {
-        if option == .verbose && viewModel.isFreeTier {
-            showUpgradeSheet = true
-            return
-        }
+    // MARK: - State card
 
-        Task { await viewModel.saveSummaryLength(option) }
-    }
-
-    private func lengthForeground(_ option: DigestLengthOption) -> Color {
-        if option == .verbose && viewModel.isFreeTier {
-            return .accentInk
-        }
-        return viewModel.summaryLength == option ? .accentInk : .textSecondary
-    }
-
-    private func lengthBackground(_ option: DigestLengthOption) -> Color {
-        if option == .verbose && viewModel.isFreeTier {
-            return .accentBurnt
-        }
-        return viewModel.summaryLength == option ? .accentBurnt : .surfaceElevated
-    }
-
-    private func sectionTitle(_ text: String) -> some View {
-        Text(text)
-            .font(ClavisTypography.label)
-            .foregroundColor(.textSecondary)
-    }
-}
-
-private struct DigestPositionRow: View {
-    let ticker: String
-    let grade: String
-    let delta: Int?
-    let summary: String
-
-    var body: some View {
-        HStack(alignment: .top, spacing: ClavisTheme.mediumSpacing) {
-            GradeBadge(grade: grade, size: .compact)
-
-            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                HStack(spacing: ClavisTheme.smallSpacing) {
-                    Text(ticker)
-                        .font(ClavisTypography.bodyEmphasis)
-                        .foregroundColor(.accentBurnt)
-                    if let delta {
-                        Text(deltaText(delta))
-                            .font(ClavisTypography.footnoteEmphasis)
-                            .foregroundColor(deltaColor(delta))
-                    }
-                }
-
-                Text(summary)
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.textSecondary)
-                    .multilineTextAlignment(.leading)
-                    .lineLimit(3)
-            }
-
-            Spacer()
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, ClavisTheme.mediumSpacing)
-    }
-
-    private func deltaText(_ value: Int) -> String {
-        if value == 0 { return "—" }
-        return value > 0 ? "↑ +\(value)" : "↓ \(value)"
-    }
-
-    private func deltaColor(_ value: Int) -> Color {
-        if value == 0 { return .textSecondary }
-        return value > 0 ? .good : .bad
-    }
-}
-
-private struct DigestMessageCard: View {
-    let title: String
-    let message: String
-    let actionTitle: String?
-    let action: (() -> Void)?
-
-    var body: some View {
-        ClavisStandardCard(fill: .surface) {
-            VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
+    private func stateCard(title: String, body: String, cta: String, action: @escaping () -> Void) -> some View {
+        ClavixCard {
+            VStack(alignment: .leading, spacing: 12) {
                 Text(title)
-                    .font(ClavisTypography.cardTitle)
-                    .foregroundColor(.textPrimary)
-                Text(message)
-                    .font(ClavisTypography.body)
-                    .foregroundColor(.textSecondary)
+                    .font(ClavisTypography.clavixSerif(18, weight: .medium))
+                    .foregroundColor(.clavixInk)
+                Text(body)
+                    .font(ClavisTypography.clavixCaption)
+                    .foregroundColor(.clavixInk2)
                     .fixedSize(horizontal: false, vertical: true)
-                if let actionTitle, let action {
-                    ClavisPrimaryButton(title: actionTitle, action: action)
+                Button(action: action) {
+                    Text(cta + " →")
+                        .font(ClavisTypography.clavixMono(11, weight: .semibold))
+                        .foregroundColor(.clavixAccent)
                 }
             }
         }
     }
-}
 
-private struct DigestUpgradeSheet: View {
-    @Environment(\.dismiss) private var dismiss
+    // MARK: - Computed values
 
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    ClavisStandardCard(fill: .surface) {
-                        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-                            Text("Verbose briefing is a Pro feature")
-                                .font(ClavisTypography.h2)
-                                .foregroundColor(.textPrimary)
-                            Text("Unlock the full morning memo, including deeper position context and longer-form briefing detail.")
-                                .font(ClavisTypography.body)
-                                .foregroundColor(.textSecondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                            ClavisPrimaryButton(title: "Start 14-day trial", action: {})
-                        }
-                    }
-                }
-                .padding(.horizontal, ClavisTheme.screenPadding)
-                .padding(.vertical, ClavisTheme.sectionSpacing)
+    private var headerDateText: String {
+        Date().formatted(.dateTime.weekday(.wide).month(.abbreviated).day().hour().minute()).uppercased()
+    }
+
+    private var freshnessLabel: String {
+        guard let digest = viewModel.todayDigest else { return "Updating" }
+        let interval = Date().timeIntervalSince(digest.generatedAt)
+        if interval < 60 * 60 { return "Updated" }
+        if interval < 60 * 60 * 24 { return "Today" }
+        return "Stale"
+    }
+
+    private var portfolioValueText: String {
+        let total = viewModel.holdings.compactMap(\.currentValue).reduce(0, +)
+        guard total > 0 else { return "—" }
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.maximumFractionDigits = 2
+        return formatter.string(from: NSNumber(value: total)) ?? "—"
+    }
+
+    private var portfolioGradeText: String {
+        if !viewModel.holdings.isEmpty,
+           PortfolioMath.weightedScore(viewModel.holdings) != nil {
+            return PortfolioMath.weightedGrade(viewModel.holdings)
+        }
+        return viewModel.todayDigest?.structuredSections?.header?.portfolioGrade
+            ?? viewModel.todayDigest?.overallGrade
+            ?? "—"
+    }
+
+    private var compositeLine: String {
+        if let weighted = PortfolioMath.weightedScore(viewModel.holdings) {
+            return "Composite \(Int(weighted.rounded())) · —"
+        }
+        if let overall = viewModel.todayDigest?.overallScore {
+            return "Composite \(Int(overall.rounded())) · —"
+        }
+        return "Composite —"
+    }
+
+    private var morningReportTitle: String {
+        if viewModel.todayDigest != nil {
+            return "Your daily risk brief is ready"
+        }
+        return "Briefing not generated yet"
+    }
+
+    private var morningReportPreview: String {
+        if let line = viewModel.todayDigest?.structuredSections?.header?.summaryLine,
+           !line.isEmpty {
+            return line.sanitizedDisplayText
+        }
+        if let text = viewModel.todayDigest?.summary?.sanitizedDisplayText, !text.isEmpty {
+            return text
+        }
+        return "Open to see overnight macro, sector heat, and per-position changes."
+    }
+
+    /// Portfolio per-dimension snapshot. Each cell is the value-weighted average
+    /// of the dimension across held tickers; "—" when no ticker exposes that
+    /// dimension yet (CLAVIX_TRUTH §6 limited-data rule).
+    private var dimensionTuples: [(String, String)] {
+        let entries: [(String, (SharedRiskDimensions) -> Double?)] = [
+            ("FIN",  { $0.financialHealth }),
+            ("NEWS", { $0.newsSentiment }),
+            ("MAC",  { $0.macroExposure }),
+            ("SEC",  { $0.sectorExposure }),
+            ("VOL",  { $0.volatility }),
+        ]
+        return entries.map { label, extract in
+            var num = 0.0
+            var denom = 0.0
+            for position in viewModel.holdings {
+                guard let dims = position.sharedAnalysis?.riskDimensions,
+                      let score = extract(dims),
+                      let value = position.currentValue,
+                      value > 0 else { continue }
+                num += score * value
+                denom += value
             }
-            .background(ClavisAtmosphereBackground())
-            .navigationTitle("Upgrade")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
-                        .foregroundColor(.textSecondary)
-                }
+            if denom == 0 {
+                return (label, "—")
             }
+            return (label, "\(Int((num / denom).rounded()))")
+        }
+    }
+
+    private struct SectorRow {
+        let sector: String
+        let weight: Double
+        var weightInt: Int { Int((weight * 100).rounded()) }
+    }
+
+    private var sectorRows: [SectorRow] {
+        let totalValue = viewModel.holdings.compactMap(\.currentValue).reduce(0, +)
+        guard totalValue > 0 else { return [] }
+        var bySector: [String: Double] = [:]
+        for position in viewModel.holdings {
+            guard let value = position.currentValue, value > 0 else { continue }
+            let sector = position.sharedAnalysis?.sector ?? "Unclassified"
+            bySector[sector, default: 0] += value
+        }
+        return bySector
+            .map { SectorRow(sector: $0.key, weight: $0.value / totalValue) }
+            .sorted { $0.weight > $1.weight }
+            .prefix(6)
+            .map { $0 }
+    }
+
+    private var attentionEyebrow: String {
+        let n = viewModel.alerts.count
+        if n == 0 { return "No new alerts" }
+        return "\(n) alert\(n == 1 ? "" : "s")"
+    }
+
+    private var bookEyebrow: String {
+        let n = viewModel.holdings.count
+        return "Top movers · \(n) position\(n == 1 ? "" : "s")"
+    }
+
+    private var topMovers: [Position] {
+        viewModel.holdings
+            .sorted { abs($0.scoreDelta ?? 0) > abs($1.scoreDelta ?? 0) }
+            .prefix(5)
+            .map { $0 }
+    }
+
+    private func alertCategoryLabel(_ alert: Alert) -> String {
+        // Map known internal types to user-facing categories without exposing raw status.
+        switch alert.type {
+        case .gradeChange:              return "Grade"
+        case .majorEvent:               return "News"
+        case .portfolioGradeChange,
+             .portfolioSafetyThresholdBreach:
+                                         return "Portfolio"
+        case .macroShock:               return "Macro"
+        case .safetyDeterioration,
+             .concentrationDanger,
+             .clusterRisk,
+             .structuralFragility:      return "Risk"
+        case .ratingReady, .digestReady:return "Update"
         }
     }
 }

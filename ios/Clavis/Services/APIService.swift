@@ -608,6 +608,30 @@ class APIService {
         return try decoder.decode(PriceHistoryResponse.self, from: data)
     }
 
+    // MARK: - Score History
+
+    func fetchScoreHistory(ticker: String, days: Int = 90) async throws -> ScoreHistoryResponse {
+        let data = try await makeRequest(path: "/tickers/\(ticker)/score-history?days=\(days)", timeoutInterval: 30)
+        return try decoder.decode(ScoreHistoryResponse.self, from: data)
+    }
+
+    // MARK: - Alerts (v2)
+
+    func markAlertRead(id: String) async throws {
+        _ = try await makeRequest(path: "/alerts/\(id)/read", method: "POST")
+    }
+
+    func markAllAlertsRead() async throws {
+        _ = try await makeRequest(path: "/alerts/read-all", method: "POST")
+    }
+
+    // MARK: - Today envelope
+
+    func fetchToday() async throws -> TodayResponse {
+        let data = try await makeRequest(path: "/today", timeoutInterval: 45)
+        return try decoder.decode(TodayResponse.self, from: data)
+    }
+
     // MARK: - Device Token
 
     struct DeviceTokenUpdate: Encodable {

@@ -15,32 +15,64 @@ struct SearchView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
+                VStack(alignment: .leading, spacing: 16) {
                     searchField
 
                     if let errorMessage {
-                        SearchErrorCard(message: errorMessage)
+                        ClavixCard {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("Search unavailable")
+                                    .font(ClavisTypography.clavixSerif(15, weight: .medium))
+                                    .foregroundColor(.clavixInk)
+                                Text(errorMessage)
+                                    .font(ClavisTypography.clavixCaption)
+                                    .foregroundColor(.clavixInk2)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
                     } else if isLoading {
-                        ClavisLoadingCard(
-                            title: "Searching tickers",
-                            subtitle: "Pulling the latest tracked names and current ratings."
-                        )
+                        ClavixCard {
+                            Text("Searching tickers…")
+                                .font(ClavisTypography.clavixCaption)
+                                .foregroundColor(.clavixInk3)
+                        }
                     } else if trimmedQuery.isEmpty {
-                        SearchEmptyStateCard()
+                        emptyState
                     } else if results.isEmpty {
-                        SearchNoResultsCard(query: trimmedQuery)
+                        ClavixCard {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("No results for \(trimmedQuery.uppercased())")
+                                    .font(ClavisTypography.clavixSerif(15, weight: .medium))
+                                    .foregroundColor(.clavixInk)
+                                Text("Try a different ticker or company name. Outside-universe tickers are not yet searchable here.")
+                                    .font(ClavisTypography.clavixCaption)
+                                    .foregroundColor(.clavixInk2)
+                            }
+                        }
                     } else {
-                        SearchResultsCard(results: results)
+                        ClavixCard(padding: 0) {
+                            VStack(spacing: 0) {
+                                ForEach(Array(results.enumerated()), id: \.element.id) { index, result in
+                                    NavigationLink(destination: TickerDetailView(ticker: result.ticker)) {
+                                        SearchResultRow(result: result)
+                                    }
+                                    .buttonStyle(.plain)
+                                    if index < results.count - 1 {
+                                        Rectangle().fill(Color.clavixRule).frame(height: 1)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
-                .padding(.horizontal, ClavisTheme.screenPadding)
-                .padding(.top, ClavisTheme.sectionSpacing)
-                .padding(.bottom, ClavisTheme.largeSpacing)
+                .padding(.horizontal, ClavixLayout.pad)
+                .padding(.top, 8)
+                .padding(.bottom, ClavixLayout.bottomPad)
             }
-            .background(ClavisAtmosphereBackground())
+            .background(Color.clavixPage.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
             .safeAreaInset(edge: .top, spacing: 0) {
-                SearchTopHeader()
+                ClavixLargeHeader(eyebrow: "Tracked universe", title: "Search")
             }
             .onAppear {
                 hasLoadedInitialState = true
@@ -52,27 +84,42 @@ struct SearchView: View {
     }
 
     private var searchField: some View {
-        HStack(spacing: ClavisTheme.smallSpacing) {
-            Image(systemName: "magnifyingglass")
-                .foregroundColor(.textSecondary)
-            TextField("Search ticker or company", text: $query)
-                .font(ClavisTypography.body)
-                .foregroundColor(.textPrimary)
-                .textInputAutocapitalization(.characters)
-                .autocorrectionDisabled()
-            if !trimmedQuery.isEmpty {
-                Button("Clear") {
-                    query = ""
-                    results = []
-                    errorMessage = nil
+        ClavixCard(padding: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.clavixInk3)
+                TextField("Ticker or company name…", text: $query)
+                    .font(ClavisTypography.clavixSerif(15))
+                    .foregroundColor(.clavixInk)
+                    .textInputAutocapitalization(.characters)
+                    .autocorrectionDisabled()
+                if !trimmedQuery.isEmpty {
+                    Button("Clear") {
+                        query = ""
+                        results = []
+                        errorMessage = nil
+                    }
+                    .font(ClavisTypography.clavixMono(11, weight: .semibold))
+                    .foregroundColor(.clavixAccent)
+                    .buttonStyle(.plain)
                 }
-                .font(ClavisTypography.footnoteEmphasis)
-                .foregroundColor(.accentBurnt)
-                .buttonStyle(.plain)
             }
         }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle(fill: .surface)
+    }
+
+    private var emptyState: some View {
+        ClavixCard {
+            VStack(alignment: .leading, spacing: 6) {
+                ClavixEyebrow("Tracked universe")
+                Text("Search the tracked universe")
+                    .font(ClavisTypography.clavixSerif(18, weight: .medium))
+                    .foregroundColor(.clavixInk)
+                Text("Enter a ticker or company name to open a rating, inspect recent news, or add to your holdings.")
+                    .font(ClavisTypography.clavixCaption)
+                    .foregroundColor(.clavixInk2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
     }
 
     private func runSearch() {
@@ -113,161 +160,53 @@ struct SearchView: View {
     }
 }
 
-private struct SearchTopHeader: View {
-    var body: some View {
-        ClavixPageHeader(title: "Search", subtitle: "Tracked universe")
-            .padding(.horizontal, ClavisTheme.screenPadding)
-            .padding(.top, ClavisTheme.smallSpacing)
-            .padding(.bottom, 6)
-            .background(
-                Color.backgroundPrimary.opacity(0.9)
-                    .background(.ultraThinMaterial)
-                    .ignoresSafeArea(edges: .top)
-            )
-            .overlay(alignment: .bottom) {
-                Rectangle()
-                    .fill(Color.border.opacity(0.5))
-                    .frame(height: 0.5)
-            }
-    }
-}
-
-private struct SearchEmptyStateCard: View {
-    var body: some View {
-        ClavisStandardCard(fill: .surface) {
-            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                Text("Search the tracked universe")
-                    .font(ClavisTypography.cardTitle)
-                    .foregroundColor(.textPrimary)
-                Text("Enter a ticker or company name to open a rating, inspect recent news, or add the ticker to your holdings or watchlist.")
-                    .font(ClavisTypography.body)
-                    .foregroundColor(.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-    }
-}
-
-private struct SearchNoResultsCard: View {
-    let query: String
-
-    var body: some View {
-        ClavisStandardCard(fill: .surface) {
-            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                Text("No results for \(query.uppercased())")
-                    .font(ClavisTypography.cardTitle)
-                    .foregroundColor(.textPrimary)
-                Text("Try a different ticker symbol or company name.")
-                    .font(ClavisTypography.body)
-                    .foregroundColor(.textSecondary)
-            }
-        }
-    }
-}
-
-private struct SearchResultsCard: View {
-    let results: [TickerSearchResult]
-
-    var body: some View {
-        ClavisFlushListCard(fill: .surface, padding: ClavisTheme.cardPadding) {
-            ForEach(Array(results.enumerated()), id: \.element.id) { index, result in
-                NavigationLink(destination: TickerDetailView(ticker: result.ticker)) {
-                    SearchResultRow(result: result, showsDivider: index < results.count - 1)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-    }
-}
-
-private struct SearchErrorCard: View {
-    let message: String
-
-    var body: some View {
-        ClavisStandardCard(fill: .surface) {
-            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                Text("Search unavailable")
-                    .font(ClavisTypography.cardTitle)
-                    .foregroundColor(.textPrimary)
-                Text(message)
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-    }
-}
-
 private struct SearchResultRow: View {
     let result: TickerSearchResult
-    let showsDivider: Bool
 
-    private var grade: String {
-        result.resolvedGrade ?? "—"
-    }
-
+    private var grade: String { result.resolvedGrade ?? "—" }
     private var scoreText: String {
-        guard let score = result.resolvedSafetyScore else { return "--" }
+        guard let score = result.resolvedSafetyScore else { return "—" }
         return "\(Int(score.rounded()))"
     }
 
-    private var subtitle: String {
-        if let summary = result.resolvedSummary?.sanitizedDisplayText, !summary.isEmpty {
-            return summary
-        }
-        return result.companyName
-    }
-
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(alignment: .center, spacing: 12) {
-                GradeBadge(grade: grade)
+        HStack(alignment: .center, spacing: 12) {
+            ClavixGradeBadge(grade, size: 28)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 8) {
-                        Text(result.ticker)
-                            .font(ClavisTypography.bodyEmphasis)
-                            .foregroundColor(.accentBurnt)
-                        Text(result.companyName)
-                            .font(ClavisTypography.footnote)
-                            .foregroundColor(.textSecondary)
-                            .lineLimit(1)
-                    }
-
-                    Text(subtitle)
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.textSecondary)
-                        .lineLimit(2)
-
-                    HStack(spacing: 8) {
-                        if let price = result.price {
-                            Text(currency(price))
-                                .font(ClavisTypography.footnoteEmphasis)
-                                .foregroundColor(.textPrimary)
-                        }
-
-                        if let overlay = result.portfolioOverlay, overlay.isHeld {
-                            SearchTag(text: "In holdings", foreground: .accentInk, background: .accentBurnt)
-                        }
-
-                        if !result.isSupported {
-                            SearchTag(text: "Not in tracked universe", foreground: .warn, background: .warnSoft)
-                        }
-                    }
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
+                    Text(result.ticker)
+                        .font(ClavisTypography.clavixMono(13, weight: .bold))
+                        .foregroundColor(.clavixInk)
+                    Text(result.companyName)
+                        .font(ClavisTypography.clavixCaption)
+                        .foregroundColor(.clavixInk2)
+                        .lineLimit(1)
                 }
 
-                Spacer(minLength: 12)
-
-                Text(scoreText)
-                    .font(ClavisTypography.rowScore)
-                    .foregroundColor(.textSecondary)
+                HStack(spacing: 6) {
+                    if let price = result.price {
+                        Text(currency(price))
+                            .font(ClavisTypography.clavixMono(11, weight: .semibold))
+                            .foregroundColor(.clavixInk)
+                    }
+                    if let overlay = result.portfolioOverlay, overlay.isHeld {
+                        TagChip(text: "In holdings", foreground: .clavixAccentInk, background: .clavixAccentSoft)
+                    }
+                    if !result.isSupported {
+                        TagChip(text: "Not in tracked universe", foreground: .clavixWarnInk, background: .clavixWarnSoft)
+                    }
+                }
             }
-            .padding(.vertical, 13)
 
-            if showsDivider {
-                Divider().overlay(Color.border)
-            }
+            Spacer(minLength: 12)
+
+            Text(scoreText)
+                .font(ClavisTypography.clavixMono(15, weight: .semibold))
+                .foregroundColor(.clavixInk3)
         }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 13)
     }
 
     private func currency(_ value: Double) -> String {
@@ -278,18 +217,19 @@ private struct SearchResultRow: View {
     }
 }
 
-private struct SearchTag: View {
+private struct TagChip: View {
     let text: String
     let foreground: Color
     let background: Color
 
     var body: some View {
         Text(text)
-            .font(ClavisTypography.label)
+            .font(ClavisTypography.clavixMono(9, weight: .bold))
+            .tracking(0.4)
             .foregroundColor(foreground)
             .padding(.horizontal, 6)
-            .padding(.vertical, 4)
+            .padding(.vertical, 3)
             .background(background)
-            .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
     }
 }

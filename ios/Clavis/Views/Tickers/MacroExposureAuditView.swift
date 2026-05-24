@@ -46,7 +46,7 @@ struct MacroExposureAuditView: View {
             .padding(.horizontal, ClavisTheme.screenPadding)
             .padding(.vertical, ClavisTheme.sectionSpacing)
         }
-        .background(ClavisAtmosphereBackground())
+        .background(Color.clavixPage.ignoresSafeArea())
         .navigationTitle("Macro Exposure")
         .navigationBarTitleDisplayMode(.inline)
     }

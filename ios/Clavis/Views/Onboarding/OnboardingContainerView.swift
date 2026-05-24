@@ -10,7 +10,7 @@ struct OnboardingContainerView: View {
 
     var body: some View {
         ZStack {
-            Color.backgroundPrimary.ignoresSafeArea()
+            Color.clavixPage.ignoresSafeArea()
 
             Group {
                 switch viewModel.currentPage {
@@ -58,7 +58,7 @@ struct OnboardingContainerView: View {
             guard let url = notification.object as? URL else { return }
             Task { await brokerageViewModel.handleCallback(url: url) }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(.light)
     }
 
     private func handleConnectBrokerage() {
@@ -97,17 +97,18 @@ private struct OnboardingWelcomeView: View {
 
             VStack(alignment: .leading, spacing: 28) {
                 Text("CLAVIX")
-                    .font(ClavisTypography.footnoteEmphasis)
-                    .foregroundColor(.accentBurnt)
+                    .font(ClavisTypography.clavixMono(11, weight: .bold))
+                    .tracking(4)
+                    .foregroundColor(.clavixAccent)
 
                 VStack(alignment: .leading, spacing: 14) {
                     Text("Portfolio risk, measured.")
-                        .font(.system(size: 32, weight: .semibold))
-                        .foregroundColor(.textPrimary)
+                        .font(ClavisTypography.clavixSerif(32, weight: .medium))
+                        .foregroundColor(.clavixInk)
 
                     Text("Clavix tells you what happened to your portfolio overnight, what it means, and how risky every position you own actually is — with the math shown.")
-                        .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
+                        .font(ClavisTypography.clavixSerif(15))
+                        .foregroundColor(.clavixInk2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
@@ -115,8 +116,8 @@ private struct OnboardingWelcomeView: View {
                     ForEach(Array(bullets.enumerated()), id: \.offset) { index, bullet in
                         HStack(alignment: .top, spacing: 12) {
                             Text("\(index + 1)")
-                                .font(ClavisTypography.footnoteEmphasis)
-                                .foregroundColor(.textPrimary)
+                                .font(ClavisTypography.clavixMono(11, weight: .bold))
+                                .foregroundColor(.clavixInk)
                                 .frame(width: 28, height: 28)
                                 .background(Color.surface)
                                 .overlay(Rectangle().stroke(Color.border, lineWidth: 1))
@@ -367,7 +368,7 @@ private struct OnboardingUpgradeSheet: View {
                                 .font(ClavisTypography.body)
                                 .foregroundColor(.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
-                            ClavisPrimaryButton(title: "Start 14-day trial", action: {})
+                            ClavisPrimaryButton(title: "Pro is coming soon", action: { dismiss() })
                         }
                     }
                 }

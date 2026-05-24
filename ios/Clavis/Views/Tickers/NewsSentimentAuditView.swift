@@ -66,7 +66,7 @@ struct NewsSentimentAuditView: View {
             .padding(.horizontal, ClavisTheme.screenPadding)
             .padding(.vertical, ClavisTheme.sectionSpacing)
         }
-        .background(ClavisAtmosphereBackground())
+        .background(Color.clavixPage.ignoresSafeArea())
         .navigationTitle("News Sentiment")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(item: $selectedArticle) { article in

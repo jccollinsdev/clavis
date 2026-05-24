@@ -16,26 +16,24 @@ struct LoginView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.backgroundPrimary.ignoresSafeArea()
+                Color.clavixPage.ignoresSafeArea()
 
                 ScrollView {
                     VStack(spacing: 0) {
-                        VStack(spacing: 16) {
-                            ClavisMonogram(size: 56, cornerRadius: 14)
-
+                        VStack(spacing: 14) {
                             Text("CLAVIX")
-                                .font(.custom("Inter", size: 20).weight(.bold))
-                                .foregroundColor(.accentBurnt)
+                                .font(ClavisTypography.clavixMono(20, weight: .bold))
+                                .foregroundColor(.clavixAccent)
                                 .tracking(4)
 
-                            Text("Portfolio intelligence for self-directed investors")
-                                .font(.system(size: 14, weight: .regular))
-                                .foregroundColor(.textSecondary)
+                            Text("Portfolio risk, measured.")
+                                .font(ClavisTypography.clavixSerif(16, weight: .regular))
+                                .foregroundColor(.clavixInk2)
                                 .multilineTextAlignment(.center)
                                 .lineSpacing(4)
-                                .frame(maxWidth: 260)
+                                .frame(maxWidth: 280)
                         }
-                        .padding(.top, 56)
+                        .padding(.top, 72)
                         .padding(.bottom, 40)
 
                         VStack(spacing: 14) {
@@ -85,12 +83,12 @@ struct LoginView: View {
                         } label: {
                             HStack(spacing: 0) {
                                 Text(isSignUp ? "Already have one? " : "Don't have an account? ")
-                                    .foregroundColor(.textSecondary)
+                                    .foregroundColor(.clavixInk3)
                                 Text(isSignUp ? "Sign in" : "Sign up")
-                                    .foregroundColor(.informational)
+                                    .foregroundColor(.clavixAccent)
                                     .fontWeight(.medium)
                             }
-                            .font(.system(size: 14, weight: .regular))
+                            .font(ClavisTypography.clavixCaption)
                         }
                         .buttonStyle(.plain)
                         .padding(.top, 24)
@@ -132,14 +130,14 @@ struct LoginView: View {
             Text("By continuing you agree to our")
             HStack(spacing: 4) {
                 Link("Terms of Service", destination: URL(string: "https://getclavix.com/terms")!)
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixAccent)
                 Text("and")
                 Link("Privacy Policy", destination: URL(string: "https://getclavix.com/privacy")!)
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixAccent)
             }
         }
-        .font(.system(size: 11, weight: .regular))
-        .foregroundColor(.textTertiary)
+        .font(ClavisTypography.clavixMono(10, weight: .regular))
+        .foregroundColor(.clavixInk3)
         .multilineTextAlignment(.center)
         .padding(.bottom, 28)
     }
