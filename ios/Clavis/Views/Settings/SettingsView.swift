@@ -88,25 +88,17 @@ struct SettingsView: View {
 
     private var accountHeader: some View {
         ClavixCard(fill: .clavixPaper) {
-            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                Text(viewModel.userName.isEmpty ? viewModel.userEmail : viewModel.userName)
-                    .font(ClavisTypography.cardTitle)
-                    .foregroundColor(.textPrimary)
-                Text(viewModel.userEmail)
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.textSecondary)
-                HStack(spacing: ClavisTheme.smallSpacing) {
-                    tierBadge
-                    Spacer()
-                    Button("Manage subscription") {
-                        if isFreeTier {
-                            showUpgradeSheet = true
-                        }
-                    }
-                    .font(ClavisTypography.footnoteEmphasis)
-                    .foregroundColor(.accentBurnt)
-                    .buttonStyle(.plain)
+            HStack(alignment: .center, spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(viewModel.userName.isEmpty ? viewModel.userEmail : viewModel.userName)
+                        .font(ClavisTypography.clavixSerif(24, weight: .medium))
+                        .foregroundColor(.clavixInk)
+                    Text(viewModel.userEmail)
+                        .font(ClavisTypography.clavixCaption)
+                        .foregroundColor(.clavixInk3)
                 }
+                Spacer()
+                tierBadge
             }
         }
     }
@@ -250,13 +242,15 @@ struct SettingsView: View {
     }
 
     private var tierBadge: some View {
-        Text(isFreeTier ? "Free" : viewModel.subscriptionTier.capitalized)
-            .font(ClavisTypography.label)
-            .foregroundColor(isFreeTier ? .textSecondary : .accentInk)
+        Text(isFreeTier ? "FREE" : viewModel.subscriptionTier.uppercased())
+            .font(ClavisTypography.clavixMono(10, weight: .bold))
+            .tracking(0.4)
+            .foregroundColor(isFreeTier ? .clavixInk3 : .clavixAccentInk)
             .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(isFreeTier ? Color.surfaceElevated : Color.accentBurnt)
-            .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous))
+            .padding(.vertical, 6)
+            .background(isFreeTier ? Color.clavixPaper2 : Color.clavixAccentSoft)
+            .overlay(RoundedRectangle(cornerRadius: 4).stroke(isFreeTier ? Color.clavixRule : Color.clavixAccent.opacity(0.3), lineWidth: 1))
+            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
     }
 
     private var isFreeTier: Bool {

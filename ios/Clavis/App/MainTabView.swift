@@ -1,12 +1,16 @@
 import SwiftUI
 import UIKit
 
+/// Custom tab shell that uses `ClavixTabBar` for the bottom bar, so the
+/// chrome matches `ClavixVisualQA` exactly (cream/paper, no iOS rounded pill).
+/// Replaces SwiftUI `TabView` whose chrome can't be styled to the VQA spec.
 struct MainTabView: View {
     @AppStorage("clavix.selectedTab") private var selectedTab = 0
     @State private var pendingTickerDetail: String?
 
     init() {
-        // Cream/paper nav + tab bar appearance to match the VisualQA design.
+        // Keep nav bar appearance cream/paper for any sheet that does present
+        // a `NavigationStack` title.
         let navAppearance = UINavigationBarAppearance()
         navAppearance.configureWithOpaqueBackground()
         navAppearance.backgroundColor = UIColor(Color.clavixPage)
@@ -21,72 +25,38 @@ struct MainTabView: View {
         UINavigationBar.appearance().standardAppearance = navAppearance
         UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
         UINavigationBar.appearance().compactAppearance = navAppearance
-
-        let tabAppearance = UITabBarAppearance()
-        tabAppearance.configureWithOpaqueBackground()
-        tabAppearance.backgroundColor = UIColor(Color.clavixPaper)
-        tabAppearance.shadowColor = UIColor(Color.clavixRule)
-
-        let selectedColor = UIColor(Color.clavixAccent)
-        let normalColor = UIColor(Color.clavixInk4)
-        let compactFont = UIFont(name: "Inter", size: 10) ?? UIFont.systemFont(ofSize: 10, weight: .medium)
-        let selectedFont = UIFont(name: "Inter", size: 10) ?? UIFont.systemFont(ofSize: 10, weight: .semibold)
-        let appearances = [
-            tabAppearance.stackedLayoutAppearance,
-            tabAppearance.inlineLayoutAppearance,
-            tabAppearance.compactInlineLayoutAppearance,
-        ]
-
-        for appearance in appearances {
-            appearance.normal.iconColor = normalColor
-            appearance.normal.titleTextAttributes = [
-                .foregroundColor: normalColor,
-                .font: compactFont,
-            ]
-            appearance.selected.iconColor = selectedColor
-            appearance.selected.titleTextAttributes = [
-                .foregroundColor: selectedColor,
-                .font: selectedFont,
-            ]
-        }
-
-        UITabBar.appearance().standardAppearance = tabAppearance
-        UITabBar.appearance().scrollEdgeAppearance = tabAppearance
     }
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            DigestView(selectedTab: $selectedTab)
-                .tabItem {
-                    Label("Today", systemImage: "doc.text")
-                }
-                .tag(0)
+        VStack(spacing: 0) {
+            ZStack {
+                // Keep each tab's view alive so navigation state survives tab switches.
+                DigestView(selectedTab: $selectedTab)
+                    .opacity(selectedTab == 0 ? 1 : 0)
+                    .allowsHitTesting(selectedTab == 0)
 
-            HoldingsListView(selectedTab: $selectedTab, deepLinkTicker: $pendingTickerDetail)
-                .tabItem {
-                    Label("Holdings", systemImage: "briefcase")
-                }
-                .tag(1)
+                HoldingsListView(selectedTab: $selectedTab, deepLinkTicker: $pendingTickerDetail)
+                    .opacity(selectedTab == 1 ? 1 : 0)
+                    .allowsHitTesting(selectedTab == 1)
 
-            SearchView()
-                .tabItem {
-                    Label("Search", systemImage: "magnifyingglass")
-                }
-                .tag(2)
+                SearchView()
+                    .opacity(selectedTab == 2 ? 1 : 0)
+                    .allowsHitTesting(selectedTab == 2)
 
-            AlertsView(selectedTab: $selectedTab)
-                .tabItem {
-                    Label("Alerts", systemImage: "bell")
-                }
-                .tag(3)
+                AlertsView(selectedTab: $selectedTab)
+                    .opacity(selectedTab == 3 ? 1 : 0)
+                    .allowsHitTesting(selectedTab == 3)
 
-            SettingsView()
-                .tabItem {
-                    Label("Settings", systemImage: "gearshape")
-                }
-                .tag(4)
+                SettingsView()
+                    .opacity(selectedTab == 4 ? 1 : 0)
+                    .allowsHitTesting(selectedTab == 4)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            ClavixTabBar(selectedTab: $selectedTab)
         }
-        .tint(Color.clavixAccent)
+        .background(Color.clavixPage.ignoresSafeArea())
+        .preferredColorScheme(.light)
         .onReceive(NotificationCenter.default.publisher(for: .openDigest)) { _ in
             selectedTab = 0
         }

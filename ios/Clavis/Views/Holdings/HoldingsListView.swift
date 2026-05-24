@@ -54,13 +54,16 @@ struct HoldingsListView: View {
                         DashboardErrorCard(message: errorMessage)
                     }
 
+                    syncSummary
                     portfolioHeader
+                    holdingsToolbar
                     searchBar
 
                     if isSearchingUniverse {
                         searchResultsSection
                     }
 
+                    holdingsLedgerHeader
                     holdingsSection
                     watchlistSection
                 }
@@ -71,21 +74,17 @@ struct HoldingsListView: View {
             .background(Color.clavixPage.ignoresSafeArea())
             .safeAreaInset(edge: .top, spacing: 0) {
                 ClavixLargeHeader(
-                    eyebrow: "Portfolio",
+                    eyebrow: holdingsCountEyebrow,
                     title: "Holdings",
                     trailing: AnyView(
-                        HStack(spacing: 18) {
+                        HStack(spacing: 14) {
+                            Image(systemName: "slider.horizontal.3")
+                                .foregroundColor(.clavixInk)
                             Button(action: openAddHolding) {
                                 Image(systemName: "plus")
                                     .foregroundColor(.clavixInk)
                             }
                             .buttonStyle(.plain)
-                            Button(action: { Task { await viewModel.refreshHoldings() } }) {
-                                Image(systemName: viewModel.isRefreshing ? "hourglass" : "arrow.clockwise")
-                                    .foregroundColor(.clavixInk)
-                            }
-                            .buttonStyle(.plain)
-                            .disabled(viewModel.isRefreshing)
                         }
                     )
                 )
@@ -132,6 +131,61 @@ struct HoldingsListView: View {
             .onReceive(NotificationCenter.default.publisher(for: .openAddHoldingFromOnboarding)) { _ in
                 openAddHolding()
             }
+        }
+    }
+
+    // MARK: - VQA parity sections
+
+    private var holdingsCountEyebrow: String {
+        let h = viewModel.holdings.count
+        let t = viewModel.watchlistItems.count
+        return "\(h) position\(h == 1 ? "" : "s") · \(t) tracked"
+    }
+
+    @ViewBuilder
+    private var syncSummary: some View {
+        if let subtitle = holdingsSubtitle {
+            Text(subtitle)
+                .font(ClavisTypography.clavixCaption)
+                .foregroundColor(.clavixInk3)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var holdingsToolbar: some View {
+        HStack(alignment: .center) {
+            HStack(spacing: 4) {
+                ClavixPill(label: "Weight", active: true)
+                ClavixPill(label: "Grade")
+                ClavixPill(label: "Δ Today")
+                ClavixPill(label: "P&L")
+            }
+            Spacer()
+            Text("\(viewModel.holdings.count) / \(viewModel.holdings.count)")
+                .font(ClavisTypography.clavixMono(11, weight: .regular))
+                .foregroundColor(.clavixInk3)
+        }
+    }
+
+    @ViewBuilder
+    private var holdingsLedgerHeader: some View {
+        if !viewModel.holdings.isEmpty {
+            HStack(spacing: 8) {
+                ClavixColumnHeader("Sym · w%")
+                    .frame(width: 70, alignment: .leading)
+                ClavixColumnHeader("Last · day")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                ClavixColumnHeader("P&L", align: .trailing)
+                    .frame(width: 70, alignment: .trailing)
+                ClavixColumnHeader("Grade · Δ", align: .trailing)
+                    .frame(width: 60, alignment: .trailing)
+            }
+            .padding(.horizontal, ClavixLayout.pad)
+            .padding(.vertical, 8)
+            .background(Color.clavixPaper2)
+            .overlay(alignment: .top) { Rectangle().fill(Color.clavixRule).frame(height: 1) }
+            .overlay(alignment: .bottom) { Rectangle().fill(Color.clavixRule).frame(height: 1) }
+            .padding(.horizontal, -ClavixLayout.pad)
         }
     }
 
@@ -224,24 +278,23 @@ struct HoldingsListView: View {
             } else if viewModel.holdings.isEmpty {
                 HoldingsEmptyState(onAddPosition: openAddHolding)
             } else {
-                ClavixCard(fill: .clavixPaper) {
-                    VStack(spacing: 0) {
-                        ForEach(Array(viewModel.holdings.enumerated()), id: \.element.id) { index, position in
-                            NavigationLink(value: position.ticker) {
-                                HoldingsRow(position: position)
+                // VQA ledger: flush rows, no card padding around the list; the
+                // ledger header bar sits flush above and dividers separate rows.
+                VStack(spacing: 0) {
+                    ForEach(Array(viewModel.holdings.enumerated()), id: \.element.id) { index, position in
+                        NavigationLink(value: position.ticker) {
+                            HoldingsRow(position: position, totalPortfolioValue: totalMarketValue)
+                        }
+                        .buttonStyle(.plain)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                deleteCandidate = position
+                            } label: {
+                                Label("Delete", systemImage: "trash")
                             }
-                            .buttonStyle(.plain)
-                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                Button(role: .destructive) {
-                                    deleteCandidate = position
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-                            }
-
-                            if index < viewModel.holdings.count - 1 {
-                                Divider().overlay(Color.border)
-                            }
+                        }
+                        if index < viewModel.holdings.count - 1 {
+                            Rectangle().fill(Color.clavixRule2).frame(height: 1)
                         }
                     }
                 }
@@ -396,84 +449,120 @@ struct HoldingsListView: View {
 
 }
 
+/// VQAHoldingsLedgerRow 1:1 — 4 columns: Sym/w%, Last/day(spark+pct), P&L,
+/// Grade·Δ. Highlights when the position is in a worsening trend.
 private struct HoldingsRow: View {
     let position: Position
+    let totalPortfolioValue: Double
 
     private var grade: String { position.resolvedRiskGrade ?? "—" }
-    private var companyName: String { position.resolvedCompanyName ?? "Unknown company" }
+    private var weightPct: Int? {
+        guard totalPortfolioValue > 0, let value = position.currentValue else { return nil }
+        return Int(((value / totalPortfolioValue) * 100).rounded())
+    }
+    private var dayPct: Double? { position.sharedAnalysis?.dayChangePct }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            ClavixGradeBadge(grade, size: 28)
-
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
-                    Text(companyName)
-                        .font(ClavisTypography.clavixSerif(15, weight: .medium))
-                        .foregroundColor(.clavixInk)
-                        .lineLimit(1)
-                    Text(position.ticker)
-                        .font(ClavisTypography.clavixMono(11, weight: .bold))
-                        .foregroundColor(.clavixAccent)
-                }
-
-                HStack(spacing: 4) {
-                    Text("\(position.shares.formatted()) sh")
-                    Text("·")
-                    Text(currency(position.currentValue))
-                    if let dayPct = position.sharedAnalysis?.dayChangePct {
-                        Text("·")
-                        Text(dayChangeText(dayPct))
-                            .foregroundColor(dayChangeColor(dayPct))
-                    }
-                }
-                .font(ClavisTypography.clavixMono(11, weight: .regular))
-                .foregroundColor(.clavixInk3)
-
-                Text(unrealizedText)
-                    .font(ClavisTypography.clavixMono(11, weight: .semibold))
-                    .foregroundColor(unrealizedColor)
+        HStack(spacing: 8) {
+            // Sym · w%
+            VStack(alignment: .leading, spacing: 3) {
+                Text(position.ticker)
+                    .font(ClavisTypography.clavixMono(13, weight: .bold))
+                    .tracking(0.3)
+                    .foregroundColor(.clavixInk)
+                Text(weightPct.map { "w \($0)%" } ?? "w —")
+                    .font(ClavisTypography.clavixMono(10, weight: .regular))
+                    .foregroundColor(.clavixInk3)
             }
+            .frame(width: 70, alignment: .leading)
 
-            Spacer()
+            // Last · day (spark + pct)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(currencyDecimal(position.resolvedCurrentPrice))
+                    .font(ClavisTypography.clavixMono(13, weight: .semibold))
+                    .foregroundColor(.clavixInk)
+                HStack(spacing: 6) {
+                    ClavixMiniSpark(tone: dayTone)
+                        .frame(width: 48, height: 14)
+                    Text(dayText)
+                        .font(ClavisTypography.clavixMono(10, weight: .semibold))
+                        .foregroundColor(dayTone)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            // P&L
+            VStack(alignment: .trailing, spacing: 3) {
+                Text(pnlText)
+                    .font(ClavisTypography.clavixMono(13, weight: .semibold))
+                    .foregroundColor(pnlColor)
+                Text(pnlPctText)
+                    .font(ClavisTypography.clavixMono(10, weight: .regular))
+                    .foregroundColor(.clavixInk3)
+            }
+            .frame(width: 70, alignment: .trailing)
+
+            // Grade · Δ
+            VStack(alignment: .trailing, spacing: 2) {
+                ClavixGradeBadge(grade, size: 18)
+                Text(deltaText)
+                    .font(ClavisTypography.clavixMono(10, weight: .semibold))
+                    .foregroundColor(deltaColor)
+            }
+            .frame(width: 60, alignment: .trailing)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, ClavixLayout.pad)
         .padding(.vertical, 12)
-        .padding(.horizontal, 12)
-        .background(backgroundTint)
+        .background(highlighted ? Color.clavixAccentSoft : Color.clear)
+        .overlay(alignment: .leading) {
+            if highlighted { Rectangle().fill(Color.clavixAccent).frame(width: 3) }
+        }
+        .padding(.horizontal, -ClavixLayout.pad)
     }
 
-    private var backgroundTint: Color {
-        position.riskTrend == .worsening ? .clavixWarnSoft : .clear
-    }
+    private var highlighted: Bool { position.riskTrend == .worsening }
 
-    private var unrealizedText: String {
-        let value = currency(position.unrealizedPL)
-        let pct = position.unrealizedPLPercent.map { String(format: "%@%.1f%%", $0 >= 0 ? "+" : "", $0) } ?? "—"
-        return "Unrealized \(value) · \(pct)"
-    }
-
-    private var unrealizedColor: Color {
-        guard let pnl = position.unrealizedPL else { return .clavixInk3 }
-        return pnl >= 0 ? .clavixGood : .clavixBad
-    }
-
-    private func currency(_ value: Double?) -> String {
-        guard let value else { return "—" }
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.maximumFractionDigits = 0
-        return formatter.string(from: NSNumber(value: value)) ?? "—"
-    }
-
-    private func dayChangeText(_ pct: Double) -> String {
-        String(format: "%@%.2f%%", pct >= 0 ? "+" : "", pct)
-    }
-
-    private func dayChangeColor(_ pct: Double) -> Color {
+    private var dayTone: Color {
+        guard let pct = dayPct else { return .clavixInk3 }
         if pct > 0.05 { return .clavixGood }
         if pct < -0.05 { return .clavixBad }
         return .clavixInk3
+    }
+
+    private var dayText: String {
+        guard let pct = dayPct else { return "—" }
+        return String(format: "%@%.1f%%", pct >= 0 ? "+" : "", pct)
+    }
+
+    private var pnlText: String { currencyDecimal(position.unrealizedPL, abbreviate: false) }
+    private var pnlColor: Color {
+        guard let pnl = position.unrealizedPL else { return .clavixInk3 }
+        return pnl >= 0 ? .clavixGood : .clavixBad
+    }
+    private var pnlPctText: String {
+        guard let pct = position.unrealizedPLPercent else { return "—" }
+        return String(format: "%@%.1f%%", pct >= 0 ? "+" : "", pct)
+    }
+
+    private var deltaText: String {
+        guard let delta = position.scoreDelta, delta != 0 else { return "—" }
+        return delta > 0 ? "▲ \(delta)" : "▼ \(abs(delta))"
+    }
+
+    private var deltaColor: Color {
+        guard let delta = position.scoreDelta else { return .clavixInk3 }
+        if delta > 0 { return .clavixGood }
+        if delta < 0 { return .clavixBad }
+        return .clavixInk3
+    }
+
+    private func currencyDecimal(_ value: Double?, abbreviate: Bool = false) -> String {
+        guard let value else { return "—" }
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.maximumFractionDigits = abbreviate ? 0 : 2
+        if abbreviate, abs(value) >= 10_000 { formatter.maximumFractionDigits = 0 }
+        return formatter.string(from: NSNumber(value: value)) ?? "—"
     }
 }
 

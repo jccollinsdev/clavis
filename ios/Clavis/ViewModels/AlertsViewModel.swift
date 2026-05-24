@@ -21,6 +21,9 @@ class AlertsViewModel: ObservableObject {
         set { UserDefaults.standard.set(newValue, forKey: lastSeenKey) }
     }
 
+    /// Public read-only accessor so views can dim/highlight rows.
+    var lastSeenAtPublic: Date? { lastSeenAt }
+
     func loadAlerts() async {
         isLoading = true
         errorMessage = nil

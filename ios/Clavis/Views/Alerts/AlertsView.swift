@@ -9,16 +9,18 @@ struct AlertsView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 12) {
                     if let banner = viewModel.quietHoursBannerText {
                         ClavixCard(fill: .clavixWarnSoft) {
                             Text(banner)
                                 .font(ClavisTypography.clavixCaption)
                                 .foregroundColor(.clavixWarnInk)
                         }
+                        .padding(.horizontal, ClavixLayout.pad)
                     }
 
                     filterChips
+                        .padding(.horizontal, ClavixLayout.pad)
 
                     if let errorMessage = viewModel.errorMessage, viewModel.alerts.isEmpty {
                         ClavixCard {
@@ -26,43 +28,31 @@ struct AlertsView: View {
                                 .font(ClavisTypography.clavixCaption)
                                 .foregroundColor(.clavixInk2)
                         }
+                        .padding(.horizontal, ClavixLayout.pad)
                     } else if viewModel.isLoading && viewModel.alerts.isEmpty {
                         ClavixCard {
                             Text("Loading alerts…")
                                 .font(ClavisTypography.clavixCaption)
                                 .foregroundColor(.clavixInk3)
                         }
+                        .padding(.horizontal, ClavixLayout.pad)
                     } else if filteredAlerts.isEmpty {
-                        ClavixCard {
-                            Text("All quiet.")
-                                .font(ClavisTypography.clavixCaption)
-                                .foregroundColor(.clavixInk3)
-                        }
+                        emptyState
                     } else {
                         ForEach(dayGroupedAlerts, id: \.day) { group in
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(group.day)
-                                    .font(ClavisTypography.clavixMono(10, weight: .bold))
-                                    .tracking(0.7)
-                                    .foregroundColor(.clavixInk3)
-                                ClavixCard(padding: 0) {
-                                    VStack(spacing: 0) {
-                                        ForEach(Array(group.alerts.enumerated()), id: \.element.id) { index, alert in
-                                            Button(action: { handleAlertTap(alert) }) {
-                                                alertRow(alert)
-                                            }
-                                            .buttonStyle(.plain)
-                                            if index < group.alerts.count - 1 {
-                                                Rectangle().fill(Color.clavixRule).frame(height: 1)
-                                            }
-                                        }
+                            VStack(alignment: .leading, spacing: 0) {
+                                daySeparator(group.day)
+                                    .padding(.horizontal, ClavixLayout.pad)
+                                ForEach(group.alerts, id: \.id) { alert in
+                                    Button(action: { handleAlertTap(alert) }) {
+                                        alertRow(alert)
                                     }
+                                    .buttonStyle(.plain)
                                 }
                             }
                         }
                     }
                 }
-                .padding(.horizontal, ClavixLayout.pad)
                 .padding(.top, 8)
                 .padding(.bottom, ClavixLayout.bottomPad)
             }
@@ -70,7 +60,18 @@ struct AlertsView: View {
             .safeAreaInset(edge: .top, spacing: 0) {
                 ClavixLargeHeader(
                     eyebrow: alertsEyebrow,
-                    title: "Alerts"
+                    title: "Alerts",
+                    trailing: AnyView(
+                        HStack(spacing: 14) {
+                            Image(systemName: "slider.horizontal.3")
+                                .foregroundColor(.clavixInk)
+                            Button(action: { Task { try? await APIService.shared.markAllAlertsRead(); viewModel.markAlertsSeen() } }) {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.clavixInk)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    )
                 )
             }
             .toolbar(.hidden, for: .navigationBar)
@@ -92,29 +93,51 @@ struct AlertsView: View {
         let unread = viewModel.unreadCount
         let total = viewModel.alerts.count
         if total == 0 { return "Alert center" }
-        if unread > 0 { return "\(unread) unread · \(total) total" }
-        return "\(total) total"
+        return "\(unread) unread · \(total) in 7D"
     }
 
     private var filterChips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
+            HStack(spacing: 4) {
                 ForEach(AlertsFilter.allCases, id: \.title) { filter in
+                    let count = filter.apply(to: viewModel.alerts).count
                     Button(action: { selectedFilter = filter }) {
-                        Text("\(filter.title) \(filter.apply(to: viewModel.alerts).count)")
-                            .font(ClavisTypography.clavixMono(10, weight: .bold))
-                            .tracking(0.4)
-                            .foregroundColor(selectedFilter == filter ? .clavixPaper : .clavixInk2)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 6)
-                            .background(selectedFilter == filter ? Color.clavixInk : Color.clavixPaper)
-                            .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.clavixRule, lineWidth: 1))
-                            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                        ClavixPill(label: "\(filter.title) · \(count)", active: selectedFilter == filter)
                     }
                     .buttonStyle(.plain)
                 }
             }
         }
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 14) {
+            Image(systemName: "bell.slash")
+                .font(.system(size: 48))
+                .foregroundColor(.clavixInk4)
+            Text("All quiet.")
+                .font(ClavisTypography.clavixSerif(24, weight: .medium))
+                .foregroundColor(.clavixInk)
+            Text("Grade changes and major news will appear here. Your Morning Report still arrives every weekday.")
+                .font(ClavisTypography.clavixCaption)
+                .foregroundColor(.clavixInk3)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 36)
+        .padding(.horizontal, ClavixLayout.pad)
+    }
+
+    private func daySeparator(_ label: String) -> some View {
+        HStack(spacing: 10) {
+            Text(label.uppercased())
+                .font(ClavisTypography.clavixMono(10, weight: .semibold))
+                .tracking(0.7)
+                .foregroundColor(.clavixInk3)
+            Rectangle().fill(Color.clavixRule).frame(height: 1)
+        }
+        .padding(.top, 8)
+        .padding(.bottom, 4)
     }
 
     private var filteredAlerts: [Alert] {
@@ -136,9 +159,13 @@ struct AlertsView: View {
 
         for alert in filteredAlerts {
             let label: String
-            if calendar.isDateInToday(alert.createdAt) { label = "TODAY" }
-            else if calendar.isDateInYesterday(alert.createdAt) { label = "YESTERDAY" }
-            else { label = formatter.string(from: alert.createdAt).uppercased() }
+            if calendar.isDateInToday(alert.createdAt) {
+                label = "Today · \(formatter.string(from: alert.createdAt))"
+            } else if calendar.isDateInYesterday(alert.createdAt) {
+                label = "Yesterday · \(formatter.string(from: alert.createdAt))"
+            } else {
+                label = formatter.string(from: alert.createdAt)
+            }
 
             if let idx = lookup[label] {
                 groups[idx].value.append(alert)
@@ -151,6 +178,8 @@ struct AlertsView: View {
     }
 
     private func handleAlertTap(_ alert: Alert) {
+        // Mark read on the server (idempotent; ignores failure).
+        Task { try? await APIService.shared.markAlertRead(id: alert.id) }
         switch destination(for: alert) {
         case .digest:
             selectedTab = 0
@@ -168,63 +197,109 @@ struct AlertsView: View {
         return .holdings
     }
 
+    /// VQAAlertCenterRow 1:1 — category pill + time on left, title + body +
+    /// grade/delta in the middle, chevron on right. Tinted background +
+    /// accent strip when unread.
     private func alertRow(_ alert: Alert) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
+        let tone = alertTone(alert)
+        let isUnread = alert.isUnread(seenAt: viewModel.lastSeenAtPublic)
+        return HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(label(for: alert).uppercased())
                     .font(ClavisTypography.clavixMono(9, weight: .bold))
-                    .tracking(0.4)
-                    .foregroundColor(labelColor(for: alert))
-                if let ticker = alert.positionTicker, !ticker.isEmpty {
-                    Text(ticker)
-                        .font(ClavisTypography.clavixMono(11, weight: .bold))
-                        .foregroundColor(.clavixAccent)
-                }
-                Spacer()
+                    .tracking(0.5)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(tone)
+                    .clipShape(RoundedRectangle(cornerRadius: 3))
                 Text(alert.createdAt.formatted(date: .omitted, time: .shortened))
                     .font(ClavisTypography.clavixMono(10, weight: .regular))
                     .foregroundColor(.clavixInk3)
             }
+            .frame(width: 56, alignment: .leading)
 
-            Text(alert.message.sanitizedDisplayText)
-                .font(ClavisTypography.clavixSerif(14, weight: .medium))
-                .foregroundColor(.clavixInk)
-                .multilineTextAlignment(.leading)
-                .lineLimit(3)
-
-            if let previous = alert.previousGrade, let new = alert.newGrade {
-                HStack(spacing: 8) {
-                    ClavixGradeBadge(previous, size: 22)
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 10))
+            VStack(alignment: .leading, spacing: 4) {
+                Text(headline(for: alert))
+                    .font(ClavisTypography.inter(13, weight: isUnread ? .semibold : .medium))
+                    .foregroundColor(.clavixInk)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let body = bodyText(for: alert) {
+                    Text(body)
+                        .font(ClavisTypography.clavixCaption)
                         .foregroundColor(.clavixInk3)
-                    ClavixGradeBadge(new, size: 22)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                if alert.newGrade != nil || alert.changeDetails?["score_delta"] != nil {
+                    HStack(spacing: 6) {
+                        if let grade = alert.newGrade, !grade.isEmpty {
+                            ClavixGradeBadge(grade, size: 18)
+                        }
+                        if let delta = parseDelta(alert.changeDetails?["score_delta"]) {
+                            Text(delta == 0 ? "—" : delta > 0 ? "▲ \(delta)" : "▼ \(abs(delta))")
+                                .font(ClavisTypography.clavixMono(10, weight: .semibold))
+                                .foregroundColor(delta < 0 ? .clavixBad : .clavixGood)
+                        }
+                    }
+                    .padding(.top, 4)
                 }
             }
+            Spacer(minLength: 8)
+            Image(systemName: "chevron.right")
+                .font(.system(size: 10))
+                .foregroundColor(.clavixInk4)
+                .padding(.top, 2)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
+        .padding(.horizontal, ClavixLayout.pad)
+        .padding(.vertical, 12)
+        .background(isUnread ? Color.clavixPaper : Color.clear)
+        .overlay(alignment: .leading) {
+            if isUnread { Rectangle().fill(Color.clavixAccent).frame(width: 3) }
+        }
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(Color.clavixRule2).frame(height: 1).padding(.leading, ClavixLayout.pad)
+        }
+    }
+
+    private func headline(for alert: Alert) -> String {
+        let text = alert.message.sanitizedDisplayText
+        if let dot = text.firstIndex(of: ".") {
+            return String(text[..<dot]).trimmingCharacters(in: .whitespaces)
+        }
+        return text
+    }
+
+    private func bodyText(for alert: Alert) -> String? {
+        let text = alert.message.sanitizedDisplayText
+        guard let dot = text.firstIndex(of: ".") else { return nil }
+        let after = text[text.index(after: dot)...].trimmingCharacters(in: .whitespaces)
+        return after.isEmpty ? nil : String(after)
+    }
+
+    private func parseDelta(_ raw: String?) -> Int? {
+        guard let raw, let value = Int(raw.replacingOccurrences(of: "+", with: "")) else { return nil }
+        return value
     }
 
     private func label(for alert: Alert) -> String {
         switch alert.type {
-        case .gradeChange: return "Grade"
-        case .majorEvent: return "News"
-        case .portfolioGradeChange, .portfolioSafetyThresholdBreach: return "Portfolio"
-        case .digestReady, .ratingReady: return "Update"
-        case .macroShock: return "Macro"
-        case .safetyDeterioration, .concentrationDanger, .clusterRisk, .structuralFragility: return "Risk"
+        case .gradeChange:                                             return "GRADE"
+        case .majorEvent:                                              return "NEWS"
+        case .portfolioGradeChange, .portfolioSafetyThresholdBreach:   return "PORT"
+        case .digestReady, .ratingReady:                                return "PORT"
+        case .macroShock:                                              return "MACRO"
+        case .safetyDeterioration, .concentrationDanger,
+             .clusterRisk, .structuralFragility:                       return "RISK"
         }
     }
 
-    private func labelColor(for alert: Alert) -> Color {
+    private func alertTone(_ alert: Alert) -> Color {
         switch alert.type {
-        case .digestReady, .ratingReady: return .clavixAccent
-        case .gradeChange: return .clavixBad
-        case .majorEvent: return .clavixWarn
-        case .portfolioGradeChange, .portfolioSafetyThresholdBreach: return .clavixInk
-        case .macroShock: return .clavixWarn
-        case .safetyDeterioration, .concentrationDanger, .clusterRisk, .structuralFragility: return .clavixBad
+        case .gradeChange, .safetyDeterioration:                       return .clavixBad
+        case .majorEvent, .macroShock:                                 return .clavixWarn
+        case .portfolioGradeChange, .portfolioSafetyThresholdBreach,
+             .digestReady, .ratingReady:                                return .clavixInk
+        case .concentrationDanger, .clusterRisk, .structuralFragility: return .clavixBad
         }
     }
 }
@@ -240,6 +315,7 @@ private enum AlertsFilter: CaseIterable {
     case gradeChanges
     case news
     case portfolio
+    case macro
 
     var title: String {
         switch self {
@@ -247,6 +323,7 @@ private enum AlertsFilter: CaseIterable {
         case .gradeChanges: return "Grade"
         case .news: return "News"
         case .portfolio: return "Portfolio"
+        case .macro: return "Macro"
         }
     }
 
@@ -259,8 +336,17 @@ private enum AlertsFilter: CaseIterable {
         case .news:
             alerts.filter { $0.type == .majorEvent }
         case .portfolio:
-            alerts.filter { $0.type == .portfolioGradeChange || $0.type == .digestReady || $0.type == .ratingReady || $0.type == .macroShock }
+            alerts.filter { $0.type == .portfolioGradeChange || $0.type == .digestReady || $0.type == .ratingReady || $0.type == .portfolioSafetyThresholdBreach }
+        case .macro:
+            alerts.filter { $0.type == .macroShock }
         }
         return filtered.sorted { $0.createdAt > $1.createdAt }
+    }
+}
+
+private extension Alert {
+    func isUnread(seenAt: Date?) -> Bool {
+        guard let seenAt else { return true }
+        return createdAt > seenAt
     }
 }

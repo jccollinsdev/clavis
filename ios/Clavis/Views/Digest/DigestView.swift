@@ -201,7 +201,7 @@ struct DigestView: View {
         }
     }
 
-    // MARK: - Sector exposure
+    // MARK: - Sector exposure (1:1 VQA sector cell: symbol + name + change/weight)
 
     private var sectorExposure: some View {
         ClavixSection(eyebrow: "Portfolio sectors", title: "Sector exposure") {
@@ -214,16 +214,26 @@ struct DigestView: View {
             } else {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 1), count: 3), spacing: 1) {
                     ForEach(sectorRows, id: \.sector) { row in
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(row.sector)
-                                .font(ClavisTypography.clavixMono(11, weight: .bold))
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(row.etfSymbol)
+                                .font(ClavisTypography.clavixMono(12, weight: .bold))
                                 .foregroundColor(.clavixInk)
-                            Text("w\(row.weightInt)%")
-                                .font(ClavisTypography.clavixMono(11, weight: .regular))
-                                .foregroundColor(.clavixInk3)
+                            Text(row.shortName)
+                                .font(ClavisTypography.clavixCaption)
+                                .foregroundColor(.clavixInk2)
+                                .lineLimit(2)
+                            HStack {
+                                Text(row.changeText)
+                                    .font(ClavisTypography.clavixMono(12, weight: .semibold))
+                                    .foregroundColor(row.changeColor)
+                                Spacer()
+                                Text("w \(row.weightInt)%")
+                                    .font(ClavisTypography.clavixMono(10, weight: .regular))
+                                    .foregroundColor(.clavixInk3)
+                            }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(14)
+                        .padding(10)
                         .background(Color.clavixPaper)
                     }
                 }
@@ -259,26 +269,85 @@ struct DigestView: View {
         }
     }
 
+    /// VQAAlertRow 1:1 — colored bullet dot, category eyebrow, time, headline,
+    /// truncated body, trailing meta pill.
     private func alertRow(_ alert: Alert) -> some View {
-        ClavixCard(padding: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(alertCategoryLabel(alert).uppercased())
+        let tone = alertTone(alert)
+        return ClavixCard(padding: 12) {
+            HStack(alignment: .top, spacing: 12) {
+                Circle()
+                    .fill(tone)
+                    .frame(width: 8, height: 8)
+                    .padding(.top, 6)
+                VStack(alignment: .leading, spacing: 5) {
+                    HStack {
+                        Text(alertCategoryLabel(alert).uppercased())
+                            .font(ClavisTypography.clavixMono(9, weight: .bold))
+                            .tracking(0.7)
+                            .foregroundColor(tone)
+                        Text(alert.createdAt.formatted(date: .omitted, time: .shortened))
+                            .font(ClavisTypography.clavixMono(10, weight: .regular))
+                            .foregroundColor(.clavixInk3)
+                    }
+                    Text(alertHeadline(alert))
+                        .font(ClavisTypography.clavixSerif(15, weight: .medium))
+                        .foregroundColor(.clavixInk)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                    if let body = alertBody(alert) {
+                        Text(body)
+                            .font(ClavisTypography.clavixCaption)
+                            .foregroundColor(.clavixInk2)
+                            .lineLimit(2)
+                    }
+                }
+                Spacer()
+                if let meta = alertMeta(alert) {
+                    Text(meta)
                         .font(ClavisTypography.clavixMono(10, weight: .bold))
-                        .tracking(0.7)
-                        .foregroundColor(.clavixInk3)
-                    Spacer()
-                    Text(alert.createdAt.formatted(date: .omitted, time: .shortened))
-                        .font(ClavisTypography.clavixMono(10, weight: .regular))
                         .foregroundColor(.clavixInk3)
                 }
-                Text(alert.message.sanitizedDisplayText)
-                    .font(ClavisTypography.clavixSerif(14, weight: .medium))
-                    .foregroundColor(.clavixInk)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
             }
         }
+    }
+
+    private func alertTone(_ alert: Alert) -> Color {
+        switch alert.type {
+        case .gradeChange, .safetyDeterioration: return .clavixBad
+        case .majorEvent, .macroShock:            return .clavixWarn
+        case .portfolioGradeChange, .portfolioSafetyThresholdBreach: return .clavixInk
+        case .digestReady, .ratingReady:          return .clavixAccent
+        case .concentrationDanger, .clusterRisk, .structuralFragility: return .clavixBad
+        }
+    }
+
+    private func alertHeadline(_ alert: Alert) -> String {
+        let text = alert.message.sanitizedDisplayText
+        // Headlines are typically the first sentence of the message.
+        if let dot = text.firstIndex(of: ".") {
+            return String(text[..<dot]).trimmingCharacters(in: .whitespaces)
+        }
+        return text
+    }
+
+    private func alertBody(_ alert: Alert) -> String? {
+        let text = alert.message.sanitizedDisplayText
+        guard let dot = text.firstIndex(of: ".") else { return nil }
+        let after = text[text.index(after: dot)...].trimmingCharacters(in: .whitespaces)
+        return after.isEmpty ? nil : String(after)
+    }
+
+    private func alertMeta(_ alert: Alert) -> String? {
+        if let new = alert.newGrade, !new.isEmpty {
+            if let delta = alert.changeDetails?["score_delta"]?.sanitizedDisplayText, !delta.isEmpty {
+                return "\(new) \(delta)"
+            }
+            return new
+        }
+        if let ticker = alert.positionTicker, !ticker.isEmpty {
+            return ticker
+        }
+        return nil
     }
 
     // MARK: - Top movers
@@ -329,27 +398,56 @@ struct DigestView: View {
         }
     }
 
+    /// VQABookRow 1:1 — ticker + 2-line truncated note + grade + delta + today%.
     private func bookRow(_ position: Position) -> some View {
-        HStack {
-            Text(position.ticker)
-                .font(ClavisTypography.clavixMono(13, weight: .bold))
-                .foregroundColor(.clavixInk)
-            Spacer()
-            HStack(spacing: 8) {
-                ClavixGradeBadge(position.resolvedRiskGrade ?? "—", size: 22)
-                if let delta = position.scoreDelta, delta != 0 {
-                    Text(delta > 0 ? "+\(delta)" : "\(delta)")
-                        .font(ClavisTypography.clavixMono(11, weight: .semibold))
-                        .foregroundColor(delta > 0 ? .clavixGood : .clavixBad)
-                } else {
-                    Text("—")
-                        .font(ClavisTypography.clavixMono(11, weight: .regular))
-                        .foregroundColor(.clavixInk3)
-                }
+        HStack(alignment: .center, spacing: 10) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(position.ticker)
+                    .font(ClavisTypography.clavixMono(13, weight: .bold))
+                    .foregroundColor(.clavixInk)
+                Text(position.sharedAnalysis?.displaySummary ?? "No driver note yet.")
+                    .font(ClavisTypography.clavixCaption)
+                    .foregroundColor(.clavixInk3)
+                    .lineLimit(2)
             }
+            Spacer()
+            ClavixGradeBadge(position.resolvedRiskGrade ?? "—", size: 24)
+            Text(deltaText(for: position.scoreDelta))
+                .font(ClavisTypography.clavixMono(11, weight: .semibold))
+                .foregroundColor(deltaColor(for: position.scoreDelta))
+                .frame(width: 32, alignment: .trailing)
+            Text(todayText(for: position))
+                .font(ClavisTypography.clavixMono(11, weight: .semibold))
+                .foregroundColor(todayColor(for: position))
+                .frame(width: 56, alignment: .trailing)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
+    }
+
+    private func deltaText(for delta: Int?) -> String {
+        guard let delta else { return "—" }
+        if delta == 0 { return "—" }
+        return delta > 0 ? "+\(delta)" : "\(delta)"
+    }
+
+    private func deltaColor(for delta: Int?) -> Color {
+        guard let delta else { return .clavixInk3 }
+        if delta > 0 { return .clavixGood }
+        if delta < 0 { return .clavixBad }
+        return .clavixInk3
+    }
+
+    private func todayText(for position: Position) -> String {
+        guard let pct = position.sharedAnalysis?.dayChangePct else { return "—" }
+        return String(format: "%@%.1f%%", pct >= 0 ? "+" : "", pct)
+    }
+
+    private func todayColor(for position: Position) -> Color {
+        guard let pct = position.sharedAnalysis?.dayChangePct else { return .clavixInk3 }
+        if pct > 0.05 { return .clavixGood }
+        if pct < -0.05 { return .clavixBad }
+        return .clavixInk3
     }
 
     // MARK: - Calendar
@@ -367,18 +465,7 @@ struct DigestView: View {
                 ClavixCard(padding: 0) {
                     VStack(spacing: 0) {
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(item.catalyst.sanitizedDisplayText)
-                                    .font(ClavisTypography.clavixSerif(14, weight: .medium))
-                                    .foregroundColor(.clavixInk)
-                                if !item.impactedPositions.isEmpty {
-                                    Text(item.impactedPositions.joined(separator: ", "))
-                                        .font(ClavisTypography.clavixMono(10, weight: .regular))
-                                        .foregroundColor(.clavixInk3)
-                                }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(14)
+                            calendarLine(item)
                             if index < items.count - 1 {
                                 Rectangle().fill(Color.clavixRule).frame(height: 1)
                             }
@@ -387,6 +474,58 @@ struct DigestView: View {
                 }
             }
         }
+    }
+
+    /// VQACalendarLine 1:1 — `08:30 | DATA | title`. We extract the leading
+    /// time + tag from the catalyst string when present; otherwise leave them
+    /// blank rather than fabricate.
+    private func calendarLine(_ item: DigestWhatMattersItem) -> some View {
+        let raw = item.catalyst.sanitizedDisplayText
+        let (time, type, title) = parseCalendarLine(raw, tickers: item.impactedPositions)
+        return HStack(spacing: 12) {
+            Text(time)
+                .font(ClavisTypography.clavixMono(12, weight: .semibold))
+                .foregroundColor(.clavixInk)
+                .frame(width: 46, alignment: .leading)
+            Text(type)
+                .font(ClavisTypography.clavixMono(9, weight: .bold))
+                .tracking(0.4)
+                .foregroundColor(.clavixInk3)
+                .frame(width: 50, alignment: .leading)
+            Text(title)
+                .font(ClavisTypography.clavixCaption)
+                .foregroundColor(.clavixInk2)
+                .lineLimit(2)
+            Spacer()
+        }
+        .padding(12)
+    }
+
+    /// Parse "HH:MM TYPE rest…" out of a digest catalyst string. When the
+    /// digest doesn't provide structured time/type, fall back to leaving the
+    /// time slot empty and inferring a type from the impacted-tickers list.
+    private func parseCalendarLine(_ raw: String, tickers: [String]) -> (String, String, String) {
+        let parts = raw.split(separator: " ", maxSplits: 2, omittingEmptySubsequences: true).map(String.init)
+        let timeRegex = try? NSRegularExpression(pattern: "^\\d{1,2}:\\d{2}$")
+        if let first = parts.first,
+           let regex = timeRegex,
+           regex.firstMatch(in: first, range: NSRange(first.startIndex..., in: first)) != nil,
+           parts.count >= 2 {
+            let time = first
+            let typeOrWord = parts[1]
+            let isType = typeOrWord.uppercased() == typeOrWord && typeOrWord.count <= 6
+            if isType, parts.count >= 3 {
+                return (time, typeOrWord, parts[2])
+            }
+            return (time, typeForTicker(tickers), parts.dropFirst().joined(separator: " "))
+        }
+        return ("—", typeForTicker(tickers), raw)
+    }
+
+    private func typeForTicker(_ tickers: [String]) -> String {
+        if tickers.contains(where: { $0.uppercased() == "FED" || $0.uppercased() == "MACRO" }) { return "FED" }
+        if !tickers.isEmpty { return "EARN" }
+        return "DATA"
     }
 
     // MARK: - State card
@@ -413,7 +552,13 @@ struct DigestView: View {
     // MARK: - Computed values
 
     private var headerDateText: String {
-        Date().formatted(.dateTime.weekday(.wide).month(.abbreviated).day().hour().minute()).uppercased()
+        // VQA spec: "FRIDAY · MAY 9 · 7:02 ET" — bullet-separated, dot-style.
+        let now = Date()
+        let weekday = now.formatted(.dateTime.weekday(.wide)).uppercased()
+        let day = now.formatted(.dateTime.month(.abbreviated).day())
+        let time = now.formatted(.dateTime.hour(.defaultDigits(amPM: .omitted)).minute())
+        let tz = TimeZone.current.abbreviation() ?? ""
+        return "\(weekday) · \(day) · \(time) \(tz)"
     }
 
     private var freshnessLabel: String {
@@ -504,6 +649,43 @@ struct DigestView: View {
         let sector: String
         let weight: Double
         var weightInt: Int { Int((weight * 100).rounded()) }
+
+        /// Canonical ETF for the sector when known; falls back to the first two
+        /// letters of the sector for unmapped industries.
+        var etfSymbol: String {
+            switch sector.lowercased() {
+            case "technology", "information technology": return "XLK"
+            case "health care", "healthcare":            return "XLV"
+            case "financials", "financial services":     return "XLF"
+            case "energy":                                return "XLE"
+            case "consumer discretionary":                return "XLY"
+            case "consumer staples":                      return "XLP"
+            case "industrials":                           return "XLI"
+            case "utilities":                             return "XLU"
+            case "materials":                             return "XLB"
+            case "real estate":                           return "XLRE"
+            case "communication services":                return "XLC"
+            case "us total market":                       return "VTI"
+            default:
+                return String(sector.prefix(3)).uppercased()
+            }
+        }
+
+        var shortName: String {
+            switch sector.lowercased() {
+            case "consumer discretionary": return "Consumer D"
+            case "consumer staples":       return "Consumer S"
+            case "communication services": return "Comm Svcs"
+            case "us total market":        return "US Total"
+            default: return sector
+            }
+        }
+
+        // Day-change for the sector's ETF when /today envelope provides it.
+        // Until iOS consumes /today directly, we render an honest "—" placeholder
+        // rather than fabricating a value.
+        var changeText: String { "—" }
+        var changeColor: Color { .clavixInk3 }
     }
 
     private var sectorRows: [SectorRow] {

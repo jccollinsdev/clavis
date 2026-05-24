@@ -198,3 +198,69 @@ struct ClavixScoreBar: View {
         }
     }
 }
+
+/// VQAPill 1:1: small mono chip used for toolbars and quick filters.
+/// Active variant fills with `clavixInk`, inactive uses paper2 + rule.
+struct ClavixPill: View {
+    let label: String
+    var active: Bool = false
+
+    var body: some View {
+        Text(label)
+            .font(ClavisTypography.clavixMono(10, weight: .bold))
+            .tracking(0.4)
+            .foregroundColor(active ? .clavixPaper : .clavixInk2)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(active ? Color.clavixInk : Color.clavixPaper2)
+            .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.clavixRule, lineWidth: 1))
+            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+    }
+}
+
+/// VQAColumnHeader: ALL CAPS mono label used in the Holdings ledger header.
+struct ClavixColumnHeader: View {
+    let text: String
+    var align: TextAlignment = .leading
+
+    init(_ text: String, align: TextAlignment = .leading) {
+        self.text = text
+        self.align = align
+    }
+
+    var body: some View {
+        Text(text.uppercased())
+            .font(ClavisTypography.clavixMono(9, weight: .bold))
+            .tracking(0.7)
+            .foregroundColor(.clavixInk3)
+            .multilineTextAlignment(align)
+            .lineLimit(1)
+            .minimumScaleFactor(0.75)
+    }
+}
+
+/// VQAMiniSpark 1:1: tiny inline sparkline used in ledger rows. Renders a
+/// deterministic-but-cheap zigzag so the column has a visual rhythm even
+/// before real per-position price history is wired in.
+struct ClavixMiniSpark: View {
+    let tone: Color
+    var seed: Int = 0
+
+    var body: some View {
+        GeometryReader { geo in
+            Path { path in
+                let count = 12
+                let stepX = geo.size.width / CGFloat(count - 1)
+                let baseline = geo.size.height / 2
+                // Deterministic shape until real per-position price history is wired in.
+                for i in 0..<count {
+                    let phase = sin(Double(i + seed) * 0.9) * 0.4
+                    let y = baseline + CGFloat(phase) * (geo.size.height / 2)
+                    let pt = CGPoint(x: stepX * CGFloat(i), y: y)
+                    if i == 0 { path.move(to: pt) } else { path.addLine(to: pt) }
+                }
+            }
+            .stroke(tone, lineWidth: 1)
+        }
+    }
+}

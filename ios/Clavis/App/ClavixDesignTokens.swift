@@ -5,30 +5,46 @@ import SwiftUI
 // New live-tab views consume `Clavix*` tokens; the debug VisualQA file keeps
 // its private mirror so it can be edited without touching production.
 
+// Canonical Clavix Hi-Fi v2 palette, extracted from
+// docs/design/clavix-hifi-v2.html (the design source of truth).
+// Editorial ink-on-cream, bond-rating fills, mono numerics.
 extension Color {
+    // Ink ramp (text & primary fills)
     static let clavixInk    = Color(hex: "#1A1814")
     static let clavixInk2   = Color(hex: "#3A342B")
-    static let clavixInk3   = Color(hex: "#6B6357")
-    static let clavixInk4   = Color(hex: "#A39B8D")
+    static let clavixInk3   = Color(hex: "#777777")  // muted body/meta (HTML cx.ink3)
+    static let clavixInk4   = Color(hex: "#999999")  // ghost / icon disabled
     static let clavixInk5   = Color(hex: "#C8C0B0")
-    static let clavixCanvas = Color(hex: "#F0EADB")
-    static let clavixPage   = Color(hex: "#F7F2E6")
-    static let clavixPaper  = Color(hex: "#FFFDF7")
-    static let clavixPaper2 = Color(hex: "#F3EDE0")
+
+    // Cream paper system
+    static let clavixCanvas = Color(hex: "#F0EADB")  // canvas / background scroll
+    static let clavixPage   = Color(hex: "#F0EADB")  // page surface (= canvas in v2)
+    static let clavixPaper  = Color(hex: "#F3ECE0")  // card surface (warmer)
+    static let clavixPaper2 = Color(hex: "#E8E0CC")  // ledger header / inset row
+
+    // Rules / dividers
     static let clavixRule   = Color(hex: "#D6CEBD")
     static let clavixRule2  = Color(hex: "#E6DFCF")
+
+    // Accent: Ink Blue (cx.accent)
     static let clavixAccent     = Color(hex: "#1D3A6E")
     static let clavixAccentSoft = Color(hex: "#E3E9F3")
     static let clavixAccentInk  = Color(hex: "#11264A")
-    static let clavixGood     = Color(hex: "#1F6F43")
+
+    // Good: Forest (cx.good)
+    static let clavixGood     = Color(hex: "#1F5B3A")
     static let clavixGoodSoft = Color(hex: "#DDE9D8")
-    static let clavixGoodInk  = Color(hex: "#0D4A2A")
-    static let clavixWarn     = Color(hex: "#9A6B1A")
-    static let clavixWarnSoft = Color(hex: "#F1E3C2")
-    static let clavixWarnInk  = Color(hex: "#5A3E0C")
-    static let clavixBad     = Color(hex: "#8E1F1F")
+    static let clavixGoodInk  = Color(hex: "#0D3A22")
+
+    // Warn: Burnt orange (cx.warn — used for Pro accent / pressure)
+    static let clavixWarn     = Color(hex: "#B34A14")
+    static let clavixWarnSoft = Color(hex: "#F4DCC4")
+    static let clavixWarnInk  = Color(hex: "#6E2C09")
+
+    // Bad: Bordeaux (cx.bad)
+    static let clavixBad     = Color(hex: "#7A1E2C")
     static let clavixBadSoft = Color(hex: "#F0D8D4")
-    static let clavixBadInk  = Color(hex: "#5E1313")
+    static let clavixBadInk  = Color(hex: "#5C2B2E")
 }
 
 extension ClavisTypography {
