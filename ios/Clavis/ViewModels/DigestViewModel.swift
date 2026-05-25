@@ -22,6 +22,7 @@ final class DigestViewModel: ObservableObject {
     @Published var summaryLength: DigestLengthOption = .standard
     @Published var subscriptionTier: String = "free"
     @Published var morningReportState: MorningReportState = .placeholder
+    @Published var today: TodayResponse?
 
     private let api = APIService.shared
 
@@ -37,16 +38,19 @@ final class DigestViewModel: ObservableObject {
             async let preferencesResponse = api.fetchPreferences()
             async let latestRunResponse = api.fetchLatestAnalysisRun()
             async let alertsResponse = api.fetchAlerts()
+            async let todayResponse = api.fetchToday()
 
             let digest = try await digestResponse
             let holdings = try await holdingsResponse
             let preferences = try await preferencesResponse
             let latestRun = try await latestRunResponse
             let alerts = (try? await alertsResponse) ?? []
+            let today = try? await todayResponse
 
             self.todayDigest = digest.digest ?? digest.generatedDigest ?? digest.savedDigest
             self.holdings = holdings
             self.alerts = alerts
+            self.today = today
             self.activeRun = digest.analysisRun ?? latestRun
             self.summaryLength = DigestLengthOption(rawValue: preferences.summaryLength?.lowercased() ?? "standard") ?? .standard
             self.subscriptionTier = preferences.subscriptionTier?.lowercased() ?? "free"

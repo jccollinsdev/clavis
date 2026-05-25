@@ -11,6 +11,7 @@ from jose import jwt, JWTError
 from .routes.holdings import router as holdings_router
 from .routes.digest import router as digest_router
 from .routes.today import router as today_router
+from .routes.portfolio import router as portfolio_router
 from .routes.dashboard import router as dashboard_router
 from .routes.positions import router as positions_router
 from .routes.trigger import router as trigger_router
@@ -333,6 +334,7 @@ async def health():
 app.include_router(holdings_router, prefix="/holdings", tags=["holdings"])
 app.include_router(digest_router, prefix="/digest", tags=["digest"])
 app.include_router(today_router, prefix="/today", tags=["today"])
+app.include_router(portfolio_router, prefix="/portfolio", tags=["portfolio"])
 app.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
 app.include_router(positions_router, prefix="/positions", tags=["positions"])
 app.include_router(trigger_router, prefix="/trigger-analysis", tags=["analysis"])

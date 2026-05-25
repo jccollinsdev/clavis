@@ -48,6 +48,12 @@ def _portfolio_rollup() -> dict:
     return run()
 
 
+def _earnings_calendar() -> dict:
+    from app.jobs.earnings_calendar import run_from_env
+
+    return run_from_env()
+
+
 JOB_REGISTRY: dict[str, JobSpec] = {
     "daily_macro_snapshot": JobSpec("daily_macro_snapshot", "daily", _macro_snapshot),
     "daily_sector_snapshot": JobSpec("daily_sector_snapshot", "daily", _sector_snapshot),
@@ -59,6 +65,9 @@ JOB_REGISTRY: dict[str, JobSpec] = {
     ),
     "daily_portfolio_rollup": JobSpec(
         "daily_portfolio_rollup", "daily", _portfolio_rollup
+    ),
+    "daily_earnings_calendar_refresh": JobSpec(
+        "daily_earnings_calendar_refresh", "daily", _earnings_calendar
     ),
 }
 

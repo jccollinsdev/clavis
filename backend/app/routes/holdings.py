@@ -18,6 +18,7 @@ from ..services.ticker_cache_service import (
     build_holding_workflow_response,
     refresh_ticker_snapshot,
 )
+from ..services.route_freshness import latest_job_freshness
 
 router = APIRouter()
 
@@ -78,6 +79,10 @@ async def list_holdings(
     return {
         "portfolio": portfolio_rows[0] if portfolio_rows else None,
         "positions": enriched,
+        "freshness": latest_job_freshness(
+            supabase,
+            ["daily_portfolio_rollup_per_user", "daily_composite_recompute_universe"],
+        ),
     }
 
 

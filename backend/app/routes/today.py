@@ -14,13 +14,15 @@ This route is intentionally read-only and idempotent. No background work.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
 from fastapi import APIRouter, Depends, Request
 
 from ..services.supabase import get_supabase
 from ..services.ticker_cache_service import enrich_positions_with_ticker_cache
+from ..services.route_freshness import latest_job_freshness
+from .portfolio import build_sector_exposure
 
 router = APIRouter()
 
@@ -169,38 +171,7 @@ async def get_today(user_id: str = Depends(get_user_id)) -> dict[str, Any]:
     ]
 
     # ---- Sector heat (with optional ETF day change) -----------------------
-    sector_snapshots = (
-        supabase.table("sector_regime_snapshots")
-        .select("source_etf,etf_day_change_pct,sector,snapshot_date")
-        .order("snapshot_date", desc=True)
-        .limit(50)
-        .execute()
-        .data
-        or []
-    )
-    # Take the most recent row per ETF.
-    etf_day_change: dict[str, float] = {}
-    seen_etfs: set[str] = set()
-    for row in sector_snapshots:
-        etf = (row.get("source_etf") or "").upper()
-        if etf and etf not in seen_etfs:
-            seen_etfs.add(etf)
-            change = row.get("etf_day_change_pct")
-            if change is not None:
-                try:
-                    etf_day_change[etf] = float(change)
-                except (TypeError, ValueError):
-                    pass
-
-    sector_cards = []
-    for sector, value in sorted(sector_value.items(), key=lambda kv: -kv[1])[:8]:
-        etf = SECTOR_ETF_MAP.get(sector.lower())
-        sector_cards.append({
-            "sector": sector,
-            "etf": etf,
-            "portfolio_weight_pct": round((value / total_value) * 100.0, 1) if total_value > 0 else 0,
-            "etf_day_change_pct": etf_day_change.get(etf) if etf else None,
-        })
+    sector_cards = build_sector_exposure(supabase, user_id)[:8]
 
     # ---- Attention (alerts) -----------------------------------------------
     alerts_rows = (
@@ -259,6 +230,64 @@ async def get_today(user_id: str = Depends(get_user_id)) -> dict[str, Any]:
         wtw = (sections.get("what_to_watch_today") or {}) if isinstance(sections, dict) else {}
         catalysts = wtw.get("catalysts") or []
 
+    held_tickers = sorted(
+        {
+            str(position.get("ticker") or "").upper()
+            for position in raw_positions
+            if position.get("ticker")
+        }
+    )
+    horizon = (date.today() + timedelta(days=14)).isoformat()
+    earnings_rows = []
+    if held_tickers:
+        earnings_rows = (
+            supabase.table("earnings_calendar")
+            .select("ticker,report_date,est_eps,est_revenue,time_of_day,fiscal_period,source,fetched_at")
+            .in_("ticker", held_tickers)
+            .gte("report_date", today)
+            .lte("report_date", horizon)
+            .order("report_date")
+            .limit(12)
+            .execute()
+            .data
+            or []
+        )
+
+    calendar_items = [
+        {
+            "type": "EARN",
+            "time": row.get("time_of_day") or "—",
+            "title": f"{row.get('ticker')} earnings",
+            "ticker": row.get("ticker"),
+            "report_date": row.get("report_date"),
+            "est_eps": row.get("est_eps"),
+            "est_revenue": row.get("est_revenue"),
+            "source": row.get("source"),
+        }
+        for row in earnings_rows
+    ]
+    for item in catalysts[:6]:
+        if isinstance(item, dict):
+            calendar_items.append(
+                {
+                    "type": "DATA",
+                    "time": "—",
+                    "title": item.get("catalyst") or item.get("title"),
+                    "tickers": item.get("impacted_positions") or [],
+                    "source": "digest",
+                }
+            )
+        else:
+            calendar_items.append(
+                {
+                    "type": "DATA",
+                    "time": "—",
+                    "title": str(item),
+                    "tickers": [],
+                    "source": "digest",
+                }
+            )
+
     portfolio_snapshot_rows = (
         supabase.table("portfolio_risk_snapshots")
         .select("portfolio_value,composite_score,grade,score_delta,previous_score,dimensions,sector_breakdown,as_of_date")
@@ -309,10 +338,18 @@ async def get_today(user_id: str = Depends(get_user_id)) -> dict[str, Any]:
             ],
         },
         "top_movers": top_movers,
-        "calendar": catalysts,
+        "calendar": calendar_items,
         "report": {
             "digest_id": digest_id,
             "preview": digest_preview,
             "status": "ready" if digest_id else "unavailable",
         },
+        "freshness": latest_job_freshness(
+            supabase,
+            [
+                "daily_portfolio_rollup_per_user",
+                "daily_sector_snapshot",
+                "daily_earnings_calendar_refresh",
+            ],
+        ),
     }

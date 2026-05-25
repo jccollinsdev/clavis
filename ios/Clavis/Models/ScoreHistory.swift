@@ -76,6 +76,8 @@ struct TodayResponse: Codable {
         let dayChangePct: Double?
         let compositeScore: Double?
         let grade: String?
+        let previousScore: Double?
+        let scoreDelta: Double?
         let positionCount: Int?
         let generatedAt: String?
 
@@ -85,6 +87,8 @@ struct TodayResponse: Codable {
             case dayChangePct = "day_change_pct"
             case compositeScore = "composite_score"
             case grade
+            case previousScore = "previous_score"
+            case scoreDelta = "score_delta"
             case positionCount = "position_count"
             case generatedAt = "generated_at"
         }
@@ -153,17 +157,53 @@ struct TodayResponse: Codable {
         }
     }
 
+    struct CalendarItem: Codable, Identifiable {
+        let type: String?
+        let time: String?
+        let title: String?
+        let ticker: String?
+        let reportDate: String?
+        let source: String?
+
+        var id: String {
+            [reportDate, ticker, title, source]
+                .compactMap { $0 }
+                .joined(separator: "|")
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case type, time, title, ticker, source
+            case reportDate = "report_date"
+        }
+    }
+
+    struct Freshness: Codable {
+        let asOf: String?
+        let jobId: String?
+        let ageSeconds: Int?
+
+        enum CodingKeys: String, CodingKey {
+            case asOf = "as_of"
+            case jobId = "job_id"
+            case ageSeconds = "age_seconds"
+        }
+    }
+
     let portfolio: Portfolio
     let dimensions: [Dimension]
     let sectorExposure: [SectorCard]
     let attention: Attention
+    let calendar: [CalendarItem]
     let report: Report
+    let freshness: Freshness?
 
     enum CodingKeys: String, CodingKey {
         case portfolio
         case dimensions
         case sectorExposure = "sector_exposure"
         case attention
+        case calendar
         case report
+        case freshness
     }
 }

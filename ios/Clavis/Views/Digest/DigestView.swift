@@ -457,14 +457,28 @@ struct DigestView: View {
 
     private var calendar: some View {
         ClavixSection(eyebrow: "Today", title: "Calendar") {
+            let todayItems = viewModel.today?.calendar ?? []
             let items = viewModel.todayDigest?.structuredSections?.whatToWatchToday?.catalysts ?? []
             if items.isEmpty {
-                ClavixCard {
-                    Text("No scheduled events surfaced for your portfolio today.")
-                        .font(ClavisTypography.clavixCaption)
-                        .foregroundColor(.clavixInk3)
+                if todayItems.isEmpty {
+                    ClavixCard {
+                        Text("No scheduled events surfaced for your portfolio today.")
+                            .font(ClavisTypography.clavixCaption)
+                            .foregroundColor(.clavixInk3)
+                    }
+                } else {
+                    ClavixCard(padding: 0) {
+                        VStack(spacing: 0) {
+                            ForEach(Array(todayItems.enumerated()), id: \.element.id) { index, item in
+                                calendarLine(item)
+                                if index < todayItems.count - 1 {
+                                    Rectangle().fill(Color.clavixRule).frame(height: 1)
+                                }
+                            }
+                        }
+                    }
                 }
-            } else {
+            } else if todayItems.isEmpty {
                 ClavixCard(padding: 0) {
                     VStack(spacing: 0) {
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
@@ -475,8 +489,39 @@ struct DigestView: View {
                         }
                     }
                 }
+            } else {
+                ClavixCard(padding: 0) {
+                    VStack(spacing: 0) {
+                        ForEach(Array(todayItems.enumerated()), id: \.element.id) { index, item in
+                            calendarLine(item)
+                            if index < todayItems.count - 1 {
+                                Rectangle().fill(Color.clavixRule).frame(height: 1)
+                            }
+                        }
+                    }
+                }
             }
         }
+    }
+
+    private func calendarLine(_ item: TodayResponse.CalendarItem) -> some View {
+        HStack(spacing: 12) {
+            Text((item.time?.isEmpty == false ? item.time : "—") ?? "—")
+                .font(ClavisTypography.clavixMono(12, weight: .semibold))
+                .foregroundColor(.clavixInk)
+                .frame(width: 46, alignment: .leading)
+            Text((item.type?.isEmpty == false ? item.type : "DATA") ?? "DATA")
+                .font(ClavisTypography.clavixMono(9, weight: .bold))
+                .tracking(0.4)
+                .foregroundColor(.clavixInk3)
+                .frame(width: 50, alignment: .leading)
+            Text(item.title?.sanitizedDisplayText ?? "Scheduled event")
+                .font(ClavisTypography.clavixCaption)
+                .foregroundColor(.clavixInk2)
+                .lineLimit(2)
+            Spacer()
+        }
+        .padding(12)
     }
 
     /// VQACalendarLine 1:1 — `08:30 | DATA | title`. We extract the leading
@@ -565,6 +610,11 @@ struct DigestView: View {
     }
 
     private var freshnessLabel: String {
+        if let age = viewModel.today?.freshness?.ageSeconds {
+            if age < 60 * 60 { return "Updated" }
+            if age < 60 * 60 * 24 { return "Today" }
+            return "Stale"
+        }
         guard let digest = viewModel.todayDigest else { return "Updating" }
         let interval = Date().timeIntervalSince(digest.generatedAt)
         if interval < 60 * 60 { return "Updated" }
@@ -573,15 +623,18 @@ struct DigestView: View {
     }
 
     private var portfolioValueText: String {
+        if let value = viewModel.today?.portfolio.value, value > 0 {
+            return formatCurrency(value)
+        }
         let total = viewModel.holdings.compactMap(\.currentValue).reduce(0, +)
         guard total > 0 else { return "—" }
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        formatter.maximumFractionDigits = 2
-        return formatter.string(from: NSNumber(value: total)) ?? "—"
+        return formatCurrency(total)
     }
 
     private var portfolioGradeText: String {
+        if let grade = viewModel.today?.portfolio.grade, !grade.isEmpty {
+            return grade
+        }
         if !viewModel.holdings.isEmpty,
            PortfolioMath.weightedScore(viewModel.holdings) != nil {
             return PortfolioMath.weightedGrade(viewModel.holdings)
@@ -592,6 +645,9 @@ struct DigestView: View {
     }
 
     private var compositeLine: String {
+        if let score = viewModel.today?.portfolio.compositeScore {
+            return "Composite \(Int(score.rounded()))"
+        }
         if let weighted = PortfolioMath.weightedScore(viewModel.holdings) {
             return "Composite \(Int(weighted.rounded()))"
         }
@@ -604,6 +660,11 @@ struct DigestView: View {
     /// Sum of (shares × day_change_amount) across holdings whose backend payload
     /// includes a previous-close price. Returns "—" when no positions report it.
     private var portfolioDayChangeText: String {
+        if let amount = viewModel.today?.portfolio.dayChangeAmount,
+           let pct = viewModel.today?.portfolio.dayChangePct {
+            let sign = amount >= 0 ? "+" : "−"
+            return String(format: "%@%@ (%@%.2f%%)", sign, formatCurrency(abs(amount)), pct >= 0 ? "+" : "−", abs(pct))
+        }
         let positions = viewModel.holdings
         var totalDelta: Double = 0
         var totalPrev: Double = 0
@@ -623,6 +684,11 @@ struct DigestView: View {
     }
 
     private var portfolioDayChangeColor: Color {
+        if let amount = viewModel.today?.portfolio.dayChangeAmount {
+            if amount > 0 { return .clavixGood }
+            if amount < 0 { return .clavixBad }
+            return .clavixInk3
+        }
         let positions = viewModel.holdings
         var totalDelta: Double = 0
         var anyReported = false
@@ -640,7 +706,7 @@ struct DigestView: View {
     private func formatCurrency(_ value: Double) -> String {
         let f = NumberFormatter()
         f.numberStyle = .currency
-        f.maximumFractionDigits = 0
+        f.maximumFractionDigits = value >= 1000 ? 0 : 2
         return f.string(from: NSNumber(value: value)) ?? "$0"
     }
 
@@ -666,6 +732,11 @@ struct DigestView: View {
     /// of the dimension across held tickers; "—" when no ticker exposes that
     /// dimension yet (CLAVIX_TRUTH §6 limited-data rule).
     private var dimensionTuples: [(String, String)] {
+        if let dimensions = viewModel.today?.dimensions, !dimensions.isEmpty {
+            return dimensions.map { item in
+                (item.code, item.score.map { "\(Int($0.rounded()))" } ?? "—")
+            }
+        }
         let entries: [(String, (SharedRiskDimensions) -> Double?)] = [
             ("FIN",  { $0.financialHealth }),
             ("NEWS", { $0.newsSentiment }),
@@ -694,11 +765,14 @@ struct DigestView: View {
     private struct SectorRow {
         let sector: String
         let weight: Double
+        let etf: String?
+        let etfDayChangePct: Double?
         var weightInt: Int { Int((weight * 100).rounded()) }
 
         /// Canonical ETF for the sector when known; falls back to the first two
         /// letters of the sector for unmapped industries.
         var etfSymbol: String {
+            if let etf, !etf.isEmpty { return etf }
             switch sector.lowercased() {
             case "technology", "information technology": return "XLK"
             case "health care", "healthcare":            return "XLV"
@@ -727,14 +801,29 @@ struct DigestView: View {
             }
         }
 
-        // Day-change for the sector's ETF when /today envelope provides it.
-        // Until iOS consumes /today directly, we render an honest "—" placeholder
-        // rather than fabricating a value.
-        var changeText: String { "—" }
-        var changeColor: Color { .clavixInk3 }
+        var changeText: String {
+            guard let pct = etfDayChangePct else { return "—" }
+            return String(format: "%@%.1f%%", pct >= 0 ? "+" : "", pct)
+        }
+        var changeColor: Color {
+            guard let pct = etfDayChangePct else { return .clavixInk3 }
+            if pct > 0.05 { return .clavixGood }
+            if pct < -0.05 { return .clavixBad }
+            return .clavixInk3
+        }
     }
 
     private var sectorRows: [SectorRow] {
+        if let sectors = viewModel.today?.sectorExposure, !sectors.isEmpty {
+            return sectors.prefix(6).map {
+                SectorRow(
+                    sector: $0.sector,
+                    weight: $0.portfolioWeightPct / 100.0,
+                    etf: $0.etf,
+                    etfDayChangePct: $0.etfDayChangePct
+                )
+            }
+        }
         let totalValue = viewModel.holdings.compactMap(\.currentValue).reduce(0, +)
         guard totalValue > 0 else { return [] }
         var bySector: [String: Double] = [:]
@@ -744,7 +833,7 @@ struct DigestView: View {
             bySector[sector, default: 0] += value
         }
         return bySector
-            .map { SectorRow(sector: $0.key, weight: $0.value / totalValue) }
+            .map { SectorRow(sector: $0.key, weight: $0.value / totalValue, etf: nil, etfDayChangePct: nil) }
             .sorted { $0.weight > $1.weight }
             .prefix(6)
             .map { $0 }
