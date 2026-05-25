@@ -15,3 +15,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 30 1 * * 6 root docker exec clavis-backend-1 python -m app.jobs.run weekly_peer_groups_recompute >> /var/log/clavix/cron.log 2>&1
 45 1 * * 6 root docker exec clavis-backend-1 python -m app.jobs.run weekly_sector_medians_recompute >> /var/log/clavix/cron.log 2>&1
 0 2 * * 6 root docker exec clavis-backend-1 python -m app.jobs.run weekly_volatility_recompute >> /var/log/clavix/cron.log 2>&1
+# P8 — operational polish
+30 4 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run event_fundamentals_pull >> /var/log/clavix/cron.log 2>&1
+0 3 * * 0 root docker exec clavis-backend-1 python -m app.jobs.run weekly_universe_audit >> /var/log/clavix/cron.log 2>&1
+0 4 1 * * root docker exec clavis-backend-1 python -m app.jobs.run monthly_etf_holdings_refresh >> /var/log/clavix/cron.log 2>&1

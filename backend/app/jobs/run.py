@@ -66,6 +66,24 @@ def _sector_medians() -> dict:
     return run_from_env()
 
 
+def _event_fundamentals() -> dict:
+    from app.jobs.event_fundamentals import run_from_env
+
+    return run_from_env()
+
+
+def _etf_holdings() -> dict:
+    from app.jobs.etf_holdings import run_from_env
+
+    return run_from_env()
+
+
+def _universe_audit() -> dict:
+    from app.jobs.universe_audit import run_from_env
+
+    return run_from_env()
+
+
 JOB_REGISTRY: dict[str, JobSpec] = {
     "daily_macro_snapshot": JobSpec("daily_macro_snapshot", "daily", _macro_snapshot),
     "daily_sector_snapshot": JobSpec("daily_sector_snapshot", "daily", _sector_snapshot),
@@ -86,6 +104,15 @@ JOB_REGISTRY: dict[str, JobSpec] = {
     ),
     "weekly_sector_medians_recompute": JobSpec(
         "weekly_sector_medians_recompute", "weekly", _sector_medians
+    ),
+    "event_fundamentals_pull": JobSpec(
+        "event_fundamentals_pull", "daily", _event_fundamentals
+    ),
+    "monthly_etf_holdings_refresh": JobSpec(
+        "monthly_etf_holdings_refresh", "monthly", _etf_holdings
+    ),
+    "weekly_universe_audit": JobSpec(
+        "weekly_universe_audit", "weekly", _universe_audit
     ),
 }
 
