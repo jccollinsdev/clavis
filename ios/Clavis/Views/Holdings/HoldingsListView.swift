@@ -194,13 +194,13 @@ struct HoldingsListView: View {
             HStack(spacing: ClavisTheme.smallSpacing) {
                 Button(action: openAddHolding) {
                     Image(systemName: "plus")
-                        .foregroundColor(.textPrimary)
+                        .foregroundColor(.clavixInk)
                 }
                 .buttonStyle(.plain)
 
                 Button(action: { Task { await viewModel.refreshHoldings() } }) {
                     Image(systemName: viewModel.isRefreshing ? "hourglass" : "arrow.clockwise")
-                        .foregroundColor(.textPrimary)
+                        .foregroundColor(.clavixInk)
                 }
                 .buttonStyle(.plain)
                 .disabled(viewModel.isRefreshing)
@@ -261,7 +261,7 @@ struct HoldingsListView: View {
                         tickerSearchError = nil
                     }
                     .font(ClavisTypography.footnoteEmphasis)
-                    .foregroundColor(.accentBurnt)
+                    .foregroundColor(.clavixAccent)
                     .buttonStyle(.plain)
                 }
             }
@@ -312,7 +312,7 @@ struct HoldingsListView: View {
                     selectedTab = 2
                 }
                 .font(ClavisTypography.footnoteEmphasis)
-                .foregroundColor(.accentBurnt)
+                .foregroundColor(.clavixAccent)
                 .buttonStyle(.plain)
             }
 
@@ -321,7 +321,7 @@ struct HoldingsListView: View {
                     Button(action: { selectedTab = 2 }) {
                         Text("Add tickers to watch")
                             .font(ClavisTypography.bodyEmphasis)
-                            .foregroundColor(.accentBurnt)
+                            .foregroundColor(.clavixAccent)
                     }
                     .buttonStyle(.plain)
                 }
@@ -357,7 +357,7 @@ struct HoldingsListView: View {
                 ClavixCard(fill: .clavixPaper) {
                     Text("No search results yet.")
                         .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                 }
             } else {
                 ClavixCard(fill: .clavixPaper) {
@@ -577,11 +577,11 @@ private struct WatchlistRow: View {
                 HStack(spacing: ClavisTheme.smallSpacing) {
                     Text(item.resolvedCompanyName ?? "Tracked symbol")
                         .font(ClavisTypography.bodyEmphasis)
-                        .foregroundColor(.textPrimary)
+                        .foregroundColor(.clavixInk)
                         .lineLimit(1)
                     Text(item.ticker)
                         .font(ClavisTypography.footnoteEmphasis)
-                        .foregroundColor(.accentBurnt)
+                        .foregroundColor(.clavixAccent)
                 }
 
                 HStack(spacing: ClavisTheme.smallSpacing) {
@@ -590,7 +590,7 @@ private struct WatchlistRow: View {
                     Text("Watching")
                 }
                 .font(ClavisTypography.footnote)
-                .foregroundColor(.textSecondary)
+                .foregroundColor(.clavixInk3)
             }
 
             Spacer()
@@ -620,24 +620,24 @@ private struct SearchResultRow: View {
                 HStack(spacing: ClavisTheme.smallSpacing) {
                     Text(result.ticker)
                         .font(ClavisTypography.bodyEmphasis)
-                        .foregroundColor(.accentBurnt)
+                        .foregroundColor(.clavixAccent)
                     Text(result.companyName)
                         .font(ClavisTypography.footnote)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                         .lineLimit(1)
                 }
 
                 HStack(spacing: ClavisTheme.smallSpacing) {
                     Text(result.price.map { currency($0) } ?? "—")
                         .font(ClavisTypography.footnote)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
 
                     if !result.isSupported {
-                        SearchTag(text: "Not in tracked universe", foreground: .warn, background: .warnSoft)
+                        SearchTag(text: "Not in tracked universe", foreground: .warn, background: .clavixWarnSoft)
                     }
 
                     if isWatchlisted {
-                        SearchTag(text: "Watching", foreground: .accentInk, background: .accentBurnt)
+                        SearchTag(text: "Watching", foreground: .clavixAccentInk, background: .clavixAccent)
                     }
                 }
             }
@@ -677,15 +677,25 @@ struct HoldingsEmptyState: View {
 
     var body: some View {
         ClavixCard(fill: .clavixPaper) {
-            VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
+            VStack(alignment: .leading, spacing: 12) {
                 Text("Add your first holding")
-                    .font(ClavisTypography.h2)
-                    .foregroundColor(.textPrimary)
+                    .font(ClavisTypography.clavixSerif(20, weight: .medium))
+                    .foregroundColor(.clavixInk)
                 Text("Start with the positions you track most closely. Clavix will build your morning briefing around them.")
-                    .font(ClavisTypography.body)
-                    .foregroundColor(.textSecondary)
+                    .font(ClavisTypography.clavixCaption)
+                    .foregroundColor(.clavixInk2)
                     .fixedSize(horizontal: false, vertical: true)
-                ClavisPrimaryButton(title: "Add your first holding", action: onAddPosition)
+                Button(action: onAddPosition) {
+                    Text("Add your first holding")
+                        .font(ClavisTypography.clavixMono(11, weight: .bold))
+                        .tracking(0.4)
+                        .foregroundColor(.clavixPaper)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color.clavixInk)
+                        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                }
+                .buttonStyle(.plain)
             }
         }
     }
@@ -717,7 +727,7 @@ private struct HoldingsAddSheet: View {
                     fieldCard(title: "Ticker") {
                         TextField("Search ticker", text: $ticker)
                             .font(ClavisTypography.body)
-                            .foregroundColor(.textPrimary)
+                            .foregroundColor(.clavixInk)
                             .textInputAutocapitalization(.characters)
                             .autocorrectionDisabled()
                             .onChange(of: ticker) { newValue in
@@ -727,13 +737,13 @@ private struct HoldingsAddSheet: View {
 
                         if isSearchingSuggestions {
                             ProgressView()
-                                .tint(.textPrimary)
+                                .tint(.clavixInk)
                         }
 
                         if !companyName.isEmpty {
                             Text(companyName)
                                 .font(ClavisTypography.footnote)
-                                .foregroundColor(.textSecondary)
+                                .foregroundColor(.clavixInk3)
                         }
 
                         if let tickerError {
@@ -763,14 +773,14 @@ private struct HoldingsAddSheet: View {
                     fieldCard(title: "Shares") {
                         TextField("0", text: $shares)
                             .font(ClavisTypography.body)
-                            .foregroundColor(.textPrimary)
+                            .foregroundColor(.clavixInk)
                             .keyboardType(.decimalPad)
                     }
 
                     fieldCard(title: "Cost basis per share") {
                         TextField("0", text: $costBasis)
                             .font(ClavisTypography.body)
-                            .foregroundColor(.textPrimary)
+                            .foregroundColor(.clavixInk)
                             .keyboardType(.decimalPad)
                     }
 
@@ -778,11 +788,11 @@ private struct HoldingsAddSheet: View {
                         DatePicker("Purchase date", selection: $purchaseDate, displayedComponents: .date)
                             .datePickerStyle(.compact)
                             .labelsHidden()
-                            .tint(.accentBurnt)
+                            .tint(.clavixAccent)
                         // TODO: backend add-holding endpoint does not yet accept purchase_date.
                         Text("Purchase date will be sent once the backend route supports it.")
                             .font(ClavisTypography.footnote)
-                            .foregroundColor(.textSecondary)
+                            .foregroundColor(.clavixInk3)
                     }
                 }
                 .padding(.horizontal, ClavisTheme.screenPadding)
@@ -794,13 +804,13 @@ private struct HoldingsAddSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Add") {
                         Task { await submit() }
                     }
-                    .foregroundColor(isValid ? .accentBurnt : .textTertiary)
+                    .foregroundColor(isValid ? .clavixAccent : .clavixInk4)
                     .disabled(!isValid)
                 }
             }
@@ -812,7 +822,7 @@ private struct HoldingsAddSheet: View {
             VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
                 Text(title)
                     .font(ClavisTypography.label)
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixInk3)
                 content()
             }
         }
@@ -890,12 +900,12 @@ struct AddPositionProgressView: View {
                         VStack(spacing: ClavisTheme.smallSpacing) {
                             Text(primaryProgressMessage)
                                 .font(ClavisTypography.h2)
-                                .foregroundColor(.textPrimary)
+                                .foregroundColor(.clavixInk)
                                 .multilineTextAlignment(.center)
 
                             Text(viewModel.progressMessage)
                                 .font(ClavisTypography.body)
-                                .foregroundColor(.textSecondary)
+                                .foregroundColor(.clavixInk3)
                                 .multilineTextAlignment(.center)
                         }
 
@@ -913,7 +923,7 @@ struct AddPositionProgressView: View {
 
                         Text(progressStageText)
                             .font(ClavisTypography.label)
-                            .foregroundColor(.textSecondary)
+                            .foregroundColor(.clavixInk3)
                     }
                 }
 
@@ -926,7 +936,7 @@ struct AddPositionProgressView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                 }
             }
         }
@@ -936,7 +946,7 @@ struct AddPositionProgressView: View {
         if viewModel.progressValue >= 1.0 { return .good }
         if viewModel.progressMessage.lowercased().contains("failed") { return .bad }
         if viewModel.progressMessage.lowercased().contains("limited") { return .warn }
-        return .accentBurnt
+        return .clavixAccent
     }
 
     private var primaryProgressMessage: String {
@@ -961,10 +971,10 @@ private struct HoldingsUpgradeSheet: View {
                         VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
                             Text("Free vs Pro")
                                 .font(ClavisTypography.h2)
-                                .foregroundColor(.textPrimary)
+                                .foregroundColor(.clavixInk)
                             Text("Free includes up to 3 holdings. Upgrade to Pro for unlimited holdings, CSV import, and brokerage sync.")
                                 .font(ClavisTypography.body)
-                                .foregroundColor(.textSecondary)
+                                .foregroundColor(.clavixInk3)
                                 .fixedSize(horizontal: false, vertical: true)
                             ClavisPrimaryButton(title: "Pro is coming soon", action: { dismiss() })
                         }
@@ -979,7 +989,7 @@ private struct HoldingsUpgradeSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                 }
             }
         }

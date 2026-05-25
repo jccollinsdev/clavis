@@ -55,7 +55,7 @@ struct MethodologyDrawerSheet: View {
                     ) {
                         Text("\(methodology.dimensions.newsSentiment.articleCount7d ?? 0) articles · weighted score \(methodology.dimensions.newsSentiment.weightedScore.map { String(Int($0.rounded())) } ?? "—")")
                             .font(ClavisTypography.footnote)
-                            .foregroundColor(.textSecondary)
+                            .foregroundColor(.clavixInk3)
                         miniDistribution(count: methodology.dimensions.newsSentiment.articleCount7d ?? 0)
                     }
 
@@ -67,7 +67,7 @@ struct MethodologyDrawerSheet: View {
                     ) {
                         Text("R² \(String(format: "%.3f", methodology.dimensions.macroExposure.rSquared ?? 0)) · \(methodology.dimensions.macroExposure.tradingDaysUsed ?? 0) days used")
                             .font(ClavisTypography.footnote)
-                            .foregroundColor(.textSecondary)
+                            .foregroundColor(.clavixInk3)
                     }
 
                     drawerDimension(
@@ -78,7 +78,7 @@ struct MethodologyDrawerSheet: View {
                     ) {
                         Text(methodology.dimensions.sectorExposure.sector ?? "Sector unavailable")
                             .font(ClavisTypography.footnote)
-                            .foregroundColor(.textSecondary)
+                            .foregroundColor(.clavixInk3)
                     }
 
                     drawerDimension(
@@ -89,7 +89,7 @@ struct MethodologyDrawerSheet: View {
                     ) {
                         Text("30d \(percent(methodology.dimensions.volatility.realizedVol30d)) · 90d \(percent(methodology.dimensions.volatility.realizedVol90d))")
                             .font(ClavisTypography.footnote)
-                            .foregroundColor(.textSecondary)
+                            .foregroundColor(.clavixInk3)
                     }
                 }
                 .padding(.horizontal, ClavisTheme.screenPadding)
@@ -101,7 +101,7 @@ struct MethodologyDrawerSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") { dismiss() }
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                 }
             }
             .navigationDestination(for: AuditDestination.self) { destination in
@@ -135,13 +135,13 @@ struct MethodologyDrawerSheet: View {
                 HStack {
                     Text(title)
                         .font(ClavisTypography.bodyEmphasis)
-                        .foregroundColor(.textPrimary)
+                        .foregroundColor(.clavixInk)
                     Spacer()
                     Text(score.map { String(Int($0.rounded())) } ?? "—")
                         .font(ClavisTypography.footnoteEmphasis)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                     Image(systemName: expandedDimension == key ? "chevron.down" : "chevron.right")
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                 }
             }
             .buttonStyle(.plain)
@@ -155,10 +155,10 @@ struct MethodologyDrawerSheet: View {
                         HStack {
                             Text("Full audit")
                                 .font(ClavisTypography.footnoteEmphasis)
-                                .foregroundColor(.accentBurnt)
+                                .foregroundColor(.clavixAccent)
                             Image(systemName: "arrow.up.right")
                                 .font(ClavisTypography.footnote)
-                                .foregroundColor(.accentBurnt)
+                                .foregroundColor(.clavixAccent)
                         }
                     }
                     .buttonStyle(.plain)
@@ -179,7 +179,7 @@ struct MethodologyDrawerSheet: View {
         HStack(alignment: .bottom, spacing: 4) {
             ForEach(0..<5, id: \.self) { index in
                 Rectangle()
-                    .fill(index == 2 ? Color.accentBurnt : Color.surfaceElevated)
+                    .fill(index == 2 ? Color.clavixAccent : Color.clavixPaper2)
                     .frame(width: 18, height: CGFloat(max(8, count - abs(2 - index) * 2)))
             }
         }

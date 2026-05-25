@@ -23,7 +23,7 @@ struct NewsSentimentAuditView: View {
                     AuditSectionCard(title: "Weighting") {
                         Text("Recency tiers: last 24h = 3x, 24-72h = 2x, 72h-7d = 1x. Source tiers: T1, T2, T3 reflect source quality.")
                             .font(ClavisTypography.body)
-                            .foregroundColor(.textSecondary)
+                            .foregroundColor(.clavixInk3)
                     }
 
                     AuditSectionCard(title: "Articles") {
@@ -32,21 +32,21 @@ struct NewsSentimentAuditView: View {
                                 VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
                                     Text(article.title ?? "Untitled article")
                                         .font(ClavisTypography.bodyEmphasis)
-                                        .foregroundColor(.textPrimary)
+                                        .foregroundColor(.clavixInk)
                                         .multilineTextAlignment(.leading)
                                     Text("\(article.source ?? "Unknown") · \(article.publishedAt ?? "Date unavailable")")
                                         .font(ClavisTypography.footnote)
-                                        .foregroundColor(.textSecondary)
+                                        .foregroundColor(.clavixInk3)
                                     Text(article.tldr ?? "TLDR unavailable")
                                         .font(ClavisTypography.footnote)
-                                        .foregroundColor(.textSecondary)
+                                        .foregroundColor(.clavixInk3)
                                     HStack(spacing: ClavisTheme.smallSpacing) {
                                         Text(article.sentimentScore.map { "S \(Int($0.rounded()))" } ?? "S —")
                                         Text(article.sourceTier.map { "T\($0)" } ?? "T—")
                                         Text(article.recencyWeight.map { String(format: "%.1fx", $0) } ?? "1.0x")
                                     }
                                     .font(ClavisTypography.label)
-                                    .foregroundColor(.accentBurnt)
+                                    .foregroundColor(.clavixAccent)
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.vertical, ClavisTheme.smallSpacing)
@@ -59,7 +59,7 @@ struct NewsSentimentAuditView: View {
                         // TODO: backend expose source_weight values for article-level news audit math.
                         Text("Weighted average (recency-weighted from available payload): \(weightedAverageText)")
                             .font(ClavisTypography.body)
-                            .foregroundColor(.textSecondary)
+                            .foregroundColor(.clavixInk3)
                     }
                 }
             }

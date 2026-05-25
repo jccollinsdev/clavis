@@ -40,7 +40,7 @@ struct ArticleDetailSheet: View {
     private var headlineBlock: some View {
         Text(article.title ?? "")
             .font(ClavisTypography.inter(18, weight: .semibold))
-            .foregroundColor(.textPrimary)
+            .foregroundColor(.clavixInk)
             .fixedSize(horizontal: false, vertical: true)
     }
 
@@ -49,14 +49,14 @@ struct ArticleDetailSheet: View {
             if let source = article.source {
                 Text(source)
                     .font(ClavisTypography.footnote)
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixInk3)
             }
             if let date = article.publishedAt {
                 Text("·")
-                    .foregroundColor(.textTertiary)
+                    .foregroundColor(.clavixInk4)
                 Text(date.prefix(10))
                     .font(ClavisTypography.footnote)
-                    .foregroundColor(.textTertiary)
+                    .foregroundColor(.clavixInk4)
             }
             if let tier = article.sourceTier {
                 tierPill(tier)
@@ -70,7 +70,7 @@ struct ArticleDetailSheet: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Sentiment")
                         .font(ClavisTypography.label)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                     Text("\(Int(score.rounded()))")
                         .font(.system(size: 36, weight: .bold, design: .monospaced))
                         .foregroundColor(sentimentColor(score))
@@ -83,7 +83,7 @@ struct ArticleDetailSheet: View {
                 VStack(alignment: .trailing, spacing: 4) {
                     Text("Recency")
                         .font(ClavisTypography.label)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                     HStack(spacing: 4) {
                         Text("\(Int(rw.rounded()))x")
                             .font(.system(size: 14, weight: .bold))
@@ -93,7 +93,7 @@ struct ArticleDetailSheet: View {
             }
         }
         .padding()
-        .background(Color.surfaceElevated)
+        .background(Color.clavixPaper2)
         .cornerRadius(ClavisTheme.innerCornerRadius)
     }
 
@@ -115,7 +115,7 @@ struct ArticleDetailSheet: View {
         sectionBlock(title: "TLDR") {
             Text(article.tldr ?? "Not available.")
                 .font(ClavisTypography.body)
-                .foregroundColor(.textPrimary)
+                .foregroundColor(.clavixInk)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -124,7 +124,7 @@ struct ArticleDetailSheet: View {
         sectionBlock(title: "What It Means for \(ticker)") {
             Text(article.whatItMeans ?? "Not available.")
                 .font(ClavisTypography.body)
-                .foregroundColor(.textPrimary)
+                .foregroundColor(.clavixInk)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -137,17 +137,17 @@ struct ArticleDetailSheet: View {
                         HStack(alignment: .top, spacing: 8) {
                             Text("•")
                                 .font(ClavisTypography.body)
-                                .foregroundColor(.textTertiary)
+                                .foregroundColor(.clavixInk4)
                             Text(implication)
                                 .font(ClavisTypography.body)
-                                .foregroundColor(.textSecondary)
+                                .foregroundColor(.clavixInk3)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                     }
                 } else {
                     Text("Not available.")
                         .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                 }
             }
         }
@@ -159,11 +159,11 @@ struct ArticleDetailSheet: View {
                 HStack {
                     Text("Why this score?")
                         .font(ClavisTypography.label)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                     Spacer()
                     Image(systemName: showWhyThisScore ? "chevron.up" : "chevron.down")
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.textTertiary)
+                        .foregroundColor(.clavixInk4)
                 }
             }
             .buttonStyle(.plain)
@@ -171,7 +171,7 @@ struct ArticleDetailSheet: View {
             if showWhyThisScore {
                 Text(article.sentimentReason ?? "Score reasoning not available.")
                     .font(ClavisTypography.footnote)
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixInk3)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 4)
             }
@@ -209,12 +209,12 @@ struct ArticleDetailSheet: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(ClavisTypography.label)
-                .foregroundColor(.textSecondary)
+                .foregroundColor(.clavixInk3)
                 .textCase(.uppercase)
             content()
         }
         .padding()
-        .background(Color.surfaceElevated)
+        .background(Color.clavixPaper2)
         .cornerRadius(ClavisTheme.innerCornerRadius)
     }
 

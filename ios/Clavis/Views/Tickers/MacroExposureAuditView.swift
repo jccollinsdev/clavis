@@ -34,12 +34,12 @@ struct MacroExposureAuditView: View {
                 AuditSectionCard(title: "Methodology") {
                     Text("Macro Exposure measures how sensitive a ticker is to broad macro factors. Clavix evaluates historical relationships between the ticker's returns and factors such as 10-year Treasury yields, the U.S. dollar, crude oil, VIX, and S&P 500 returns.")
                         .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                         .fixedSize(horizontal: false, vertical: true)
                     if let narrative = dimension?.narrative, !narrative.isEmpty {
                         Text(narrative)
                             .font(ClavisTypography.footnote)
-                            .foregroundColor(.textSecondary)
+                            .foregroundColor(.clavixInk3)
                     }
                 }
             }

@@ -23,20 +23,20 @@ struct SectorExposureAuditView: View {
                     // TODO: backend expose sector metric sparklines for the full audit screen.
                     Text("Sparklines will appear once historical sector metric series are returned.")
                         .font(ClavisTypography.footnote)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                 }
 
                 AuditSectionCard(title: "Narrative") {
                     Text(dimension?.narrative ?? "Sector narrative unavailable.")
                         .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
                 AuditSectionCard(title: "Methodology") {
                     Text("Sector Exposure measures how vulnerable a ticker is to its sector's current state. It considers sector beta, sector momentum versus the S&P 500, sector breadth, and sector-specific news.")
                         .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }

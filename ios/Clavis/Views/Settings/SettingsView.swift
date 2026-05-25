@@ -108,7 +108,7 @@ struct SettingsView: View {
             settingsRow(title: "Delivery time") {
                 DatePicker("Delivery time", selection: $viewModel.digestTime, displayedComponents: .hourAndMinute)
                     .labelsHidden()
-                    .tint(.accentBurnt)
+                    .tint(.clavixAccent)
                     .onChange(of: viewModel.digestTime) { _ in
                         Task { await viewModel.saveDigestTime() }
                     }
@@ -117,7 +117,7 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
                 Text("Length")
                     .font(ClavisTypography.bodyEmphasis)
-                    .foregroundColor(.textPrimary)
+                    .foregroundColor(.clavixInk)
                 HStack(spacing: ClavisTheme.smallSpacing) {
                     ForEach(SummaryLength.allCases, id: \.rawValue) { option in
                         Button(action: { selectDigestLength(option) }) {
@@ -129,10 +129,10 @@ struct SettingsView: View {
                                 }
                             }
                             .font(ClavisTypography.footnoteEmphasis)
-                            .foregroundColor(viewModel.summaryLength == option ? .accentInk : .textSecondary)
+                            .foregroundColor(viewModel.summaryLength == option ? .clavixAccentInk : .clavixInk3)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
-                            .background(viewModel.summaryLength == option ? Color.accentBurnt : Color.surfaceElevated)
+                            .background(viewModel.summaryLength == option ? Color.clavixAccent : Color.clavixPaper2)
                             .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous))
                         }
                         .buttonStyle(.plain)
@@ -157,7 +157,7 @@ struct SettingsView: View {
             settingsRow(title: "Start") {
                 DatePicker("Start", selection: $viewModel.quietHoursStart, displayedComponents: .hourAndMinute)
                     .labelsHidden()
-                    .tint(.accentBurnt)
+                    .tint(.clavixAccent)
                     .onChange(of: viewModel.quietHoursStart) { _ in
                         Task { await viewModel.saveAlertSettings() }
                     }
@@ -166,7 +166,7 @@ struct SettingsView: View {
             settingsRow(title: "End") {
                 DatePicker("End", selection: $viewModel.quietHoursEnd, displayedComponents: .hourAndMinute)
                     .labelsHidden()
-                    .tint(.accentBurnt)
+                    .tint(.clavixAccent)
                     .onChange(of: viewModel.quietHoursEnd) { _ in
                         Task { await viewModel.saveAlertSettings() }
                     }
@@ -230,12 +230,12 @@ struct SettingsView: View {
         VStack(alignment: .center, spacing: ClavisTheme.smallSpacing) {
             Text(ClavisCopy.appVersionString)
                 .font(ClavisTypography.footnote)
-                .foregroundColor(.textSecondary)
+                .foregroundColor(.clavixInk3)
             Button("Sign out") {
                 Task { await authViewModel.signOut() }
             }
             .font(ClavisTypography.footnoteEmphasis)
-            .foregroundColor(.textSecondary)
+            .foregroundColor(.clavixInk3)
             .buttonStyle(.plain)
         }
         .frame(maxWidth: .infinity)
@@ -275,7 +275,7 @@ struct SettingsView: View {
         HStack {
             Text(title)
                 .font(ClavisTypography.bodyEmphasis)
-                .foregroundColor(.textPrimary)
+                .foregroundColor(.clavixInk)
             Spacer()
             content()
         }
@@ -285,11 +285,11 @@ struct SettingsView: View {
         HStack {
             Text(title)
                 .font(ClavisTypography.bodyEmphasis)
-                .foregroundColor(.textPrimary)
+                .foregroundColor(.clavixInk)
             Spacer()
             Text(value)
                 .font(ClavisTypography.footnote)
-                .foregroundColor(.textSecondary)
+                .foregroundColor(.clavixInk3)
         }
     }
 
@@ -297,7 +297,7 @@ struct SettingsView: View {
         Button(action: action) {
             Text(title)
                 .font(ClavisTypography.bodyEmphasis)
-                .foregroundColor(destructive ? .bad : .accentBurnt)
+                .foregroundColor(destructive ? .clavixBad : .clavixAccent)
         }
         .buttonStyle(.plain)
     }
@@ -306,10 +306,10 @@ struct SettingsView: View {
         HStack {
             Text(title)
                 .font(ClavisTypography.bodyEmphasis)
-                .foregroundColor(.textPrimary)
+                .foregroundColor(.clavixInk)
             Spacer()
             Image(systemName: "chevron.right")
-                .foregroundColor(.textSecondary)
+                .foregroundColor(.clavixInk3)
         }
     }
 
@@ -317,7 +317,7 @@ struct SettingsView: View {
         HStack {
             Text(title)
                 .font(ClavisTypography.bodyEmphasis)
-                .foregroundColor(.textPrimary)
+                .foregroundColor(.clavixInk)
             Spacer()
             Button(action: {
                 isOn.wrappedValue.toggle()
@@ -334,10 +334,10 @@ struct SettingsView: View {
             HStack {
                 Text(title)
                     .font(ClavisTypography.bodyEmphasis)
-                    .foregroundColor(.textPrimary)
+                    .foregroundColor(.clavixInk)
                 Spacer()
                 Image(systemName: "arrow.up.right")
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixInk3)
             }
         }
     }
@@ -363,10 +363,10 @@ struct SettingsUpgradeSheet: View {
                         VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
                             Text("Upgrade to Pro")
                                 .font(ClavisTypography.h2)
-                                .foregroundColor(.textPrimary)
+                                .foregroundColor(.clavixInk)
                             Text("Verbose digest, brokerage sync, and CSV import are part of Clavix Pro.")
                                 .font(ClavisTypography.body)
-                                .foregroundColor(.textSecondary)
+                                .foregroundColor(.clavixInk3)
                                 .fixedSize(horizontal: false, vertical: true)
                             ClavisPrimaryButton(title: "Pro is coming soon", action: { dismiss() })
                         }
@@ -381,7 +381,7 @@ struct SettingsUpgradeSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                 }
             }
         }
@@ -395,11 +395,11 @@ struct ScoreExplanationView: View {
                 VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
                     Text("How Risk Scores Work")
                         .font(ClavisTypography.sectionTitle)
-                        .foregroundColor(.textPrimary)
+                        .foregroundColor(.clavixInk)
 
                     Text("Scores range from 0 to 100, where 100 represents minimum risk and 0 represents extreme risk.")
                         .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                 }
 
                 VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
@@ -439,12 +439,12 @@ struct ScoreBandRow: View {
                     .foregroundColor(color)
                 Text(description)
                     .font(ClavisTypography.footnote)
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixInk3)
             }
             Spacer()
         }
         .padding(ClavisTheme.cardPadding)
-        .clavisSecondaryCardStyle(fill: .surfaceElevated)
+        .clavisSecondaryCardStyle(fill: .clavixPaper2)
     }
 }
 
@@ -455,10 +455,10 @@ struct MethodologyView: View {
                 VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
                     Text("Methodology Overview")
                         .font(ClavisTypography.sectionTitle)
-                        .foregroundColor(.textPrimary)
+                        .foregroundColor(.clavixInk)
                     Text("Clavix rates the risk of each tracked ticker across five dimensions. Each dimension is scored from 0 to 100, where higher means lower observed risk.")
                         .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                 }
 
                 VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
@@ -472,10 +472,10 @@ struct MethodologyView: View {
                 VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
                     Text("Open any ticker to drill into its full methodology audit.")
                         .font(ClavisTypography.footnote)
-                        .foregroundColor(.textTertiary)
+                        .foregroundColor(.clavixInk4)
                         .padding(ClavisTheme.cardPadding)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .clavisSecondaryCardStyle(fill: .surfaceElevated)
+                        .clavisSecondaryCardStyle(fill: .clavixPaper2)
                 }
             }
             .padding(.horizontal, ClavisTheme.screenPadding)
@@ -490,13 +490,13 @@ struct MethodologyView: View {
         HStack {
             Text(title)
                 .font(ClavisTypography.bodyEmphasis)
-                .foregroundColor(.textPrimary)
+                .foregroundColor(.clavixInk)
             Spacer()
             Image(systemName: "chevron.right")
-                .foregroundColor(.textSecondary)
+                .foregroundColor(.clavixInk3)
         }
         .padding(ClavisTheme.cardPadding)
-        .clavisSecondaryCardStyle(fill: .surfaceElevated)
+        .clavisSecondaryCardStyle(fill: .clavixPaper2)
     }
 }
 
@@ -509,18 +509,18 @@ struct MethodologyStepRow: View {
         HStack(alignment: .top, spacing: ClavisTheme.mediumSpacing) {
             Text(number)
                 .font(ClavisTypography.label)
-                .foregroundColor(.textTertiary)
+                .foregroundColor(.clavixInk4)
                 .frame(width: 24, alignment: .leading)
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(ClavisTypography.bodyEmphasis)
-                    .foregroundColor(.textPrimary)
+                    .foregroundColor(.clavixInk)
                 Text(description)
                     .font(ClavisTypography.footnote)
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixInk3)
             }
         }
         .padding(ClavisTheme.cardPadding)
-        .clavisSecondaryCardStyle(fill: .surfaceElevated)
+        .clavisSecondaryCardStyle(fill: .clavixPaper2)
     }
 }

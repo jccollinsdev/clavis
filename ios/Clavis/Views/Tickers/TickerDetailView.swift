@@ -233,11 +233,11 @@ struct TickerDetailView: View {
         HStack(spacing: ClavisTheme.smallSpacing) {
             Text("Rating pending — check back after market open")
                 .font(ClavisTypography.footnote)
-                .foregroundColor(.textSecondary)
+                .foregroundColor(.clavixInk3)
             Spacer()
         }
         .padding(ClavisTheme.cardPadding)
-        .background(Color.surfaceElevated)
+        .background(Color.clavixPaper2)
         .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous))
     }
 
@@ -256,14 +256,14 @@ struct TickerDetailView: View {
                                     HStack(alignment: .center, spacing: ClavisTheme.smallSpacing) {
                                         Text(dimension.title)
                                             .font(ClavisTypography.bodyEmphasis)
-                                            .foregroundColor(.textPrimary)
+                                            .foregroundColor(.clavixInk)
                                         Spacer()
                                         if dimension.isLimited {
-                                            dimensionBadge(text: "Limited Data", foreground: .warn, background: .warnSoft)
+                                            dimensionBadge(text: "Limited Data", foreground: .warn, background: .clavixWarnSoft)
                                         }
                                         Text(dimension.scoreText)
                                             .font(ClavisTypography.rowScore)
-                                            .foregroundColor(.textSecondary)
+                                            .foregroundColor(.clavixInk3)
                                     }
 
                                     RiskBar(score: dimension.score ?? 0, grade: dimension.grade)
@@ -272,13 +272,13 @@ struct TickerDetailView: View {
                                     HStack(spacing: ClavisTheme.smallSpacing) {
                                         Text(dimension.subtitle)
                                             .font(ClavisTypography.footnote)
-                                            .foregroundColor(.textSecondary)
+                                            .foregroundColor(.clavixInk3)
                                             .lineLimit(2)
                                         Spacer()
                                         Button(action: { openMethodology(dimension.key) }) {
                                             Text("Full audit ↗")
                                                 .font(ClavisTypography.label)
-                                                .foregroundColor(.accentBurnt)
+                                                .foregroundColor(.clavixAccent)
                                         }
                                         .buttonStyle(.plain)
                                     }
@@ -305,7 +305,7 @@ struct TickerDetailView: View {
                 VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
                     Text(driverSummary(detail))
                         .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                         .fixedSize(horizontal: false, vertical: true)
 
                     TickerDriverCardsSection(analysis: detail.currentAnalysis)
@@ -327,7 +327,7 @@ struct TickerDetailView: View {
                         showAllArticles.toggle()
                     }
                     .font(ClavisTypography.footnoteEmphasis)
-                    .foregroundColor(.accentBurnt)
+                    .foregroundColor(.clavixAccent)
                     .buttonStyle(.plain)
                 }
             }
@@ -336,7 +336,7 @@ struct TickerDetailView: View {
                 ClavixCard(fill: .clavixPaper) {
                     Text("No recent news for this ticker")
                         .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                 }
             } else {
                 ClavixCard(fill: .clavixPaper) {
@@ -361,20 +361,20 @@ struct TickerDetailView: View {
         VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
             Text(article.title ?? "Untitled article")
                 .font(ClavisTypography.bodyEmphasis)
-                .foregroundColor(.textPrimary)
+                .foregroundColor(.clavixInk)
                 .multilineTextAlignment(.leading)
                 .lineLimit(2)
 
             HStack(spacing: ClavisTheme.smallSpacing) {
                 Text(article.source ?? "Unknown source")
                     .font(ClavisTypography.footnote)
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixInk3)
                 Text("•")
                     .font(ClavisTypography.footnote)
-                    .foregroundColor(.textTertiary)
+                    .foregroundColor(.clavixInk4)
                 Text(article.publishedAt ?? "Date unavailable")
                     .font(ClavisTypography.footnote)
-                    .foregroundColor(.textTertiary)
+                    .foregroundColor(.clavixInk4)
                 Spacer()
                 sentimentPill(score: article.sentimentScore)
                 impactPill(text: article.impactTag?.humanizedTitleCasedDisplayText ?? "Limited Data")
@@ -391,10 +391,10 @@ struct TickerDetailView: View {
                     VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
                         Text("In your holdings")
                             .font(ClavisTypography.cardTitle)
-                            .foregroundColor(.textPrimary)
+                            .foregroundColor(.clavixInk)
                         Text(holdingSummary(detail))
                             .font(ClavisTypography.body)
-                            .foregroundColor(.textSecondary)
+                            .foregroundColor(.clavixInk3)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 } else {
@@ -409,7 +409,7 @@ struct TickerDetailView: View {
                 if isInWatchlist {
                     Text("Watching")
                         .font(ClavisTypography.footnoteEmphasis)
-                        .foregroundColor(.accentBurnt)
+                        .foregroundColor(.clavixAccent)
                 }
             }
         }
@@ -508,7 +508,7 @@ struct TickerDetailView: View {
     private func sectionHeader(title: String) -> some View {
         Text(title)
             .font(ClavisTypography.label)
-            .foregroundColor(.textSecondary)
+            .foregroundColor(.clavixInk3)
     }
 
     private func dimensionItems(_ detail: TickerDetailResponse) -> [TickerDimensionItem] {
@@ -591,11 +591,11 @@ struct TickerDetailView: View {
 
     private func dayChangeColor(_ detail: TickerDetailResponse) -> Color {
         guard let price = latestPrice, let previousClose = detail.latestPrice.previousClose else {
-            return .textSecondary
+            return .clavixInk3
         }
         if price > previousClose { return .good }
         if price < previousClose { return .bad }
-        return .textSecondary
+        return .clavixInk3
     }
 
     private func sentimentPill(score: Double?) -> some View {
@@ -607,7 +607,7 @@ struct TickerDetailView: View {
     }
 
     private func impactPill(text: String) -> some View {
-        dimensionBadge(text: text, foreground: .accentInk, background: .accentSoft)
+        dimensionBadge(text: text, foreground: .clavixAccentInk, background: .clavixAccentSoft)
     }
 
     private func dimensionBadge(text: String, foreground: Color, background: Color) -> some View {
@@ -621,17 +621,17 @@ struct TickerDetailView: View {
     }
 
     private func sentimentColor(_ score: Double?) -> Color {
-        guard let score else { return .textSecondary }
+        guard let score else { return .clavixInk3 }
         if score >= 70 { return .good }
         if score >= 50 { return .warn }
         return .bad
     }
 
     private func sentimentBackground(_ score: Double?) -> Color {
-        guard let score else { return .surfaceElevated }
-        if score >= 70 { return .goodSoft }
-        if score >= 50 { return .warnSoft }
-        return .badSoft
+        guard let score else { return .clavixPaper2 }
+        if score >= 70 { return .clavixGoodSoft }
+        if score >= 50 { return .clavixWarnSoft }
+        return .clavixBadSoft
     }
 
     private func holdingSummary(_ detail: TickerDetailResponse) -> String {
@@ -739,10 +739,10 @@ private struct TickerAddHoldingSheet: View {
                         VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
                             Text(companyName ?? ticker)
                                 .font(ClavisTypography.cardTitle)
-                                .foregroundColor(.textPrimary)
+                                .foregroundColor(.clavixInk)
                             Text(ticker)
                                 .font(ClavisTypography.footnoteEmphasis)
-                                .foregroundColor(.accentBurnt)
+                                .foregroundColor(.clavixAccent)
                         }
                     }
 
@@ -753,7 +753,7 @@ private struct TickerAddHoldingSheet: View {
                         VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
                             Text("Purchase date")
                                 .font(ClavisTypography.label)
-                                .foregroundColor(.textSecondary)
+                                .foregroundColor(.clavixInk3)
                             DatePicker("Purchase date", selection: $purchaseDate, displayedComponents: .date)
                                 .datePickerStyle(.compact)
                                 .labelsHidden()
@@ -774,14 +774,14 @@ private struct TickerAddHoldingSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
                     Button(isSubmitting ? "Adding..." : "Add") {
                         Task { await submit() }
                     }
-                    .foregroundColor(isValid ? .accentBurnt : .textTertiary)
+                    .foregroundColor(isValid ? .clavixAccent : .clavixInk4)
                     .disabled(!isValid || isSubmitting)
                 }
             }
@@ -793,11 +793,11 @@ private struct TickerAddHoldingSheet: View {
             VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
                 Text(title)
                     .font(ClavisTypography.label)
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixInk3)
                 TextField(title, text: text)
                     .keyboardType(.decimalPad)
                     .font(ClavisTypography.body)
-                    .foregroundColor(.textPrimary)
+                    .foregroundColor(.clavixInk)
             }
         }
     }

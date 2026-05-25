@@ -1073,30 +1073,36 @@ struct ClavisLoadingCard: View {
     let subtitle: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-            HStack(spacing: ClavisTheme.mediumSpacing) {
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color.surfaceElevated)
-                    .frame(width: 44, height: 44)
-                VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+        // Hi-Fi v2 skeleton: cream paper card with rule2-colored placeholder
+        // bars. No legacy "surfaceElevated" navy.
+        ClavixCard(fill: .clavixPaper) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 12) {
                     RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.surfaceElevated)
-                        .frame(width: 140, height: 14)
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.surfaceElevated)
-                        .frame(maxWidth: .infinity).frame(height: 12)
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.surfaceElevated)
-                        .frame(width: 180, height: 12)
+                        .fill(Color.clavixRule2)
+                        .frame(width: 44, height: 44)
+                    VStack(alignment: .leading, spacing: 6) {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.clavixRule2)
+                            .frame(width: 140, height: 12)
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.clavixRule2)
+                            .frame(maxWidth: .infinity).frame(height: 10)
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.clavixRule2)
+                            .frame(width: 180, height: 10)
+                    }
+                }
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(ClavisTypography.clavixSerif(15, weight: .medium))
+                        .foregroundColor(.clavixInk)
+                    Text(subtitle)
+                        .font(ClavisTypography.clavixCaption)
+                        .foregroundColor(.clavixInk3)
                 }
             }
-            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                Text(title).font(ClavisTypography.cardTitle).foregroundColor(.textPrimary)
-                Text(subtitle).font(ClavisTypography.footnote).foregroundColor(.textSecondary)
-            }
         }
-        .padding(ClavisTheme.cardPadding)
-        .clavisCardStyle()
     }
 }
 
@@ -1106,14 +1112,16 @@ struct DashboardErrorCard: View {
     let message: String
 
     var body: some View {
-        ClavisStandardCard(fill: .surface) {
-            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+        // Hi-Fi v2 error treatment: warm bordeaux-tinted card on cream paper,
+        // not the legacy dark dashboard surface.
+        ClavixCard(fill: .clavixBadSoft) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text("Something went wrong")
-                    .font(ClavisTypography.cardTitle)
-                    .foregroundColor(.textPrimary)
+                    .font(ClavisTypography.clavixSerif(15, weight: .medium))
+                    .foregroundColor(.clavixBadInk)
                 Text(message)
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.textSecondary)
+                    .font(ClavisTypography.clavixCaption)
+                    .foregroundColor(.clavixBadInk)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }

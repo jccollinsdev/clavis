@@ -33,7 +33,7 @@ struct VolatilityAuditView: View {
                 AuditSectionCard(title: "Methodology") {
                     Text("Volatility measures price instability and whether it is rising or falling. Inputs include 30-day realized volatility, 90-day realized volatility, the 30-day/90-day volatility ratio, maximum drawdown from the trailing 252-day high, and beta to the S&P 500.")
                         .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }

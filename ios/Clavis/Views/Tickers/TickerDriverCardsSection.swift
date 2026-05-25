@@ -45,11 +45,11 @@ struct TickerDriverCardsSection: View {
 
                 Text("Limited evidence")
                     .font(ClavisTypography.bodyEmphasis)
-                    .foregroundColor(.textPrimary)
+                    .foregroundColor(.clavixInk)
 
                 Text("The backend returned a limited structured signal set for this holding.")
                     .font(ClavisTypography.footnote)
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixInk3)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -67,12 +67,12 @@ private struct DriverCardView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(card.title)
                         .font(ClavisTypography.bodyEmphasis)
-                        .foregroundColor(.textPrimary)
+                        .foregroundColor(.clavixInk)
                         .fixedSize(horizontal: false, vertical: true)
 
                     Text(card.theme.displayName)
                         .font(ClavisTypography.footnote)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                 }
 
                 Spacer(minLength: 8)
@@ -85,7 +85,7 @@ private struct DriverCardView: View {
 
             Text(card.summary)
                 .font(ClavisTypography.body)
-                .foregroundColor(.textSecondary)
+                .foregroundColor(.clavixInk3)
                 .lineSpacing(3)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -102,7 +102,7 @@ private struct DriverCardView: View {
             }
         }
         .padding(12)
-        .background(Color.surfaceElevated)
+        .background(Color.clavixPaper2)
         .overlay(
             RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous)
                 .stroke(Color.border, lineWidth: 1)
@@ -113,7 +113,7 @@ private struct DriverCardView: View {
     private var rankBadge: some View {
         Text("#\(card.rank)")
             .font(ClavisTypography.footnoteEmphasis)
-            .foregroundColor(.textPrimary)
+            .foregroundColor(.clavixInk)
             .padding(.horizontal, 8)
             .padding(.vertical, 5)
             .background(Color.surface)
@@ -150,7 +150,7 @@ private struct DriverCardView: View {
             ForEach(Array(card.sourceChips.prefix(3)), id: \.self) { source in
                 Text(source)
                     .font(ClavisTypography.label)
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixInk3)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 5)
                     .background(Color.surface)
@@ -164,7 +164,7 @@ private struct DriverCardView: View {
         switch card.direction {
         case .positive: return .riskA
         case .negative: return .riskD
-        case .neutral: return .textSecondary
+        case .neutral: return .clavixInk3
         }
     }
 
@@ -172,7 +172,7 @@ private struct DriverCardView: View {
         switch card.strength {
         case .strong: return .riskA
         case .moderate: return .informational
-        case .limited: return .textSecondary
+        case .limited: return .clavixInk3
         }
     }
 }
@@ -185,7 +185,7 @@ private struct SupportingEvidenceRow: View {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(item.kind.displayName)
                     .font(ClavisTypography.label)
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixInk3)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(Color.surface)
@@ -196,19 +196,19 @@ private struct SupportingEvidenceRow: View {
                 if let publishedAt = item.publishedAt {
                     Text(publishedAt.formatted(date: .abbreviated, time: .omitted))
                         .font(ClavisTypography.label)
-                        .foregroundColor(.textTertiary)
+                        .foregroundColor(.clavixInk4)
                 }
             }
 
             Text(item.title)
                 .font(ClavisTypography.footnoteEmphasis)
-                .foregroundColor(.textPrimary)
+                .foregroundColor(.clavixInk)
                 .fixedSize(horizontal: false, vertical: true)
 
             if !item.summary.isEmpty {
                 Text(item.summary)
                     .font(ClavisTypography.footnote)
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixInk3)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -216,7 +216,7 @@ private struct SupportingEvidenceRow: View {
                 if !item.source.isEmpty {
                     Text(item.source)
                         .font(ClavisTypography.label)
-                        .foregroundColor(.textTertiary)
+                        .foregroundColor(.clavixInk4)
                 }
             }
         }

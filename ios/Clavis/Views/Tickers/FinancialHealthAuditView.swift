@@ -28,17 +28,17 @@ struct FinancialHealthAuditView: View {
                 AuditSectionCard(title: "Industry Comparison") {
                     Text("Your ticker is shown against its sector median when comparative data is available.")
                         .font(ClavisTypography.footnote)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                     // TODO: backend expose sector median comparisons for financial health ratios.
                     Text("Sector median comparison unavailable.")
                         .font(ClavisTypography.footnoteEmphasis)
-                        .foregroundColor(.textPrimary)
+                        .foregroundColor(.clavixInk)
                 }
 
                 AuditSectionCard(title: "Methodology") {
                     Text("Financial Health measures the structural strength of the company. It uses balance-sheet and cash-flow inputs such as debt-to-equity ratio, free cash flow margin, interest coverage, current ratio, revenue growth trend, and profitability trend.")
                         .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -80,19 +80,19 @@ struct AuditHeaderCard: View {
             VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
                 Text(title)
                     .font(ClavisTypography.h2)
-                    .foregroundColor(.textPrimary)
+                    .foregroundColor(.clavixInk)
                 Text(ticker)
                     .font(ClavisTypography.footnoteEmphasis)
-                    .foregroundColor(.accentBurnt)
+                    .foregroundColor(.clavixAccent)
                 HStack(alignment: .center, spacing: ClavisTheme.smallSpacing) {
                     Text(score.map { "\(Int($0.rounded()))" } ?? "—")
                         .font(ClavisTypography.portfolioScore)
-                        .foregroundColor(.textPrimary)
+                        .foregroundColor(.clavixInk)
                     GradeBadge(grade: grade(for: score), size: .standard)
                 }
                 Text(subtitle)
                     .font(ClavisTypography.footnote)
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixInk3)
             }
         }
     }
@@ -123,7 +123,7 @@ struct AuditSectionCard<Content: View>: View {
             VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
                 Text(title)
                     .font(ClavisTypography.label)
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixInk3)
                 content
             }
         }
@@ -139,14 +139,14 @@ struct AuditValueRow: View {
         HStack(alignment: .center, spacing: ClavisTheme.smallSpacing) {
             Text(label)
                 .font(ClavisTypography.bodyEmphasis)
-                .foregroundColor(.textPrimary)
+                .foregroundColor(.clavixInk)
             Spacer()
             Text(value)
                 .font(ClavisTypography.footnoteEmphasis)
-                .foregroundColor(.textSecondary)
+                .foregroundColor(.clavixInk3)
             Text(status)
                 .font(ClavisTypography.label)
-                .foregroundColor(.accentBurnt)
+                .foregroundColor(.clavixAccent)
         }
     }
 }
@@ -158,7 +158,7 @@ struct AuditLimitedDataView: View {
         ClavixCard(fill: .clavixPaper) {
             Text(message)
                 .font(ClavisTypography.body)
-                .foregroundColor(.textSecondary)
+                .foregroundColor(.clavixInk3)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }

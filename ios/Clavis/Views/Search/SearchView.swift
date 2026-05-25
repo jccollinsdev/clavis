@@ -195,7 +195,7 @@ struct SearchView: View {
     private var trendingSection: some View {
         ClavixSection(eyebrow: "What others are looking at", title: "Trending") {
             ClavixCard {
-                Text("Trending will appear once enough activity is captured. (P2)")
+                Text("Trending tickers will appear here once enough activity is captured.")
                     .font(ClavisTypography.clavixCaption)
                     .foregroundColor(.clavixInk3)
             }
