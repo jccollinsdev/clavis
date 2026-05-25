@@ -285,6 +285,11 @@ class APIService {
         return try decoder.decode([Digest].self, from: data)
     }
 
+    func fetchDigestStatus(timeoutInterval: TimeInterval = 15) async throws -> DigestStatusResponse {
+        let data = try await makeRequest(path: "/digest/status", timeoutInterval: timeoutInterval)
+        return try decoder.decode(DigestStatusResponse.self, from: data)
+    }
+
     // MARK: - Positions
 
     func fetchPositionDetail(id: String) async throws -> PositionDetailResponse {

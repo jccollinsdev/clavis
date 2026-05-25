@@ -21,6 +21,7 @@ final class DigestViewModel: ObservableObject {
     @Published var activeRun: AnalysisRun?
     @Published var summaryLength: DigestLengthOption = .standard
     @Published var subscriptionTier: String = "free"
+    @Published var morningReportState: MorningReportState = .placeholder
 
     private let api = APIService.shared
 
@@ -49,6 +50,10 @@ final class DigestViewModel: ObservableObject {
             self.activeRun = digest.analysisRun ?? latestRun
             self.summaryLength = DigestLengthOption(rawValue: preferences.summaryLength?.lowercased() ?? "standard") ?? .standard
             self.subscriptionTier = preferences.subscriptionTier?.lowercased() ?? "free"
+            updateMorningReportState(digest: self.todayDigest)
+            if self.todayDigest == nil, !holdings.isEmpty {
+                await refreshMorningReportStatus()
+            }
         } catch {
             self.errorMessage = ClavisCopy.Errors.digestLoad(error)
         }
@@ -60,6 +65,27 @@ final class DigestViewModel: ObservableObject {
 
     func reloadDigestFromDatabase() async {
         await loadDigest(showLoading: false)
+    }
+
+    func refreshMorningReportStatus() async {
+        do {
+            let status = try await api.fetchDigestStatus()
+            switch status.state {
+            case "ready":
+                if let digest = status.digest {
+                    todayDigest = digest
+                    morningReportState = .ready(digest)
+                } else {
+                    morningReportState = .placeholder
+                }
+            case "generating":
+                morningReportState = .generating(startedAt: status.startedAt)
+            default:
+                morningReportState = .placeholder
+            }
+        } catch {
+            morningReportState = todayDigest.map { .ready($0) } ?? .placeholder
+        }
     }
 
     func saveSummaryLength(_ option: DigestLengthOption) async {
@@ -77,6 +103,9 @@ final class DigestViewModel: ObservableObject {
     }
 
     var isGenerating: Bool {
+        if case .generating = morningReportState {
+            return true
+        }
         guard let activeRun else { return false }
         return activeRun.lifecycleStatus == "running" || activeRun.lifecycleStatus == "queued"
     }
@@ -95,5 +124,15 @@ final class DigestViewModel: ObservableObject {
 
     func scoreDelta(for ticker: String) -> Int? {
         holdings.first(where: { $0.ticker.caseInsensitiveCompare(ticker) == .orderedSame })?.scoreDelta
+    }
+
+    private func updateMorningReportState(digest: Digest?) {
+        if let digest {
+            morningReportState = .ready(digest)
+        } else if let activeRun, activeRun.lifecycleStatus == "running" || activeRun.lifecycleStatus == "queued" {
+            morningReportState = .generating(startedAt: activeRun.startedAt)
+        } else {
+            morningReportState = .placeholder
+        }
     }
 }

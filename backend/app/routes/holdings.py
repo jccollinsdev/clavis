@@ -36,9 +36,18 @@ def refresh_position_price(position_id: str, ticker: str):
     ).execute()
 
 
-@router.get("", response_model=list[Position])
+async def run_onboarding_seed_user(user_id: str):
+    from ..jobs.onboarding_seed_user import run_for_user
+
+    supabase = get_supabase()
+    await run_for_user(supabase, user_id)
+
+
+@router.get("")
 async def list_holdings(
-    background_tasks: BackgroundTasks, user_id: str = Depends(get_user_id)
+    background_tasks: BackgroundTasks,
+    envelope: bool = False,
+    user_id: str = Depends(get_user_id),
 ):
     supabase = get_supabase()
     positions = (
@@ -50,7 +59,26 @@ async def list_holdings(
         if pos.get("current_price") is None:
             background_tasks.add_task(refresh_position_price, pos["id"], pos["ticker"])
 
-    return enrich_positions_with_ticker_cache(positions, supabase)
+    enriched = enrich_positions_with_ticker_cache(positions, supabase)
+    if not envelope:
+        return enriched
+
+    portfolio_rows = (
+        supabase.table("portfolio_risk_snapshots")
+        .select(
+            "portfolio_value,composite_score,grade,score_delta,previous_score,dimensions,sector_breakdown,as_of_date"
+        )
+        .eq("user_id", user_id)
+        .order("as_of_date", desc=True)
+        .limit(1)
+        .execute()
+        .data
+        or []
+    )
+    return {
+        "portfolio": portfolio_rows[0] if portfolio_rows else None,
+        "positions": enriched,
+    }
 
 
 @router.post("", response_model=HoldingWorkflowResponse)
@@ -113,6 +141,7 @@ async def create_holding(
         raise HTTPException(500, "Failed to create position")
     created = result.data[0]
     background_tasks.add_task(refresh_position_price, created["id"], created["ticker"])
+    background_tasks.add_task(run_onboarding_seed_user, user_id)
 
     # Outside-universe positions skip the structural refresh (we have neither
     # metadata nor a snapshot row to enrich from). Return immediately with

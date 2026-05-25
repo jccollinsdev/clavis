@@ -171,7 +171,7 @@ async def get_today(user_id: str = Depends(get_user_id)) -> dict[str, Any]:
     # ---- Sector heat (with optional ETF day change) -----------------------
     sector_snapshots = (
         supabase.table("sector_regime_snapshots")
-        .select("etf,day_change_pct,snapshot_date")
+        .select("source_etf,etf_day_change_pct,sector,snapshot_date")
         .order("snapshot_date", desc=True)
         .limit(50)
         .execute()
@@ -182,10 +182,10 @@ async def get_today(user_id: str = Depends(get_user_id)) -> dict[str, Any]:
     etf_day_change: dict[str, float] = {}
     seen_etfs: set[str] = set()
     for row in sector_snapshots:
-        etf = (row.get("etf") or "").upper()
+        etf = (row.get("source_etf") or "").upper()
         if etf and etf not in seen_etfs:
             seen_etfs.add(etf)
-            change = row.get("day_change_pct")
+            change = row.get("etf_day_change_pct")
             if change is not None:
                 try:
                     etf_day_change[etf] = float(change)
@@ -259,15 +259,33 @@ async def get_today(user_id: str = Depends(get_user_id)) -> dict[str, Any]:
         wtw = (sections.get("what_to_watch_today") or {}) if isinstance(sections, dict) else {}
         catalysts = wtw.get("catalysts") or []
 
+    portfolio_snapshot_rows = (
+        supabase.table("portfolio_risk_snapshots")
+        .select("portfolio_value,composite_score,grade,score_delta,previous_score,dimensions,sector_breakdown,as_of_date")
+        .eq("user_id", user_id)
+        .order("as_of_date", desc=True)
+        .limit(1)
+        .execute()
+        .data
+        or []
+    )
+    portfolio_snapshot = portfolio_snapshot_rows[0] if portfolio_snapshot_rows else None
+    if portfolio_snapshot:
+        portfolio_score = portfolio_snapshot.get("composite_score") or portfolio_score
+        portfolio_grade = portfolio_snapshot.get("grade") or portfolio_grade
+        five_axis = portfolio_snapshot.get("dimensions") or five_axis
+
     return {
         "portfolio": {
-            "value": round(total_value, 2) if total_value > 0 else None,
+            "value": portfolio_snapshot.get("portfolio_value") if portfolio_snapshot else (round(total_value, 2) if total_value > 0 else None),
             "day_change_amount": round(total_day_change, 2) if total_value > 0 else None,
             "day_change_pct": day_change_pct,
             "composite_score": portfolio_score,
             "grade": portfolio_grade,
+            "previous_score": portfolio_snapshot.get("previous_score") if portfolio_snapshot else None,
+            "score_delta": portfolio_snapshot.get("score_delta") if portfolio_snapshot else None,
             "position_count": len(holdings),
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": portfolio_snapshot.get("as_of_date") if portfolio_snapshot else datetime.now(timezone.utc).isoformat(),
         },
         "dimensions": five_axis,
         "sector_exposure": sector_cards,

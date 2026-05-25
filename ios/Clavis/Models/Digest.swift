@@ -95,6 +95,24 @@ struct DigestResponse: Decodable {
     }
 }
 
+enum MorningReportState {
+    case placeholder
+    case generating(startedAt: Date?)
+    case ready(Digest)
+}
+
+struct DigestStatusResponse: Decodable {
+    let state: String
+    let startedAt: Date?
+    let digest: Digest?
+
+    enum CodingKeys: String, CodingKey {
+        case state
+        case startedAt = "started_at"
+        case digest
+    }
+}
+
 struct DigestHistoryResponse: Codable {
     let digest: Digest?
     let message: String?

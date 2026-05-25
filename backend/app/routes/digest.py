@@ -154,6 +154,53 @@ def _digest_provenance_fields(digest: dict | None) -> dict[str, Any | None]:
     }
 
 
+@router.get("/status")
+async def get_digest_status(user_id: str = Depends(get_user_id)) -> dict[str, Any]:
+    supabase = get_supabase()
+    digest_rows = (
+        supabase.table("digests")
+        .select("id,generated_at,overall_grade,overall_score")
+        .eq("user_id", user_id)
+        .order("generated_at", desc=True)
+        .limit(1)
+        .execute()
+        .data
+        or []
+    )
+    run_rows = (
+        supabase.table("analysis_runs")
+        .select("id,status,started_at,completed_at,current_stage,current_stage_message")
+        .eq("user_id", user_id)
+        .order("started_at", desc=True)
+        .limit(1)
+        .execute()
+        .data
+        or []
+    )
+    latest_run = run_rows[0] if run_rows else None
+    running_states = {"queued", "running", "processing"}
+    if latest_run and str(latest_run.get("status") or "").lower() in running_states:
+        return {
+            "state": "generating",
+            "started_at": latest_run.get("started_at"),
+            "analysis_run": latest_run,
+            "digest": digest_rows[0] if digest_rows else None,
+        }
+    if digest_rows:
+        return {
+            "state": "ready",
+            "started_at": latest_run.get("started_at") if latest_run else None,
+            "analysis_run": latest_run,
+            "digest": digest_rows[0],
+        }
+    return {
+        "state": "placeholder",
+        "started_at": latest_run.get("started_at") if latest_run else None,
+        "analysis_run": latest_run,
+        "digest": None,
+    }
+
+
 async def _build_force_refresh_digest(
     supabase,
     *,

@@ -36,9 +36,30 @@ def _sector_snapshot() -> dict:
     return run()
 
 
+def _composite_recompute() -> dict:
+    from app.jobs.composite_recompute import run_from_env
+
+    return run_from_env()
+
+
+def _portfolio_rollup() -> dict:
+    from app.jobs.portfolio_rollup import run
+
+    return run()
+
+
 JOB_REGISTRY: dict[str, JobSpec] = {
     "daily_macro_snapshot": JobSpec("daily_macro_snapshot", "daily", _macro_snapshot),
     "daily_sector_snapshot": JobSpec("daily_sector_snapshot", "daily", _sector_snapshot),
+    "daily_composite_recompute_universe": JobSpec(
+        "daily_composite_recompute_universe", "daily", _composite_recompute
+    ),
+    "daily_portfolio_rollup_per_user": JobSpec(
+        "daily_portfolio_rollup_per_user", "daily", _portfolio_rollup
+    ),
+    "daily_portfolio_rollup": JobSpec(
+        "daily_portfolio_rollup", "daily", _portfolio_rollup
+    ),
 }
 
 
