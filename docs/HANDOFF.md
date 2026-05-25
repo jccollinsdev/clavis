@@ -246,10 +246,45 @@ The auto-memory system at `~/.claude/projects/-Users-sansarkarki-Documents-Clavi
 
 ## Session log
 
-### 2026-05-25 (this handoff)
+### 2026-05-25 (planning + handoff)
 - Landed: iOS design-system foundation (15 files, commit `4d15901d5`).
-- Landed: scheduling plan + this handoff (commit `f1249d94d`).
+- Landed: scheduling plan + handoff (commit `f1249d94d`).
 - Landed: round-1 user decisions — VPS cron / templated personalisation / outside-universe = US-listed / earnings = Finnhub free / iOS 17 bump (commit `2eb474d14`).
-- Landed: round-2 user decisions (commit follows) — personalisation reverted to LLM-driven with Minimax upgrade; universe stays S&P 500; hybrid onboarding (P4-6 added); 14-day deploy-time history backfill (P3-9 added); explicit deferral of Apple Dev + StoreKit + SnapTrade with stub-behaviour spec (plan §5.7, `backlog.md` "Prerequisites we do not own yet").
-- Blocked: nothing in this cycle. Apple Dev / StoreKit / SnapTrade gate a separate small follow-up cycle once owned.
-- Resume at: **Phase P3 of `docs/SCHEDULING_AND_DATA_FRESHNESS_PLAN.md`**. Critical-path P3-1 → P3-4 → P3-5 → P3-9 → P4-1 → P4-2 → P4-6 → P5-2 unblocks `today-a` rendering real numbers AND onboarding showing real personalised content within ~30s.
+- Landed: round-2 user decisions — personalisation reverted to LLM-driven with Minimax upgrade; universe stays S&P 500; hybrid onboarding (P4-6 added); 14-day deploy-time history backfill (P3-9 added); explicit deferral of Apple Dev + StoreKit + SnapTrade with stub-behaviour spec (commit `dd219d7fd`).
+
+### 2026-05-25 (Codex execution run, P3 → P8)
+Codex ran the handoff prompt and shipped phases P3–P7 cleanly + started P8 before hitting a ChatGPT usage limit mid-phase.
+
+**Codex commits (in order):**
+- `10c587ff0` — **feat(p3): scheduler foundation + macro/sector snapshots wired.** Added `SCHEDULER_TIER` gate, advisory-lock RPC wrappers (`clavix_try_advisory_lock` / `clavix_advisory_unlock`), `job_runs` audit table + writers, `python -m app.jobs.run` CLI, macro/sector job wrappers, `scripts/cron/clavix.crontab`, deploy copy step. **P3-9 deliberately deferred** (rejected: don't fake 14d of history without the real composite recompute path; deferred until P4 exists — sound call).
+- `f2c2516b4` — **feat(p4): daily composite + portfolio rollup + onboarding.** Added `daily_composite_recompute_universe`, `daily_portfolio_rollup_per_user`, hybrid-onboarding `onboarding_seed_user`, `/digest/status` polling endpoint. iOS gained a minimal `MorningReportState = .placeholder | .generating | .ready` state machine + 1.5s polling hook in `DigestViewModel`, no visual redesign.
+- `ccc190205` — **feat(p5): today sector heat + earnings calendar.** Added `/portfolio/sector-exposure` (value-weighted composition + ETF day-change), extended `/today` aggregator with portfolio + sector + calendar + report + freshness blocks, `earnings_calendar` table + `daily_earnings_calendar_refresh` Finnhub-backed job, freshness blocks on `/today`, `/portfolio/sector-exposure`, holdings envelope mode. Today tab now consumes the real envelope.
+- `fbb1fba75` — **feat(p6): methodology peer medians + audit depth.** Persisted `peer_groups` + `sector_medians` weekly jobs + tables, extended `/methodology` with `peer_comparisons[]`, `sector_median_comparison{}`, `article_histogram_14d[]`. **P6-4 (IV-rank/options) + P6-5 (monthly macro regression) deferred** (Polygon options scope larger than this run could safely take — flagged for follow-up).
+- `9597c2a15` — **feat(p7): refresh limits + outside-universe guardrails.** Added `refresh_attempts` table + 3/day Free rate-limit on `POST /tickers/{ticker}/refresh` (429 + retry-after), `positions.outside_universe` column + degraded `POST /holdings?allow_outside_universe=true` path, `digests.issue_number` monotonic sequence, alert-hysteresis helper + test (Δ ≥ 3 + 2 consecutive days, per `system/00-rules.md`). **P7-1 LLM personalisation explicitly deferred** until Minimax plan upgrade — correct call, that prerequisite was an open env-var change, not a Codex action.
+
+**Codex P8 work (in-flight, finished in this session):**
+Codex authored three P8 job modules and the etf_holdings migration but ran out of credits before wiring them. I picked up the trailing work:
+- `aa31c7a2e` — **feat(p8): wire event-fundamentals + etf-holdings + universe-audit jobs.** Added job_id registry entries (`event_fundamentals_pull`/daily, `monthly_etf_holdings_refresh`/monthly, `weekly_universe_audit`/weekly), cron entries under a new "P8 — operational polish" section, 9 new tests in `test_p8_jobs.py` covering registry + dry-run + pure helpers (`diff_universe`, `rows_for_etf`, `event_fundamentals._calendar_tickers`). ETF holdings ship with STATIC seeds for SPY/QQQ/VTI only — real issuer-API ingestion is a follow-up.
+
+**Verification (this session, post-P8):**
+- `pytest tests/test_p8_jobs.py tests/test_jobs_runner.py tests/test_p4_jobs.py tests/test_p5_today_portfolio.py tests/test_p6_methodology_depth.py tests/test_p7_limits_outside_digest.py tests/test_scheduler_jobs.py` → **53 passed** on Python 3.11 (matches prod `python:3.11-slim` Dockerfile). Local Python 3.9 will fail collection because Codex's code uses PEP 604 union syntax (`X | None`); not a real issue — prod is 3.11.
+- `xcodebuild build_sim` Clavis / iPhone 17 → **green.**
+
+**What's deferred (re-stated for the next agent):**
+| Deferred | Why | When to revisit |
+|---|---|---|
+| P3-9 14-day score-history backfill | Codex correctly chose not to fake history before real composite recompute existed | Now safe: P4-1 daily_composite_recompute_universe shipped. Run `python -m app.jobs.run backfill_14d` once that job module is added (new follow-up). |
+| P6-4 IV-rank + implied vol | Polygon options API scope too large for the Codex run | Add `app/jobs/iv_rank.py` + extend `dimension_inputs.volatility`. Standalone follow-up. |
+| P6-5 monthly macro regression refresh | Same reason as P6-4 | Add `app/jobs/macro_regression.py` running 252-day β to 10Y/DXY/WTI/VIX/SPY. |
+| P7-1 LLM personalisation | Needs Minimax plan upgraded to $50/mo (150k req/week) first | Upgrade Minimax plan → then add `app/services/personalisation.py` with the two-layer template+LLM design per plan §5.1. |
+| P8-2 real ETF holdings ingestion | Static seeds work for SPY/QQQ/VTI; real-issuer ingestion is a separate API surface | Replace `etf_holdings.ETF_HOLDING_SEEDS` dict with a fetcher; keep job_id + cron entry as-is. |
+| Real APNs delivery | No Apple Dev account yet | Flip `APNS_ENABLED=true` env once Apple Dev account is set up; no code change required (per plan §5.7). |
+| Real StoreKit + SnapTrade | No accounts yet | Bundled follow-up cycle once Apple Dev + StoreKit + SnapTrade prerequisites in hand. |
+
+**Resume at:** any of the deferred items above. Critical-path is empty — every Today / Holdings / Ticker / Methodology screen has its backend data path live (assuming the cron has run at least once). Next-most-valuable single ticket is probably **P7-1 personalisation** (visible user value, blocked only by a $30 Minimax plan upgrade) followed by **P3-9 backfill** (one-shot at deploy → unlocks "was BBB 5 days ago" deltas immediately instead of waiting 5 trading days).
+
+**Verification next time you sit at the sim:**
+1. Pull latest main: `git pull`. Confirm at commit `aa31c7a2e` or later.
+2. iOS: `cd ios && xcodegen && xcodebuild build_sim`. Boot the sim. **Today tab** should now show a populated sector-heat grid (after the macro/sector cron has run at least once in prod) and a non-`—` portfolio composite delta. **Ticker Detail → Methodology drawer** should show peer comparisons + sector medians where data exists.
+3. Backend: `cd backend && /opt/homebrew/bin/python3.11 -m pytest tests/ -q` should return 53+ passed.
+4. Cron sanity (on the VPS): `crontab -l -u root | grep clavix` should show 13 entries (was 10 pre-P8).
