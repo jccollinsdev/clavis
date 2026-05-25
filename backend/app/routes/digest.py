@@ -10,6 +10,7 @@ from ..services.ticker_cache_service import (
     get_default_watchlist_detail,
     get_metadata_map,
 )
+from ..services.personalisation import recent_event_ids_for_tickers
 from .analysis_runs import _enrich_run
 from ..pipeline.portfolio_compiler import compile_portfolio_digest
 from ..pipeline.macro_classifier import classify_overnight_macro
@@ -78,6 +79,15 @@ def _build_watchlist_alerts(
         if len(alerts) >= 6:
             break
     return alerts
+
+
+def _top_personalisation_event_ids(supabase, positions: list[dict]) -> list[str]:
+    tickers = [
+        str(position.get("ticker") or "").upper()
+        for position in positions
+        if position.get("ticker")
+    ]
+    return recent_event_ids_for_tickers(supabase, tickers, limit=5)
 
 
 def _parse_iso_datetime(value: str | None) -> datetime | None:
@@ -377,6 +387,9 @@ async def _build_force_refresh_digest(
         sector_context=sector_context,
         watchlist_alerts=watchlist_alerts,
         summary_length=summary_length,
+        supabase=supabase,
+        user_id=user_id,
+        event_ids=_top_personalisation_event_ids(supabase, positions),
     )
     structured_sections = dict(digest["sections"])
     structured_sections["digest_version"] = DIGEST_VERSION

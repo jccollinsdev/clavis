@@ -711,6 +711,9 @@ async def compile_portfolio_digest(
     sector_context: dict | None = None,
     watchlist_alerts: list[str] | None = None,
     summary_length: str = "standard",
+    supabase=None,
+    user_id: str | None = None,
+    event_ids: list[str] | None = None,
 ) -> dict:
     ranked_positions = sorted(position_data, key=_position_urgency, reverse=True)
     date_context = _digest_date_context()
@@ -885,6 +888,19 @@ Positions:
                 }
             )
         what_matters_today = normalized_what_matters or fallback_what_matters
+    personalised_articles: dict[str, dict[str, str | None]] = {}
+    if supabase is not None and user_id and event_ids:
+        try:
+            from ..services.personalisation import personalise_articles_for_user
+
+            personalised_articles = personalise_articles_for_user(
+                user_id,
+                event_ids,
+                supabase=supabase,
+            )
+        except Exception:
+            personalised_articles = {}
+
     return {
         "content": parsed.get("content")
         or parsed.get("overall_summary")
@@ -916,5 +932,6 @@ Positions:
                 "catalysts": what_matters_today,
                 "monitoring": monitoring_notes,
             },
+            "personalised_articles": personalised_articles,
         },
     }

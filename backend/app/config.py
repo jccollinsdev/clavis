@@ -40,6 +40,8 @@ class Settings(BaseSettings):
     snaptrade_consumer_key: str = ""
     snaptrade_redirect_uri: str = "clavis://snaptrade/callback"
     scheduler_tier: str = "cron"
+    minimax_personalisation_enabled: bool = False
+    minimax_daily_budget: int = 0
 
     class Config:
         env_file = ".env"

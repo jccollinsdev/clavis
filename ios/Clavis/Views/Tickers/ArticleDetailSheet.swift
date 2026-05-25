@@ -16,6 +16,7 @@ struct ArticleDetailSheet: View {
                     metadataBlock
                     sentimentBlock
                     impactTagBlock
+                    personalisedSection
                     tldrSection
                     whatItMeansSection
                     keyImplicationsSection
@@ -117,6 +118,27 @@ struct ArticleDetailSheet: View {
                 .font(ClavisTypography.body)
                 .foregroundColor(.clavixInk)
                 .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    @ViewBuilder
+    private var personalisedSection: some View {
+        if let structural = article.personalisedStructural, !structural.isEmpty {
+            AccentCard(eyebrow: "★ PERSONALISED") {
+                VStack(alignment: .leading, spacing: CXSpace.sm) {
+                    Text(structural)
+                        .font(CXFont.sans(13, weight: .semibold))
+                        .foregroundStyle(Color.cxAccentInk)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    if let narrative = article.personalisedNarrative, !narrative.isEmpty {
+                        Text(narrative)
+                            .font(CXFont.sans(13))
+                            .foregroundStyle(Color.cxInk)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
         }
     }
 

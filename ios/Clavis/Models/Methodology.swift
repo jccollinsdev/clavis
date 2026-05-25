@@ -219,6 +219,9 @@ struct MethodologyArticle: Codable, Identifiable {
     let whatItMeans: String?
     let keyImplications: [String]?
     let sourceUrl: String?
+    let personalisedStructural: String?
+    let personalisedNarrative: String?
+    let personalisedGeneratedAt: String?
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -234,6 +237,9 @@ struct MethodologyArticle: Codable, Identifiable {
         case whatItMeans = "what_it_means"
         case keyImplications = "key_implications"
         case sourceUrl = "source_url"
+        case personalisedStructural = "personalised_structural"
+        case personalisedNarrative = "personalised_narrative"
+        case personalisedGeneratedAt = "personalised_generated_at"
     }
 
     init(from decoder: Decoder) throws {
@@ -251,6 +257,9 @@ struct MethodologyArticle: Codable, Identifiable {
         whatItMeans = try container.decodeIfPresent(String.self, forKey: .whatItMeans)
         keyImplications = try container.decodeIfPresent([String].self, forKey: .keyImplications)
         sourceUrl = try container.decodeIfPresent(String.self, forKey: .sourceUrl)
+        personalisedStructural = try container.decodeIfPresent(String.self, forKey: .personalisedStructural)
+        personalisedNarrative = try container.decodeIfPresent(String.self, forKey: .personalisedNarrative)
+        personalisedGeneratedAt = try container.decodeIfPresent(String.self, forKey: .personalisedGeneratedAt)
     }
 }
 

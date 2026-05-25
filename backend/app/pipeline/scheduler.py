@@ -20,6 +20,7 @@ from .analysis_utils import utcnow_iso, clamp_score, score_to_grade, sanitize_te
 from .news_normalizer import normalize_news_batch, _evidence_quality
 from ..services.backfill_artifacts import record_stage, get_run_artifact_dir, begin_artifact_session, write_named_json, end_artifact_session, record_position_artifact
 from ..services.news_enrichment import classify_recency_weight, classify_source_tier
+from ..services.personalisation import recent_event_ids_for_tickers
 from ..services.ticker_cache_service import ensure_sp500_universe_seeded, list_active_sp500_tickers, refresh_ticker_snapshot
 from ..services.ticker_metadata import upsert_ticker_metadata
 
@@ -1644,7 +1645,17 @@ async def _finalize_partial_run(
         or 0
     )
     portfolio_score, overall_grade = _compute_portfolio_grade(position_payloads)
-    digest = await compile_portfolio_digest(position_payloads, overall_grade)
+    digest = await compile_portfolio_digest(
+        position_payloads,
+        overall_grade,
+        supabase=supabase,
+        user_id=user_id,
+        event_ids=recent_event_ids_for_tickers(
+            supabase,
+            [payload.get("ticker") for payload in position_payloads],
+            limit=5,
+        ),
+    )
 
     existing_digest = _execute_supabase_with_retry(
         lambda: (
@@ -3385,6 +3396,13 @@ async def execute_analysis_run(
                 macro_context=macro_context,
                 sector_context=sector_context,
                 summary_length=summary_length,
+                supabase=supabase,
+                user_id=user_id,
+                event_ids=recent_event_ids_for_tickers(
+                    supabase,
+                    [payload.get("ticker") for payload in position_payloads],
+                    limit=5,
+                ),
             )
             previous_digest = (
                 supabase.table("digests")

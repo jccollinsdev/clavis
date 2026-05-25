@@ -815,8 +815,10 @@ def enrich_positions_with_ticker_cache(
 
 
 def _news_rows_to_response(
-    news_rows: list[dict[str, Any]], *, user_id: str, ticker: str
+    news_rows: list[dict[str, Any]], *, supabase, user_id: str, ticker: str
 ) -> list[dict[str, Any]]:
+    from .personalisation import attach_latest_personalisation
+
     responses = []
     for row in news_rows:
         responses.append(
@@ -843,7 +845,14 @@ def _news_rows_to_response(
                 "processed_at": row.get("created_at") or row.get("published_at"),
             }
         )
-    return responses
+    try:
+        return attach_latest_personalisation(
+            supabase,
+            user_id=user_id,
+            articles=responses,
+        )
+    except Exception:
+        return responses
 
 
 
@@ -2063,7 +2072,12 @@ def _project_shared_detail_compatibility(
             "risk_dimensions": shared_detail.get("risk_dimensions") or {},
             "factor_breakdown": factor_breakdown,
             "latest_event_analyses": shared_detail.get("events") or [],
-            "recent_news": _news_rows_to_response(recent_news_rows, user_id=base_position.get("user_id") or "", ticker=ticker),
+            "recent_news": _news_rows_to_response(
+                recent_news_rows,
+                supabase=supabase,
+                user_id=base_position.get("user_id") or "",
+                ticker=ticker,
+            ),
             "recent_alerts": enrich_alert_rows(latest_alerts),
             "freshness": {
                 "price_as_of": freshness.get("price_as_of"),

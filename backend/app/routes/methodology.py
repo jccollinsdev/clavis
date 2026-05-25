@@ -6,6 +6,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Request
 
 from ..pipeline.structural_scorer import estimate_iv_rank_from_realized_vol
+from ..services.personalisation import attach_latest_personalisation
 from ..services.supabase import get_supabase
 from ..services.ticker_cache_service import _shared_risk_dimensions
 
@@ -243,6 +244,34 @@ async def get_ticker_methodology(
             "narrative": None,
         }
 
+    article_payloads = [
+        {
+            "id": article.get("id"),
+            "title": article.get("title"),
+            "source": article.get("source"),
+            "published_at": article.get("published_at"),
+            "source_tier": article.get("source_tier"),
+            "recency_weight": article.get("recency_weight"),
+            "sentiment_score": article.get("sentiment_score"),
+            "sentiment_reason": article.get("sentiment_reason"),
+            "impact_tag": article.get("impact_tag"),
+            "tldr": article.get("tldr"),
+            "what_it_means": article.get("what_it_means"),
+            "key_implications": article.get("key_implications") or [],
+            "source_url": (
+                article.get("canonical_url")
+                or article.get("source_url")
+                or article.get("url")
+            ),
+        }
+        for article in display_articles[:15]
+    ]
+    article_payloads = attach_latest_personalisation(
+        supabase,
+        user_id=user_id,
+        articles=article_payloads,
+    )
+
     return {
         "ticker": upper,
         "dimensions": {
@@ -277,27 +306,7 @@ async def get_ticker_methodology(
                 ),
                 "volume_signal": bool(news_inputs.get("volume_signal")),
                 "weighted_score": news_inputs.get("weighted_score"),
-                "articles": [
-                    {
-                        "title": article.get("title"),
-                        "source": article.get("source"),
-                        "published_at": article.get("published_at"),
-                        "source_tier": article.get("source_tier"),
-                        "recency_weight": article.get("recency_weight"),
-                        "sentiment_score": article.get("sentiment_score"),
-                        "sentiment_reason": article.get("sentiment_reason"),
-                        "impact_tag": article.get("impact_tag"),
-                        "tldr": article.get("tldr"),
-                        "what_it_means": article.get("what_it_means"),
-                        "key_implications": article.get("key_implications") or [],
-                        "source_url": (
-                            article.get("canonical_url")
-                            or article.get("source_url")
-                            or article.get("url")
-                        ),
-                    }
-                    for article in display_articles[:15]
-                ],
+                "articles": article_payloads,
                 "article_histogram_14d": _article_histogram(fourteen_day_articles),
                 "sentiment_distribution": _sentiment_distribution(fourteen_day_articles),
             },
