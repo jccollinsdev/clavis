@@ -84,6 +84,12 @@ def _universe_audit() -> dict:
     return run_from_env()
 
 
+def _backfill_14d() -> dict:
+    from app.jobs.backfill_14d import run_from_env
+
+    return run_from_env()
+
+
 JOB_REGISTRY: dict[str, JobSpec] = {
     "daily_macro_snapshot": JobSpec("daily_macro_snapshot", "daily", _macro_snapshot),
     "daily_sector_snapshot": JobSpec("daily_sector_snapshot", "daily", _sector_snapshot),
@@ -114,6 +120,7 @@ JOB_REGISTRY: dict[str, JobSpec] = {
     "weekly_universe_audit": JobSpec(
         "weekly_universe_audit", "weekly", _universe_audit
     ),
+    "backfill_14d": JobSpec("backfill_14d", "manual", _backfill_14d),
 }
 
 

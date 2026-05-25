@@ -24,6 +24,14 @@ DEFAULT_BATCH_SIZE = 15
 DEFAULT_INTER_BATCH_DELAY_SECONDS = 5
 
 
+def _coerce_target_date(value: date | str | None) -> date:
+    if value is None:
+        return date.today()
+    if isinstance(value, date):
+        return value
+    return date.fromisoformat(str(value))
+
+
 def _parse_timestamp(value: Any) -> datetime | None:
     if not value:
         return None
@@ -59,13 +67,18 @@ def snapshot_dimensions_fresh(
     return True
 
 
-def _latest_today_snapshots(supabase, tickers: list[str]) -> dict[str, dict[str, Any]]:
+def _latest_snapshots_for_date(
+    supabase,
+    tickers: list[str],
+    *,
+    snapshot_date: date,
+) -> dict[str, dict[str, Any]]:
     if not tickers:
         return {}
     rows = (
         supabase.table("ticker_risk_snapshots")
         .select("ticker,dimension_last_refreshed,analysis_as_of,methodology_version")
-        .eq("snapshot_date", date.today().isoformat())
+        .eq("snapshot_date", snapshot_date.isoformat())
         .in_("ticker", tickers)
         .execute()
         .data
@@ -84,10 +97,16 @@ def run(
     limit: int | None = None,
     batch_size: int = DEFAULT_BATCH_SIZE,
     inter_batch_delay_seconds: int = DEFAULT_INTER_BATCH_DELAY_SECONDS,
+    target_date: date | str | None = None,
 ) -> dict:
+    snapshot_date = _coerce_target_date(target_date)
     supabase = get_supabase()
     tickers = list_active_sp500_tickers(supabase, limit=limit)
-    today_snapshots = _latest_today_snapshots(supabase, tickers)
+    date_snapshots = _latest_snapshots_for_date(
+        supabase,
+        tickers,
+        snapshot_date=snapshot_date,
+    )
 
     processed = 0
     skipped = 0
@@ -95,11 +114,16 @@ def run(
     batch_size = max(1, int(batch_size))
 
     for index, ticker in enumerate(tickers):
-        if snapshot_dimensions_fresh(today_snapshots.get(ticker)):
+        if snapshot_dimensions_fresh(date_snapshots.get(ticker)):
             skipped += 1
             continue
         try:
-            refresh_ticker_snapshot(supabase, ticker=ticker, job_type="daily")
+            refresh_ticker_snapshot(
+                supabase,
+                ticker=ticker,
+                job_type="daily",
+                snapshot_date=snapshot_date,
+            )
             processed += 1
         except Exception as exc:
             failed.append({"ticker": ticker, "error": str(exc)})
@@ -118,6 +142,7 @@ def run(
         "items_failed": len(failed),
         "metadata": {
             "requested": len(tickers),
+            "target_date": snapshot_date.isoformat(),
             "failed": failed[:25],
         },
     }
@@ -125,4 +150,8 @@ def run(
 
 def run_from_env() -> dict:
     limit = os.getenv("COMPOSITE_RECOMPUTE_LIMIT")
-    return run(limit=int(limit) if limit else None)
+    target_date = os.getenv("COMPOSITE_RECOMPUTE_TARGET_DATE")
+    return run(
+        limit=int(limit) if limit else None,
+        target_date=target_date or None,
+    )

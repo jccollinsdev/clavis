@@ -99,6 +99,51 @@ def _parse_iso_datetime(value: Any) -> datetime | None:
         return None
 
 
+def _coerce_snapshot_date(value: date | str | None) -> date:
+    if value is None:
+        return date.today()
+    if isinstance(value, date):
+        return value
+    return date.fromisoformat(str(value))
+
+
+def _end_of_day_utc(target_date: date) -> datetime:
+    return datetime.combine(target_date, datetime.max.time()).replace(
+        tzinfo=timezone.utc
+    )
+
+
+def _filter_bars_through_date(
+    bars: list[dict[str, Any]],
+    *,
+    target_date: date,
+) -> list[dict[str, Any]]:
+    cutoff = _end_of_day_utc(target_date)
+    filtered: list[dict[str, Any]] = []
+    for bar in bars or []:
+        timestamp = bar.get("t")
+        if not isinstance(timestamp, (int, float)):
+            continue
+        bar_dt = datetime.fromtimestamp(timestamp / 1000, tz=timezone.utc)
+        if bar_dt <= cutoff:
+            filtered.append(bar)
+    return filtered
+
+
+def _filter_news_rows_through_date(
+    rows: list[dict[str, Any]],
+    *,
+    target_date: date,
+) -> list[dict[str, Any]]:
+    cutoff = _end_of_day_utc(target_date)
+    filtered: list[dict[str, Any]] = []
+    for row in rows or []:
+        published_at = _parse_iso_datetime(row.get("published_at"))
+        if published_at is not None and published_at <= cutoff:
+            filtered.append(row)
+    return filtered
+
+
 def _coerce_float(value: Any) -> float | None:
     try:
         if value is None or value == "":
@@ -3421,7 +3466,10 @@ def refresh_ticker_snapshot(
     ticker: str,
     job_type: str,
     requested_by_user_id: str | None = None,
+    snapshot_date: date | str | None = None,
 ) -> dict[str, Any]:
+    target_date = _coerce_snapshot_date(snapshot_date)
+    target_date_iso = target_date.isoformat()
     supported = get_supported_ticker(supabase, ticker) or ensure_ticker_in_universe(
         supabase, ticker
     )
@@ -3477,7 +3525,7 @@ def refresh_ticker_snapshot(
                 "id, methodology_version, grade, safety_score, composite_score, financial_health, news_sentiment_dim, macro_exposure_dim, sector_exposure, volatility, factor_breakdown"
             )
             .eq("ticker", ticker)
-            .eq("snapshot_date", date.today().isoformat())
+            .eq("snapshot_date", target_date_iso)
             .limit(10)
             .execute()
             .data
@@ -3520,16 +3568,22 @@ def refresh_ticker_snapshot(
         if not metadata:
             raise RuntimeError(f"Unable to refresh ticker metadata for {ticker}")
 
-        ticker_bars = fetch_aggs(ticker, days=400)
+        ticker_bars = _filter_bars_through_date(
+            fetch_aggs(ticker, days=400),
+            target_date=target_date,
+        )
         factor_bars_map = {
-            factor_key: fetch_aggs(factor_ticker, days=400)
+            factor_key: _filter_bars_through_date(
+                fetch_aggs(factor_ticker, days=400),
+                target_date=target_date,
+            )
             for factor_key, factor_ticker in FACTOR_TICKERS.items()
         }
         macro_result = run_macro_regression(
             ticker,
             ticker_bars,
             factor_bars_map,
-            as_of_date=date.today().isoformat(),
+            as_of_date=target_date_iso,
         )
         macro_audit = macro_regression_to_audit_jsonb(macro_result)
         financial_inputs = _build_financial_health_inputs(metadata)
@@ -3538,20 +3592,32 @@ def refresh_ticker_snapshot(
         volatility_inputs = _build_volatility_inputs(
             ticker_bars,
             factor_bars_map.get("spy", []),
-            as_of_date=date.today().isoformat(),
+            as_of_date=target_date_iso,
         )
 
-        previous_snapshot = get_latest_risk_snapshot_map(supabase, [ticker]).get(ticker)
+        previous_snapshot_rows = (
+            supabase.table("ticker_risk_snapshots")
+            .select("composite_score,safety_score,snapshot_date")
+            .eq("ticker", ticker)
+            .lt("snapshot_date", target_date_iso)
+            .order("snapshot_date", desc=True)
+            .limit(1)
+            .execute()
+            .data
+            or []
+        )
+        previous_snapshot = previous_snapshot_rows[0] if previous_snapshot_rows else None
         news_rows = (
             supabase.table("shared_ticker_events")
             .select("*")
             .eq("ticker", ticker)
             .order("published_at", desc=True)
-            .limit(10)
+            .limit(50)
             .execute()
             .data
             or []
         )
+        news_rows = _filter_news_rows_through_date(news_rows, target_date=target_date)[:10]
         recent_events = _build_event_analyses_from_news_rows(
             news_rows, ticker=ticker, position_id=f"virtual:{ticker}"
         )
@@ -3587,7 +3653,7 @@ def refresh_ticker_snapshot(
         }
         snapshot_payload = {
             "ticker": ticker,
-            "snapshot_date": date.today().isoformat(),
+            "snapshot_date": target_date_iso,
             "snapshot_type": job_type,
             "grade": score["grade"],
             "safety_score": round(score["safety_score"], 1),
