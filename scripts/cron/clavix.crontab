@@ -18,4 +18,5 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # P8 — operational polish
 30 4 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run event_fundamentals_pull >> /var/log/clavix/cron.log 2>&1
 0 3 * * 0 root docker exec clavis-backend-1 python -m app.jobs.run weekly_universe_audit >> /var/log/clavix/cron.log 2>&1
+0 3 1 * * root docker exec clavis-backend-1 python -m app.jobs.run monthly_macro_regression_refresh >> /var/log/clavix/cron.log 2>&1
 0 4 1 * * root docker exec clavis-backend-1 python -m app.jobs.run monthly_etf_holdings_refresh >> /var/log/clavix/cron.log 2>&1

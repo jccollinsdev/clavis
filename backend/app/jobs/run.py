@@ -78,6 +78,12 @@ def _etf_holdings() -> dict:
     return run_from_env()
 
 
+def _macro_regression() -> dict:
+    from app.jobs.macro_regression import run_from_env
+
+    return run_from_env()
+
+
 def _universe_audit() -> dict:
     from app.jobs.universe_audit import run_from_env
 
@@ -116,6 +122,9 @@ JOB_REGISTRY: dict[str, JobSpec] = {
     ),
     "monthly_etf_holdings_refresh": JobSpec(
         "monthly_etf_holdings_refresh", "monthly", _etf_holdings
+    ),
+    "monthly_macro_regression_refresh": JobSpec(
+        "monthly_macro_regression_refresh", "monthly", _macro_regression
     ),
     "weekly_universe_audit": JobSpec(
         "weekly_universe_audit", "weekly", _universe_audit

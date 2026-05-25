@@ -112,6 +112,26 @@ def _sentiment_distribution(articles: list[dict[str, Any]]) -> list[dict[str, An
     return [{"bucket": key, "count": value} for key, value in counts.items()]
 
 
+def _factor_exposures(
+    macro_inputs: dict[str, Any],
+    macro_regression: dict[str, Any],
+) -> dict[str, Any]:
+    exposures = macro_inputs.get("factor_exposures")
+    if isinstance(exposures, dict) and exposures:
+        return exposures
+    legacy = macro_inputs.get("coefficients") or macro_regression.get("coefficients") or {}
+    if not isinstance(legacy, dict):
+        return {}
+    mapped = {
+        "beta_10y": legacy.get("tnx"),
+        "beta_dxy": legacy.get("dxy"),
+        "beta_wti": legacy.get("wti"),
+        "beta_vix": legacy.get("vix"),
+        "beta_spy": legacy.get("spy"),
+    }
+    return {key: value for key, value in mapped.items() if value is not None}
+
+
 @router.get("/{ticker}/methodology")
 async def get_ticker_methodology(
     ticker: str,
@@ -206,6 +226,7 @@ async def get_ticker_methodology(
     volatility_inputs = dimension_inputs.get("volatility") or {}
     financial_inputs = dimension_inputs.get("financial_health") or {}
     macro_regression = factor_breakdown.get("macro_regression") or {}
+    factor_exposures = _factor_exposures(macro_inputs, macro_regression)
     iv_rank = volatility_inputs.get("iv_rank")
     iv_source = volatility_inputs.get("iv_source")
     if iv_rank is None:
@@ -329,6 +350,7 @@ async def get_ticker_methodology(
                 ),
                 "as_of_date": macro_inputs.get("as_of_date") or macro_regression.get("as_of_date"),
                 "coefficients": macro_inputs.get("coefficients") or macro_regression.get("coefficients") or {},
+                "factor_exposures": factor_exposures,
                 "current_factor_levels": macro_inputs.get("current_factor_levels") or {},
                 "factor_levels": macro_inputs.get("current_factor_levels") or {},
                 "narrative": macro_inputs.get("narrative"),
