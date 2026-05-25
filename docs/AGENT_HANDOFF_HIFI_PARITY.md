@@ -532,3 +532,38 @@ Have fun. The user is patient with quality, impatient with cosmetic regressions.
 ---
 
 *Last updated by Claude Opus 4.7 at the conclusion of session `c5c31ccb-cf7d-4812-bd5b-d52007525954` on 2026-05-24. Next agent: keep this doc current. Add a "Session log" section at the bottom and append after every significant push.*
+
+---
+
+## Session log
+
+### 2026-05-24 · Cycle 1 — Ticker Detail middle-third rebuild
+
+**Pushed:** `ios: Hi-Fi parity — Ticker Detail dimensions, drivers, news rewrite`
+
+Landed:
+- **Five dimensions** rebuilt as a HiFi tabular card: `FIN / NEWS / MAC / SEC / VOL` mono abbrev + name on the left, `ClavixScoreBar` middle, mono score + chevron right. Tap-through to methodology preserved. Dropped the legacy "Limited Data" inline badge + "Full audit ↗" link in favor of a chevron — the row IS the tap target.
+- **Key drivers** (`TickerDriverCardsSection`) fully rebuilt. Maps `DriverDirection` → `HEADWIND / WATCH / TAILWIND` tone tag, tone-tinted background (`clavixBadSoft / clavixWarnSoft / clavixGoodSoft`), tone border + serif title + `via {theme}` chip + strength label. Killed every `Color.surface / Color.border / .riskA / .riskD / .informational` legacy reference and removed the dark "SupportingEvidenceRow" subcards entirely — those aren't in the HiFi spec.
+- **Recent news** cards: T1/T2/T3 source-tier badge, mono source, mono relative date (`2d ago` / `May 19` via new `formatArticleTimestamp` helper that handles ISO8601 with/without fractional seconds), serif headline, 2-line TLDR, sentiment dot+score on the right. Killed the ISO-timestamp leak and the "Limited Data" impact pill.
+- **Section headers** for Key drivers / Recent news / Score history switched to HiFi pattern: `ClavixEyebrow` + serif title + optional trailing action (See all → / Show less). New `hifiSectionHeader(eyebrow:title:action:onAction:)` helper.
+
+Still TODO on Ticker Detail (next cycle):
+- Hero: split `You hold ··· Last $X · Δ%` bottom row; add radar (or keep sparkline placeholder)
+- Executive summary card (Bull / Risk / What to watch — accent-tinted)
+- Score history: toggle pills (Composite · News · Macro)
+- Honest delta line under composite (currently no delta surfaced)
+- Period chips above price/score chart
+
+Reference workflow:
+- Avoid spending compute on side-by-side WebView screenshotting — the HTML is at `docs/design/clavix-hifi-v2.html`. The React component source for each artboard lives gzipped+b64 in `<script type="__bundler/manifest">` of that file. Extract with:
+  ```python
+  m = re.search(r'<script type="__bundler/manifest">\s*(.*?)\s*</script>', raw, re.DOTALL)
+  manifest = json.loads(m.group(1))
+  for uuid, entry in manifest.items():
+      data = base64.b64decode(entry['data'])
+      if entry.get('compressed'): data = gzip.decompress(data)
+      text = data.decode('utf-8', errors='replace')
+      if 'ScreenTicker' in text: open(f'/tmp/{uuid}.js','w').write(text)
+  ```
+  Section 7 components (`ScreenTicker`, `DimRow`, `DriverCard`, `NewsRow`) live in asset `e743adf2-56cd-41fe-b381-bcec1a598a88`. `ScreenTickerHeld`, `ScreenRefreshLimit`, etc. live in `dcfc5c59-f42a-4d9d-be08-7ec9253c440e`. Reading the JSX directly is 10× faster than scrolling the WKWebView through 25+ artboards.
+

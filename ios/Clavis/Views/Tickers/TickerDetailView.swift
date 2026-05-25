@@ -156,8 +156,8 @@ struct TickerDetailView: View {
     }
 
     private var scoreHistorySection: some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-            sectionHeader(title: "Score History")
+        VStack(alignment: .leading, spacing: 10) {
+            hifiSectionHeader(eyebrow: "Composite · 90 days", title: "Score history")
             ClavixCard(fill: .clavixPaper) {
                 let snapshots = ScoreHistoryConversion.snapshots(from: scoreHistory)
                 if snapshots.count >= 2 {
@@ -244,52 +244,28 @@ struct TickerDetailView: View {
     private func riskDimensionsSection(_ detail: TickerDetailResponse) -> some View {
         let dimensions = dimensionItems(detail)
 
-        return VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-            sectionHeader(title: "Risk Dimensions")
+        return VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 4) {
+                ClavixEyebrow("Tap any row for the full audit")
+                Text("Five dimensions")
+                    .font(ClavisTypography.clavixSerif(18, weight: .medium))
+                    .foregroundColor(.clavixInk)
+            }
 
-            ClavixCard(fill: .clavixPaper) {
+            ClavixCard(padding: 0, fill: .clavixPaper) {
                 VStack(spacing: 0) {
                     ForEach(Array(dimensions.enumerated()), id: \.element.key) { index, dimension in
-                        VStack(spacing: 0) {
-                            Button(action: { openMethodology(dimension.key) }) {
-                                VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                                    HStack(alignment: .center, spacing: ClavisTheme.smallSpacing) {
-                                        Text(dimension.title)
-                                            .font(ClavisTypography.bodyEmphasis)
-                                            .foregroundColor(.clavixInk)
-                                        Spacer()
-                                        if dimension.isLimited {
-                                            dimensionBadge(text: "Limited Data", foreground: .warn, background: .clavixWarnSoft)
-                                        }
-                                        Text(dimension.scoreText)
-                                            .font(ClavisTypography.rowScore)
-                                            .foregroundColor(.clavixInk3)
-                                    }
+                        Button(action: { openMethodology(dimension.key) }) {
+                            dimensionRow(dimension)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 12)
+                        }
+                        .buttonStyle(.plain)
 
-                                    RiskBar(score: dimension.score ?? 0, grade: dimension.grade)
-                                        .frame(height: 4)
-
-                                    HStack(spacing: ClavisTheme.smallSpacing) {
-                                        Text(dimension.subtitle)
-                                            .font(ClavisTypography.footnote)
-                                            .foregroundColor(.clavixInk3)
-                                            .lineLimit(2)
-                                        Spacer()
-                                        Button(action: { openMethodology(dimension.key) }) {
-                                            Text("Full audit ↗")
-                                                .font(ClavisTypography.label)
-                                                .foregroundColor(.clavixAccent)
-                                        }
-                                        .buttonStyle(.plain)
-                                    }
-                                }
-                                .padding(.vertical, ClavisTheme.mediumSpacing)
-                            }
-                            .buttonStyle(.plain)
-
-                            if index < dimensions.count - 1 {
-                                Divider().overlay(Color.border)
-                            }
+                        if index < dimensions.count - 1 {
+                            Rectangle()
+                                .fill(Color.clavixRule2)
+                                .frame(height: 1)
                         }
                     }
                 }
@@ -297,19 +273,76 @@ struct TickerDetailView: View {
         }
     }
 
+    private func dimensionRow(_ dimension: TickerDimensionItem) -> some View {
+        HStack(alignment: .center, spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(dimension.abbrev)
+                    .font(ClavisTypography.clavixMono(9, weight: .bold))
+                    .tracking(0.6)
+                    .foregroundColor(.clavixInk3)
+                Text(dimension.title)
+                    .font(ClavisTypography.inter(12))
+                    .foregroundColor(.clavixInk)
+                    .lineLimit(1)
+            }
+            .frame(width: 92, alignment: .leading)
+
+            ClavixScoreBar(score: dimension.score.map { Int($0.rounded()) } ?? 0)
+                .frame(height: 5)
+                .opacity(dimension.score == nil ? 0.25 : 1.0)
+
+            Text(dimension.scoreText)
+                .font(ClavisTypography.clavixMono(16, weight: .semibold))
+                .foregroundColor(scoreToneColor(dimension.score))
+                .frame(width: 38, alignment: .trailing)
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(.clavixInk4)
+        }
+    }
+
+    private func scoreToneColor(_ score: Double?) -> Color {
+        guard let score else { return .clavixInk3 }
+        if score >= 70 { return .clavixGood }
+        if score >= 50 { return .clavixInk }
+        if score >= 30 { return .clavixWarn }
+        return .clavixBad
+    }
+
     private func driversSection(_ detail: TickerDetailResponse) -> some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-            sectionHeader(title: "What's Driving It")
+        VStack(alignment: .leading, spacing: 10) {
+            hifiSectionHeader(eyebrow: "Why this rating", title: "Key drivers")
 
-            ClavixCard(fill: .clavixPaper) {
-                VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-                    Text(driverSummary(detail))
-                        .font(ClavisTypography.body)
-                        .foregroundColor(.clavixInk3)
-                        .fixedSize(horizontal: false, vertical: true)
+            let summary = driverSummary(detail)
+            if !summary.isEmpty {
+                Text(summary)
+                    .font(ClavisTypography.inter(13))
+                    .foregroundColor(.clavixInk2)
+                    .lineSpacing(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
-                    TickerDriverCardsSection(analysis: detail.currentAnalysis)
+            TickerDriverCardsSection(analysis: detail.currentAnalysis)
+        }
+    }
+
+    private func hifiSectionHeader(eyebrow: String, title: String, action: String? = nil, onAction: (() -> Void)? = nil) -> some View {
+        HStack(alignment: .lastTextBaseline) {
+            VStack(alignment: .leading, spacing: 2) {
+                ClavixEyebrow(eyebrow)
+                Text(title)
+                    .font(ClavisTypography.clavixSerif(18, weight: .medium))
+                    .foregroundColor(.clavixInk)
+            }
+            Spacer()
+            if let action {
+                Button(action: { onAction?() }) {
+                    Text(action)
+                        .font(ClavisTypography.clavixMono(11, weight: .semibold))
+                        .foregroundColor(.clavixAccent)
                 }
+                .buttonStyle(.plain)
             }
         }
     }
@@ -318,19 +351,15 @@ struct TickerDetailView: View {
         let articles = displayArticles(detail)
         let visibleArticles = showAllArticles ? articles : Array(articles.prefix(10))
 
-        return VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-            HStack {
-                sectionHeader(title: "Recent News")
-                Spacer()
-                if articles.count > 10 {
-                    Button(showAllArticles ? "Show less" : "See all") {
-                        showAllArticles.toggle()
-                    }
-                    .font(ClavisTypography.footnoteEmphasis)
-                    .foregroundColor(.clavixAccent)
-                    .buttonStyle(.plain)
-                }
-            }
+        let articleCountText = articles.isEmpty ? "No articles in window" : "\(articles.count) article\(articles.count == 1 ? "" : "s") · 7d"
+
+        return VStack(alignment: .leading, spacing: 10) {
+            hifiSectionHeader(
+                eyebrow: articleCountText,
+                title: "Recent news",
+                action: articles.count > 10 ? (showAllArticles ? "Show less" : "See all →") : nil,
+                onAction: { showAllArticles.toggle() }
+            )
 
             if visibleArticles.isEmpty {
                 ClavixCard(fill: .clavixPaper) {
@@ -348,7 +377,9 @@ struct TickerDetailView: View {
                             .buttonStyle(.plain)
 
                             if index < visibleArticles.count - 1 {
-                                Divider().overlay(Color.border)
+                                Rectangle()
+                                    .fill(Color.clavixRule2)
+                                    .frame(height: 1)
                             }
                         }
                     }
@@ -358,30 +389,102 @@ struct TickerDetailView: View {
     }
 
     private func newsCard(_ article: MethodologyArticle) -> some View {
-        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                if let tier = article.sourceTier {
+                    Text("T\(tier)")
+                        .font(ClavisTypography.clavixMono(9, weight: .bold))
+                        .tracking(0.4)
+                        .foregroundColor(.clavixInk2)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 3, style: .continuous)
+                                .stroke(Color.clavixRule, lineWidth: 1)
+                        )
+                        .fixedSize()
+                }
+                Text(article.source ?? "Unknown source")
+                    .font(ClavisTypography.clavixMono(11, weight: .semibold))
+                    .foregroundColor(.clavixInk2)
+                    .lineLimit(1)
+                Text("·")
+                    .font(ClavisTypography.clavixMono(10, weight: .regular))
+                    .foregroundColor(.clavixInk4)
+                Text(formatArticleTimestamp(article.publishedAt))
+                    .font(ClavisTypography.clavixMono(10, weight: .regular))
+                    .foregroundColor(.clavixInk3)
+                    .lineLimit(1)
+                Spacer(minLength: 4)
+                sentimentDot(article.sentimentScore)
+            }
+
             Text(article.title ?? "Untitled article")
-                .font(ClavisTypography.bodyEmphasis)
+                .font(ClavisTypography.clavixSerif(16, weight: .medium))
                 .foregroundColor(.clavixInk)
                 .multilineTextAlignment(.leading)
-                .lineLimit(2)
+                .lineLimit(3)
+                .fixedSize(horizontal: false, vertical: true)
 
-            HStack(spacing: ClavisTheme.smallSpacing) {
-                Text(article.source ?? "Unknown source")
-                    .font(ClavisTypography.footnote)
+            if let tldr = article.tldr, !tldr.isEmpty {
+                Text(tldr)
+                    .font(ClavisTypography.clavixCaption)
                     .foregroundColor(.clavixInk3)
-                Text("•")
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.clavixInk4)
-                Text(article.publishedAt ?? "Date unavailable")
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.clavixInk4)
-                Spacer()
-                sentimentPill(score: article.sentimentScore)
-                impactPill(text: article.impactTag?.humanizedTitleCasedDisplayText ?? "Limited Data")
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, ClavisTheme.mediumSpacing)
+        .padding(.vertical, 12)
+        .padding(.horizontal, 2)
+    }
+
+    private func sentimentDot(_ score: Double?) -> some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(sentimentColor(score))
+                .frame(width: 7, height: 7)
+            Text(score.map { "\(Int($0.rounded()))" } ?? "—")
+                .font(ClavisTypography.clavixMono(10, weight: .bold))
+                .foregroundColor(sentimentColor(score))
+        }
+        .fixedSize()
+    }
+
+    private static let isoDateParser: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return f
+    }()
+
+    private static let isoDateParserNoFraction: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime]
+        return f
+    }()
+
+    private static let articleRelativeFormatter: RelativeDateTimeFormatter = {
+        let f = RelativeDateTimeFormatter()
+        f.unitsStyle = .abbreviated
+        return f
+    }()
+
+    private static let articleShortDateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "MMM d"
+        return f
+    }()
+
+    private func formatArticleTimestamp(_ raw: String?) -> String {
+        guard let raw, !raw.isEmpty else { return "—" }
+        let date = TickerDetailView.isoDateParser.date(from: raw)
+            ?? TickerDetailView.isoDateParserNoFraction.date(from: raw)
+        guard let date else { return raw.prefix(10).description }
+        let interval = Date().timeIntervalSince(date)
+        if interval < 60 * 60 * 24 * 3 {
+            return TickerDetailView.articleRelativeFormatter.localizedString(for: date, relativeTo: Date())
+        }
+        return TickerDetailView.articleShortDateFormatter.string(from: date)
     }
 
     private func bottomCtas(_ detail: TickerDetailResponse) -> some View {
@@ -520,6 +623,7 @@ struct TickerDetailView: View {
             TickerDimensionItem(
                 key: "financial_health",
                 title: "Financial Health",
+                abbrev: "FIN",
                 score: shared?.financialHealth ?? ai?.financialHealth ?? current?.financialHealth,
                 subtitle: methodology?.dimensions.financialHealth.dataSource ?? "Quarterly fundamentals",
                 isLimited: (shared?.financialHealth ?? ai?.financialHealth ?? current?.financialHealth) == nil
@@ -527,6 +631,7 @@ struct TickerDetailView: View {
             TickerDimensionItem(
                 key: "news_sentiment",
                 title: "News Sentiment",
+                abbrev: "NEWS",
                 score: shared?.newsSentiment ?? ai?.newsSentiment ?? current?.newsSentiment,
                 subtitle: newsSubtitle,
                 isLimited: (methodology?.dimensions.newsSentiment.articleCount7d ?? 0) < 3
@@ -534,6 +639,7 @@ struct TickerDetailView: View {
             TickerDimensionItem(
                 key: "macro_exposure",
                 title: "Macro Exposure",
+                abbrev: "MAC",
                 score: shared?.macroExposure ?? ai?.macroExposure ?? current?.macroExposure,
                 subtitle: methodology?.dimensions.macroExposure.asOfDate ?? "Macro regression",
                 isLimited: methodology?.dimensions.macroExposure.limitedData ?? false
@@ -541,6 +647,7 @@ struct TickerDetailView: View {
             TickerDimensionItem(
                 key: "sector_exposure",
                 title: "Sector Exposure",
+                abbrev: "SEC",
                 score: shared?.sectorExposure ?? ai?.sectorExposure ?? current?.sectorExposure,
                 subtitle: methodology?.dimensions.sectorExposure.sector ?? detail.profile.sector ?? "Sector state",
                 isLimited: (shared?.sectorExposure ?? ai?.sectorExposure ?? current?.sectorExposure) == nil
@@ -548,6 +655,7 @@ struct TickerDetailView: View {
             TickerDimensionItem(
                 key: "volatility",
                 title: "Volatility",
+                abbrev: "VOL",
                 score: shared?.volatility ?? ai?.volatility ?? current?.volatility,
                 subtitle: methodology?.dimensions.volatility.asOfDate ?? "Daily price action",
                 isLimited: (shared?.volatility ?? ai?.volatility ?? current?.volatility) == nil
@@ -690,6 +798,7 @@ struct TickerDetailView: View {
 private struct TickerDimensionItem {
     let key: String
     let title: String
+    let abbrev: String
     let score: Double?
     let subtitle: String
     let isLimited: Bool

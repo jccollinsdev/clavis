@@ -1,5 +1,7 @@
 import SwiftUI
 
+/// Hi-Fi v2 "Key drivers" cards. Each driver renders as a tone-tinted card
+/// (TAILWIND / WATCH / HEADWIND) with a serif title and a strength badge.
 struct TickerDriverCardsSection: View {
     let analysis: PositionAnalysis?
 
@@ -8,224 +10,170 @@ struct TickerDriverCardsSection: View {
     }
 
     private var driverState: DriverCardsState {
-        let cards = driverCards
-        return analysis?.driverCardsState ?? (cards.isEmpty ? .pending : .ready)
-    }
-
-    private var shouldShowKeyDrivers: Bool {
-        !driverCards.isEmpty && (driverState == .ready || driverState == .limited)
+        analysis?.driverCardsState ?? (driverCards.isEmpty ? .pending : .ready)
     }
 
     var body: some View {
-        if shouldShowKeyDrivers {
-            keyDriversCard
-        } else if driverState == .limited && driverCards.isEmpty {
-            limitedEvidenceCard
-        }
-    }
-
-    private var keyDriversCard: some View {
-        ClavisStandardCard(fill: .surface) {
-            VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-                CX2SectionLabel(text: "Key Drivers")
-
-                VStack(alignment: .leading, spacing: 12) {
-                    ForEach(driverCards) { card in
-                        DriverCardView(card: card)
-                    }
+        if !driverCards.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(driverCards) { card in
+                    HiFiDriverCard(card: card)
                 }
             }
-        }
-    }
-
-    private var limitedEvidenceCard: some View {
-        ClavisStandardCard(fill: .surface) {
-            VStack(alignment: .leading, spacing: 8) {
-                CX2SectionLabel(text: "Key Drivers")
-
-                Text("Limited evidence")
-                    .font(ClavisTypography.bodyEmphasis)
-                    .foregroundColor(.clavixInk)
-
-                Text("The backend returned a limited structured signal set for this holding.")
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.clavixInk3)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+        } else if driverState == .limited {
+            HiFiDriverPlaceholder(
+                tone: .warn,
+                title: "Limited evidence",
+                bodyText: "The backend returned a limited structured signal set for this holding."
+            )
         }
     }
 }
 
-private struct DriverCardView: View {
+private struct HiFiDriverCard: View {
     let card: DriverCard
 
+    private var tone: HiFiDriverTone {
+        switch card.direction {
+        case .negative: return .risk
+        case .neutral:  return .warn
+        case .positive: return .good
+        }
+    }
+
+    private var tag: String {
+        switch card.direction {
+        case .negative: return "HEADWIND"
+        case .neutral:  return "WATCH"
+        case .positive: return "TAILWIND"
+        }
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top, spacing: 10) {
-                rankBadge
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    Text(tag)
+                        .font(ClavisTypography.clavixMono(9, weight: .bold))
+                        .tracking(0.5)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(tone.border)
+                        .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
+                        .fixedSize()
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(card.title)
-                        .font(ClavisTypography.bodyEmphasis)
-                        .foregroundColor(.clavixInk)
+                    Text("via \(card.theme.displayName)")
+                        .font(ClavisTypography.clavixMono(10, weight: .regular))
+                        .foregroundColor(tone.ink.opacity(0.75))
+                        .lineLimit(1)
+                }
+
+                Text(card.title)
+                    .font(ClavisTypography.clavixSerif(16, weight: .medium))
+                    .foregroundColor(tone.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if !card.summary.isEmpty {
+                    Text(card.summary)
+                        .font(ClavisTypography.clavixCaption)
+                        .foregroundColor(tone.ink.opacity(0.85))
+                        .lineSpacing(2)
                         .fixedSize(horizontal: false, vertical: true)
-
-                    Text(card.theme.displayName)
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.clavixInk3)
                 }
 
-                Spacer(minLength: 8)
-
-                HStack(spacing: 6) {
-                    driverDirectionBadge
-                    driverStrengthBadge
-                }
-            }
-
-            Text(card.summary)
-                .font(ClavisTypography.body)
-                .foregroundColor(.clavixInk3)
-                .lineSpacing(3)
-                .fixedSize(horizontal: false, vertical: true)
-
-            if !card.sourceChips.isEmpty {
-                sourceChips
-            }
-
-            if !card.supportingEvidence.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    ForEach(card.supportingEvidence) { item in
-                        SupportingEvidenceRow(item: item)
+                if !card.sourceChips.isEmpty {
+                    HStack(spacing: 6) {
+                        ForEach(Array(card.sourceChips.prefix(3)), id: \.self) { source in
+                            Text(source)
+                                .font(ClavisTypography.clavixMono(9, weight: .semibold))
+                                .tracking(0.3)
+                                .foregroundColor(tone.ink.opacity(0.85))
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 3, style: .continuous)
+                                        .stroke(tone.border.opacity(0.55), lineWidth: 1)
+                                )
+                                .fixedSize()
+                        }
                     }
                 }
             }
-        }
-        .padding(12)
-        .background(Color.clavixPaper2)
-        .overlay(
-            RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous)
-                .stroke(Color.border, lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous))
-    }
 
-    private var rankBadge: some View {
-        Text("#\(card.rank)")
-            .font(ClavisTypography.footnoteEmphasis)
-            .foregroundColor(.clavixInk)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 5)
-            .background(Color.surface)
-            .clipShape(Capsule())
-            .overlay(Capsule().stroke(Color.border, lineWidth: 1))
-    }
-
-    private var driverDirectionBadge: some View {
-        HStack(spacing: 4) {
-            Image(systemName: card.direction.iconName)
-                .font(.system(size: 10, weight: .semibold))
-            Text(card.direction.displayName)
-                .font(ClavisTypography.label)
-        }
-        .foregroundColor(directionColor)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 5)
-        .background(directionColor.opacity(0.12))
-        .clipShape(Capsule())
-    }
-
-    private var driverStrengthBadge: some View {
-        Text(card.strength.displayName)
-            .font(ClavisTypography.label)
-            .foregroundColor(strengthColor)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 5)
-            .background(strengthColor.opacity(0.12))
-            .clipShape(Capsule())
-    }
-
-    private var sourceChips: some View {
-        HStack(spacing: 6) {
-            ForEach(Array(card.sourceChips.prefix(3)), id: \.self) { source in
-                Text(source)
-                    .font(ClavisTypography.label)
-                    .foregroundColor(.clavixInk3)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 5)
-                    .background(Color.surface)
-                    .clipShape(Capsule())
-                    .overlay(Capsule().stroke(Color.border, lineWidth: 1))
+            VStack(alignment: .trailing, spacing: 2) {
+                Text("STRENGTH")
+                    .font(ClavisTypography.clavixMono(10, weight: .bold))
+                    .tracking(0.4)
+                    .foregroundColor(tone.ink.opacity(0.7))
+                Text(card.strength.displayName.uppercased())
+                    .font(ClavisTypography.clavixMono(13, weight: .bold))
+                    .foregroundColor(tone.ink)
+                    .lineLimit(1)
+                    .fixedSize()
             }
         }
-    }
-
-    private var directionColor: Color {
-        switch card.direction {
-        case .positive: return .riskA
-        case .negative: return .riskD
-        case .neutral: return .clavixInk3
-        }
-    }
-
-    private var strengthColor: Color {
-        switch card.strength {
-        case .strong: return .riskA
-        case .moderate: return .informational
-        case .limited: return .clavixInk3
-        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(tone.bg)
+        .overlay(
+            RoundedRectangle(cornerRadius: ClavixLayout.cardRadius, style: .continuous)
+                .stroke(tone.border, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: ClavixLayout.cardRadius, style: .continuous))
     }
 }
 
-private struct SupportingEvidenceRow: View {
-    let item: SupportingEvidenceItem
+private struct HiFiDriverPlaceholder: View {
+    let tone: HiFiDriverTone
+    let title: String
+    let bodyText: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(item.kind.displayName)
-                    .font(ClavisTypography.label)
-                    .foregroundColor(.clavixInk3)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.surface)
-                    .clipShape(Capsule())
-
-                Spacer()
-
-                if let publishedAt = item.publishedAt {
-                    Text(publishedAt.formatted(date: .abbreviated, time: .omitted))
-                        .font(ClavisTypography.label)
-                        .foregroundColor(.clavixInk4)
-                }
-            }
-
-            Text(item.title)
-                .font(ClavisTypography.footnoteEmphasis)
-                .foregroundColor(.clavixInk)
+            Text(title)
+                .font(ClavisTypography.clavixSerif(16, weight: .medium))
+                .foregroundColor(tone.ink)
+            Text(bodyText)
+                .font(ClavisTypography.clavixCaption)
+                .foregroundColor(tone.ink.opacity(0.85))
                 .fixedSize(horizontal: false, vertical: true)
-
-            if !item.summary.isEmpty {
-                Text(item.summary)
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.clavixInk3)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-
-            HStack(spacing: 6) {
-                if !item.source.isEmpty {
-                    Text(item.source)
-                        .font(ClavisTypography.label)
-                        .foregroundColor(.clavixInk4)
-                }
-            }
         }
-        .padding(10)
-        .background(Color.surface)
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(tone.bg)
         .overlay(
-            RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius - 4, style: .continuous)
-                .stroke(Color.border, lineWidth: 1)
+            RoundedRectangle(cornerRadius: ClavixLayout.cardRadius, style: .continuous)
+                .stroke(tone.border, lineWidth: 1)
         )
-        .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius - 4, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: ClavixLayout.cardRadius, style: .continuous))
+    }
+}
+
+private enum HiFiDriverTone {
+    case good, warn, risk
+
+    var ink: Color {
+        switch self {
+        case .good: return .clavixGoodInk
+        case .warn: return .clavixWarnInk
+        case .risk: return .clavixBadInk
+        }
+    }
+
+    var bg: Color {
+        switch self {
+        case .good: return .clavixGoodSoft
+        case .warn: return .clavixWarnSoft
+        case .risk: return .clavixBadSoft
+        }
+    }
+
+    var border: Color {
+        switch self {
+        case .good: return .clavixGood
+        case .warn: return .clavixWarn
+        case .risk: return .clavixBad
+        }
     }
 }
