@@ -2,7 +2,7 @@ name: Clavis
 options:
   bundleIdPrefix: com.clavisdev
   deploymentTarget:
-    iOS: "16.0"
+    iOS: "17.0"
   xcodeVersion: "14.0"
   generateEmptyDirectories: true
 

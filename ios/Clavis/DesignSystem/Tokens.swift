@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────────────────────
 // Tokens.swift
 // Clavix design tokens for SwiftUI. Pasted from design_handoff_clavix/tokens/Tokens.swift
-// (source of truth: tokens.json). Adapted for iOS 16 deployment target
-// (Theme uses ObservableObject instead of @Observable).
+// (source of truth: tokens.json). Uses @Observable per the bundle spec
+// (deployment target is iOS 17+).
 //
 // This is the canonical token source. The older App/ClavixDesignTokens.swift
 // `clavix*` palette remains for legacy views and will be migrated over time.
@@ -254,12 +254,13 @@ enum CXMotion {
 // MARK: - Theme environment ------------------------------------------------
 
 /// Runtime-swappable theme: accent palette + dark mode + density multiplier.
-/// Reachable via `@Environment(\.theme)` (read-only snapshot) or
-/// `@EnvironmentObject` (observes changes — required for live theme switches).
-final class Theme: ObservableObject {
-    @Published var accent: ClavixAccent = .inkBlue
-    @Published var isDark: Bool = false
-    @Published var density: Double = 1.0   // 0.9 … 1.1
+/// Reachable via `@Environment(\.theme)`; views automatically re-render when
+/// `accent`/`isDark`/`density` change thanks to `@Observable`.
+@Observable
+final class Theme {
+    var accent: ClavixAccent = .inkBlue
+    var isDark: Bool = false
+    var density: Double = 1.0   // 0.9 … 1.1
 
     // Resolved colors — prefer these in views over raw `Color.cx*`.
     var ink: Color    { isDark ? ClavixDark.ink   : .cxInk }

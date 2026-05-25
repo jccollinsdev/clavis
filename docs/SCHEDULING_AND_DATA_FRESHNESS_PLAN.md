@@ -131,25 +131,39 @@ Times in ET. "Held" = a ticker present in any user's `positions` or `watchlist_i
 4. **HTTP caching at the route layer** — `GET /tickers/{ticker}` already has freshness; extend the same pattern to `/today`, `/holdings`, `/portfolio/sector-exposure` so iOS gets `Cache-Control: max-age` headers tied to the underlying job cadence.
 5. **External API rate limits respected by gates** — already in `services/polygon.py` (20s spacing) and Finnhub (0.12s). Don't add parallelism without bumping these.
 
-### 2.4 Scheduler execution model — three options, recommendation
+### 2.4 Scheduler execution model
 
-**Current prod state:** `PAUSE_SYSTEM_SCHEDULER=true` (in-process APScheduler disabled). All daily/structural data must be triggered manually right now.
+**Current prod state:** `PAUSE_SYSTEM_SCHEDULER=true` (in-process APScheduler disabled). The actual prod runtime is a **DigitalOcean VPS** running the `clavis-backend-1` Docker container, fronted by a Cloudflare Tunnel. `render.yaml` is a fallback / staging deploy, not the prod cron host.
 
-| Option | Pros | Cons |
-|---|---|---|
-| **A. Re-enable in-process APScheduler** (`PAUSE_SYSTEM_SCHEDULER=false`) | Zero new infra. Code already exists. Per-user dynamic cron already implemented. | Render starter plan = 1 dyno; if it sleeps/restarts, jobs can be missed. No retry guarantee. Single-worker concurrency = stampedes if a job takes long. |
-| **B. Render Cron Jobs** (separate `cron` services in `render.yaml`) | Independent infra. Retry on failure. Observable in Render dashboard. | Each cron is a new Render service ($). Need a tiny CLI entrypoint per job (`python -m app.jobs.run job_id`). |
-| **C. Supabase `pg_cron` + Edge Functions** | Cron lives next to DB. Existing functions: `save_daily_macro_regime()`, `save_daily_asset_safety_profile()`. | Heavy LLM work doesn't run in Edge. Most jobs would still call back into the Render API, doubling round-trips. |
+**Approach (confirmed with user 2026-05-25):** **Hybrid in-process APScheduler + VPS cron.**
 
-**Recommendation:** **Hybrid A + B.**
-- **In-process APScheduler (option A)** for intraday Tier-0 jobs (price polls, news, sentiment enrichment) where short cadence + at-most-best-effort is fine.
-- **Render Cron Jobs (option B)** for Tier-1+ jobs (anything daily/weekly/monthly that the morning report depends on). Each cron service runs a single command `python -m app.jobs.run <job_id>` against the same Docker image, then exits.
-- Set `PAUSE_SYSTEM_SCHEDULER=false` (now safe because intraday jobs are the only ones in-process) BUT add a `SCHEDULER_TIER` env that filters which jobs APScheduler boots — Render dynos boot only Tier-0; cron services boot only their named job.
+- **In-process APScheduler** (inside `clavis-backend-1`) for **Tier-0 intraday** jobs (price polls, 4h news refresh, 2h sentiment enrichment). These are best-effort; if the container restarts, the next tick recovers. Cheap and already implemented.
+- **VPS cron jobs** (`/etc/cron.d/clavix` on the host) for **Tier-1+ daily/weekly/monthly** jobs. Each entry shells into the running container to execute one job:
+  ```cron
+  # Format: minute hour day-of-month month day-of-week command
+  0  5 * * 1-5  root  docker exec clavis-backend-1 python -m app.jobs.run daily_macro_snapshot           >> /var/log/clavix/cron.log 2>&1
+  15 5 * * 1-5  root  docker exec clavis-backend-1 python -m app.jobs.run daily_sector_snapshot          >> /var/log/clavix/cron.log 2>&1
+  0  6 * * 1-5  root  docker exec clavis-backend-1 python -m app.jobs.run daily_composite_recompute     >> /var/log/clavix/cron.log 2>&1
+  45 6 * * 1-5  root  docker exec clavis-backend-1 python -m app.jobs.run daily_portfolio_rollup        >> /var/log/clavix/cron.log 2>&1
+  15 16 * * 1-5 root  docker exec clavis-backend-1 python -m app.jobs.run daily_eod_price_capture        >> /var/log/clavix/cron.log 2>&1
+  0  17 * * 1-5 root  docker exec clavis-backend-1 python -m app.jobs.run daily_alert_evaluation         >> /var/log/clavix/cron.log 2>&1
+  0  2 * * 6    root  docker exec clavis-backend-1 python -m app.jobs.run weekly_volatility_recompute   >> /var/log/clavix/cron.log 2>&1
+  # … see §2.2 for full cadence table
+  ```
+- New env: `SCHEDULER_TIER=intraday` on the long-running web container so APScheduler boots only Tier-0 jobs (no duplication with cron). Cron-launched processes set `SCHEDULER_TIER=none` implicitly because they exit after running their named job.
+- `PAUSE_SYSTEM_SCHEDULER` becomes legacy; can be deleted after `SCHEDULER_TIER` lands.
 
-This gives:
-- Tier-0 jobs survive a Render restart (next 5-min tick picks them up)
-- Tier-1+ jobs get explicit cron-job retry semantics + visible run history
-- No double-execution: every job is keyed by `SCHEDULER_TIER` env
+**Why VPS cron beats the alternatives here:**
+- Zero new infra cost (VPS already there)
+- Standard sysadmin observability (`/var/log/clavix/cron.log`, `journalctl`)
+- Retry semantics owned by the host (cron itself won't retry; the `job_runs` table from P3-2 records each invocation so a follow-up can detect missed runs and replay)
+- `docker exec` runs in the same container the API uses → same env, same secrets, no drift
+- No re-deploy needed to change a schedule — edit the crontab file and `systemctl reload cron`
+
+**Operational discipline:**
+- `cron.d/clavix` lives in the repo at `scripts/cron/clavix.crontab`; deploy step copies it to `/etc/cron.d/clavix` and runs `systemctl reload cron`. No drift between repo and host.
+- Log rotation via `/etc/logrotate.d/clavix-cron`.
+- A simple healthcheck cron at `*/30 * * * *` queries `job_runs` for any Tier-1 job whose `last_completed_at` is past its expected cadence and posts to a notification channel.
 
 ---
 
@@ -197,8 +211,9 @@ Goal: every system job has a place to run in prod, every job writes an audit row
 | P3-3 | New `app/jobs/run.py` CLI entrypoint: `python -m app.jobs.run <job_id>`; writes a `job_runs` row around execution. | new file | reads `job_runs` for skip-if-recent | dry-run + exit-code check |
 | P3-4 | Wire `pipeline/macro_snapshot.py` to a new `daily_macro_snapshot` job (D1) | `scheduler.py`, `app/jobs/macro_snapshot.py` | writes `macro_regime_snapshots` via existing `save_daily_macro_regime()` | upsert idempotency test |
 | P3-5 | Wire `pipeline/sector_snapshot.py` to a new `daily_sector_snapshot` job (D2). Add migration for `sector_regime_snapshots.etf_day_change_pct`, `breadth`, `momentum`, `narrative_last_refreshed` if missing. | `scheduler.py`, `app/jobs/sector_snapshot.py`, new migration | `sector_regime_snapshots` | upsert + 11-sector coverage test |
-| P3-6 | Add 6 Render cron services for: macro_snapshot (05:00), sector_snapshot (05:15), composite_recompute (06:00), portfolio_rollup (06:45), eod_price_capture (16:15), alert_evaluation (17:00). | `render.yaml` | none | manual: trigger one in staging |
-| P3-7 | Flip `PAUSE_SYSTEM_SCHEDULER=false` with `SCHEDULER_TIER=intraday` so only Tier-0 jobs boot in the web dyno. | `render.yaml` | none | watch logs for 24h |
+| P3-6 | Add `scripts/cron/clavix.crontab` with VPS cron entries for: macro_snapshot (05:00), sector_snapshot (05:15), composite_recompute (06:00), portfolio_rollup (06:45), eod_price_capture (16:15), alert_evaluation (17:00). Deploy step copies it to `/etc/cron.d/clavix` on the VPS + `systemctl reload cron`. Each entry shells `docker exec clavis-backend-1 python -m app.jobs.run <job_id>`. | `scripts/cron/clavix.crontab`, deploy script | none | dry-run `cron -n`; manual `docker exec` once |
+| P3-7 | Set `SCHEDULER_TIER=intraday` on the web container so APScheduler boots only Tier-0 jobs. Drop `PAUSE_SYSTEM_SCHEDULER` (now legacy). | container env, `app/pipeline/scheduler.py` job-registration gate | none | watch logs for 24h |
+| P3-8 | Add Postgres advisory-lock helper (per §5.5) so cron- and APScheduler-launched jobs can't double-fire. | `app/jobs/run.py`, new `app/services/job_lock.py` | uses `pg_try_advisory_lock` | concurrent-invocation test |
 
 **Acceptance:** in staging, `select count(*) from macro_regime_snapshots where as_of_date=current_date` returns 1 after 05:00 ET. Same for `sector_regime_snapshots` (11 rows). `job_runs` table has corresponding entries.
 
@@ -253,7 +268,7 @@ Goal: `★ PERSONALISED` overlays render, refresh limits enforced, outside-unive
 
 | Item | Files | DB | Tests |
 |---|---|---|---|
-| P7-1 | Per-user article personalisation at digest-compile time (D12) — generate per-user "What it means for YOU" copy referencing the user's actual holdings; store in `digests.structured_sections.personalised_articles` JSONB keyed by `event_id`. | `pipeline/portfolio_compiler.py`, `routes/digest.py` | extends `digests` JSONB | LLM-output cap + cost gate |
+| P7-1 | Per-user article personalisation at digest-compile time (D12) — **templated, NO LLM** (decision §5.1). Compose `"You hold {sh} sh of {ticker} ({weight_pct}% of book). This change moves your portfolio composite from {prev} → {next}."` from `positions` + `portfolio_risk_snapshots` deltas. Store in `digests.structured_sections.personalised_articles` JSONB keyed by `event_id`. | `pipeline/portfolio_compiler.py`, `routes/digest.py` | extends `digests` JSONB | template-snapshot test; assert zero LLM calls |
 | P7-2 | Surface personalised copy in iOS `ArticleDetailSheet`. | `ios/Clavis/Views/Tickers/ArticleDetailSheet.swift` | none | a11y label preview |
 | P7-3 | Add `refresh_attempts` table + 3/day Free rate-limit on `POST /tickers/{ticker}/refresh` (D10). 429 with retry-after header on exceed. | new migration, `routes/tickers.py` | `refresh_attempts(user_id, attempted_at, ticker, result)` | rate-limit test |
 | P7-4 | Add `positions.outside_universe` column + degraded path (D11). `POST /holdings?allow_outside_universe=true` creates with limited-data flag; `GET /tickers/{ticker}` surfaces the flag. | new migration, `routes/holdings.py`, `routes/tickers.py` | extends `positions` | round-trip test |
@@ -274,25 +289,44 @@ Goal: `★ PERSONALISED` overlays render, refresh limits enforced, outside-unive
 
 ## 5. Cost & risk
 
-### 5.1 LLM cost ceiling
+### 5.1 LLM cost ceiling (decided 2026-05-25: templated personalisation first)
 
-The biggest unknown is per-user article personalisation (P7-1). The existing news pipeline LLM cost is bounded by ticker count × articles/ticker × enrichment-cost-per-article. Personalisation multiplies that by ~user count. **Mitigation:** only personalise articles for tickers the user *actually holds* (`positions` join) and cap per-user to top-N articles per day. Estimate: ~50 articles/day/user × $0.001/article = $0.05/user/day; at 1k users = $50/day = $1.5k/mo. Budget gate required.
+Minimax coding plan = $20/mo, 45k req/week ≈ **6.4k req/day**. Existing pipeline already consumes most of this on news enrichment (≈ 3.6k/day steady-state across 503 universe tickers × 7-day windows) + 2-hourly bulk re-enrichment + backfill bursts. Headroom ≈ **2–3k req/day**.
 
-### 5.2 Render plan
+**Decision:** the `★ PERSONALISED` UI card stays in the design, but **P7 ships it as templated copy** — position size + portfolio-impact math, no LLM in the per-user write path. Concrete shape:
 
-Current backend is `plan: starter` (1 dyno). The cron-job approach adds 6+ separate Render cron services — each is billed. **Mitigation:** consolidate into a single cron service that takes a `job_id` argument and Render cron schedules them; OR upgrade to `standard` and run all jobs in-process with `SCHEDULER_TIER=cron` enabled.
+> *"You hold 420 sh of NVDA (15.6% of book). This change moves your portfolio composite from 81 → 78."*
+
+This is deterministic, auditable, free, and stays inside the "rating agency, not newsletter" tone rule in `system/00-rules.md`. **LLM-rewritten per-user copy is deferred to a later phase** (likely Pro-only) and only ships if user research shows the templated version reads flat. When/if it does ship, it must:
+- only personalise articles for tickers in the user's `positions` (not watchlist)
+- cap at top-N articles per user per day
+- have a hard `MINIMAX_DAILY_BUDGET` env that aborts the per-user step when exceeded
+- never use forecast/recommendation vocabulary
+
+At 1k users with full LLM personalisation, ~25 articles/user/day = 25k req/day → blows the Minimax plan by 4×. Templated personalisation = 0 LLM req regardless of user count.
+
+### 5.2 Infra cost
+
+VPS already provisioned — no new $ for the scheduling layer itself. APScheduler runs inside the existing `clavis-backend-1` container; cron entries are free OS-level. Only marginal cost is the slight LLM increase from running the daily composite recompute over the full universe (P4-1), which fits inside existing Minimax headroom.
 
 ### 5.3 Polygon / Finnhub rate limits
 
-P5-3 (earnings calendar) and P6-4 (IV-rank) add new API endpoints. **Mitigation:** existing global gates (Polygon 20s, Finnhub 0.12s) already serialize; new jobs inherit them. Add `429` retries with exponential backoff identical to news pipeline.
+P5-3 (earnings calendar — Finnhub free tier, confirmed) and P6-4 (IV-rank — Polygon options) add new API endpoints. **Mitigation:** existing global gates (Polygon 20s, Finnhub 0.12s) already serialize; new jobs inherit them. Add `429` retries with exponential backoff identical to news pipeline. Finnhub free tier: 60 req/min, 30 req/sec — earnings-calendar batch fits well inside this (one call per day for the whole universe).
 
 ### 5.4 Data correctness during transition
 
 Until P4 lands, `portfolio_risk_snapshots` will be empty for most users; iOS must keep rendering its existing client-side composite as a fallback. **Mitigation:** every new field in the route envelope is **optional**; iOS treats missing/`null` as "fall back to legacy path", not "error".
 
-### 5.5 Scheduler stampede
+### 5.5 Scheduler stampede prevention
 
-If multiple cron services boot the same image and call `start_scheduler()`, jobs could double-fire. **Mitigation:** `SCHEDULER_TIER=none` on every non-web service; cron services run a single `python -m app.jobs.run` and exit without calling `start_scheduler()`.
+Risk: APScheduler (in the web container) and `docker exec` cron invocations could both fire the same job. **Mitigation:**
+- `SCHEDULER_TIER=intraday` env on the web container restricts APScheduler to register only Tier-0 jobs.
+- `docker exec` cron invocations run `python -m app.jobs.run <job_id>` which exits without booting APScheduler at all.
+- Every job acquires a Postgres advisory lock keyed by `job_id` before doing real work; a duplicate invocation sees the lock and exits cleanly recording `status=skipped_lock` in `job_runs`.
+
+### 5.6 Outside-universe scope (confirmed 2026-05-25)
+
+P7-4 supports **all US-listed tickers via Polygon**. Reject ADRs / OTC / pink-sheet symbols at `POST /holdings?allow_outside_universe=true` until the degraded-mode scoring path proves stable on US-listed equities. Polygon's `/v3/reference/tickers?market=stocks&active=true&locale=us` is the source of truth for eligibility.
 
 ---
 

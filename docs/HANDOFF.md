@@ -204,7 +204,7 @@ These are non-obvious findings worth carrying forward:
 3. **`ticker_risk_snapshots.dimension_last_refreshed`** is a JSONB column already populated but **write-only** — no code reads it. P4-1 uses it as the per-dimension freshness gate.
 4. **Staleness threshold is hardcoded** at `_STALE_SNAPSHOT_THRESHOLD_HOURS = 6` in `backend/app/routes/tickers.py:57`. New cadence design wants this configurable per-domain.
 5. **Score history endpoint exists** (`GET /tickers/{ticker}/score-history`) but is sparse because the daily composite job that would fill it doesn't run universe-wide.
-6. **iOS deployment target is iOS 16**, but the AGENT_PROMPT in the bundle assumes iOS 17 (`@Observable`). The DesignSystem/Theme class was adapted to `ObservableObject` to compile. If/when target bumps to 17, can swap back.
+6. **iOS deployment target = 17.0** (bumped 2026-05-25 from 16.0). `Theme` uses `@Observable`. Pre-existing VMs that still use `ObservableObject` (`DigestViewModel`, `SettingsViewModel`, etc.) keep working — no need to refactor them; just new code can use `@Observable` freely. After the bump, 8 deprecation warnings appeared on `onChange(of:perform:)` in existing views — non-blocking, address opportunistically.
 7. **Two field-name evolutions** silently impact API parsing:
    - `Alert` v2 (migration `20260524_alerts_v2_read_state.sql`) added `read_at`, `delivered_at`, `severity`, `destination_*` columns but iOS `Alert.swift` model wasn't updated. Decoding works because fields are optional, but unread badge can't be honest until iOS picks them up.
    - `dimension_scores` was renamed and backfilled in `20260508_backfill_dimension_scores_from_old_names.sql`. Code reads both names defensively.
@@ -224,13 +224,13 @@ If you hit a rate limit / context limit mid-task:
 
 ---
 
-## 9. Open questions for the user (when next available)
+## 9. Resolved decisions (user, 2026-05-25)
 
-1. **Render scheduling choice (P3-6)**: 6+ Render cron services (extra $/mo) OR upgrade to `standard` and run cron in-process via `SCHEDULER_TIER=cron`. The plan recommends hybrid; needs sign-off because it changes the bill.
-2. **LLM personalisation budget (P7-1)**: estimated $50/day at 1k users for per-user article personalisation. Cap? Pro-only?
-3. **Outside-universe scope (P7-4)**: all US-listed tickers, or whitelist? Polygon supports US-listed.
-4. **Earnings calendar source (P5-3)**: Finnhub free tier vs. paid. Need to confirm the free tier's coverage.
-5. **iOS deployment target bump to 17**: would simplify `Theme` (back to `@Observable`) and a few other things. Worth doing as a side task, or hold for the next OS-major boundary?
+1. **Scheduling host = VPS cron**, not Render. The DigitalOcean VPS running `clavis-backend-1` is prod truth. `render.yaml` is fallback/staging. Cron entries in `scripts/cron/clavix.crontab` get copied to `/etc/cron.d/clavix` on the VPS and shell `docker exec clavis-backend-1 python -m app.jobs.run <job_id>`. See `SCHEDULING_AND_DATA_FRESHNESS_PLAN.md` §2.4.
+2. **LLM personalisation (P7-1) = templated only in v1**. No LLM in the per-user write path. Compose `"You hold {sh} sh of {ticker} ({weight}% of book). This change moves your portfolio composite from {prev} → {next}."` from `positions` + `portfolio_risk_snapshots`. LLM-rewritten per-user copy deferred indefinitely (Pro-gated if/when it ships). Reasoning: stays inside the "rating agency, not newsletter" tone rule AND keeps the Minimax $20/mo plan well inside its 45k req/week budget.
+3. **Outside-universe (P7-4) = all US-listed via Polygon `/v3/reference/tickers?market=stocks&active=true&locale=us`.** No whitelist. ADRs/OTC/pink-sheets rejected until the degraded-mode scoring path proves stable on US-listed equities.
+4. **Earnings calendar (P5-3) = Finnhub free tier.** Coverage is sufficient; one batch call per day for the whole universe sits comfortably inside the 60 req/min limit.
+5. **iOS deployment target = 17.0** (was 16). `ios/project.yml` updated, `Theme` reverted to `@Observable`, Xcode project regenerated, build verified. Existing iOS-16-compat ObservableObject VMs left alone — no need to refactor everything; just unblocks new code from using `@Observable` directly.
 
 ---
 
@@ -244,6 +244,7 @@ The auto-memory system at `~/.claude/projects/-Users-sansarkarki-Documents-Clavi
 
 ### 2026-05-25 (this handoff)
 - Landed: iOS design-system foundation (15 files, commit `4d15901d5`).
-- Landed: this handoff + `docs/SCHEDULING_AND_DATA_FRESHNESS_PLAN.md`.
+- Landed: scheduling plan + this handoff (commit `f1249d94d`).
+- Landed: user decisions applied (commit follows this entry) — VPS cron over Render cron; templated personalisation in v1; outside-universe = US-listed via Polygon; earnings calendar = Finnhub free; iOS target bumped 16 → 17 with `Theme` back to `@Observable`.
 - Blocked: nothing.
 - Resume at: Phase P3 of `docs/SCHEDULING_AND_DATA_FRESHNESS_PLAN.md`. Critical-path P3-1 → P3-4 → P3-5 → P4-1 → P4-2 → P5-2 unblocks `today-a` rendering real numbers.
