@@ -62,7 +62,7 @@ class APIService {
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot decode date")
         }
         let configuration = URLSessionConfiguration.default
-        configuration.timeoutIntervalForRequest = 12
+        configuration.timeoutIntervalForRequest = 30
         configuration.timeoutIntervalForResource = 90
         configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
         configuration.urlCache = nil
@@ -73,7 +73,7 @@ class APIService {
         path: String,
         method: String = "GET",
         body: Data? = nil,
-        timeoutInterval: TimeInterval = 12
+        timeoutInterval: TimeInterval = 30
     ) async throws -> Data {
         do {
             return try await _makeRequest(path: path, method: method, body: body, timeoutInterval: timeoutInterval)
@@ -88,7 +88,7 @@ class APIService {
         path: String,
         method: String = "GET",
         body: Data? = nil,
-        timeoutInterval: TimeInterval = 12
+        timeoutInterval: TimeInterval = 30
     ) async throws -> Data {
         guard let url = URL(string: "\(baseURL)\(path)") else {
             print("API request invalid URL base=\(baseURL) path=\(path)")
