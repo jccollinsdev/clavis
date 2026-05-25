@@ -227,10 +227,14 @@ If you hit a rate limit / context limit mid-task:
 ## 9. Resolved decisions (user, 2026-05-25)
 
 1. **Scheduling host = VPS cron**, not Render. The DigitalOcean VPS running `clavis-backend-1` is prod truth. `render.yaml` is fallback/staging. Cron entries in `scripts/cron/clavix.crontab` get copied to `/etc/cron.d/clavix` on the VPS and shell `docker exec clavis-backend-1 python -m app.jobs.run <job_id>`. See `SCHEDULING_AND_DATA_FRESHNESS_PLAN.md` §2.4.
-2. **LLM personalisation (P7-1) = templated only in v1**. No LLM in the per-user write path. Compose `"You hold {sh} sh of {ticker} ({weight}% of book). This change moves your portfolio composite from {prev} → {next}."` from `positions` + `portfolio_risk_snapshots`. LLM-rewritten per-user copy deferred indefinitely (Pro-gated if/when it ships). Reasoning: stays inside the "rating agency, not newsletter" tone rule AND keeps the Minimax $20/mo plan well inside its 45k req/week budget.
+2. **LLM personalisation (P7-1) = two-layer: structural template + LLM narrative.** Structural template always renders (zero LLM): *"You hold 420 sh of NVDA (15.6% of book). This change moves your portfolio composite from 81 → 78."* LLM-generated narrative is APPENDED (fails open if budget runs out). Cached per `(user_id, event_id, portfolio_composite_at_compose)`. Hard caps: top-5 articles/user/day, 240 chars per article. **Prerequisite: upgrade Minimax plan to $50/mo (150k req/week) before P7-1 ships** — done as part of P7-1 acceptance. Watchlist personalisation = structural only in v1. See plan §5.1 for full guardrails.
 3. **Outside-universe (P7-4) = all US-listed via Polygon `/v3/reference/tickers?market=stocks&active=true&locale=us`.** No whitelist. ADRs/OTC/pink-sheets rejected until the degraded-mode scoring path proves stable on US-listed equities.
 4. **Earnings calendar (P5-3) = Finnhub free tier.** Coverage is sufficient; one batch call per day for the whole universe sits comfortably inside the 60 req/min limit.
 5. **iOS deployment target = 17.0** (was 16). `ios/project.yml` updated, `Theme` reverted to `@Observable`, Xcode project regenerated, build verified. Existing iOS-16-compat ObservableObject VMs left alone — no need to refactor everything; just unblocks new code from using `@Observable` directly.
+6. **Apple Developer / StoreKit / SnapTrade = NOT YET OWNED.** This cycle builds everything that does NOT require them. APNs becomes a no-op behind `APNS_ENABLED=false`; paywall is a mock that says "Subscriptions are coming soon"; brokerage routes return `not_configured`. All three deferrals are loud in `backlog.md` under "Prerequisites we do not own yet" with the small bounded follow-up cycle each unlock requires. See plan §5.7.
+7. **Universe scope = S&P 500 only (~503 tickers)**, no expansion to S&P 1500 or Russell 1000. Everything else lives in the outside-universe degraded path from P7-4. Keeps API costs flat and matches the 80% market-cap coverage product threshold.
+8. **First-time onboarding UX = hybrid.** iOS renders Today immediately using the latest universe-wide snapshot; the Morning Report card shows a `generating your first report` state until the per-user sync run finishes; on completion the card swaps in. New job: `onboarding_seed_user` (P4-6). Backend exposes `GET /digest/status?user_id=...` polled at 1.5s during `.generating` state.
+9. **Score history backfill = 14 days at deploy** (compromise between full 90d and forward-only). Powers "was BBB 5 days ago" week-over-week deltas on day 1. Full 90d accrues forward over the next ~75 days. Run as a one-shot post-deploy job: `python -m app.jobs.run backfill_14d` (P3-9). Estimated ~1h with existing rate gates.
 
 ---
 
@@ -245,6 +249,7 @@ The auto-memory system at `~/.claude/projects/-Users-sansarkarki-Documents-Clavi
 ### 2026-05-25 (this handoff)
 - Landed: iOS design-system foundation (15 files, commit `4d15901d5`).
 - Landed: scheduling plan + this handoff (commit `f1249d94d`).
-- Landed: user decisions applied (commit follows this entry) — VPS cron over Render cron; templated personalisation in v1; outside-universe = US-listed via Polygon; earnings calendar = Finnhub free; iOS target bumped 16 → 17 with `Theme` back to `@Observable`.
-- Blocked: nothing.
-- Resume at: Phase P3 of `docs/SCHEDULING_AND_DATA_FRESHNESS_PLAN.md`. Critical-path P3-1 → P3-4 → P3-5 → P4-1 → P4-2 → P5-2 unblocks `today-a` rendering real numbers.
+- Landed: round-1 user decisions — VPS cron / templated personalisation / outside-universe = US-listed / earnings = Finnhub free / iOS 17 bump (commit `2eb474d14`).
+- Landed: round-2 user decisions (commit follows) — personalisation reverted to LLM-driven with Minimax upgrade; universe stays S&P 500; hybrid onboarding (P4-6 added); 14-day deploy-time history backfill (P3-9 added); explicit deferral of Apple Dev + StoreKit + SnapTrade with stub-behaviour spec (plan §5.7, `backlog.md` "Prerequisites we do not own yet").
+- Blocked: nothing in this cycle. Apple Dev / StoreKit / SnapTrade gate a separate small follow-up cycle once owned.
+- Resume at: **Phase P3 of `docs/SCHEDULING_AND_DATA_FRESHNESS_PLAN.md`**. Critical-path P3-1 → P3-4 → P3-5 → P3-9 → P4-1 → P4-2 → P4-6 → P5-2 unblocks `today-a` rendering real numbers AND onboarding showing real personalised content within ~30s.

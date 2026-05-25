@@ -1,9 +1,24 @@
 # Clavix Backlog - VisualQA Data Gaps
 
-Updated: 2026-05-23  
-Source: `ios/Clavis/App/ClavixVisualQA.swift`, `docs/UI_ELEMENT_DATA_AUDIT.md`, `docs/BACKEND_DATA_GENERATION_PLAN.md`, `docs/UI_DATA_CONTRACT_MATRIX.md`
+Updated: 2026-05-25 (added "Prerequisites we do not own yet")
+Source: `ios/Clavis/App/ClavixVisualQA.swift`, `docs/UI_ELEMENT_DATA_AUDIT.md`, `docs/BACKEND_DATA_GENERATION_PLAN.md`, `docs/UI_DATA_CONTRACT_MATRIX.md`, `docs/SCHEDULING_AND_DATA_FRESHNESS_PLAN.md`
 
 This backlog is tied only to visible VisualQA gaps. It is not a generic refactor task list.
+
+## ⚠️ Prerequisites we do not own yet (decided 2026-05-25)
+
+These three external dependencies are NOT in place and gate parts of the implementation. The current cycle builds everything that does NOT require them; once obtained, each unlock is a small bounded follow-up.
+
+| Prerequisite | Cost / steps | What it unlocks | Stub behavior in the meantime |
+|---|---|---|---|
+| **Apple Developer Program** ($99/yr) | Apple ID → enrol → 24-48h verification → TestFlight + APNs key generation | Push notifications (APNs); TestFlight distribution; App Store submission; StoreKit | `services/apns.py` is a no-op logger. `/health` reports `apns: missing` honestly. `AlertsView` renders from the `alerts` DB table; alerts fire and store but never push to a device. |
+| **StoreKit 2 setup** (depends on Apple Dev) | App Store Connect → create products (`clavix_pro_monthly`, `clavix_pro_annual`) → server-side webhook for entitlement verification → integrate StoreKit 2 client in iOS | Real paywall purchase flow; real Pro entitlement | "Mock paywall" — paywall screen renders Free/Pro comparison + price + 14-day trial CTA; CTA shows a "Subscriptions are coming soon" sheet. Admin route can flip `user_preferences.subscription_tier` manually to test Pro gates. |
+| **SnapTrade developer account** (free dev tier) | snaptrade.com → create app → get client_id + secret → set env vars on VPS | Real brokerage sync (Robinhood, Schwab, Fidelity, etc.) | `/brokerage/*` routes return `{"status":"not_configured"}`. Holdings "Sync brokerage" CTA shows a "Brokerage sync is coming soon" sheet. `positions.synced_from_brokerage` column stays in schema; no code populates it. |
+
+**Implementation impact:**
+- Alert hysteresis engine + DB writes + in-app surface (`AlertsView`) all ship.
+- Real APNs delivery sits behind `APNS_ENABLED=false`; flipping to `true` once the Apple Dev account is set up is a one-env-var change.
+- Real paywall + StoreKit + SnapTrade ship as a single bundled follow-up cycle once all 3 prerequisites are in hand.
 
 ## P0 - Required To Make VisualQA Honestly Live
 

@@ -214,14 +214,15 @@ Goal: every system job has a place to run in prod, every job writes an audit row
 | P3-6 | Add `scripts/cron/clavix.crontab` with VPS cron entries for: macro_snapshot (05:00), sector_snapshot (05:15), composite_recompute (06:00), portfolio_rollup (06:45), eod_price_capture (16:15), alert_evaluation (17:00). Deploy step copies it to `/etc/cron.d/clavix` on the VPS + `systemctl reload cron`. Each entry shells `docker exec clavis-backend-1 python -m app.jobs.run <job_id>`. | `scripts/cron/clavix.crontab`, deploy script | none | dry-run `cron -n`; manual `docker exec` once |
 | P3-7 | Set `SCHEDULER_TIER=intraday` on the web container so APScheduler boots only Tier-0 jobs. Drop `PAUSE_SYSTEM_SCHEDULER` (now legacy). | container env, `app/pipeline/scheduler.py` job-registration gate | none | watch logs for 24h |
 | P3-8 | Add Postgres advisory-lock helper (per §5.5) so cron- and APScheduler-launched jobs can't double-fire. | `app/jobs/run.py`, new `app/services/job_lock.py` | uses `pg_try_advisory_lock` | concurrent-invocation test |
+| P3-9 | One-shot deploy-time 14-day backfill of `ticker_risk_snapshots` for the universe (decided 2026-05-25). Reuses `daily_composite_recompute_universe` looped over `[today-14, today-1]`. Run manually post-deploy: `python -m app.jobs.run backfill_14d`. ~503 tickers × 14 days = 7k rows; estimated ~1h with existing rate gates. Powers "was BBB 5 days ago" week-over-week deltas on day 1. | new `app/jobs/backfill_14d.py` | `ticker_risk_snapshots` | smoke test on 5 tickers × 14 days first |
 
 **Acceptance:** in staging, `select count(*) from macro_regime_snapshots where as_of_date=current_date` returns 1 after 05:00 ET. Same for `sector_regime_snapshots` (11 rows). `job_runs` table has corresponding entries.
 
 **Rollback:** flip `PAUSE_SYSTEM_SCHEDULER=true` and disable Render cron services. No schema changes are destructive.
 
-### Phase P4 — Daily composite + portfolio rollup (3 days)
+### Phase P4 — Daily composite + portfolio rollup + hybrid onboarding (3 days)
 
-Goal: every S&P ticker has a fresh `ticker_risk_snapshots` row each morning before the 07:00 ET digest; every user has a fresh `portfolio_risk_snapshots` row.
+Goal: every S&P ticker has a fresh `ticker_risk_snapshots` row each morning before the 07:00 ET digest; every user has a fresh `portfolio_risk_snapshots` row; new users see snapshot data instantly with personalised digest gated behind a sync run (decided 2026-05-25).
 
 | Item | Files | DB | Tests |
 |---|---|---|---|
@@ -230,6 +231,7 @@ Goal: every S&P ticker has a fresh `ticker_risk_snapshots` row each morning befo
 | P4-3 | Extend `GET /holdings` envelope per `UI_DATA_CONTRACT_MATRIX.md` to include `portfolio{value, composite_score, score_delta, previous_score, dimensions[]}` from P4-2's snapshot. | `routes/holdings.py`, `Models/Position.swift` (iOS) | reads `portfolio_risk_snapshots` | snapshot envelope test |
 | P4-4 | Extend `GET /today` (or `/digest` if not yet promoted) similarly. | `routes/today.py` or `routes/digest.py` | same | same |
 | P4-5 | Daily score-history accrues — verify `/tickers/{ticker}/score-history` returns growing series after P4-1 runs for 2+ days. | none (read-only validation) | none | integration test |
+| P4-6 | **Hybrid onboarding** (decided 2026-05-25): new `onboarding_seed_user` job triggered on first holdings save. iOS renders the Today screen IMMEDIATELY using the latest universe-wide snapshot (P4-1's output); the Morning Report card on Today shows a `generating your first report` state until the per-user sync run finishes; on completion the Morning Report card swaps in. Required iOS state machine: `MorningReportState = .placeholder | .generating(started_at) | .ready(digest)`. Backend exposes `GET /digest/status?user_id=...` polled at 1.5s during `.generating`. | new `app/jobs/onboarding_seed_user.py`, `routes/digest.py` (status endpoint), iOS `DigestViewModel` state machine | reads `analysis_runs` + `digests` | onboarding-flow integration test |
 
 **Acceptance:** after 2 ET trading days post-deploy, every user with positions has 2 `portfolio_risk_snapshots` rows; iOS Today header shows `score_delta` instead of `—`.
 
@@ -268,7 +270,7 @@ Goal: `★ PERSONALISED` overlays render, refresh limits enforced, outside-unive
 
 | Item | Files | DB | Tests |
 |---|---|---|---|
-| P7-1 | Per-user article personalisation at digest-compile time (D12) — **templated, NO LLM** (decision §5.1). Compose `"You hold {sh} sh of {ticker} ({weight_pct}% of book). This change moves your portfolio composite from {prev} → {next}."` from `positions` + `portfolio_risk_snapshots` deltas. Store in `digests.structured_sections.personalised_articles` JSONB keyed by `event_id`. | `pipeline/portfolio_compiler.py`, `routes/digest.py` | extends `digests` JSONB | template-snapshot test; assert zero LLM calls |
+| P7-1 | Per-user article personalisation at digest-compile time (D12). Two-layer per §5.1: (a) **structural template** (always renders) — `"You hold {sh} sh of {ticker} ({weight_pct}% of book). This change moves your portfolio composite from {prev} → {next}."` from `positions` + `portfolio_risk_snapshots` deltas; (b) **LLM-generated narrative** (appended, fails open) — Minimax call with rating-agency system prompt + banned-vocab post-filter, cached per `(user_id, event_id, portfolio_composite_at_compose)`, capped at top-5 articles/user/day. Hard `MINIMAX_DAILY_BUDGET` env. Store both layers in `digests.structured_sections.personalised_articles` JSONB keyed by `event_id`. **Prerequisite:** Minimax plan upgraded to $50/mo tier (150k req/week) before this ships. | `pipeline/portfolio_compiler.py`, `routes/digest.py`, new `services/personalisation.py` | extends `digests` JSONB | template-snapshot test; banned-vocab regex test on LLM output; budget-exhausted-fallback test |
 | P7-2 | Surface personalised copy in iOS `ArticleDetailSheet`. | `ios/Clavis/Views/Tickers/ArticleDetailSheet.swift` | none | a11y label preview |
 | P7-3 | Add `refresh_attempts` table + 3/day Free rate-limit on `POST /tickers/{ticker}/refresh` (D10). 429 with retry-after header on exceed. | new migration, `routes/tickers.py` | `refresh_attempts(user_id, attempted_at, ticker, result)` | rate-limit test |
 | P7-4 | Add `positions.outside_universe` column + degraded path (D11). `POST /holdings?allow_outside_universe=true` creates with limited-data flag; `GET /tickers/{ticker}` surfaces the flag. | new migration, `routes/holdings.py`, `routes/tickers.py` | extends `positions` | round-trip test |
@@ -289,21 +291,29 @@ Goal: `★ PERSONALISED` overlays render, refresh limits enforced, outside-unive
 
 ## 5. Cost & risk
 
-### 5.1 LLM cost ceiling (decided 2026-05-25: templated personalisation first)
+### 5.1 LLM personalisation (decided 2026-05-25 v2: LLM-driven on Minimax upgrade)
 
-Minimax coding plan = $20/mo, 45k req/week ≈ **6.4k req/day**. Existing pipeline already consumes most of this on news enrichment (≈ 3.6k/day steady-state across 503 universe tickers × 7-day windows) + 2-hourly bulk re-enrichment + backfill bursts. Headroom ≈ **2–3k req/day**.
+The `★ PERSONALISED` UI card on `news-main` and `alerts-detail` ships with **LLM-generated per-user copy** referencing the user's actual positions, position size, and portfolio impact.
 
-**Decision:** the `★ PERSONALISED` UI card stays in the design, but **P7 ships it as templated copy** — position size + portfolio-impact math, no LLM in the per-user write path. Concrete shape:
+**Budget math:**
+- Current Minimax coding plan: $20/mo, 45k req/week ≈ 6.4k/day. Existing pipeline burns ~3.6k/day steady-state on news enrichment + bursts.
+- Available upgrade: $50/mo total ($30 extra), 150k req/week ≈ 21k/day. Comfortable headroom for personalisation at projected user count.
+- **Action:** upgrade Minimax plan before P7-1 ships. Plan upgrade is part of the P7-1 acceptance criteria.
 
-> *"You hold 420 sh of NVDA (15.6% of book). This change moves your portfolio composite from 81 → 78."*
+**Hard guardrails in the personalisation job (must hold even with the upgraded plan):**
+- Only personalise articles for tickers in the user's `positions` (NOT watchlist — watchlist gets templated structural personalisation only).
+- Cap at top-5 articles per user per day, ranked by absolute portfolio-composite impact.
+- Hard `MINIMAX_DAILY_BUDGET` env that short-circuits the per-user step when the day's overall LLM budget is exceeded (the structural templated overlay still renders — user never sees a blank card).
+- **No forecast / recommendation vocabulary** — prompt explicitly enforces rating-agency tone, banned-vocabulary list from `design_handoff/system/00-rules.md` is part of the system prompt + a regex post-filter.
+- Output cap: 240 chars per article, 3 sentences max.
+- Cache per `(user_id, event_id, portfolio_composite_at_compose)` — if the user's portfolio composite hasn't moved meaningfully and the article hasn't been re-scored, reuse the prior personalisation.
 
-This is deterministic, auditable, free, and stays inside the "rating agency, not newsletter" tone rule in `system/00-rules.md`. **LLM-rewritten per-user copy is deferred to a later phase** (likely Pro-only) and only ships if user research shows the templated version reads flat. When/if it does ship, it must:
-- only personalise articles for tickers in the user's `positions` (not watchlist)
-- cap at top-N articles per user per day
-- have a hard `MINIMAX_DAILY_BUDGET` env that aborts the per-user step when exceeded
-- never use forecast/recommendation vocabulary
+**Templated fallback for free-tier users + budget-exceeded states:**
+The structural template — *"You hold 420 sh of NVDA (15.6% of book). This change moves your portfolio composite from 81 → 78."* — always renders as the FIRST line of the personalised card. LLM-generated narrative is APPENDED to that, and is the part that fails open if budget runs out. Card never collapses; it just degrades gracefully to structural-only.
 
-At 1k users with full LLM personalisation, ~25 articles/user/day = 25k req/day → blows the Minimax plan by 4×. Templated personalisation = 0 LLM req regardless of user count.
+**Watchlist personalisation:**
+- v1: structural only (*"You're tracking META. Score moved AA → A overnight."*). No LLM.
+- v2 (P8+ if user research demands it): same LLM treatment as positions, gated to Pro.
 
 ### 5.2 Infra cost
 
@@ -327,6 +337,20 @@ Risk: APScheduler (in the web container) and `docker exec` cron invocations coul
 ### 5.6 Outside-universe scope (confirmed 2026-05-25)
 
 P7-4 supports **all US-listed tickers via Polygon**. Reject ADRs / OTC / pink-sheet symbols at `POST /holdings?allow_outside_universe=true` until the degraded-mode scoring path proves stable on US-listed equities. Polygon's `/v3/reference/tickers?market=stocks&active=true&locale=us` is the source of truth for eligibility.
+
+### 5.7 Prerequisites the user does not yet own (decided 2026-05-25)
+
+Three external dependencies are **not available** for this implementation cycle and gate parts of P7+. Build everything the prerequisite does NOT require; clearly mark the stubs.
+
+| Prerequisite | What's blocked | Build instead | Where to revisit |
+|---|---|---|---|
+| **Apple Developer account** | APNs push delivery; TestFlight; App Store paywall | Alert engine writes to `alerts` table + iOS in-app `AlertsView` only. `services/apns.py` becomes a no-op that logs the payload it would have sent. `/health` continues to report `apns: missing` honestly. | `backlog.md` "Prerequisites we do not own yet" |
+| **StoreKit 2 / RevenueCat** | Real paywall + entitlement verification + Pro-gated features being purchasable | "Mock paywall" — paywall screen renders with Free/Pro comparison + price + 14-day-trial CTA, but the CTA opens a sheet that says "Subscriptions are coming soon" instead of triggering StoreKit. `user_preferences.subscription_tier` stays manually editable via admin route. Pro gates on the backend (verbose digest, manual refresh, watchlist alerts) work against the static `subscription_tier` value. | `backlog.md` same section |
+| **SnapTrade account** | Real brokerage sync | Brokerage sync routes (`/brokerage/*`) exist but return `{"status":"not_configured"}`. Holdings tab "Sync brokerage" CTA opens a sheet that says "Brokerage sync is coming soon". `positions.synced_from_brokerage` column stays in schema but no code populates it in this cycle. | `backlog.md` same section |
+
+**Implication for P7-6 (alert hysteresis):** ship the DB-side engine + in-app surface (AlertsView already renders from `alerts` table). The push-delivery step gets a real implementation behind an `APNS_ENABLED=false` env that defaults to off; flipping to true once the Apple Dev account exists is then a one-env-var change.
+
+**Implication for P0_P1_P2_IMPLEMENTATION_PLAN.md P2-4 (payments):** untouched in this cycle. Defer until Apple Dev account + StoreKit are set up.
 
 ---
 
