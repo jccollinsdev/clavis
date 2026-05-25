@@ -288,3 +288,28 @@ Codex authored three P8 job modules and the etf_holdings migration but ran out o
 2. iOS: `cd ios && xcodegen && xcodebuild build_sim`. Boot the sim. **Today tab** should now show a populated sector-heat grid (after the macro/sector cron has run at least once in prod) and a non-`—` portfolio composite delta. **Ticker Detail → Methodology drawer** should show peer comparisons + sector medians where data exists.
 3. Backend: `cd backend && /opt/homebrew/bin/python3.11 -m pytest tests/ -q` should return 53+ passed.
 4. Cron sanity (on the VPS): `crontab -l -u root | grep clavix` should show 13 entries (was 10 pre-P8).
+
+### 2026-05-25 (Codex deferred-items completion run)
+- Landed: `8fce49d4f` — **feat(p3-9): one-shot 14d ticker-risk-snapshot backfill.** Added `backend/app/jobs/backfill_14d.py`, threaded `target_date` through `daily_composite_recompute_universe`, registered `backfill_14d` as a manual job, and added tests for dry-run + per-day dispatch.
+- Landed: `0ada303e9` — **feat(p7-1): two-layer per-user article personalisation.** Added `backend/app/services/personalisation.py`, digest-time persistence in `digests.structured_sections.personalised_articles`, methodology/ticker-news reattachment, and iOS `ArticleDetailSheet` rendering inside the existing `★ PERSONALISED` card.
+- Landed: `70c9bc18c` — **feat(p6-5): monthly macro regression refresh + factor exposures.** Added `backend/app/jobs/macro_regression.py`, monthly job registry wiring + cron entry, methodology `factor_exposures`, and synthetic regression tests. Added `numpy` to `backend/requirements.txt` because the repo’s Python 3.11 environment did not previously have it installed.
+- Landed: `7d4fb5a56` — **feat(p6-4): IV-rank + implied vol fallback for volatility audit.** Added `backend/app/services/polygon_options.py`, threaded `implied_vol_30d` + `iv_rank` into volatility inputs, and kept an explicit `iv_source="estimated"` fallback when options data is unavailable.
+- Landed: `d8d7adf49` — **feat(p8-2): real issuer-API ETF holdings ingestion.** Replaced static-only writes with issuer-backed fetchers for SPY (SSGA workbook), QQQ (Invesco JSON, stored as `source="invictus"` per plan wording), and VTI (Vanguard holdings API), with static-seed fallback + warning logging preserved.
+
+**Verification (this session):**
+- Targeted backend tests passed for each item:
+  - P3-9: `tests/test_p3_9_backfill.py tests/test_p4_jobs.py tests/test_jobs_runner.py`
+  - P7-1: `tests/test_p7_1_personalisation.py tests/test_portfolio_compiler_summary_length.py tests/test_digest_force_refresh.py`
+  - P6-5: `tests/test_p6_5_macro_regression.py tests/test_p6_methodology_depth.py tests/test_jobs_runner.py`
+  - P6-4: `tests/test_p6_4_polygon_options.py tests/test_p6_methodology_depth.py`
+  - P8-2: `tests/test_p8_2_etf_holdings.py tests/test_jobs_runner.py`
+- iOS regeneration + build passed for the P7-1 UI surface: `cd ios && xcodegen && xcodebuild -scheme Clavis -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17' build`
+- Full backend suite still stops on the same pre-existing first failure as earlier in the day: `tests/test_article_scraper_resolution.py::test_attach_decoded_google_news_urls_rewrites_wrapper_urls`
+
+**Blocked / remaining work:**
+- No planned deferred items remain from the 2026-05-25 Codex run.
+- One unrelated repo-level test failure remains pre-existing in `tests/test_article_scraper_resolution.py`; it was not part of this deferred-items scope.
+
+**Resume point for the next agent:**
+- Start with the pre-existing Google News URL rewrite test if you want the full backend suite green.
+- Otherwise, the product-facing deferred backlog from the prior run is complete; next work can come from new user priorities rather than this handoff chain.
