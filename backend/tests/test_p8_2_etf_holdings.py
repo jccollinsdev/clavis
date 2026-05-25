@@ -64,14 +64,14 @@ def test_monthly_etf_holdings_refresh_uses_live_issuer_rows(monkeypatch):
     )
     monkeypatch.setattr(
         etf_holdings,
-        "_fetch_invictus_holdings",
+        "_fetch_invesco_holdings",
         lambda ticker: [
             {
                 "etf_ticker": "QQQ",
                 "holding_ticker": "NVDA",
                 "weight_pct": 8.5,
                 "rank": 1,
-                "source": "invictus",
+                "source": "invesco",
                 "as_of": "2026-05-25",
             }
         ],
@@ -96,7 +96,7 @@ def test_monthly_etf_holdings_refresh_uses_live_issuer_rows(monkeypatch):
     assert result["items_processed"] == 3
     table_name, rows = db.upsert_calls[0]
     assert table_name == "etf_holdings"
-    assert {row["source"] for row in rows} == {"ssga", "invictus", "vanguard"}
+    assert {row["source"] for row in rows} == {"ssga", "invesco", "vanguard"}
     assert db.upsert_conflicts == ["etf_ticker,holding_ticker,as_of"]
 
 

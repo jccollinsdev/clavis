@@ -90,28 +90,29 @@ def test_diff_universe_normalises_case():
 
 
 # ---------------------------------------------------------------------------
-# etf_holdings.rows_for_etf — pure helper
+# etf_holdings._fallback_rows — pure helper (renamed in commit d8d7adf49
+# when issuer-API fetchers were added; static seeds now live in
+# ETF_STATIC_SEEDS and the public path is _fallback_rows)
 # ---------------------------------------------------------------------------
 
 
-def test_rows_for_etf_returns_ranked_top_holdings():
-    rows = etf_holdings.rows_for_etf("SPY", as_of="2026-05-25")
-    assert rows, "SPY seed must produce rows"
+def test_fallback_rows_returns_ranked_top_static_holdings():
+    rows = etf_holdings._fallback_rows("SPY", as_of="2026-05-25")
+    assert rows, "SPY static seed must produce rows"
     assert rows[0]["etf_ticker"] == "SPY"
     assert rows[0]["rank"] == 1
     assert rows[0]["holding_ticker"] == "AAPL"
     assert all(row["as_of"] == "2026-05-25" for row in rows)
     assert all(row["source"] == "static_seed" for row in rows)
-    # ranks are monotonic + dense
     assert [row["rank"] for row in rows] == list(range(1, len(rows) + 1))
 
 
-def test_rows_for_etf_unknown_ticker_yields_empty():
-    assert etf_holdings.rows_for_etf("ZZZZ", as_of="2026-05-25") == []
+def test_fallback_rows_unknown_ticker_yields_empty():
+    assert etf_holdings._fallback_rows("ZZZZ", as_of="2026-05-25") == []
 
 
-def test_rows_for_etf_normalises_ticker_case():
-    rows = etf_holdings.rows_for_etf("spy", as_of="2026-05-25")
+def test_fallback_rows_normalises_ticker_case():
+    rows = etf_holdings._fallback_rows("spy", as_of="2026-05-25")
     assert rows and rows[0]["etf_ticker"] == "SPY"
 
 

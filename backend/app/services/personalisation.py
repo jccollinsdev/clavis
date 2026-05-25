@@ -21,6 +21,7 @@ BANNED_VOCABULARY_BLOCK = """## Banned vocabulary
 """
 
 _BANNED_PATTERNS = (
+    # From system/00-rules.md "Banned vocabulary" table
     "coverage",
     "monitor",
     "momentum",
@@ -36,6 +37,12 @@ _BANNED_PATTERNS = (
     "forecast",
     "Clavis",
     "SnapTrade",
+    # From "What Clavix is NOT" prose section of system/00-rules.md:
+    # "No buy / sell / hold. No price targets. No earnings forecasts."
+    "buy",
+    "sell",
+    "hold",
+    "recommend",
 )
 _BANNED_REGEX = re.compile(
     r"\b(?:"

@@ -1946,6 +1946,7 @@ def _project_shared_summary_compatibility(
 
 def _project_shared_detail_compatibility(
     *,
+    supabase,
     ticker: str,
     shared_detail: dict[str, Any],
     portfolio_overlay: dict[str, Any],
@@ -3496,6 +3497,7 @@ def get_ticker_detail_bundle(
         current_price=metadata.get("price"),
     )
     return _project_shared_detail_compatibility(
+        supabase=supabase,
         ticker=ticker,
         shared_detail=shared_detail,
         portfolio_overlay=overlay,

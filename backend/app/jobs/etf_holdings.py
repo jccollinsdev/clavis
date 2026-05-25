@@ -23,7 +23,7 @@ ETF_STATIC_SEEDS: dict[str, list[tuple[str, float]]] = {
 TOP_HOLDINGS_LIMIT = 10
 REQUEST_HEADERS = {"User-Agent": "Mozilla/5.0"}
 VANGUARD_PORT_IDS = {"VTI": "0970"}
-INVICTUS_HOLDINGS_URL = (
+INVESCO_HOLDINGS_URL = (
     "https://dng-api.invesco.com/cache/v1/accounts/en_US/shareclasses/{ticker}/holdings/fund"
     "?idType=ticker&interval=monthly&productType=ETF&loadType=initial"
 )
@@ -129,11 +129,11 @@ def _fetch_ssga_holdings(ticker: str) -> list[dict[str, Any]]:
     return _rows_for_holdings(ticker, holdings, as_of=as_of, source="ssga")
 
 
-def _fetch_invictus_holdings(ticker: str) -> list[dict[str, Any]]:
+def _fetch_invesco_holdings(ticker: str) -> list[dict[str, Any]]:
     if ticker.upper() != "QQQ":
         return []
     response = requests.get(
-        INVICTUS_HOLDINGS_URL.format(ticker=ticker.upper()),
+        INVESCO_HOLDINGS_URL.format(ticker=ticker.upper()),
         timeout=20,
         headers=REQUEST_HEADERS,
     )
@@ -152,7 +152,7 @@ def _fetch_invictus_holdings(ticker: str) -> list[dict[str, Any]]:
             holdings.append((holding_ticker, weight))
         if len(holdings) >= TOP_HOLDINGS_LIMIT:
             break
-    return _rows_for_holdings(ticker, holdings, as_of=as_of, source="invictus")
+    return _rows_for_holdings(ticker, holdings, as_of=as_of, source="invesco")
 
 
 def _fetch_vanguard_holdings(ticker: str) -> list[dict[str, Any]]:
@@ -188,7 +188,7 @@ def _fetch_live_rows(ticker: str) -> list[dict[str, Any]]:
     if upper == "SPY":
         return _fetch_ssga_holdings(upper)
     if upper == "QQQ":
-        return _fetch_invictus_holdings(upper)
+        return _fetch_invesco_holdings(upper)
     if upper == "VTI":
         return _fetch_vanguard_holdings(upper)
     return []

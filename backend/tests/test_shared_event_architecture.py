@@ -225,7 +225,7 @@ class TestEventCompatibilityProjection:
         detail = self._shared_detail()
         overlay = tcs.build_portfolio_overlay(ticker="AMD")
         result = tcs._project_shared_detail_compatibility(
-            ticker="AMD", shared_detail=detail, portfolio_overlay=overlay,
+            supabase=None, ticker="AMD", shared_detail=detail, portfolio_overlay=overlay,
             base_position={"ticker": "AMD"}, metadata={},
             snapshot=None,
             latest_refresh_job=None, latest_analysis_run=None,
