@@ -14,10 +14,12 @@ from fastapi import HTTPException
 
 from ..pipeline.risk_scorer import score_position_structural
 from ..pipeline.analysis_utils import score_to_grade, grade_direction, sanitize_rationale, sanitize_public_analysis_text, format_rationale, evidence_strength, sanitize_text_field, normalize_event_analysis_payload
+from ..pipeline.structural_scorer import estimate_iv_rank_from_realized_vol, percentile_rank
 from ..pipeline.position_report_builder import _build_driver_cards
 from .alert_payloads import enrich_alert_rows
 from .macro_regression import FACTOR_TICKERS, macro_regression_to_audit_jsonb, run_macro_regression
 from .polygon import fetch_aggs
+from .polygon_options import fetch_near_term_implied_vol_30d
 from .ticker_metadata import upsert_ticker_metadata
 
 
@@ -378,6 +380,8 @@ def _build_sector_exposure_inputs(
 
 
 def _build_volatility_inputs(
+    supabase,
+    ticker: str,
     ticker_bars: list[dict[str, Any]],
     spy_bars: list[dict[str, Any]],
     *,
@@ -396,14 +400,83 @@ def _build_volatility_inputs(
     )
     beta_to_spy = _beta_from_returns(ticker_returns, spy_returns)
     max_drawdown_252d = _max_drawdown(ticker_closes, 252)
+    options_snapshot = fetch_near_term_implied_vol_30d(ticker)
+    implied_vol_30d = (
+        options_snapshot.get("implied_vol_30d")
+        if isinstance(options_snapshot, dict)
+        else None
+    )
+    historical_iv = _historical_implied_vol_history(supabase, ticker)
+    if implied_vol_30d is not None and not historical_iv:
+        historical_iv = _rolling_realized_vol_history(ticker_closes)
+    iv_rank = percentile_rank(implied_vol_30d, historical_iv)
+    iv_source = "polygon" if implied_vol_30d is not None else "estimated"
+    if iv_rank is None:
+        iv_rank = estimate_iv_rank_from_realized_vol(realized_vol_30d, realized_vol_90d)
+        if iv_rank is not None:
+            iv_source = "estimated"
     return {
         "realized_vol_30d": round(realized_vol_30d, 4) if realized_vol_30d is not None else None,
         "realized_vol_90d": round(realized_vol_90d, 4) if realized_vol_90d is not None else None,
         "vol_ratio": round(vol_ratio, 4) if vol_ratio is not None else None,
         "max_drawdown_252d": round(max_drawdown_252d, 4) if max_drawdown_252d is not None else None,
         "beta_to_spy": round(beta_to_spy, 4) if beta_to_spy is not None else None,
+        "implied_vol_30d": implied_vol_30d,
+        "iv_rank": iv_rank,
+        "iv_source": iv_source,
         "as_of_date": as_of_date,
     }
+
+
+def _historical_implied_vol_history(
+    supabase,
+    ticker: str,
+    *,
+    limit: int = 252,
+) -> list[float]:
+    rows = (
+        supabase.table("ticker_risk_snapshots")
+        .select("dimension_inputs,snapshot_date")
+        .eq("ticker", ticker)
+        .order("snapshot_date", desc=True)
+        .limit(limit)
+        .execute()
+        .data
+        or []
+    )
+    history: list[float] = []
+    for row in rows:
+        dimension_inputs = row.get("dimension_inputs") or {}
+        if not isinstance(dimension_inputs, dict):
+            continue
+        volatility_inputs = dimension_inputs.get("volatility") or {}
+        if not isinstance(volatility_inputs, dict):
+            continue
+        implied_vol = _coerce_float(
+            volatility_inputs.get("implied_vol_30d")
+            if volatility_inputs.get("implied_vol_30d") is not None
+            else volatility_inputs.get("implied_volatility")
+        )
+        if implied_vol is not None and implied_vol > 0:
+            history.append(implied_vol)
+    return history
+
+
+def _rolling_realized_vol_history(
+    closes: list[float],
+    *,
+    window: int = 30,
+    limit: int = 252,
+) -> list[float]:
+    if len(closes) < window + 1:
+        return []
+    history: list[float] = []
+    for end_index in range(window, len(closes)):
+        slice_closes = closes[end_index - window : end_index + 1]
+        vol = _annualized_volatility(slice_closes, window)
+        if vol is not None:
+            history.append(round(vol, 4))
+    return history[-limit:]
 
 
 def _build_macro_exposure_inputs(
@@ -3604,6 +3677,8 @@ def refresh_ticker_snapshot(
         macro_inputs = _build_macro_exposure_inputs(macro_result, factor_bars_map)
         sector_inputs = _build_sector_exposure_inputs(ticker, metadata, ticker_bars)
         volatility_inputs = _build_volatility_inputs(
+            supabase,
+            ticker,
             ticker_bars,
             factor_bars_map.get("spy", []),
             as_of_date=target_date_iso,

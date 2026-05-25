@@ -155,6 +155,19 @@ def estimate_iv_rank_from_realized_vol(
     return round(max(0.0, min(100.0, (ratio - 0.5) * 100.0)), 1)
 
 
+def percentile_rank(
+    current_value: Optional[float],
+    history: list[float],
+) -> float | None:
+    if current_value is None:
+        return None
+    cleaned = [float(value) for value in history if value is not None]
+    if not cleaned:
+        return None
+    less_or_equal = sum(1 for value in cleaned if value <= current_value)
+    return round(max(0.0, min(100.0, less_or_equal / len(cleaned) * 100.0)), 1)
+
+
 def get_leverage_score(leverage_profile: str = "moderate") -> tuple[float, float]:
     bucket = LEVERAGE_SCORES.get(leverage_profile, LEVERAGE_SCORES["moderate"])
     return 50 + bucket["bonus"], bucket["confidence_boost"]

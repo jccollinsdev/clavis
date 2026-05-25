@@ -160,4 +160,4 @@ async def test_methodology_response_includes_audit_depth(monkeypatch):
     assert sum(row["count"] for row in news["article_histogram_14d"]) == 1
     assert news["sentiment_distribution"][0]["bucket"] == "positive"
     assert vol["iv_rank"] is not None
-    assert vol["iv_source"] == "realized_vol_fallback"
+    assert vol["iv_source"] == "estimated"

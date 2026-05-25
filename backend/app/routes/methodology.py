@@ -235,7 +235,7 @@ async def get_ticker_methodology(
             volatility_inputs.get("realized_vol_90d"),
         )
         if iv_rank is not None:
-            iv_source = "realized_vol_fallback"
+            iv_source = "estimated"
 
     # Compute weighted news score on-the-fly from available articles when
     # the cached value is absent — this is a cheap in-memory calculation.
@@ -378,11 +378,16 @@ async def get_ticker_methodology(
                 "max_drawdown_252d": volatility_inputs.get("max_drawdown_252d"),
                 "beta_to_spy": volatility_inputs.get("beta_to_spy"),
                 "iv_rank": iv_rank,
-                "implied_volatility": volatility_inputs.get("implied_volatility"),
+                "implied_volatility": (
+                    volatility_inputs.get("implied_vol_30d")
+                    if volatility_inputs.get("implied_vol_30d") is not None
+                    else volatility_inputs.get("implied_volatility")
+                ),
                 "iv_source": iv_source,
                 "factor_levels": {
                     "realized_vol_30d": volatility_inputs.get("realized_vol_30d"),
                     "realized_vol_90d": volatility_inputs.get("realized_vol_90d"),
+                    "implied_vol_30d": volatility_inputs.get("implied_vol_30d"),
                     "iv_rank": iv_rank,
                 },
                 "as_of_date": volatility_inputs.get("as_of_date"),
