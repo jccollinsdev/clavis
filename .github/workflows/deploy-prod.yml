@@ -48,6 +48,10 @@ jobs:
           set -euo pipefail
           cd /opt/clavis
           docker compose up -d --build --remove-orphans
+          sudo mkdir -p /var/log/clavix
+          sudo touch /var/log/clavix/cron.log
+          sudo install -m 0644 scripts/cron/clavix.crontab /etc/cron.d/clavix
+          sudo systemctl reload cron || sudo service cron reload
           docker compose ps
           for _ in 1 2 3 4 5 6 7 8 9 10; do
             if curl -fsS http://127.0.0.1:8000/health; then

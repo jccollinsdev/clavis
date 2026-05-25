@@ -46,6 +46,8 @@ SP500_BACKFILL_JOB_ID = "system_sp500_backfill"
 NEWS_CLEANUP_JOB_ID = "system_news_cleanup"
 ACTIVE_TICKER_NEWS_REFRESH_JOB_ID = "system_active_ticker_news_refresh"
 BULK_SENTIMENT_ENRICHMENT_JOB_ID = "system_bulk_sentiment_enrichment"
+DAILY_MACRO_SNAPSHOT_JOB_ID = "daily_macro_snapshot"
+DAILY_SECTOR_SNAPSHOT_JOB_ID = "daily_sector_snapshot"
 SYSTEM_SP500_USER_ID = "00000000-0000-0000-0000-000000000001"
 SP500_BACKFILL_TRIGGER = "sp500_backfill"
 MAJOR_PRIORITY_KEYWORDS = (
@@ -88,13 +90,24 @@ def _is_junk_article(article: dict) -> tuple[bool, str]:
     return False, ""
 
 
+def _scheduler_tier() -> str:
+    configured = str(os.getenv("SCHEDULER_TIER") or "").strip().lower()
+    if configured in {"intraday", "cron", "none"}:
+        return configured
+    legacy_pause = str(os.getenv("PAUSE_SYSTEM_SCHEDULER") or "").strip().lower()
+    if legacy_pause in {"1", "true", "yes", "on"}:
+        return "none"
+    return "cron"
+
+
 def _system_scheduler_paused() -> bool:
-    return str(os.getenv("PAUSE_SYSTEM_SCHEDULER") or "").strip().lower() in {
-        "1",
-        "true",
-        "yes",
-        "on",
-    }
+    return _scheduler_tier() == "none"
+
+
+def _run_registered_job(job_id: str) -> dict:
+    from ..jobs.run import run_job_sync
+
+    return run_job_sync(job_id)
 
 
 def _next_et_time(
@@ -5434,8 +5447,41 @@ def _schedule_news_cleanup() -> None:
     )
 
 
+def _schedule_daily_macro_snapshot() -> None:
+    if scheduler.get_job(DAILY_MACRO_SNAPSHOT_JOB_ID):
+        scheduler.remove_job(DAILY_MACRO_SNAPSHOT_JOB_ID)
+    scheduler.add_job(
+        _run_registered_job,
+        trigger=CronTrigger(hour=5, minute=0, timezone=ET),
+        id=DAILY_MACRO_SNAPSHOT_JOB_ID,
+        args=[DAILY_MACRO_SNAPSHOT_JOB_ID],
+        replace_existing=True,
+        misfire_grace_time=3600,
+    )
+
+
+def _schedule_daily_sector_snapshot() -> None:
+    if scheduler.get_job(DAILY_SECTOR_SNAPSHOT_JOB_ID):
+        scheduler.remove_job(DAILY_SECTOR_SNAPSHOT_JOB_ID)
+    scheduler.add_job(
+        _run_registered_job,
+        trigger=CronTrigger(hour=5, minute=15, timezone=ET),
+        id=DAILY_SECTOR_SNAPSHOT_JOB_ID,
+        args=[DAILY_SECTOR_SNAPSHOT_JOB_ID],
+        replace_existing=True,
+        misfire_grace_time=3600,
+    )
+
+
 def start_scheduler():
     from ..services.supabase import get_supabase
+
+    tier = _scheduler_tier()
+    if tier == "none":
+        logger.warning("SCHEDULER_TIER=none; APScheduler will not start.")
+        if scheduler.running:
+            scheduler.shutdown(wait=False)
+        return
 
     supabase = get_supabase()
     _fail_stale_runs(supabase)
@@ -5444,22 +5490,28 @@ def start_scheduler():
     if not scheduler.running:
         scheduler.start()
 
-    if _system_scheduler_paused():
-        logger.warning(
-            "System scheduler pause enabled; skipping system S&P and holdings analysis jobs."
-        )
-        for job_id in (
-            SP500_BACKFILL_JOB_ID,
-            SP500_DAILY_JOB_ID,
-            HOLDINGS_DAILY_AI_JOB_ID,
-        ):
-            if scheduler.get_job(job_id):
-                scheduler.remove_job(job_id)
-    else:
+    daily_job_ids = (
+        SP500_BACKFILL_JOB_ID,
+        SP500_DAILY_JOB_ID,
+        HOLDINGS_DAILY_AI_JOB_ID,
+        NEWS_CLEANUP_JOB_ID,
+        DAILY_MACRO_SNAPSHOT_JOB_ID,
+        DAILY_SECTOR_SNAPSHOT_JOB_ID,
+    )
+
+    if tier == "cron":
         _schedule_sp500_backfill()
         _schedule_sp500_daily_refresh()
         _schedule_holdings_daily_ai_refresh()
-    _schedule_news_cleanup()
+        _schedule_news_cleanup()
+        _schedule_daily_macro_snapshot()
+        _schedule_daily_sector_snapshot()
+    else:
+        logger.info("SCHEDULER_TIER=intraday; registering only Tier-0 jobs.")
+        for job_id in daily_job_ids:
+            if scheduler.get_job(job_id):
+                scheduler.remove_job(job_id)
+
     _schedule_active_ticker_news_refresh()
     _schedule_bulk_sentiment_enrichment()
 
@@ -5468,6 +5520,9 @@ def start_scheduler():
     ]
     for job_id in current_jobs:
         scheduler.remove_job(job_id)
+
+    if tier == "intraday":
+        return
 
     users = (
         supabase.table("user_preferences")

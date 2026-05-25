@@ -32,6 +32,20 @@ class _FakeScheduler:
         }
         self.added = []
         self.removed = []
+        self.running = False
+        self.started = False
+        self.shutdown_called = False
+
+    def start(self):
+        self.running = True
+        self.started = True
+
+    def shutdown(self, wait=True):
+        self.running = False
+        self.shutdown_called = True
+
+    def get_jobs(self):
+        return list(self.jobs.values())
 
     def get_job(self, job_id):
         return self.jobs.get(job_id)
@@ -79,6 +93,67 @@ def test_schedule_news_cleanup_registers_cron_job():
 
     job = fake_scheduler.jobs[scheduler.NEWS_CLEANUP_JOB_ID]
     assert job.func is scheduler._cleanup_old_articles
+
+
+def test_start_scheduler_intraday_registers_only_tier_zero_jobs(monkeypatch):
+    monkeypatch.setenv("SCHEDULER_TIER", "intraday")
+    fake_scheduler = _FakeScheduler()
+
+    with (
+        patch.object(scheduler, "scheduler", fake_scheduler),
+        patch.object(scheduler, "_fail_stale_runs"),
+        patch.object(scheduler, "_fail_orphaned_runs"),
+        patch("app.services.supabase.get_supabase", return_value=object()),
+    ):
+        scheduler.start_scheduler()
+
+    assert fake_scheduler.started is True
+    assert scheduler.ACTIVE_TICKER_NEWS_REFRESH_JOB_ID in fake_scheduler.jobs
+    assert scheduler.BULK_SENTIMENT_ENRICHMENT_JOB_ID in fake_scheduler.jobs
+    assert scheduler.SP500_DAILY_JOB_ID not in fake_scheduler.jobs
+    assert scheduler.DAILY_MACRO_SNAPSHOT_JOB_ID not in fake_scheduler.jobs
+    assert scheduler.DAILY_SECTOR_SNAPSHOT_JOB_ID not in fake_scheduler.jobs
+
+
+def test_start_scheduler_cron_registers_daily_and_intraday_jobs(monkeypatch):
+    monkeypatch.setenv("SCHEDULER_TIER", "cron")
+    fake_scheduler = _FakeScheduler()
+
+    with (
+        patch.object(scheduler, "scheduler", fake_scheduler),
+        patch.object(scheduler, "_fail_stale_runs"),
+        patch.object(scheduler, "_fail_orphaned_runs"),
+        patch.object(scheduler, "_sync_user_job"),
+        patch("app.services.supabase.get_supabase") as get_supabase_mock,
+    ):
+        fake_query = SimpleNamespace(
+            select=lambda *_args, **_kwargs: SimpleNamespace(
+                execute=lambda: SimpleNamespace(data=[])
+            )
+        )
+        get_supabase_mock.return_value = SimpleNamespace(table=lambda *_args: fake_query)
+        scheduler.start_scheduler()
+
+    assert scheduler.SP500_DAILY_JOB_ID in fake_scheduler.jobs
+    assert scheduler.HOLDINGS_DAILY_AI_JOB_ID in fake_scheduler.jobs
+    assert scheduler.NEWS_CLEANUP_JOB_ID in fake_scheduler.jobs
+    assert scheduler.DAILY_MACRO_SNAPSHOT_JOB_ID in fake_scheduler.jobs
+    assert scheduler.DAILY_SECTOR_SNAPSHOT_JOB_ID in fake_scheduler.jobs
+    assert scheduler.ACTIVE_TICKER_NEWS_REFRESH_JOB_ID in fake_scheduler.jobs
+
+
+def test_start_scheduler_none_does_not_start_scheduler(monkeypatch):
+    monkeypatch.setenv("SCHEDULER_TIER", "none")
+    fake_scheduler = _FakeScheduler()
+
+    with (
+        patch.object(scheduler, "scheduler", fake_scheduler),
+        patch("app.services.supabase.get_supabase") as get_supabase_mock,
+    ):
+        scheduler.start_scheduler()
+
+    assert fake_scheduler.started is False
+    get_supabase_mock.assert_not_called()
 
 
 class _AnalysisCacheStoreResult:

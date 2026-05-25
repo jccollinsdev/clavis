@@ -1,0 +1,14 @@
+# Clavix production cron entries.
+# Installed on the VPS as /etc/cron.d/clavix by the deploy workflow.
+# Times are interpreted in the host timezone; production VPS is expected to use ET.
+
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+0 5 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run daily_macro_snapshot >> /var/log/clavix/cron.log 2>&1
+15 5 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run daily_sector_snapshot >> /var/log/clavix/cron.log 2>&1
+0 6 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run daily_composite_recompute_universe >> /var/log/clavix/cron.log 2>&1
+45 6 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run daily_portfolio_rollup_per_user >> /var/log/clavix/cron.log 2>&1
+15 16 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run daily_eod_price_capture >> /var/log/clavix/cron.log 2>&1
+0 17 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run daily_alert_evaluation >> /var/log/clavix/cron.log 2>&1
+0 2 * * 6 root docker exec clavis-backend-1 python -m app.jobs.run weekly_volatility_recompute >> /var/log/clavix/cron.log 2>&1

@@ -47,7 +47,9 @@ services:
         sync: false
       - key: APNS_BUNDLE_ID
         sync: false
-      - key: PAUSE_SYSTEM_SCHEDULER
-        value: "true"
+      # Fallback/staging only. Production scheduling is hosted by VPS cron;
+      # the long-running web container should register Tier-0 jobs only.
+      - key: SCHEDULER_TIER
+        value: "intraday"
       - key: DISABLE_NEWS_ENRICHMENT
         value: "false"
