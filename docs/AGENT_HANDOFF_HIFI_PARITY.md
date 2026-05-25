@@ -567,3 +567,40 @@ Reference workflow:
   ```
   Section 7 components (`ScreenTicker`, `DimRow`, `DriverCard`, `NewsRow`) live in asset `e743adf2-56cd-41fe-b381-bcec1a598a88`. `ScreenTickerHeld`, `ScreenRefreshLimit`, etc. live in `dcfc5c59-f42a-4d9d-be08-7ec9253c440e`. Reading the JSX directly is 10× faster than scrolling the WKWebView through 25+ artboards.
 
+### 2026-05-24 · Cycle 2 — Full-app parity sweep (all 5 tabs + Ticker Detail Pass 2)
+
+**Pushed:** `ios: Hi-Fi parity Cycle 2 — full tab sweep + Ticker Detail hero rebuild`
+
+Landed across all 5 tab screens + Ticker Detail in one cycle, after extracting and reading every React component out of the gzipped bundle assets in `docs/design/clavix-hifi-v2.html`:
+
+**Ticker Detail (Pass 2):**
+- **Hero rebuild** matching `ScreenTicker` JSX in asset `e743adf2`: `Composite` eyebrow + grade badge + 30pt mono score on the left, honest score-delta line ("▲/▼ N vs prior session" when `sharedAnalysis.summary.scoreDelta` is present, else "— · no prior session score" — never fabricated). Bottom split row below a `clavixRule2` divider: `You hold` (shares + portfolioWeight × 100 → "X% of book" + "+$Y · +Z% from cost" coloured by P&L sign) ··· `Last` (price + day change % coloured by sign). Drops the pricing-only sparkline below the score block.
+- **Score history toggle pills** (Composite / News / Macro / Vol) above the chart, wired through `ScoreHistoryChart`'s existing `toggledDimensions` binding. `Composite` is the no-toggle baseline.
+
+**Today (DigestView):**
+- Replaced the stub `Today —` line with a real portfolio day-change computed from `sharedAnalysis.dayChangeAmount × shares` summed across positions. Renders "Today +$604 (+3.66%)" (green) / "−$X (−Y%)" (red) when ≥1 position reports `previous_close`, else `—`.
+- Cleaned the trailing `· —` dot off the composite line under the grade badge.
+- Calendar empty-state copy already routes through `sanitizedDisplayText`, so the new vocab guard (below) cleans backend leaks automatically.
+
+**Holdings:**
+- Eyebrow `X tracked` → `X watched` per HiFi spec.
+
+**Search:** already matches HiFi spec; no edits this cycle.
+
+**Alerts:** already matches HiFi spec (`X unread · Y in 7D` eyebrow, mono filter pills with counts, mono day separators, category badge + time + headline + body + grade/delta meta + unread accent strip).
+
+**Settings:** already matches HiFi spec (`ACCOUNT` eyebrow + serif `Settings`, grouped cards with toggles, version footer). Note: live toggles render green (system tint) where HiFi spec uses `clavixAccent` blue — left for a styling pass.
+
+**Vocab guard (cross-cutting):**
+- New `String.clavixVocabSafe` extension on top of `sanitizedDisplayText` in `App/DisplayText.swift`. Whole-word, case-preserving replacement of every CLAVIX_TRUTH §2 banned term that could leak from backend LLM output: Monitor→Track, Coverage→Tracking, Momentum→Trend, Recommend(ation)→Note/Observation, Suggest→Note, Forecast→Projection, Predict→Indicate, Analyst→Data. Caught a live "Monitor HOO…" leak in the Calendar card on Today.
+
+Build verified after each batch; live screenshots taken on each tab and the AMD ticker detail hero/middle/bottom. Holdings ledger, Today five-axis snapshot, Alerts filter pills, Settings preference toggles, and the Ticker Detail HEADWIND/WATCH/TAILWIND driver cards all match the v2 HTML pixel structure.
+
+Still pending (not on critical path; pull next cycle):
+- Radar chart in the Ticker Detail hero (current placeholder is the price sparkline)
+- Executive summary card (Bull / Risk / What to watch) between drivers and news
+- Period chips above the price/score charts (1D / 1W / 1M / 3M / 1Y)
+- Methodology drill-down per-dimension audits (HiFi §8) — these still use the older drawer
+- Add-holding & CSV-import sheets — current functional UI, not yet HiFi-styled
+- Settings toggle tint: swap UISwitch tint to `clavixAccent`
+

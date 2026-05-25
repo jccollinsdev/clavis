@@ -139,7 +139,7 @@ struct HoldingsListView: View {
     private var holdingsCountEyebrow: String {
         let h = viewModel.holdings.count
         let t = viewModel.watchlistItems.count
-        return "\(h) position\(h == 1 ? "" : "s") · \(t) tracked"
+        return "\(h) position\(h == 1 ? "" : "s") · \(t) watched"
     }
 
     @ViewBuilder

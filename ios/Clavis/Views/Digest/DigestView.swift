@@ -131,11 +131,14 @@ struct DigestView: View {
                         .foregroundColor(.clavixInk)
                         .lineLimit(1)
                         .minimumScaleFactor(0.76)
-                    // Day-change line intentionally absent until backend exposes
-                    // per-position previous_close on /holdings (P1-2).
-                    Text("Today —")
-                        .font(ClavisTypography.clavixMono(12, weight: .regular))
-                        .foregroundColor(.clavixInk3)
+                    HStack(spacing: 6) {
+                        Text("Today")
+                            .font(ClavisTypography.clavixMono(12, weight: .regular))
+                            .foregroundColor(.clavixInk3)
+                        Text(portfolioDayChangeText)
+                            .font(ClavisTypography.clavixMono(12, weight: .semibold))
+                            .foregroundColor(portfolioDayChangeColor)
+                    }
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 4) {
@@ -590,12 +593,55 @@ struct DigestView: View {
 
     private var compositeLine: String {
         if let weighted = PortfolioMath.weightedScore(viewModel.holdings) {
-            return "Composite \(Int(weighted.rounded())) · —"
+            return "Composite \(Int(weighted.rounded()))"
         }
         if let overall = viewModel.todayDigest?.overallScore {
-            return "Composite \(Int(overall.rounded())) · —"
+            return "Composite \(Int(overall.rounded()))"
         }
         return "Composite —"
+    }
+
+    /// Sum of (shares × day_change_amount) across holdings whose backend payload
+    /// includes a previous-close price. Returns "—" when no positions report it.
+    private var portfolioDayChangeText: String {
+        let positions = viewModel.holdings
+        var totalDelta: Double = 0
+        var totalPrev: Double = 0
+        var anyReported = false
+        for position in positions {
+            guard let dayChange = position.sharedAnalysis?.dayChangeAmount,
+                  let prevClose = position.sharedAnalysis?.previousClose else { continue }
+            anyReported = true
+            totalDelta += dayChange * position.shares
+            totalPrev += prevClose * position.shares
+        }
+        guard anyReported, totalPrev > 0 else { return "—" }
+        let pct = (totalDelta / totalPrev) * 100
+        let sign = totalDelta >= 0 ? "+" : "−"
+        let amountText = formatCurrency(abs(totalDelta))
+        return String(format: "%@%@ (%@%.2f%%)", sign, amountText, totalDelta >= 0 ? "+" : "−", abs(pct))
+    }
+
+    private var portfolioDayChangeColor: Color {
+        let positions = viewModel.holdings
+        var totalDelta: Double = 0
+        var anyReported = false
+        for position in positions {
+            guard let dayChange = position.sharedAnalysis?.dayChangeAmount else { continue }
+            anyReported = true
+            totalDelta += dayChange * position.shares
+        }
+        guard anyReported else { return .clavixInk3 }
+        if totalDelta > 0 { return .clavixGood }
+        if totalDelta < 0 { return .clavixBad }
+        return .clavixInk3
+    }
+
+    private func formatCurrency(_ value: Double) -> String {
+        let f = NumberFormatter()
+        f.numberStyle = .currency
+        f.maximumFractionDigits = 0
+        return f.string(from: NSNumber(value: value)) ?? "$0"
     }
 
     private var morningReportTitle: String {

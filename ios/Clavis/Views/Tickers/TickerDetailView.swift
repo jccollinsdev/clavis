@@ -19,6 +19,7 @@ struct TickerDetailView: View {
     @State private var selectedArticle: MethodologyArticle?
     @State private var showAddHoldingSheet = false
     @State private var showAllArticles = false
+    @State private var scoreHistoryDimensions: Set<String> = []
 
     init(ticker: String, positionId: String? = nil) {
         self.ticker = ticker
@@ -161,18 +162,50 @@ struct TickerDetailView: View {
             ClavixCard(fill: .clavixPaper) {
                 let snapshots = ScoreHistoryConversion.snapshots(from: scoreHistory)
                 if snapshots.count >= 2 {
-                    ScoreHistoryChart(
-                        snapshots: snapshots,
-                        showAllDimensions: false,
-                        toggledDimensions: .constant([])
-                    )
-                    .frame(height: 160)
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack(spacing: 6) {
+                            ForEach(scoreHistoryToggles, id: \.key) { toggle in
+                                Button(action: { toggleScoreDimension(toggle.key) }) {
+                                    ClavixPill(label: toggle.label, active: scoreHistoryDimensions.contains(toggle.key) || (toggle.key == "composite" && scoreHistoryDimensions.isEmpty))
+                                }
+                                .buttonStyle(.plain)
+                            }
+                            Spacer()
+                        }
+                        ScoreHistoryChart(
+                            snapshots: snapshots,
+                            showAllDimensions: !scoreHistoryDimensions.isEmpty,
+                            toggledDimensions: $scoreHistoryDimensions
+                        )
+                        .frame(height: 160)
+                    }
                 } else {
                     Text("New — score history requires at least 2 days of data.")
                         .font(ClavisTypography.clavixCaption)
                         .foregroundColor(.clavixInk3)
                 }
             }
+        }
+    }
+
+    private var scoreHistoryToggles: [(key: String, label: String)] {
+        [
+            ("composite", "Composite"),
+            ("news_sentiment", "News"),
+            ("macro_exposure", "Macro"),
+            ("volatility", "Vol")
+        ]
+    }
+
+    private func toggleScoreDimension(_ key: String) {
+        if key == "composite" {
+            scoreHistoryDimensions = []
+            return
+        }
+        if scoreHistoryDimensions.contains(key) {
+            scoreHistoryDimensions.remove(key)
+        } else {
+            scoreHistoryDimensions.insert(key)
         }
     }
 
@@ -186,47 +219,122 @@ struct TickerDetailView: View {
     }
 
     private func heroSection(_ detail: TickerDetailResponse) -> some View {
-        ClavixCard {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(alignment: .top, spacing: 12) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(detail.profile.companyName ?? ticker)
-                            .font(ClavisTypography.clavixSerif(22, weight: .medium))
-                            .foregroundColor(.clavixInk)
-                            .fixedSize(horizontal: false, vertical: true)
-                        Text(ticker)
-                            .font(ClavisTypography.clavixMono(11, weight: .bold))
-                            .foregroundColor(.clavixAccent)
-
-                        HStack(alignment: .firstTextBaseline, spacing: 8) {
-                            Text(currency(latestPrice))
-                                .font(ClavisTypography.clavixMono(22, weight: .semibold))
-                                .foregroundColor(.clavixInk)
-                            Text(dayChangeText(detail))
-                                .font(ClavisTypography.clavixMono(11, weight: .semibold))
-                                .foregroundColor(dayChangeColor(detail))
+        ClavixCard(padding: 0) {
+            VStack(alignment: .leading, spacing: 0) {
+                // Composite block: eyebrow + grade + score + honest delta
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(alignment: .top, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            ClavixEyebrow("Composite")
+                            HStack(alignment: .lastTextBaseline, spacing: 10) {
+                                ClavixGradeBadge(displayGrade, size: 40)
+                                Text(displayScoreText)
+                                    .font(ClavisTypography.clavixMono(30, weight: .semibold))
+                                    .tracking(-0.6)
+                                    .foregroundColor(.clavixInk)
+                            }
+                            scoreDeltaLine(detail)
                         }
+                        Spacer(minLength: 8)
                     }
 
-                    Spacer(minLength: 8)
-
-                    VStack(alignment: .trailing, spacing: 6) {
-                        ClavixGradeBadge(displayGrade, size: 44)
-                        Text(displayScoreText)
-                            .font(ClavisTypography.clavixMono(13, weight: .semibold))
-                            .foregroundColor(.clavixInk3)
-                    }
-                }
-
-                if displayScoreValue != nil {
                     if priceHistory.count >= 2 {
                         HeroPriceSparkline(prices: priceHistory)
+                    } else if displayScoreValue == nil {
+                        ratingPendingCard
                     }
-                } else {
-                    ratingPendingCard
+                }
+                .padding(14)
+
+                if isHeld {
+                    Rectangle().fill(Color.clavixRule2).frame(height: 1)
+                    heroHoldRow(detail)
                 }
             }
         }
+    }
+
+    private func scoreDeltaLine(_ detail: TickerDetailResponse) -> some View {
+        let delta = honestScoreDelta(detail)
+        return Group {
+            if let delta {
+                HStack(spacing: 6) {
+                    Text(delta > 0 ? "▲ \(delta)" : delta < 0 ? "▼ \(abs(delta))" : "—")
+                        .font(ClavisTypography.clavixMono(11, weight: .semibold))
+                        .foregroundColor(delta > 0 ? .clavixGood : delta < 0 ? .clavixBad : .clavixInk3)
+                    Text("vs prior session")
+                        .font(ClavisTypography.clavixMono(11, weight: .regular))
+                        .foregroundColor(.clavixInk3)
+                }
+            } else {
+                Text("— · no prior session score")
+                    .font(ClavisTypography.clavixMono(11, weight: .regular))
+                    .foregroundColor(.clavixInk3)
+            }
+        }
+    }
+
+    private func honestScoreDelta(_ detail: TickerDetailResponse) -> Int? {
+        detail.sharedAnalysis?.summary.scoreDelta
+    }
+
+    private func heroHoldRow(_ detail: TickerDetailResponse) -> some View {
+        HStack(alignment: .top, spacing: 14) {
+            VStack(alignment: .leading, spacing: 2) {
+                ClavixEyebrow("You hold")
+                Text(holdSummaryLine(detail))
+                    .font(ClavisTypography.clavixMono(13, weight: .semibold))
+                    .foregroundColor(.clavixInk)
+                if let costLine = costSummaryLine(detail) {
+                    Text(costLine)
+                        .font(ClavisTypography.clavixMono(11, weight: .semibold))
+                        .foregroundColor(costSummaryColor(detail))
+                }
+            }
+            Spacer(minLength: 8)
+            VStack(alignment: .trailing, spacing: 2) {
+                ClavixEyebrow("Last")
+                Text(currency(latestPrice))
+                    .font(ClavisTypography.clavixMono(20, weight: .semibold))
+                    .foregroundColor(.clavixInk)
+                Text(dayChangeText(detail))
+                    .font(ClavisTypography.clavixMono(11, weight: .semibold))
+                    .foregroundColor(dayChangeColor(detail))
+            }
+        }
+        .padding(14)
+    }
+
+    private func holdSummaryLine(_ detail: TickerDetailResponse) -> String {
+        let shares = detail.portfolioOverlay?.shares ?? detail.position.shares
+        let parts: [String] = [
+            shares > 0 ? "\(shares.formatted()) sh" : nil,
+            holdWeightText(detail)
+        ].compactMap { $0 }
+        return parts.isEmpty ? "Holding" : parts.joined(separator: " · ")
+    }
+
+    private func holdWeightText(_ detail: TickerDetailResponse) -> String? {
+        guard let weight = detail.portfolioOverlay?.portfolioWeight else { return nil }
+        // portfolioWeight is a fraction 0..1
+        return String(format: "%.1f%% of book", weight * 100)
+    }
+
+    private func costSummaryLine(_ detail: TickerDetailResponse) -> String? {
+        guard let pnl = detail.position.unrealizedPL else { return nil }
+        let sign = pnl >= 0 ? "+" : "−"
+        let amountText = currency(abs(pnl))
+        if let pct = detail.position.unrealizedPLPercent {
+            return "\(sign)\(amountText) · \(pct >= 0 ? "+" : "−")\(String(format: "%.1f", abs(pct)))% from cost"
+        }
+        return "\(sign)\(amountText) from cost"
+    }
+
+    private func costSummaryColor(_ detail: TickerDetailResponse) -> Color {
+        guard let pnl = detail.position.unrealizedPL else { return .clavixInk3 }
+        if pnl > 0 { return .clavixGood }
+        if pnl < 0 { return .clavixBad }
+        return .clavixInk3
     }
 
     private var ratingPendingCard: some View {
