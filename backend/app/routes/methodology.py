@@ -5,6 +5,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, Request
 
+from ..pipeline.structural_scorer import estimate_iv_rank_from_realized_vol
 from ..services.supabase import get_supabase
 from ..services.ticker_cache_service import _shared_risk_dimensions
 
@@ -32,6 +33,84 @@ def _isoformat_or_none(value: Any) -> str | None:
     return str(value)
 
 
+def _latest_sector_medians(supabase, sector: str | None) -> dict[str, dict[str, Any]]:
+    if not sector:
+        return {}
+    rows = (
+        supabase.table("sector_medians")
+        .select("sector,metric,median,p25,p75,n_tickers,as_of")
+        .eq("sector", sector)
+        .order("as_of", desc=True)
+        .limit(100)
+        .execute()
+        .data
+        or []
+    )
+    medians: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        metric = row.get("metric")
+        if metric and metric not in medians:
+            medians[metric] = row
+    return medians
+
+
+def _peer_comparisons(supabase, ticker: str) -> list[dict[str, Any]]:
+    rows = (
+        supabase.table("peer_groups")
+        .select("peer_ticker,similarity,computed_at")
+        .eq("ticker", ticker)
+        .order("similarity", desc=True)
+        .limit(10)
+        .execute()
+        .data
+        or []
+    )
+    return [
+        {
+            "ticker": row.get("peer_ticker"),
+            "similarity": row.get("similarity"),
+            "computed_at": row.get("computed_at"),
+        }
+        for row in rows
+        if row.get("peer_ticker") != ticker
+    ]
+
+
+def _article_histogram(articles: list[dict[str, Any]], days: int = 14) -> list[dict[str, Any]]:
+    now = datetime.now(timezone.utc)
+    counts = {
+        (now - timedelta(days=offset)).date().isoformat(): 0
+        for offset in range(days - 1, -1, -1)
+    }
+    for article in articles:
+        published = _parse_iso_datetime(article.get("published_at"))
+        if not published:
+            continue
+        key = published.date().isoformat()
+        if key in counts:
+            counts[key] += 1
+    return [{"date": key, "count": value} for key, value in counts.items()]
+
+
+def _sentiment_distribution(articles: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    counts = {"positive": 0, "neutral": 0, "negative": 0}
+    for article in articles:
+        score = article.get("sentiment_score")
+        if score is None:
+            continue
+        try:
+            numeric = float(score)
+        except (TypeError, ValueError):
+            continue
+        if numeric >= 60:
+            counts["positive"] += 1
+        elif numeric <= 40:
+            counts["negative"] += 1
+        else:
+            counts["neutral"] += 1
+    return [{"bucket": key, "count": value} for key, value in counts.items()]
+
+
 @router.get("/{ticker}/methodology")
 async def get_ticker_methodology(
     ticker: str,
@@ -55,6 +134,9 @@ async def get_ticker_methodology(
         .execute()
     )
     metadata = metadata_result.data[0] if metadata_result.data else {}
+    sector = metadata.get("sector")
+    sector_medians = _latest_sector_medians(supabase, sector)
+    peers = _peer_comparisons(supabase, upper)
 
     snapshot_result = (
         supabase.table("ticker_risk_snapshots")
@@ -100,6 +182,10 @@ async def get_ticker_methodology(
         a for a in articles
         if (pub := _parse_iso_datetime(a.get("published_at"))) and now - pub <= timedelta(days=7)
     ]
+    fourteen_day_articles = [
+        a for a in articles
+        if (pub := _parse_iso_datetime(a.get("published_at"))) and now - pub <= timedelta(days=14)
+    ]
 
     # Build display article list — enriched articles first, fall back to all 7-day articles.
     enriched_articles = [
@@ -119,6 +205,15 @@ async def get_ticker_methodology(
     volatility_inputs = dimension_inputs.get("volatility") or {}
     financial_inputs = dimension_inputs.get("financial_health") or {}
     macro_regression = factor_breakdown.get("macro_regression") or {}
+    iv_rank = volatility_inputs.get("iv_rank")
+    iv_source = volatility_inputs.get("iv_source")
+    if iv_rank is None:
+        iv_rank = estimate_iv_rank_from_realized_vol(
+            volatility_inputs.get("realized_vol_30d"),
+            volatility_inputs.get("realized_vol_90d"),
+        )
+        if iv_rank is not None:
+            iv_source = "realized_vol_fallback"
 
     # Compute weighted news score on-the-fly from available articles when
     # the cached value is absent — this is a cheap in-memory calculation.
@@ -161,6 +256,17 @@ async def get_ticker_methodology(
                 "profitability_trend": financial_inputs.get("profitability_trend"),
                 "as_of_date": financial_inputs.get("as_of_date") or _isoformat_or_none(metadata.get("updated_at")),
                 "data_source": financial_inputs.get("data_source") or "finnhub",
+                "peer_comparisons": peers,
+                "sector_median_comparison": {
+                    metric: sector_medians.get(metric)
+                    for metric in (
+                        "debt_to_equity",
+                        "fcf_margin",
+                        "interest_coverage",
+                        "current_ratio",
+                    )
+                    if sector_medians.get(metric)
+                },
             },
             "news_sentiment": {
                 "score": risk_dims.get("news_sentiment"),
@@ -192,6 +298,8 @@ async def get_ticker_methodology(
                     }
                     for article in display_articles[:15]
                 ],
+                "article_histogram_14d": _article_histogram(fourteen_day_articles),
+                "sentiment_distribution": _sentiment_distribution(fourteen_day_articles),
             },
             "macro_exposure": {
                 "score": risk_dims.get("macro_exposure"),
@@ -213,6 +321,7 @@ async def get_ticker_methodology(
                 "as_of_date": macro_inputs.get("as_of_date") or macro_regression.get("as_of_date"),
                 "coefficients": macro_inputs.get("coefficients") or macro_regression.get("coefficients") or {},
                 "current_factor_levels": macro_inputs.get("current_factor_levels") or {},
+                "factor_levels": macro_inputs.get("current_factor_levels") or {},
                 "narrative": macro_inputs.get("narrative"),
             },
             "sector_exposure": {
@@ -223,6 +332,12 @@ async def get_ticker_methodology(
                 "sector_momentum_30d": sector_inputs.get("sector_momentum_30d"),
                 "sector_breadth": sector_inputs.get("sector_breadth"),
                 "narrative": sector_inputs.get("narrative"),
+                "peer_comparisons": peers,
+                "sector_median_comparison": {
+                    metric: sector_medians.get(metric)
+                    for metric in ("pe_ratio", "beta", "volatility_proxy")
+                    if sector_medians.get(metric)
+                },
             },
             "volatility": {
                 "score": risk_dims.get("volatility"),
@@ -231,6 +346,14 @@ async def get_ticker_methodology(
                 "vol_ratio": volatility_inputs.get("vol_ratio"),
                 "max_drawdown_252d": volatility_inputs.get("max_drawdown_252d"),
                 "beta_to_spy": volatility_inputs.get("beta_to_spy"),
+                "iv_rank": iv_rank,
+                "implied_volatility": volatility_inputs.get("implied_volatility"),
+                "iv_source": iv_source,
+                "factor_levels": {
+                    "realized_vol_30d": volatility_inputs.get("realized_vol_30d"),
+                    "realized_vol_90d": volatility_inputs.get("realized_vol_90d"),
+                    "iv_rank": iv_rank,
+                },
                 "as_of_date": volatility_inputs.get("as_of_date"),
             },
         },

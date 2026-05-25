@@ -23,6 +23,8 @@ struct VolatilityAuditView: View {
                     AuditValueRow(label: "Vol Ratio", value: format(dimension?.volRatio), status: (dimension?.volRatio ?? 1) > 1 ? "Rising" : "Falling")
                     AuditValueRow(label: "Max Drawdown 252d", value: percent(dimension?.maxDrawdown252d), status: "Metric")
                     AuditValueRow(label: "Beta to SPY", value: format(dimension?.betaToSpy), status: "Metric")
+                    AuditValueRow(label: "IV Rank", value: dimension?.ivRank.map { String(format: "%.1f", $0) } ?? "—", status: dimension?.ivSource?.humanizedTitleCasedDisplayText ?? "Metric")
+                    AuditValueRow(label: "Implied Vol", value: percent(dimension?.impliedVolatility), status: "Metric")
                 }
 
                 AuditSectionCard(title: "Vol Trend") {

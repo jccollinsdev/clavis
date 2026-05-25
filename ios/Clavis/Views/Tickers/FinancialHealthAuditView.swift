@@ -29,10 +29,28 @@ struct FinancialHealthAuditView: View {
                     Text("Your ticker is shown against its sector median when comparative data is available.")
                         .font(ClavisTypography.footnote)
                         .foregroundColor(.clavixInk3)
-                    // TODO: backend expose sector median comparisons for financial health ratios.
-                    Text("Sector median comparison unavailable.")
-                        .font(ClavisTypography.footnoteEmphasis)
-                        .foregroundColor(.clavixInk)
+                    let medians = dimension?.sectorMedianComparison ?? [:]
+                    if medians.isEmpty {
+                        Text("Sector median comparison unavailable.")
+                            .font(ClavisTypography.footnoteEmphasis)
+                            .foregroundColor(.clavixInk)
+                    } else {
+                        ForEach(medians.keys.sorted(), id: \.self) { metric in
+                            if let row = medians[metric] {
+                                AuditValueRow(
+                                    label: metric.humanizedTitleCasedDisplayText,
+                                    value: decimal(row.median),
+                                    status: row.nTickers.map { "\($0) tickers" } ?? "Median"
+                                )
+                            }
+                        }
+                    }
+                    let peers = dimension?.peerComparisons ?? []
+                    if !peers.isEmpty {
+                        Text("Peers: " + peers.prefix(5).compactMap(\.ticker).joined(separator: ", "))
+                            .font(ClavisTypography.footnoteEmphasis)
+                            .foregroundColor(.clavixInk)
+                    }
                 }
 
                 AuditSectionCard(title: "Methodology") {

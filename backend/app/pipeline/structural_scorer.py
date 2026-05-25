@@ -139,6 +139,22 @@ def get_volatility_score(
     return 50 + bucket["penalty"], bucket["confidence_boost"]
 
 
+def estimate_iv_rank_from_realized_vol(
+    realized_vol_30d: Optional[float],
+    realized_vol_90d: Optional[float],
+) -> float | None:
+    """Fallback proxy when live options-chain implied volatility is unavailable.
+
+    This is not a true options IV rank. It only places the 30-day realised
+    volatility against the 90-day realised-vol anchor so audit screens can show
+    an explicitly labelled fallback instead of a fabricated options signal.
+    """
+    if realized_vol_30d is None or realized_vol_90d is None or realized_vol_90d <= 0:
+        return None
+    ratio = realized_vol_30d / realized_vol_90d
+    return round(max(0.0, min(100.0, (ratio - 0.5) * 100.0)), 1)
+
+
 def get_leverage_score(leverage_profile: str = "moderate") -> tuple[float, float]:
     bucket = LEVERAGE_SCORES.get(leverage_profile, LEVERAGE_SCORES["moderate"])
     return 50 + bucket["bonus"], bucket["confidence_boost"]

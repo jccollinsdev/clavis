@@ -54,6 +54,18 @@ def _earnings_calendar() -> dict:
     return run_from_env()
 
 
+def _peer_groups() -> dict:
+    from app.jobs.peer_groups import run_from_env
+
+    return run_from_env()
+
+
+def _sector_medians() -> dict:
+    from app.jobs.sector_medians import run_from_env
+
+    return run_from_env()
+
+
 JOB_REGISTRY: dict[str, JobSpec] = {
     "daily_macro_snapshot": JobSpec("daily_macro_snapshot", "daily", _macro_snapshot),
     "daily_sector_snapshot": JobSpec("daily_sector_snapshot", "daily", _sector_snapshot),
@@ -68,6 +80,12 @@ JOB_REGISTRY: dict[str, JobSpec] = {
     ),
     "daily_earnings_calendar_refresh": JobSpec(
         "daily_earnings_calendar_refresh", "daily", _earnings_calendar
+    ),
+    "weekly_peer_groups_recompute": JobSpec(
+        "weekly_peer_groups_recompute", "weekly", _peer_groups
+    ),
+    "weekly_sector_medians_recompute": JobSpec(
+        "weekly_sector_medians_recompute", "weekly", _sector_medians
     ),
 }
 

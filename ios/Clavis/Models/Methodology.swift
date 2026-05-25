@@ -37,6 +37,8 @@ struct MethodologyFinancialHealth: Codable, MethodologyDimensionProtocol {
     let profitabilityTrend: String?
     let asOfDate: String?
     let dataSource: String?
+    let peerComparisons: [MethodologyPeerComparison]?
+    let sectorMedianComparison: [String: MethodologySectorMedian]?
 
     var label: String { "Financial Health" }
 
@@ -50,6 +52,8 @@ struct MethodologyFinancialHealth: Codable, MethodologyDimensionProtocol {
         case profitabilityTrend = "profitability_trend"
         case asOfDate = "as_of_date"
         case dataSource = "data_source"
+        case peerComparisons = "peer_comparisons"
+        case sectorMedianComparison = "sector_median_comparison"
     }
 }
 
@@ -59,6 +63,8 @@ struct MethodologyNewsSentiment: Codable, MethodologyDimensionProtocol {
     let volumeSignal: Bool?
     let weightedScore: Double?
     let articles: [MethodologyArticle]
+    let articleHistogram14d: [MethodologyArticleHistogramPoint]?
+    let sentimentDistribution: [MethodologySentimentBucket]?
 
     var label: String { "News Sentiment" }
 
@@ -68,6 +74,8 @@ struct MethodologyNewsSentiment: Codable, MethodologyDimensionProtocol {
         case volumeSignal = "volume_signal"
         case weightedScore = "weighted_score"
         case articles
+        case articleHistogram14d = "article_histogram_14d"
+        case sentimentDistribution = "sentiment_distribution"
     }
 }
 
@@ -79,6 +87,7 @@ struct MethodologyMacroExposure: Codable, MethodologyDimensionProtocol {
     let asOfDate: String?
     let coefficients: [String: Double]?
     let currentFactorLevels: [String: Double]?
+    let factorLevels: [String: Double]?
     let narrative: String?
 
     var label: String { "Macro Exposure" }
@@ -91,6 +100,7 @@ struct MethodologyMacroExposure: Codable, MethodologyDimensionProtocol {
         case asOfDate = "as_of_date"
         case coefficients
         case currentFactorLevels = "current_factor_levels"
+        case factorLevels = "factor_levels"
         case narrative
     }
 }
@@ -103,6 +113,8 @@ struct MethodologySectorExposure: Codable, MethodologyDimensionProtocol {
     let sectorMomentum30d: Double?
     let sectorBreadth: Double?
     let narrative: String?
+    let peerComparisons: [MethodologyPeerComparison]?
+    let sectorMedianComparison: [String: MethodologySectorMedian]?
 
     var label: String { "Sector Exposure" }
 
@@ -114,6 +126,8 @@ struct MethodologySectorExposure: Codable, MethodologyDimensionProtocol {
         case sectorMomentum30d = "sector_momentum_30d"
         case sectorBreadth = "sector_breadth"
         case narrative
+        case peerComparisons = "peer_comparisons"
+        case sectorMedianComparison = "sector_median_comparison"
     }
 }
 
@@ -124,6 +138,10 @@ struct MethodologyVolatility: Codable, MethodologyDimensionProtocol {
     let volRatio: Double?
     let maxDrawdown252d: Double?
     let betaToSpy: Double?
+    let ivRank: Double?
+    let impliedVolatility: Double?
+    let ivSource: String?
+    let factorLevels: [String: Double?]?
     let asOfDate: String?
 
     var label: String { "Volatility" }
@@ -135,8 +153,56 @@ struct MethodologyVolatility: Codable, MethodologyDimensionProtocol {
         case volRatio = "vol_ratio"
         case maxDrawdown252d = "max_drawdown_252d"
         case betaToSpy = "beta_to_spy"
+        case ivRank = "iv_rank"
+        case impliedVolatility = "implied_volatility"
+        case ivSource = "iv_source"
+        case factorLevels = "factor_levels"
         case asOfDate = "as_of_date"
     }
+}
+
+struct MethodologyPeerComparison: Codable, Identifiable {
+    let ticker: String?
+    let similarity: Double?
+    let computedAt: String?
+
+    var id: String { ticker ?? UUID().uuidString }
+
+    enum CodingKeys: String, CodingKey {
+        case ticker
+        case similarity
+        case computedAt = "computed_at"
+    }
+}
+
+struct MethodologySectorMedian: Codable {
+    let sector: String?
+    let metric: String?
+    let median: Double?
+    let p25: Double?
+    let p75: Double?
+    let nTickers: Int?
+    let asOf: String?
+
+    enum CodingKeys: String, CodingKey {
+        case sector, metric, median, p25, p75
+        case nTickers = "n_tickers"
+        case asOf = "as_of"
+    }
+}
+
+struct MethodologyArticleHistogramPoint: Codable, Identifiable {
+    let date: String
+    let count: Int
+
+    var id: String { date }
+}
+
+struct MethodologySentimentBucket: Codable, Identifiable {
+    let bucket: String
+    let count: Int
+
+    var id: String { bucket }
 }
 
 struct MethodologyArticle: Codable, Identifiable {

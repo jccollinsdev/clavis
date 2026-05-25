@@ -56,10 +56,21 @@ struct NewsSentimentAuditView: View {
                     }
 
                     AuditSectionCard(title: "Score Calculation") {
-                        // TODO: backend expose source_weight values for article-level news audit math.
                         Text("Weighted average (recency-weighted from available payload): \(weightedAverageText)")
                             .font(ClavisTypography.body)
                             .foregroundColor(.clavixInk3)
+                        let distribution = dimension?.sentimentDistribution ?? []
+                        if !distribution.isEmpty {
+                            Text(distribution.map { "\($0.bucket.humanizedTitleCasedDisplayText): \($0.count)" }.joined(separator: " · "))
+                                .font(ClavisTypography.footnoteEmphasis)
+                                .foregroundColor(.clavixInk)
+                        }
+                        let histogram = dimension?.articleHistogram14d ?? []
+                        if !histogram.isEmpty {
+                            Text("14-day article count: \(histogram.map(\.count).reduce(0, +))")
+                                .font(ClavisTypography.footnote)
+                                .foregroundColor(.clavixInk3)
+                        }
                     }
                 }
             }
