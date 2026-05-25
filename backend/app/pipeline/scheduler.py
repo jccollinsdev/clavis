@@ -1162,6 +1162,37 @@ async def _maybe_create_alert(
     return True
 
 
+def grade_boundary_alert_allowed(score_history: list[dict], *, min_delta: float = 3.0) -> bool:
+    """Return True only after a grade-band move persists for 2 consecutive days.
+
+    `score_history` must be ordered oldest -> newest and include `grade` plus
+    `composite_score` or `score`. This enforces the design handoff hysteresis
+    rule and prevents one-day boundary whipsaws from generating alerts.
+    """
+    if len(score_history) < 3:
+        return False
+    previous = score_history[-3]
+    first_cross = score_history[-2]
+    second_cross = score_history[-1]
+    previous_grade = previous.get("grade")
+    if not previous_grade:
+        return False
+    if first_cross.get("grade") != second_cross.get("grade"):
+        return False
+    if first_cross.get("grade") == previous_grade:
+        return False
+    try:
+        previous_score = float(previous.get("composite_score") or previous.get("score"))
+        first_score = float(first_cross.get("composite_score") or first_cross.get("score"))
+        second_score = float(second_cross.get("composite_score") or second_cross.get("score"))
+    except (TypeError, ValueError):
+        return False
+    return (
+        abs(first_score - previous_score) >= min_delta
+        and abs(second_score - previous_score) >= min_delta
+    )
+
+
 def _upsert_position_analysis(
     supabase,
     *,

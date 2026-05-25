@@ -36,6 +36,7 @@ class Position(PositionBase):
     brokerage_account_id: Optional[str] = None
     brokerage_last_synced_at: Optional[datetime] = None
     analysis_started_at: Optional[datetime] = None
+    outside_universe: bool = False
     risk_grade: Optional[str] = None
     total_score: Optional[float] = None
     previous_grade: Optional[str] = None

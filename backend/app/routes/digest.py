@@ -154,12 +154,30 @@ def _digest_provenance_fields(digest: dict | None) -> dict[str, Any | None]:
     }
 
 
+def _next_issue_number(supabase, user_id: str) -> int:
+    rows = (
+        supabase.table("digests")
+        .select("issue_number")
+        .eq("user_id", user_id)
+        .order("issue_number", desc=True)
+        .limit(1)
+        .execute()
+        .data
+        or []
+    )
+    latest = rows[0].get("issue_number") if rows else None
+    try:
+        return int(latest or 0) + 1
+    except (TypeError, ValueError):
+        return 1
+
+
 @router.get("/status")
 async def get_digest_status(user_id: str = Depends(get_user_id)) -> dict[str, Any]:
     supabase = get_supabase()
     digest_rows = (
         supabase.table("digests")
-        .select("id,generated_at,overall_grade,overall_score")
+        .select("id,generated_at,overall_grade,overall_score,issue_number")
         .eq("user_id", user_id)
         .order("generated_at", desc=True)
         .limit(1)
@@ -379,6 +397,7 @@ async def _build_force_refresh_digest(
     digest_payload = {
         "user_id": user_id,
         "analysis_run_id": digest_run["id"],
+        "issue_number": _next_issue_number(supabase, user_id),
         "content": digest["content"],
         "grade_summary": {
             position["ticker"]: position.get("grade") for position in positions

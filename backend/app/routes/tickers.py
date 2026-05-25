@@ -1,6 +1,6 @@
 from __future__ import annotations
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, time, timedelta, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request
 
@@ -41,6 +41,82 @@ def _require_pro_or_admin(supabase, user_id: str) -> str:
     if tier not in {"pro", "admin"}:
         raise HTTPException(403, "Manual refresh is available to Pro users only")
     return tier
+
+
+def _today_window() -> tuple[str, str]:
+    now = datetime.now(timezone.utc)
+    start = datetime.combine(now.date(), time.min, tzinfo=timezone.utc)
+    end = start + timedelta(days=1)
+    return start.isoformat(), end.isoformat()
+
+
+def _enforce_refresh_limit(supabase, user_id: str, ticker: str, tier: str) -> None:
+    if tier in {"pro", "admin"}:
+        return
+    start, end = _today_window()
+    rows = (
+        supabase.table("refresh_attempts")
+        .select("id")
+        .eq("user_id", user_id)
+        .gte("attempted_at", start)
+        .lt("attempted_at", end)
+        .limit(4)
+        .execute()
+        .data
+        or []
+    )
+    if len(rows) >= 3:
+        raise HTTPException(
+            429,
+            "Daily refresh limit reached",
+            headers={"Retry-After": "86400"},
+        )
+    supabase.table("refresh_attempts").insert(
+        {
+            "user_id": user_id,
+            "ticker": ticker.upper(),
+            "attempted_at": datetime.now(timezone.utc).isoformat(),
+            "result": "allowed",
+        }
+    ).execute()
+
+
+def _outside_universe_detail(supabase, user_id: str, ticker: str) -> dict | None:
+    rows = (
+        supabase.table("positions")
+        .select("*")
+        .eq("user_id", user_id)
+        .eq("ticker", ticker.upper())
+        .eq("outside_universe", True)
+        .limit(1)
+        .execute()
+        .data
+        or []
+    )
+    if not rows:
+        return None
+    position = rows[0]
+    return {
+        "ticker": ticker.upper(),
+        "is_supported": False,
+        "outside_universe": True,
+        "limited_data": True,
+        "coverage_state": "limited",
+        "coverage_note": "This ticker is outside the tracked universe, so Clavix shows limited data until it is added to ticker data.",
+        "position": position,
+        "portfolio_overlay": {
+            "is_held": True,
+            "position_id": position.get("id"),
+            "outside_universe": True,
+        },
+        "shared_analysis": None,
+        "recent_news": [],
+        "recent_alerts": [],
+        "freshness": {
+            "analysis_as_of": None,
+            "last_news_refresh_at": None,
+        },
+    }
 
 
 @router.get("/search")
@@ -94,6 +170,9 @@ async def get_ticker_detail(
 ):
     supabase = get_supabase()
     try:
+        outside_universe = _outside_universe_detail(supabase, user_id, ticker)
+        if outside_universe:
+            return outside_universe
         result = get_ticker_detail_bundle(
             supabase,
             user_id,
@@ -117,7 +196,8 @@ async def get_ticker_detail(
 @router.post("/{ticker}/refresh")
 async def refresh_ticker(ticker: str, user_id: str = Depends(get_user_id)):
     supabase = get_supabase()
-    _require_pro_or_admin(supabase, user_id)
+    tier = _user_subscription_tier(supabase, user_id)
+    _enforce_refresh_limit(supabase, user_id, ticker, tier)
 
     try:
         job = refresh_ticker_snapshot(
