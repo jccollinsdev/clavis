@@ -5,7 +5,7 @@ struct ClavisStandardCard<Content: View>: View {
     let padding: CGFloat
     @ViewBuilder let content: Content
 
-    init(fill: Color = .surface, padding: CGFloat = ClavisTheme.cardPadding, @ViewBuilder content: () -> Content) {
+    init(fill: Color = .clavixPaper, padding: CGFloat = ClavisTheme.cardPadding, @ViewBuilder content: () -> Content) {
         self.fill = fill
         self.padding = padding
         self.content = content()
@@ -25,7 +25,7 @@ struct ClavisFlushListCard<Content: View>: View {
     let padding: CGFloat
     @ViewBuilder let content: Content
 
-    init(fill: Color = .surface, padding: CGFloat = 14, @ViewBuilder content: () -> Content) {
+    init(fill: Color = .clavixPaper, padding: CGFloat = 14, @ViewBuilder content: () -> Content) {
         self.fill = fill
         self.padding = padding
         self.content = content()
@@ -41,7 +41,7 @@ struct ClavisFlushListCard<Content: View>: View {
         .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous)
-                .stroke(Color.border, lineWidth: 1)
+                .stroke(Color.clavixRule, lineWidth: 1)
         )
     }
 }
@@ -60,11 +60,11 @@ struct ClavisRaisedControlSurface<Content: View>: View {
             content
         }
         .padding(padding)
-        .background(Color.surfaceElevated)
+        .background(Color.clavixPaper2)
         .clipShape(RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: ClavisTheme.innerCornerRadius, style: .continuous)
-                .stroke(Color.border, lineWidth: 1)
+                .stroke(Color.clavixRule, lineWidth: 1)
         )
     }
 }
@@ -78,13 +78,13 @@ struct ClavisSelectablePill: View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                .foregroundColor(isSelected ? .backgroundPrimary : .textSecondary)
+                .foregroundColor(isSelected ? .white : .clavixInk3)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 7)
-                .background(isSelected ? Color.textPrimary : Color.clear)
+                .background(isSelected ? Color.clavixAccent : Color.clear)
                 .overlay(
                     RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .stroke(isSelected ? Color.textPrimary : Color.border, lineWidth: 1)
+                        .stroke(isSelected ? Color.clavixAccent : Color.clavixRule, lineWidth: 1)
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
         }

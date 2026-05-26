@@ -202,7 +202,7 @@ struct ArticleDetailSheet: View {
 
     private var readOriginalButton: some View {
         VStack(spacing: 0) {
-            Divider().background(Color.border)
+            Divider().background(Color.clavixRule)
                 .padding(.vertical, 8)
 
             Button {

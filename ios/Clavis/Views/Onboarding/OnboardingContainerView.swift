@@ -119,16 +119,16 @@ private struct OnboardingWelcomeView: View {
                                 .font(ClavisTypography.clavixMono(11, weight: .bold))
                                 .foregroundColor(.clavixInk)
                                 .frame(width: 28, height: 28)
-                                .background(Color.surface)
-                                .overlay(Rectangle().stroke(Color.border, lineWidth: 1))
+                                .background(Color.clavixPaper)
+                                .overlay(Rectangle().stroke(Color.clavixRule, lineWidth: 1))
 
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(bullet.0)
                                     .font(ClavisTypography.bodyEmphasis)
-                                    .foregroundColor(.textPrimary)
+                                    .foregroundColor(.clavixInk)
                                 Text(bullet.1)
                                     .font(ClavisTypography.footnote)
-                                    .foregroundColor(.textSecondary)
+                                    .foregroundColor(.clavixInk3)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                         }
@@ -143,7 +143,7 @@ private struct OnboardingWelcomeView: View {
                 ClavisPrimaryButton(title: "Get Started", action: onContinue)
                 Button("Sign in") { onSignIn() }
                     .font(ClavisTypography.footnoteEmphasis)
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixInk3)
                     .buttonStyle(.plain)
             }
             .padding(.horizontal, 24)
@@ -167,13 +167,13 @@ private struct OnboardingAddPortfolioView: View {
             HStack {
                 Button(action: onBack) {
                     Image(systemName: "chevron.left")
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                 }
                 .buttonStyle(.plain)
                 Spacer()
                 Button("Skip for now", action: onSkip)
                     .font(ClavisTypography.footnoteEmphasis)
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixInk3)
                     .buttonStyle(.plain)
             }
             .padding(.horizontal, 24)
@@ -182,10 +182,10 @@ private struct OnboardingAddPortfolioView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text("How would you like to add your portfolio?")
                     .font(ClavisTypography.h1)
-                    .foregroundColor(.textPrimary)
+                    .foregroundColor(.clavixInk)
                 Text("Choose the path that fits how you already track your book.")
                     .font(ClavisTypography.body)
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixInk3)
             }
             .padding(.horizontal, 24)
             .padding(.top, 28)
@@ -201,7 +201,7 @@ private struct OnboardingAddPortfolioView: View {
             if let errorMessage {
                 Text(errorMessage)
                     .font(ClavisTypography.footnote)
-                    .foregroundColor(.bad)
+                    .foregroundColor(.clavixBad)
                     .padding(.horizontal, 24)
                     .padding(.top, 12)
             }
@@ -210,12 +210,12 @@ private struct OnboardingAddPortfolioView: View {
 
             if isCompleting {
                 ProgressView()
-                    .tint(.textPrimary)
+                    .tint(.clavixInk)
                     .frame(maxWidth: .infinity)
                     .padding(.bottom, 24)
             }
         }
-        .background(Color.backgroundPrimary)
+        .background(Color.clavixPage)
     }
 
     private func pathCard(title: String, subtitle: String, badge: String, isRecommended: Bool, action: @escaping () -> Void) -> some View {
@@ -224,31 +224,31 @@ private struct OnboardingAddPortfolioView: View {
                 HStack {
                     Text(title)
                         .font(ClavisTypography.bodyEmphasis)
-                        .foregroundColor(.textPrimary)
+                        .foregroundColor(.clavixInk)
                     Spacer()
                     Text(badge)
                         .font(ClavisTypography.label)
-                        .foregroundColor(badge == "Pro" ? .accentBurnt : .textSecondary)
+                        .foregroundColor(badge == "Pro" ? .clavixAccent : .clavixInk3)
                 }
                 Text(subtitle)
                     .font(ClavisTypography.footnote)
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixInk3)
                 if isRecommended {
                     Text("Recommended")
                         .font(ClavisTypography.label)
-                        .foregroundColor(.accentBurnt)
+                        .foregroundColor(.clavixAccent)
                 }
                 if title == "Connect Brokerage" {
                     Text("Read-only sync through your brokerage. Clavix never has trading access.")
                         .font(ClavisTypography.footnote)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(ClavisTheme.cardPadding)
-            .background(Color.surface)
-            .overlay(Rectangle().stroke(Color.border, lineWidth: 1))
+            .background(Color.clavixPaper)
+            .overlay(Rectangle().stroke(Color.clavixRule, lineWidth: 1))
         }
         .buttonStyle(.plain)
     }
@@ -279,24 +279,24 @@ private struct CSVImportSheet: View {
                     mappingRow(label: "Cost Basis", selection: $costBasisColumn)
                     mappingRow(label: "Date", selection: $dateColumn)
 
-                    ClavisStandardCard(fill: .surface) {
+                    ClavisStandardCard(fill: .clavixPaper) {
                         VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
                             Text("Preview")
                                 .font(ClavisTypography.label)
-                                .foregroundColor(.textSecondary)
+                                .foregroundColor(.clavixInk3)
                             ForEach(Array(previewRows.enumerated()), id: \.offset) { _, row in
                                 Text(row.joined(separator: " · "))
                                     .font(ClavisTypography.footnote)
-                                    .foregroundColor(.textSecondary)
+                                    .foregroundColor(.clavixInk3)
                             }
                         }
                     }
 
-                    ClavisStandardCard(fill: .surfaceElevated) {
+                    ClavisStandardCard(fill: .clavixPaper2) {
                         // TODO: wire CSV import to a backend parsing endpoint once it exists.
                         Text("Importing... we'll notify you when done")
                             .font(ClavisTypography.body)
-                            .foregroundColor(.textSecondary)
+                            .foregroundColor(.clavixInk3)
                     }
                 }
                 .padding(.horizontal, ClavisTheme.screenPadding)
@@ -308,11 +308,11 @@ private struct CSVImportSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Import \(previewRows.count) positions") { }
-                        .foregroundColor(.accentBurnt)
+                        .foregroundColor(.clavixAccent)
                 }
             }
             .fileImporter(isPresented: $showImporter, allowedContentTypes: [.commaSeparatedText, .plainText]) { result in
@@ -333,11 +333,11 @@ private struct CSVImportSheet: View {
     }
 
     private func mappingRow(label: String, selection: Binding<String>) -> some View {
-        ClavisStandardCard(fill: .surface) {
+        ClavisStandardCard(fill: .clavixPaper) {
             HStack {
                 Text(label)
                     .font(ClavisTypography.bodyEmphasis)
-                    .foregroundColor(.textPrimary)
+                    .foregroundColor(.clavixInk)
                 Spacer()
                 Menu(selection.wrappedValue) {
                     Button("Ticker") { selection.wrappedValue = "Ticker" }
@@ -346,7 +346,7 @@ private struct CSVImportSheet: View {
                     Button("Date") { selection.wrappedValue = "Date" }
                 }
                 .font(ClavisTypography.footnote)
-                .foregroundColor(.textSecondary)
+                .foregroundColor(.clavixInk3)
             }
         }
     }
@@ -359,14 +359,14 @@ private struct OnboardingUpgradeSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    ClavisStandardCard(fill: .surface) {
+                    ClavisStandardCard(fill: .clavixPaper) {
                         VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
                             Text("Upgrade to Pro")
                                 .font(ClavisTypography.h2)
-                                .foregroundColor(.textPrimary)
+                                .foregroundColor(.clavixInk)
                             Text("Connect your brokerage and import CSV files with Clavix Pro.")
                                 .font(ClavisTypography.body)
-                                .foregroundColor(.textSecondary)
+                                .foregroundColor(.clavixInk3)
                                 .fixedSize(horizontal: false, vertical: true)
                             ClavisPrimaryButton(title: "Pro is coming soon", action: { dismiss() })
                         }
@@ -381,7 +381,7 @@ private struct OnboardingUpgradeSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                 }
             }
         }

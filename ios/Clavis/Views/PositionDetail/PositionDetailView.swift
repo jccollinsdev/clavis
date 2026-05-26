@@ -17,10 +17,10 @@ struct PositionDetailView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Unable to load holding")
                         .font(ClavisTypography.cardTitle)
-                        .foregroundColor(.textPrimary)
+                        .foregroundColor(.clavixInk)
                     Text(errorMessage)
                         .font(ClavisTypography.body)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                 }
                 .padding(ClavisTheme.cardPadding)
             }
@@ -53,15 +53,15 @@ struct PositionDetailSkeletonView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
                 RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous)
-                    .fill(Color.surfaceSecondary)
+                    .fill(Color.clavixPaper2)
                     .frame(height: 180)
 
                 RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous)
-                    .fill(Color.surfaceSecondary)
+                    .fill(Color.clavixPaper2)
                     .frame(height: 200)
 
                 RoundedRectangle(cornerRadius: ClavisTheme.cornerRadius, style: .continuous)
-                    .fill(Color.surfaceSecondary)
+                    .fill(Color.clavixPaper2)
                     .frame(height: 150)
             }
             .padding(.horizontal, ClavisTheme.screenPadding)

@@ -769,11 +769,20 @@ struct DigestView: View {
         let etfDayChangePct: Double?
         var weightInt: Int { Int((weight * 100).rounded()) }
 
+        private var normalizedSector: String {
+            switch sector.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+            case "sem", "semis", "semiconductors", "semiconductor": return "Tech"
+            case "information technology", "technology": return "Tech"
+            default: return sector
+            }
+        }
+
         /// Canonical ETF for the sector when known; falls back to the first two
         /// letters of the sector for unmapped industries.
         var etfSymbol: String {
             if let etf, !etf.isEmpty { return etf }
-            switch sector.lowercased() {
+            switch normalizedSector.lowercased() {
+            case "tech":                                 return "XLK"
             case "technology", "information technology": return "XLK"
             case "health care", "healthcare":            return "XLV"
             case "financials", "financial services":     return "XLF"
@@ -787,17 +796,18 @@ struct DigestView: View {
             case "communication services":                return "XLC"
             case "us total market":                       return "VTI"
             default:
-                return String(sector.prefix(3)).uppercased()
+                return String(normalizedSector.prefix(3)).uppercased()
             }
         }
 
         var shortName: String {
-            switch sector.lowercased() {
+            switch normalizedSector.lowercased() {
+            case "tech":                    return "Tech"
             case "consumer discretionary": return "Consumer D"
             case "consumer staples":       return "Consumer S"
             case "communication services": return "Comm Svcs"
             case "us total market":        return "US Total"
-            default: return sector
+            default: return normalizedSector
             }
         }
 

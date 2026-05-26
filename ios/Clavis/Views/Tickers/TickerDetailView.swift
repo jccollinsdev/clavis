@@ -3,6 +3,8 @@ import SwiftUI
 struct TickerDetailView: View {
     let ticker: String
     let positionId: String?
+    let debugFixture: TickerDetailDebugFixture?
+    let debugScrollTarget: String?
 
     @Environment(\.dismiss) private var dismiss
     @State private var detail: TickerDetailResponse?
@@ -20,41 +22,70 @@ struct TickerDetailView: View {
     @State private var showAddHoldingSheet = false
     @State private var showAllArticles = false
     @State private var scoreHistoryDimensions: Set<String> = []
+    @State private var selectedHistoryPeriod: TickerHistoryPeriod = .oneMonth
 
-    init(ticker: String, positionId: String? = nil) {
+    init(
+        ticker: String,
+        positionId: String? = nil,
+        debugFixture: TickerDetailDebugFixture? = nil,
+        debugScrollTarget: String? = nil
+    ) {
         self.ticker = ticker
         self.positionId = positionId
+        self.debugFixture = debugFixture
+        self.debugScrollTarget = debugScrollTarget
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                if let errorMessage, detail == nil {
-                    DashboardErrorCard(message: errorMessage)
-                } else if isLoading && detail == nil {
-                    loadingState
-                } else if let detail {
-                    content(detail)
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
+                    if let errorMessage, detail == nil {
+                        DashboardErrorCard(message: errorMessage)
+                    } else if isLoading && detail == nil {
+                        loadingState
+                    } else if let detail {
+                        content(detail)
+                    } else {
+                        DashboardErrorCard(message: "Ticker detail unavailable.")
+                    }
+                }
+                .padding(.horizontal, ClavisTheme.screenPadding)
+                .padding(.top, ClavisTheme.sectionSpacing)
+                .padding(.bottom, ClavisTheme.extraLargeSpacing)
+            }
+            .background(Color.clavixPage.ignoresSafeArea())
+            .safeAreaInset(edge: .top, spacing: 0) {
+                topHeader
+            }
+            .toolbar(.hidden, for: .navigationBar)
+            .task {
+                guard !hasLoaded else { return }
+                hasLoaded = true
+                if let debugFixture {
+                    apply(debugFixture)
+                    if let debugScrollTarget {
+                        try? await Task.sleep(nanoseconds: 250_000_000)
+                        withAnimation(.none) {
+                            proxy.scrollTo(debugScrollTarget, anchor: .top)
+                        }
+                    }
                 } else {
-                    DashboardErrorCard(message: "Ticker detail unavailable.")
+                    await reloadAll()
                 }
             }
-            .padding(.horizontal, ClavisTheme.screenPadding)
-            .padding(.top, ClavisTheme.sectionSpacing)
-            .padding(.bottom, ClavisTheme.extraLargeSpacing)
-        }
-        .background(Color.clavixPage.ignoresSafeArea())
-        .safeAreaInset(edge: .top, spacing: 0) {
-            topHeader
-        }
-        .toolbar(.hidden, for: .navigationBar)
-        .task {
-            guard !hasLoaded else { return }
-            hasLoaded = true
-            await reloadAll()
-        }
-        .refreshable {
-            await reloadAll()
+            .refreshable {
+                if let debugFixture {
+                    apply(debugFixture)
+                    if let debugScrollTarget {
+                        withAnimation(.none) {
+                            proxy.scrollTo(debugScrollTarget, anchor: .top)
+                        }
+                    }
+                } else {
+                    await reloadAll()
+                }
+            }
         }
         .sheet(isPresented: $showMethodologyDrawer) {
             if let methodology {
@@ -128,11 +159,21 @@ struct TickerDetailView: View {
             outsideUniverseBanner
         }
         heroSection(detail)
+            .id("hero")
+        priceSection(detail)
+            .id("price")
         riskDimensionsSection(detail)
+            .id("dimensions")
         driversSection(detail)
-        scoreHistorySection
+            .id("drivers")
+        executiveSummarySection(detail)
+            .id("executive-summary")
         recentNewsSection(detail)
+            .id("recent-news")
+        scoreHistorySection
+            .id("score-history")
         bottomCtas(detail)
+            .id("cta")
     }
 
     private func isOutsideUniverse(_ detail: TickerDetailResponse) -> Bool {
@@ -158,11 +199,12 @@ struct TickerDetailView: View {
 
     private var scoreHistorySection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            hifiSectionHeader(eyebrow: "Composite · 90 days", title: "Score history")
+            hifiSectionHeader(eyebrow: "Composite · \(selectedHistoryPeriod.label)", title: "Score history")
             ClavixCard(fill: .clavixPaper) {
-                let snapshots = ScoreHistoryConversion.snapshots(from: scoreHistory)
+                let snapshots = filteredScoreSnapshots
                 if snapshots.count >= 2 {
                     VStack(alignment: .leading, spacing: 10) {
+                        HistoryPeriodChips(selected: $selectedHistoryPeriod)
                         HStack(spacing: 6) {
                             ForEach(scoreHistoryToggles, id: \.key) { toggle in
                                 Button(action: { toggleScoreDimension(toggle.key) }) {
@@ -177,7 +219,6 @@ struct TickerDetailView: View {
                             showAllDimensions: !scoreHistoryDimensions.isEmpty,
                             toggledDimensions: $scoreHistoryDimensions
                         )
-                        .frame(height: 160)
                     }
                 } else {
                     Text("New — score history requires at least 2 days of data.")
@@ -221,7 +262,6 @@ struct TickerDetailView: View {
     private func heroSection(_ detail: TickerDetailResponse) -> some View {
         ClavixCard(padding: 0) {
             VStack(alignment: .leading, spacing: 0) {
-                // Composite block: eyebrow + grade + score + honest delta
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(alignment: .top, spacing: 12) {
                         VStack(alignment: .leading, spacing: 4) {
@@ -236,11 +276,9 @@ struct TickerDetailView: View {
                             scoreDeltaLine(detail)
                         }
                         Spacer(minLength: 8)
+                        TickerRadarChart(dimensions: radarDimensions, size: 168)
                     }
-
-                    if priceHistory.count >= 2 {
-                        HeroPriceSparkline(prices: priceHistory)
-                    } else if displayScoreValue == nil {
+                    if displayScoreValue == nil && filteredPriceHistory.count < 2 {
                         ratingPendingCard
                     }
                 }
@@ -249,6 +287,34 @@ struct TickerDetailView: View {
                 if isHeld {
                     Rectangle().fill(Color.clavixRule2).frame(height: 1)
                     heroHoldRow(detail)
+                }
+            }
+        }
+    }
+
+    private func priceSection(_ detail: TickerDetailResponse) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            ClavixCard(padding: 0) {
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack(alignment: .top, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            ClavixEyebrow("Price · \(selectedHistoryPeriod.label)")
+                            Text(priceLineText(detail))
+                                .font(ClavisTypography.clavixMono(14, weight: .semibold))
+                                .foregroundColor(priceLineColor(detail))
+                        }
+                        Spacer(minLength: 8)
+                        HistoryPeriodChips(selected: $selectedHistoryPeriod, compact: true)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+
+                    TickerPriceChart(
+                        prices: filteredPriceHistory,
+                        tone: priceLineColor(detail)
+                    )
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
                 }
             }
         }
@@ -432,6 +498,56 @@ struct TickerDetailView: View {
             }
 
             TickerDriverCardsSection(analysis: detail.currentAnalysis)
+        }
+    }
+
+    @ViewBuilder
+    private func executiveSummarySection(_ detail: TickerDetailResponse) -> some View {
+        if let summary = detail.sharedAnalysis?.executiveSummaryBreakdown,
+           summary.hasAnyContent {
+            VStack(alignment: .leading, spacing: 10) {
+                hifiSectionHeader(eyebrow: "Summary", title: "Executive summary")
+                VStack(alignment: .leading, spacing: 8) {
+                    if let bullCase = summary.bullCase?.sanitizedDisplayText, !bullCase.isEmpty {
+                        executiveSummaryCard(
+                            title: "Bull case",
+                            body: bullCase,
+                            fill: .clavixGoodSoft,
+                            ink: .clavixGoodInk
+                        )
+                    }
+                    if let riskCase = summary.riskCase?.sanitizedDisplayText, !riskCase.isEmpty {
+                        executiveSummaryCard(
+                            title: "Risk case",
+                            body: riskCase,
+                            fill: .clavixBadSoft,
+                            ink: .clavixBadInk
+                        )
+                    }
+                    if let watch = summary.whatToWatch?.sanitizedDisplayText, !watch.isEmpty {
+                        executiveSummaryCard(
+                            title: "What to watch",
+                            body: watch,
+                            fill: .clavixWarnSoft,
+                            ink: .clavixWarnInk
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private func executiveSummaryCard(title: String, body: String, fill: Color, ink: Color) -> some View {
+        ClavixCard(fill: fill) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(title)
+                    .font(ClavisTypography.clavixSerif(16, weight: .medium))
+                    .foregroundColor(ink)
+                Text(body)
+                    .font(ClavisTypography.body)
+                    .foregroundColor(ink)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 
@@ -654,8 +770,8 @@ struct TickerDetailView: View {
 
         do {
             async let detailResponse = APIService.shared.fetchTickerDetail(ticker: ticker, positionId: positionId)
-            async let priceResponse = APIService.shared.fetchPriceHistory(ticker: ticker, days: 30)
-            async let scoreResponse = APIService.shared.fetchScoreHistory(ticker: ticker, days: 90)
+            async let priceResponse = APIService.shared.fetchPriceHistory(ticker: ticker, days: 365)
+            async let scoreResponse = APIService.shared.fetchScoreHistory(ticker: ticker, days: 365)
 
             let loadedDetail = try await detailResponse
             let loadedPrice = try await priceResponse
@@ -685,6 +801,15 @@ struct TickerDetailView: View {
                 errorMessage = ClavisCopy.Errors.tickerLoad(ticker: ticker, error: error)
             }
         }
+    }
+
+    private func apply(_ fixture: TickerDetailDebugFixture) {
+        detail = fixture.detail
+        methodology = fixture.methodology
+        priceHistory = fixture.priceHistory
+        scoreHistory = fixture.scoreHistory
+        errorMessage = nil
+        isLoading = false
     }
 
     private func toggleWatchlist() async {
@@ -795,6 +920,31 @@ struct TickerDetailView: View {
         return summary.sanitizedDisplayText
     }
 
+    private func priceLineText(_ detail: TickerDetailResponse) -> String {
+        guard let lastPrice = filteredPriceHistory.last?.price ?? latestPrice else {
+            return "—"
+        }
+        let basePrice = filteredPriceHistory.first?.price
+            ?? detail.latestPrice.previousClose
+            ?? detail.sharedAnalysis?.previousClose
+        guard let basePrice, basePrice != 0 else {
+            return currency(lastPrice)
+        }
+        let changePct = ((lastPrice - basePrice) / basePrice) * 100
+        return "\(currency(lastPrice)) · \(changePct >= 0 ? "+" : "−")\(String(format: "%.2f", abs(changePct)))%"
+    }
+
+    private func priceLineColor(_ detail: TickerDetailResponse) -> Color {
+        let lastPrice = filteredPriceHistory.last?.price ?? latestPrice
+        let basePrice = filteredPriceHistory.first?.price
+            ?? detail.latestPrice.previousClose
+            ?? detail.sharedAnalysis?.previousClose
+        guard let lastPrice, let basePrice else { return .clavixInk3 }
+        if lastPrice > basePrice { return .clavixGood }
+        if lastPrice < basePrice { return .clavixBad }
+        return .clavixInk3
+    }
+
     private func dayChangeText(_ detail: TickerDetailResponse) -> String {
         guard let price = latestPrice, let previousClose = detail.latestPrice.previousClose, previousClose != 0 else {
             return "Day change unavailable"
@@ -809,8 +959,8 @@ struct TickerDetailView: View {
         guard let price = latestPrice, let previousClose = detail.latestPrice.previousClose else {
             return .clavixInk3
         }
-        if price > previousClose { return .good }
-        if price < previousClose { return .bad }
+        if price > previousClose { return .clavixGood }
+        if price < previousClose { return .clavixBad }
         return .clavixInk3
     }
 
@@ -838,9 +988,9 @@ struct TickerDetailView: View {
 
     private func sentimentColor(_ score: Double?) -> Color {
         guard let score else { return .clavixInk3 }
-        if score >= 70 { return .good }
-        if score >= 50 { return .warn }
-        return .bad
+        if score >= 70 { return .clavixGood }
+        if score >= 50 { return .clavixWarn }
+        return .clavixBad
     }
 
     private func sentimentBackground(_ score: Double?) -> Color {
@@ -874,6 +1024,47 @@ struct TickerDetailView: View {
 
     private var latestPrice: Double? {
         detail?.latestPrice.price ?? detail?.portfolioOverlay?.currentPrice
+    }
+
+    private var filteredPriceHistory: [PricePoint] {
+        guard !priceHistory.isEmpty else { return [] }
+        let sorted = priceHistory.sorted { $0.recordedAt < $1.recordedAt }
+        if selectedHistoryPeriod == .oneDay {
+            return Array(sorted.suffix(min(sorted.count, 2)))
+        }
+        guard let cutoff = Calendar.current.date(byAdding: .day, value: -selectedHistoryPeriod.dayWindow, to: Date()) else {
+            return sorted
+        }
+        let filtered = sorted.filter { $0.recordedAt >= cutoff }
+        return filtered.isEmpty ? sorted : filtered
+    }
+
+    private var filteredScoreSnapshots: [ScoreSnapshot] {
+        let snapshots = ScoreHistoryConversion.snapshots(from: scoreHistory)
+        if selectedHistoryPeriod == .oneDay {
+            return Array(snapshots.suffix(min(snapshots.count, 2)))
+        }
+        guard let cutoff = Calendar.current.date(byAdding: .day, value: -selectedHistoryPeriod.dayWindow, to: Date()) else {
+            return snapshots
+        }
+        let filtered = snapshots.filter { $0.date >= cutoff }
+        return filtered.isEmpty ? snapshots : filtered
+    }
+
+    private var radarDimensions: [TickerRadarDimension] {
+        guard let detail else {
+            return [
+                TickerRadarDimension(key: "financial_health", label: "FIN", score: nil),
+                TickerRadarDimension(key: "news_sentiment", label: "NEWS", score: nil),
+                TickerRadarDimension(key: "macro_exposure", label: "MAC", score: nil),
+                TickerRadarDimension(key: "sector_exposure", label: "SEC", score: nil),
+                TickerRadarDimension(key: "volatility", label: "VOL", score: nil),
+            ]
+        }
+        let dimensions = dimensionItems(detail)
+        return dimensions.map { item in
+            TickerRadarDimension(key: item.key, label: item.abbrev, score: item.score)
+        }
     }
 
     private var displayScoreValue: Double? {
@@ -928,6 +1119,52 @@ private struct TickerDimensionItem {
         case 20..<30: return "CC"
         case 10..<20: return "C"
         default: return "F"
+        }
+    }
+}
+
+private enum TickerHistoryPeriod: String, CaseIterable {
+    case oneDay = "1D"
+    case oneWeek = "1W"
+    case oneMonth = "1M"
+    case threeMonths = "3M"
+    case oneYear = "1Y"
+
+    var label: String { rawValue }
+
+    var dayWindow: Int {
+        switch self {
+        case .oneDay: return 1
+        case .oneWeek: return 7
+        case .oneMonth: return 30
+        case .threeMonths: return 90
+        case .oneYear: return 365
+        }
+    }
+}
+
+private struct HistoryPeriodChips: View {
+    @Binding var selected: TickerHistoryPeriod
+    var compact: Bool = false
+
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(TickerHistoryPeriod.allCases, id: \.self) { period in
+                Button(action: { selected = period }) {
+                    Text(period.label)
+                        .font(ClavisTypography.clavixMono(11, weight: .semibold))
+                        .foregroundColor(selected == period ? .white : .clavixInk3)
+                        .padding(.horizontal, compact ? 8 : 10)
+                        .padding(.vertical, 6)
+                        .background(selected == period ? Color.clavixAccent : Color.clavixPaper2)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                .stroke(selected == period ? Color.clavixAccent : Color.clavixRule2, lineWidth: 1)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                }
+                .buttonStyle(.plain)
+            }
         }
     }
 }

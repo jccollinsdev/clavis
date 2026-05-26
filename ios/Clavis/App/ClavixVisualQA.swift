@@ -50,6 +50,8 @@ struct ClavixVisualQARoot: View {
             case "search-none": ClavixVisualQASearchNoResults()
             case "search-outside": ClavixVisualQASearchOutsideUniverse()
             case "ticker": ClavixVisualQATickerDetail()
+            case "ticker-live": TickerDetailDebugHarness(scrollTarget: nil)
+            case "ticker-live-summary": TickerDetailDebugHarness(scrollTarget: "executive-summary")
             case "methodology": ClavixVisualQAMethodology()
             case "methodology-page": ClavixVisualQAMethodologyPage()
             case "article": ClavixVisualQAArticle()

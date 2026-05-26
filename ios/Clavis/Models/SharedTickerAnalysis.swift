@@ -200,6 +200,7 @@ struct SharedTickerAnalysisDetail: Codable {
     let marketCap: Double?
     let riskDimensions: SharedRiskDimensions?
     let executiveSummary: String?
+    let executiveSummaryBreakdown: SharedExecutiveSummaryBreakdown?
     let detailedReport: String?
     let methodologyNote: String?
     let riskDrivers: [SharedRiskDriver]
@@ -224,6 +225,7 @@ struct SharedTickerAnalysisDetail: Codable {
         case marketCap = "market_cap"
         case riskDimensions = "risk_dimensions"
         case executiveSummary = "executive_summary"
+        case executiveSummaryBreakdown = "executive_summary_breakdown"
         case detailedReport = "detailed_report"
         case methodologyNote = "methodology_note"
         case riskDrivers = "risk_drivers"
@@ -233,6 +235,52 @@ struct SharedTickerAnalysisDetail: Codable {
         case keyImplications = "key_implications"
         case followUpNotes = "follow_up_notes"
         case sourceLinks = "source_links"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        summary = try container.decode(SharedTickerAnalysisSummary.self, forKey: .summary)
+        latestPrice = try container.decodeFlexibleDoubleIfPresent(forKey: .latestPrice)
+        previousClose = try container.decodeFlexibleDoubleIfPresent(forKey: .previousClose)
+        openPrice = try container.decodeFlexibleDoubleIfPresent(forKey: .openPrice)
+        dayHigh = try container.decodeFlexibleDoubleIfPresent(forKey: .dayHigh)
+        dayLow = try container.decodeFlexibleDoubleIfPresent(forKey: .dayLow)
+        week52High = try container.decodeFlexibleDoubleIfPresent(forKey: .week52High)
+        week52Low = try container.decodeFlexibleDoubleIfPresent(forKey: .week52Low)
+        avgVolume = try container.decodeFlexibleDoubleIfPresent(forKey: .avgVolume)
+        peRatio = try container.decodeFlexibleDoubleIfPresent(forKey: .peRatio)
+        marketCap = try container.decodeFlexibleDoubleIfPresent(forKey: .marketCap)
+        riskDimensions = try container.decodeIfPresent(SharedRiskDimensions.self, forKey: .riskDimensions)
+        executiveSummary = try container.decodeIfPresent(String.self, forKey: .executiveSummary)
+        executiveSummaryBreakdown = try container.decodeIfPresent(SharedExecutiveSummaryBreakdown.self, forKey: .executiveSummaryBreakdown)
+        detailedReport = try container.decodeIfPresent(String.self, forKey: .detailedReport)
+        methodologyNote = try container.decodeIfPresent(String.self, forKey: .methodologyNote)
+        riskDrivers = (try? container.decode([SharedRiskDriver].self, forKey: .riskDrivers)) ?? []
+        riskDriversState = try? container.decodeIfPresent(DriverCardsState.self, forKey: .riskDriversState)
+        riskDriversProvenance = try container.decodeIfPresent(String.self, forKey: .riskDriversProvenance)
+        events = (try? container.decode([EventAnalysis].self, forKey: .events)) ?? []
+        keyImplications = (try? container.decode([String].self, forKey: .keyImplications)) ?? []
+        followUpNotes = (try? container.decode([String].self, forKey: .followUpNotes)) ?? []
+        sourceLinks = (try? container.decode([String].self, forKey: .sourceLinks)) ?? []
+    }
+}
+
+struct SharedExecutiveSummaryBreakdown: Codable, Hashable {
+    let bullCase: String?
+    let riskCase: String?
+    let whatToWatch: String?
+
+    enum CodingKeys: String, CodingKey {
+        case bullCase = "bull_case"
+        case riskCase = "risk_case"
+        case whatToWatch = "what_to_watch"
+    }
+
+    var hasAnyContent: Bool {
+        [bullCase, riskCase, whatToWatch].contains { value in
+            guard let value else { return false }
+            return !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
     }
 }
 

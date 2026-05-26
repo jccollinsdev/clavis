@@ -81,7 +81,7 @@ struct SettingsView: View {
             )
             .overlay(alignment: .bottom) {
                 Rectangle()
-                    .fill(Color.border.opacity(0.5))
+                    .fill(Color.clavixRule.opacity(0.5))
                     .frame(height: 0.5)
             }
     }
