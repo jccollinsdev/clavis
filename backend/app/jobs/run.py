@@ -5,6 +5,7 @@ import asyncio
 import inspect
 import json
 import logging
+import os
 import sys
 from dataclasses import dataclass
 from typing import Any, Callable
@@ -133,6 +134,15 @@ JOB_REGISTRY: dict[str, JobSpec] = {
 }
 
 
+def _system_scheduler_paused() -> bool:
+    return str(os.getenv("PAUSE_SYSTEM_SCHEDULER") or "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
 async def run_job(job_id: str, *, dry_run: bool = False) -> dict[str, Any]:
     spec = JOB_REGISTRY.get(job_id)
     if not spec:
@@ -147,6 +157,16 @@ async def run_job(job_id: str, *, dry_run: bool = False) -> dict[str, Any]:
     supabase = get_supabase()
     run_row = start_job_run(supabase, job_id=spec.job_id, tier=spec.tier)
     run_id = run_row.get("id")
+
+    if spec.tier != "manual" and _system_scheduler_paused():
+        return finish_job_run(
+            supabase,
+            run_id,
+            status="skipped",
+            items_skipped=1,
+            metadata={"reason": "system_scheduler_paused"},
+        )
+
     lock = PostgresAdvisoryLock(supabase, f"clavix_job:{spec.job_id}")
 
     try:
