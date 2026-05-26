@@ -19,9 +19,10 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, Request
 
+from ..services.digest_selection import current_trading_date
+from ..services.route_freshness import latest_job_freshness
 from ..services.supabase import get_supabase
 from ..services.ticker_cache_service import enrich_positions_with_ticker_cache
-from ..services.route_freshness import latest_job_freshness
 from .portfolio import build_sector_exposure
 
 router = APIRouter()
@@ -208,7 +209,8 @@ async def get_today(user_id: str = Depends(get_user_id)) -> dict[str, Any]:
         })
 
     # ---- Today's digest + calendar ----------------------------------------
-    today = datetime.now(timezone.utc).date().isoformat()
+    trading_date = current_trading_date()
+    today = trading_date.isoformat()
     digest_row = (
         supabase.table("digests")
         .select("id,summary,structured_sections,generated_at,overall_grade,overall_score")
@@ -237,7 +239,7 @@ async def get_today(user_id: str = Depends(get_user_id)) -> dict[str, Any]:
             if position.get("ticker")
         }
     )
-    horizon = (date.today() + timedelta(days=14)).isoformat()
+    horizon = (trading_date + timedelta(days=14)).isoformat()
     earnings_rows = []
     if held_tickers:
         earnings_rows = (

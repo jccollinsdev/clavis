@@ -52,7 +52,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         open url: URL,
         options: [UIApplication.OpenURLOptionsKey: Any] = [:]
     ) -> Bool {
-        guard url.scheme?.lowercased() == "clavis" else {
+        guard let scheme = url.scheme?.lowercased(),
+              ["clavix", "clavis"].contains(scheme) else {
             return false
         }
 
@@ -66,7 +67,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         }
 
         // Supabase email confirmation / password-reset PKCE callback.
-        // The URL looks like: clavis://auth/callback?code=<pkce_code>
+        // The URL looks like: clavix://auth/callback?code=<pkce_code>
         if url.host?.lowercased() == "auth" {
             print("[Auth] Received auth callback URL host=\(url.host ?? "") path=\(url.path)")
             NotificationCenter.default.post(name: .supabaseAuthCallbackReceived, object: url)

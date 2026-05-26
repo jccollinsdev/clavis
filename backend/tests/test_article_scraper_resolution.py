@@ -1,6 +1,6 @@
 import asyncio
 import time
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 from app.pipeline.news_normalizer import normalize_news_item
 from app.pipeline.relevance import _is_low_value_article
@@ -45,10 +45,12 @@ def test_attach_decoded_google_news_urls_rewrites_wrapper_urls():
 
     async def _run():
         with patch(
-            "app.pipeline.rss_ingest.decode_google_news_urls",
-            return_value={
-                "https://news.google.com/rss/articles/example": "https://www.example.com/story"
-            },
+            "app.pipeline.rss_ingest.decode_google_news_urls_budgeted",
+            new=AsyncMock(
+                return_value={
+                    "https://news.google.com/rss/articles/example": "https://www.example.com/story"
+                }
+            ),
         ):
             return await _attach_decoded_google_news_urls(articles)
 

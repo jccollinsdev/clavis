@@ -19,6 +19,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 from .analysis_utils import utcnow_iso, clamp_score, score_to_grade, sanitize_text_field, normalize_event_analysis_payload
 from .news_normalizer import normalize_news_batch, _evidence_quality
 from ..services.backfill_artifacts import record_stage, get_run_artifact_dir, begin_artifact_session, write_named_json, end_artifact_session, record_position_artifact
+from ..services.digest_selection import current_trading_date
 from ..services.news_enrichment import classify_recency_weight, classify_source_tier
 from ..services.personalisation import recent_event_ids_for_tickers
 from ..services.ticker_cache_service import ensure_sp500_universe_seeded, list_active_sp500_tickers, refresh_ticker_snapshot
@@ -5331,7 +5332,7 @@ def _upsert_ticker_snapshot_from_scores(
     structural_scores: dict,
     analysis_run_id: str | None = None,
 ) -> None:
-    today = date.today()
+    today = current_trading_date()
     composite = ai_scores.get("total_score") or structural_scores.get("safety_score") or 50
     grade = ai_scores.get("grade") or structural_scores.get("grade") or score_to_grade(composite)
 

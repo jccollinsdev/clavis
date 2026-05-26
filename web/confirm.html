@@ -263,7 +263,7 @@
       var deepLink = null;
       var openAttempted = false;
 
-      // ── Build the clavis:// deep link ─────────────────────────────────────
+      // ── Build the clavix:// deep link ─────────────────────────────────────
       // Supabase may deliver auth params as query params (?code=, ?token_hash=)
       // or as hash fragments (#access_token=, #type=signup).
       // We merge both into the deep link as query params so the iOS URL
@@ -279,7 +279,7 @@
         }
 
         var qs = params.toString();
-        return 'clavis://auth/callback' + (qs ? '?' + qs : '');
+        return 'clavix://auth/callback' + (qs ? '?' + qs : '');
       }
 
       // Validate we actually got something useful from Supabase.

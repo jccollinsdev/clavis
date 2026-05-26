@@ -72,7 +72,7 @@ def _build_notification(token: str, payload: dict) -> NotificationRequest:
         message={
             "aps": {
                 "alert": {
-                    "title": payload.get("title", "Clavynx Update"),
+                    "title": payload.get("title", "Clavix Update"),
                     "body": payload.get("body", ""),
                 },
                 "sound": "default",

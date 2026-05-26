@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     polygon_api_key: str = ""
     snaptrade_client_id: str = ""
     snaptrade_consumer_key: str = ""
-    snaptrade_redirect_uri: str = "clavis://snaptrade/callback"
+    snaptrade_redirect_uri: str = "clavix://snaptrade/callback"
     scheduler_tier: str = "cron"
     minimax_personalisation_enabled: bool = False
     minimax_daily_budget: int = 0

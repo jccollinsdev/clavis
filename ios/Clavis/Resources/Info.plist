@@ -17,6 +17,7 @@
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
+				<string>clavix</string>
 				<string>clavis</string>
 			</array>
 		</dict>
@@ -47,10 +48,6 @@
     </dict>
 	<key>UILaunchScreen</key>
 	<dict/>
-    <key>UIRequiredDeviceCapabilities</key>
-    <array>
-        <string>armv7</string>
-    </array>
     <key>UISupportedInterfaceOrientations</key>
     <array>
         <string>UIInterfaceOrientationPortrait</string>

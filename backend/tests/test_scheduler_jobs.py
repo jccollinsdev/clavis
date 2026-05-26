@@ -22,6 +22,7 @@ _fake_openai_module.OpenAI = _FakeOpenAI
 sys.modules.setdefault("openai", _fake_openai_module)
 
 from app.pipeline import scheduler
+from app.services.digest_selection import current_trading_date
 
 
 class _FakeScheduler:
@@ -227,7 +228,7 @@ class _TickerSnapshotUpsertSupabase:
 
 def test_upsert_ticker_snapshot_from_scores_serializes_snapshot_date():
     supabase = _TickerSnapshotUpsertSupabase()
-    today = datetime.now(timezone.utc).date().isoformat()
+    today = current_trading_date().isoformat()
 
     scheduler._upsert_ticker_snapshot_from_scores(
         supabase,

@@ -46,6 +46,9 @@ class _FakeQuery:
     def order(self, *_args, **_kwargs):
         return self
 
+    def limit(self, *_args, **_kwargs):
+        return self
+
     def execute(self):
         if self.table_name == "ticker_universe":
             return _FakeResult(self.supabase.universe_rows)
