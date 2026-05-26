@@ -1,22 +1,24 @@
 # Clavix production cron entries.
 # Installed on the VPS as /etc/cron.d/clavix by the deploy workflow.
-# Times are interpreted in the host timezone; production VPS is expected to use ET.
+# Times are interpreted in the host timezone. Production VPS currently runs UTC,
+# so these entries are ET jobs converted to UTC for the current DST window.
+# Revisit before the fall DST change.
 
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-0 4 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run daily_earnings_calendar_refresh >> /var/log/clavix/cron.log 2>&1
-0 5 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run daily_macro_snapshot >> /var/log/clavix/cron.log 2>&1
-15 5 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run daily_sector_snapshot >> /var/log/clavix/cron.log 2>&1
-0 6 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run daily_composite_recompute_universe >> /var/log/clavix/cron.log 2>&1
-45 6 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run daily_portfolio_rollup_per_user >> /var/log/clavix/cron.log 2>&1
-15 16 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run daily_eod_price_capture >> /var/log/clavix/cron.log 2>&1
-0 17 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run daily_alert_evaluation >> /var/log/clavix/cron.log 2>&1
-30 1 * * 6 root docker exec clavis-backend-1 python -m app.jobs.run weekly_peer_groups_recompute >> /var/log/clavix/cron.log 2>&1
-45 1 * * 6 root docker exec clavis-backend-1 python -m app.jobs.run weekly_sector_medians_recompute >> /var/log/clavix/cron.log 2>&1
-0 2 * * 6 root docker exec clavis-backend-1 python -m app.jobs.run weekly_volatility_recompute >> /var/log/clavix/cron.log 2>&1
+0 8 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run daily_earnings_calendar_refresh >> /var/log/clavix/cron.log 2>&1
+0 9 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run daily_macro_snapshot >> /var/log/clavix/cron.log 2>&1
+15 9 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run daily_sector_snapshot >> /var/log/clavix/cron.log 2>&1
+0 10 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run daily_composite_recompute_universe >> /var/log/clavix/cron.log 2>&1
+45 10 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run daily_portfolio_rollup_per_user >> /var/log/clavix/cron.log 2>&1
+15 20 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run daily_eod_price_capture >> /var/log/clavix/cron.log 2>&1
+0 21 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run daily_alert_evaluation >> /var/log/clavix/cron.log 2>&1
+30 5 * * 6 root docker exec clavis-backend-1 python -m app.jobs.run weekly_peer_groups_recompute >> /var/log/clavix/cron.log 2>&1
+45 5 * * 6 root docker exec clavis-backend-1 python -m app.jobs.run weekly_sector_medians_recompute >> /var/log/clavix/cron.log 2>&1
+0 6 * * 6 root docker exec clavis-backend-1 python -m app.jobs.run weekly_volatility_recompute >> /var/log/clavix/cron.log 2>&1
 # P8 — operational polish
-30 4 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run event_fundamentals_pull >> /var/log/clavix/cron.log 2>&1
-0 3 * * 0 root docker exec clavis-backend-1 python -m app.jobs.run weekly_universe_audit >> /var/log/clavix/cron.log 2>&1
-0 3 1 * * root docker exec clavis-backend-1 python -m app.jobs.run monthly_macro_regression_refresh >> /var/log/clavix/cron.log 2>&1
-0 4 1 * * root docker exec clavis-backend-1 python -m app.jobs.run monthly_etf_holdings_refresh >> /var/log/clavix/cron.log 2>&1
+30 8 * * 1-5 root docker exec clavis-backend-1 python -m app.jobs.run event_fundamentals_pull >> /var/log/clavix/cron.log 2>&1
+0 7 * * 0 root docker exec clavis-backend-1 python -m app.jobs.run weekly_universe_audit >> /var/log/clavix/cron.log 2>&1
+0 7 1 * * root docker exec clavis-backend-1 python -m app.jobs.run monthly_macro_regression_refresh >> /var/log/clavix/cron.log 2>&1
+0 8 1 * * root docker exec clavis-backend-1 python -m app.jobs.run monthly_etf_holdings_refresh >> /var/log/clavix/cron.log 2>&1
