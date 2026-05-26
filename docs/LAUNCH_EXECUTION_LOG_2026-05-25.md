@@ -5,9 +5,13 @@ This file captures execution evidence gathered after the continuation audit move
 ## Local code/test fixes completed
 
 - Commit: `5f079af55` — `fix: restore launch trust paths and green suite`
+- Commit: `fa551273d` — `fix: honor scheduler pause in cron job runner`
 - Backend test result:
   - Command: `python3.11 -m pytest -q`
   - Result: `480 passed, 10 xfailed`
+- Targeted scheduler/backfill runner tests:
+  - Command: `python3.11 -m pytest tests/test_jobs_runner.py tests/test_p3_9_backfill.py tests/test_p8_jobs.py -q`
+  - Result: `16 passed`
 - iOS build result:
   - Command: `xcodebuild -scheme Clavis -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17' build`
   - Result: `BUILD SUCCEEDED`
@@ -62,10 +66,24 @@ This file captures execution evidence gathered after the continuation audit move
 - 10-ticker canary:
   - Started from local backend environment on 2026-05-25
   - Writes are hitting `shared_ticker_events` in Supabase
-  - Early signal:
+  - Mid-run evidence before stopping it to avoid overlap with backfill:
     - many `r.jina.ai` requests returned `451`
     - direct publisher fallback continued successfully for many URLs
     - MiniMax enrichment and Supabase upserts are executing
+  - Last captured 7-day DB snapshot before stopping the run:
+    - `AMD`: `13 total / 10 success / 4 usable`
+    - `AAPL`: `9 total / 7 success / 1 usable`
+    - `NVDA`: `12 total / 8 success / 3 usable`
+    - `MSFT`: `12 total / 8 success / 3 usable`
+    - `HOOD`: `14 total / 7 success / 1 usable`
+    - `SMCI`: `13 total / 9 success / 2 usable`
+    - `JPM`: `9 total / 8 success / 3 usable`
+    - `XOM`: `11 total / 9 success / 1 usable`
+    - `GOOGL`: `6 total / 4 success / 1 usable`
+    - `META`: `3 total / 0 success / 0 usable`
+  - Operational conclusion:
+    - the news pipeline is real and writing live rows
+    - the canary did **not** prove broad consistent 3-usable-articles coverage across all 10 names
 - 14-day backfill:
   - validator prepared: `backend/scripts/validate_backfill_14d.py`
   - baseline evidence saved to `docs/backfill_validation_before_2026-05-25.json`
@@ -73,5 +91,15 @@ This file captures execution evidence gathered after the continuation audit move
     - sample tickers only show 10-12 of the expected 14 dates
     - universe daily coverage ranges from `0` to `136` rows instead of ~full-universe daily coverage
     - `2026-05-17` and `2026-05-18` currently have `0` rows
-  - the actual 14-day backfill run has not started yet in this execution window
-  - sequencing choice: finish canary first, then run the backfill in isolation so evidence remains interpretable
+  - actual run started locally:
+    - Command: `python3.11 -m app.jobs.run backfill_14d`
+    - `job_runs.id`: `cdb6d5db-225f-4304-9f89-81b2d99cae8b`
+    - observed status during this log update: `running`
+  - observed runtime behavior:
+    - repeated `Polygon auth error 403 for unknown`
+    - local `POLYGON_API_KEY` is present, so this does **not** look like a missing-secret mistake
+    - `unknown` in the log comes from `backend/app/services/polygon.py` logging a positional URL argument poorly; the `403` itself is still real
+    - fresh writes were confirmed in `ticker_risk_snapshots` while the job ran, so this is a real long-running backfill, not a no-op
+  - operational conclusion:
+    - the backfill is **not** a quick verification step
+    - provider readiness and runtime characteristics still need proof before launch
