@@ -13,10 +13,35 @@ FINNHUB_QUOTE_URL = "https://finnhub.io/api/v1/quote"
 MAX_RETRIES = 5
 RETRY_BASE_DELAY = 5.0
 _MIN_CALL_SPACING = 20.0
+_AUTH_FAILURE_COOLDOWN = 300.0
 
 _last_polygon_call = 0.0
 _polygon_rate_limit_lock = Lock()
 _polygon_request_lock = Lock()
+_polygon_auth_state_lock = Lock()
+_polygon_auth_failed_until = 0.0
+
+
+class _SyntheticResponse:
+    def __init__(self, status_code: int):
+        self.status_code = status_code
+
+    def json(self) -> dict:
+        return {}
+
+
+def _block_polygon_auth() -> None:
+    global _polygon_auth_failed_until
+    with _polygon_auth_state_lock:
+        _polygon_auth_failed_until = max(
+            _polygon_auth_failed_until,
+            time.monotonic() + _AUTH_FAILURE_COOLDOWN,
+        )
+
+
+def _polygon_auth_temporarily_blocked() -> bool:
+    with _polygon_auth_state_lock:
+        return _polygon_auth_failed_until > time.monotonic()
 
 
 def _rate_limit_polygon():
@@ -51,9 +76,11 @@ def _retry_request(fn, *args, **kwargs):
                     )
                     continue
                 if result.status_code == 401 or result.status_code == 403:
+                    failed_url = kwargs.get("url") or (args[0] if args else "unknown")
                     print(
-                        f"Polygon auth error {result.status_code} for {kwargs.get('url', 'unknown')}"
+                        f"Polygon auth error {result.status_code} for {failed_url}"
                     )
+                    _block_polygon_auth()
                     return result
             return result
         except Exception as e:
@@ -68,7 +95,11 @@ def _retry_request(fn, *args, **kwargs):
 
 def polygon_get(url: str, *, params: dict | None = None, timeout: int = 15):
     """Perform a Polygon request under a strict 20s global gate."""
+    if _polygon_auth_temporarily_blocked():
+        return _SyntheticResponse(403)
     with _polygon_request_lock:
+        if _polygon_auth_temporarily_blocked():
+            return _SyntheticResponse(403)
         _rate_limit_polygon()
         return _retry_request(requests.get, url, params=params, timeout=timeout)
 

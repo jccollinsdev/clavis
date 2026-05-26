@@ -6,12 +6,16 @@ This file captures execution evidence gathered after the continuation audit move
 
 - Commit: `5f079af55` — `fix: restore launch trust paths and green suite`
 - Commit: `fa551273d` — `fix: honor scheduler pause in cron job runner`
+- Commit: pending during execution window — Polygon auth short-circuit runtime fix
 - Backend test result:
   - Command: `python3.11 -m pytest -q`
-  - Result: `480 passed, 10 xfailed`
+  - Result: `482 passed, 10 xfailed`
 - Targeted scheduler/backfill runner tests:
   - Command: `python3.11 -m pytest tests/test_jobs_runner.py tests/test_p3_9_backfill.py tests/test_p8_jobs.py -q`
   - Result: `16 passed`
+- Targeted Polygon runtime tests:
+  - Command: `python3.11 -m pytest tests/test_polygon_service.py tests/test_p6_4_polygon_options.py tests/test_p6_5_macro_regression.py -q`
+  - Result: `8 passed`
 - iOS build result:
   - Command: `xcodebuild -scheme Clavis -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17' build`
   - Result: `BUILD SUCCEEDED`
@@ -103,3 +107,27 @@ This file captures execution evidence gathered after the continuation audit move
   - operational conclusion:
     - the backfill is **not** a quick verification step
     - provider readiness and runtime characteristics still need proof before launch
+
+## Backfill rerun after runtime fix
+
+- Root cause found during execution:
+  - `backend/app/services/polygon.py` enforced a strict global 20s Polygon gate even after repeated `401/403` auth failures.
+  - That made unauthorized Polygon access pathologically slow during `backfill_14d`.
+- Runtime fix added locally:
+  - after the first Polygon `401/403`, the process now temporarily short-circuits further Polygon calls instead of paying the 20s gate over and over
+  - the auth log now prints the real URL instead of `unknown`
+- Old run was stopped and closed out explicitly:
+  - `job_runs.id`: `cdb6d5db-225f-4304-9f89-81b2d99cae8b`
+  - final status: `failed`
+  - reason: `aborted_after_polygon_auth_runtime_fix`
+- Rerun started under the new client:
+  - Command: `python3.11 -m app.jobs.run backfill_14d`
+  - new `job_runs.id`: `8c8b50ee-c831-4e00-b153-295e3fa7e993`
+  - first observed Polygon auth failure:
+    - `Polygon auth error 403 for https://api.polygon.io/v2/aggs/ticker/I:TNX/range/1/day/2025-04-20/2026-05-25`
+  - first observed improvement:
+    - rerun stopped spamming repeated Polygon auth lines immediately after the first 403
+    - rerun wrote roughly 10 fresh `ticker_risk_snapshots` rows for `2026-05-11` within a few minutes, materially faster than the earlier run
+- Current state at last check:
+  - rerun still `running`
+  - later dates (`2026-05-17`, `2026-05-18`) still not repaired yet
