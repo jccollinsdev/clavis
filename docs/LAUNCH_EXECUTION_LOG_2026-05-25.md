@@ -31,6 +31,8 @@ This file captures execution evidence gathered after the continuation audit move
 - Production host:
   - `hostname` -> `Clavix-Backend`
   - deployed repo commit -> `2c6a24d`
+  - deployed git branch -> `backend/news-pipeline-candidate-ranking`
+  - deployed worktree is dirty with many tracked modifications and deletions
 - Cron install status:
   - `/etc/cron.d/clavix` was **absent**
   - `/etc/cron.d` contained only `.placeholder`, `e2scrub_all`, and `sysstat`
@@ -50,6 +52,7 @@ This file captures execution evidence gathered after the continuation audit move
 ## Immediate operational conclusions
 
 - Production is **behind local main**.
+- Production is **not a clean checkout of local main** and should not be overwritten casually.
 - Production is **not** on the cron-enabled deployment path yet.
 - Production scheduler freshness is **not proven**.
 - The repo cron file had an ET/UTC assumption bug; it has now been corrected locally to UTC times matching the current VPS timezone.
@@ -64,5 +67,11 @@ This file captures execution evidence gathered after the continuation audit move
     - direct publisher fallback continued successfully for many URLs
     - MiniMax enrichment and Supabase upserts are executing
 - 14-day backfill:
-  - not started yet in this execution window
-  - blocked only by the still-running canary and the need to serialize data-heavy operations
+  - validator prepared: `backend/scripts/validate_backfill_14d.py`
+  - baseline evidence saved to `docs/backfill_validation_before_2026-05-25.json`
+  - baseline result is **incomplete history**, not healthy history
+    - sample tickers only show 10-12 of the expected 14 dates
+    - universe daily coverage ranges from `0` to `136` rows instead of ~full-universe daily coverage
+    - `2026-05-17` and `2026-05-18` currently have `0` rows
+  - the actual 14-day backfill run has not started yet in this execution window
+  - sequencing choice: finish canary first, then run the backfill in isolation so evidence remains interpretable

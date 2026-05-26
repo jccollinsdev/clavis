@@ -1,0 +1,240 @@
+{
+  "anchor_date": "2026-05-25",
+  "days": 14,
+  "sample_tickers": {
+    "AAPL": {
+      "coverage_count": 11,
+      "dates_present": [
+        "2026-05-11",
+        "2026-05-12",
+        "2026-05-13",
+        "2026-05-14",
+        "2026-05-15",
+        "2026-05-16",
+        "2026-05-19",
+        "2026-05-21",
+        "2026-05-22",
+        "2026-05-23",
+        "2026-05-24"
+      ],
+      "latest_row": {
+        "analysis_as_of": "2026-05-24T15:20:19.730325+00:00",
+        "composite_score": 70.2,
+        "grade": "A",
+        "methodology_version": "v2",
+        "snapshot_date": "2026-05-24",
+        "ticker": "AAPL"
+      },
+      "missing_dates": [
+        "2026-05-17",
+        "2026-05-18",
+        "2026-05-20"
+      ]
+    },
+    "AMD": {
+      "coverage_count": 11,
+      "dates_present": [
+        "2026-05-11",
+        "2026-05-12",
+        "2026-05-13",
+        "2026-05-14",
+        "2026-05-15",
+        "2026-05-16",
+        "2026-05-19",
+        "2026-05-21",
+        "2026-05-22",
+        "2026-05-23",
+        "2026-05-24"
+      ],
+      "latest_row": {
+        "analysis_as_of": "2026-05-24T12:27:11.293262+00:00",
+        "composite_score": 66.6,
+        "grade": "BBB",
+        "methodology_version": "v2",
+        "snapshot_date": "2026-05-24",
+        "ticker": "AMD"
+      },
+      "missing_dates": [
+        "2026-05-17",
+        "2026-05-18",
+        "2026-05-20"
+      ]
+    },
+    "JPM": {
+      "coverage_count": 11,
+      "dates_present": [
+        "2026-05-11",
+        "2026-05-12",
+        "2026-05-13",
+        "2026-05-14",
+        "2026-05-15",
+        "2026-05-16",
+        "2026-05-19",
+        "2026-05-20",
+        "2026-05-21",
+        "2026-05-22",
+        "2026-05-24"
+      ],
+      "latest_row": {
+        "analysis_as_of": "2026-05-24T14:43:02.311263+00:00",
+        "composite_score": null,
+        "grade": "BBB",
+        "methodology_version": "sp500-ai-backfill-v2",
+        "snapshot_date": "2026-05-24",
+        "ticker": "JPM"
+      },
+      "missing_dates": [
+        "2026-05-17",
+        "2026-05-18",
+        "2026-05-23"
+      ]
+    },
+    "MSFT": {
+      "coverage_count": 10,
+      "dates_present": [
+        "2026-05-11",
+        "2026-05-12",
+        "2026-05-13",
+        "2026-05-14",
+        "2026-05-16",
+        "2026-05-20",
+        "2026-05-21",
+        "2026-05-22",
+        "2026-05-23",
+        "2026-05-24"
+      ],
+      "latest_row": {
+        "analysis_as_of": "2026-05-24T16:57:50.431819+00:00",
+        "composite_score": 77.0,
+        "grade": "A",
+        "methodology_version": "v2",
+        "snapshot_date": "2026-05-24",
+        "ticker": "MSFT"
+      },
+      "missing_dates": [
+        "2026-05-15",
+        "2026-05-17",
+        "2026-05-18",
+        "2026-05-19"
+      ]
+    },
+    "NVDA": {
+      "coverage_count": 10,
+      "dates_present": [
+        "2026-05-11",
+        "2026-05-12",
+        "2026-05-13",
+        "2026-05-14",
+        "2026-05-16",
+        "2026-05-20",
+        "2026-05-21",
+        "2026-05-22",
+        "2026-05-23",
+        "2026-05-24"
+      ],
+      "latest_row": {
+        "analysis_as_of": "2026-05-24T14:27:53.665949+00:00",
+        "composite_score": null,
+        "grade": "A",
+        "methodology_version": "sp500-ai-backfill-v2",
+        "snapshot_date": "2026-05-24",
+        "ticker": "NVDA"
+      },
+      "missing_dates": [
+        "2026-05-15",
+        "2026-05-17",
+        "2026-05-18",
+        "2026-05-19"
+      ]
+    },
+    "XOM": {
+      "coverage_count": 12,
+      "dates_present": [
+        "2026-05-11",
+        "2026-05-12",
+        "2026-05-13",
+        "2026-05-14",
+        "2026-05-15",
+        "2026-05-16",
+        "2026-05-19",
+        "2026-05-20",
+        "2026-05-21",
+        "2026-05-22",
+        "2026-05-23",
+        "2026-05-24"
+      ],
+      "latest_row": {
+        "analysis_as_of": "2026-05-24T13:52:22.134242+00:00",
+        "composite_score": null,
+        "grade": "BB",
+        "methodology_version": "sp500-ai-backfill-v2",
+        "snapshot_date": "2026-05-24",
+        "ticker": "XOM"
+      },
+      "missing_dates": [
+        "2026-05-17",
+        "2026-05-18"
+      ]
+    }
+  },
+  "universe_daily_counts": {
+    "2026-05-11": {
+      "rows": 98,
+      "unique_tickers": 68
+    },
+    "2026-05-12": {
+      "rows": 114,
+      "unique_tickers": 69
+    },
+    "2026-05-13": {
+      "rows": 89,
+      "unique_tickers": 69
+    },
+    "2026-05-14": {
+      "rows": 85,
+      "unique_tickers": 69
+    },
+    "2026-05-15": {
+      "rows": 60,
+      "unique_tickers": 60
+    },
+    "2026-05-16": {
+      "rows": 32,
+      "unique_tickers": 31
+    },
+    "2026-05-17": {
+      "rows": 0,
+      "unique_tickers": 0
+    },
+    "2026-05-18": {
+      "rows": 0,
+      "unique_tickers": 0
+    },
+    "2026-05-19": {
+      "rows": 58,
+      "unique_tickers": 58
+    },
+    "2026-05-20": {
+      "rows": 12,
+      "unique_tickers": 12
+    },
+    "2026-05-21": {
+      "rows": 127,
+      "unique_tickers": 68
+    },
+    "2026-05-22": {
+      "rows": 68,
+      "unique_tickers": 68
+    },
+    "2026-05-23": {
+      "rows": 121,
+      "unique_tickers": 67
+    },
+    "2026-05-24": {
+      "rows": 136,
+      "unique_tickers": 68
+    }
+  },
+  "window_end": "2026-05-24",
+  "window_start": "2026-05-11"
+}
