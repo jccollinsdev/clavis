@@ -5,6 +5,14 @@ Source: `ios/Clavis/App/ClavixVisualQA.swift`, `docs/UI_ELEMENT_DATA_AUDIT.md`, 
 
 This backlog is tied only to visible VisualQA gaps. It is not a generic refactor task list.
 
+## 2026-05-26 - Hi-Fi Cycle 3 follow-ups
+
+1. `/tickers/{ticker}` does not yet expose `shared_analysis.executive_summary_breakdown` with `bull_case`, `risk_case`, and `what_to_watch`. The Cycle 3 iOS card is wired to render those fields when present and omit them entirely when absent; the backend now needs to ship the real envelope.
+2. `/tickers/{ticker}/methodology` still returns the older per-dimension payload and does not expose the Hi-Fi audit contract of `formula`, `inputs[]`, and `sector_medians[]` rows for each dimension. This blocks a true 1:1 rebuild of the five audit drill-down screens without fabricating rows client-side.
+3. `sector_medians` is currently empty in production, so the drill-down medians table has no honest data source today even if the route shape is expanded.
+4. `sector_regime_snapshots` currently stores `sector`, `snapshot_date`, `generated_at`, `data_status`, and ETF pricing fields, but not the `regime_state` column assumed by the parity checklist SQL. Update either the table/route or the verification query so the sector audit has a stable, documented contract.
+5. Production route verification from this workspace is currently blocked by network timeouts to `https://clavis.andoverdigital.com` even though Supabase REST is reachable. Re-run the `/today`, `/holdings`, `/tickers/{ticker}`, `/tickers/{ticker}/score-history`, `/tickers/{ticker}/methodology`, `/alerts`, and `/preferences` curls once the tunnel/backend is responsive again.
+
 ## ⚠️ Prerequisites we do not own yet (decided 2026-05-25)
 
 These three external dependencies are NOT in place and gate parts of the implementation. The current cycle builds everything that does NOT require them; once obtained, each unlock is a small bounded follow-up.

@@ -26,10 +26,10 @@ struct PriceChartView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Price History")
                         .font(.headline)
-                        .foregroundColor(.textPrimary)
+                        .foregroundColor(.clavixInk)
                     Text("\(ticker) · last \(days) days")
                         .font(.caption)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.clavixInk3)
                 }
                 Spacer()
                 if !chartPrices.isEmpty {
@@ -46,7 +46,7 @@ struct PriceChartView: View {
             if chartPrices.isEmpty {
                 Text("No price data available")
                     .font(.subheadline)
-                    .foregroundColor(.textSecondary)
+                    .foregroundColor(.clavixInk3)
                     .frame(height: 200)
             } else {
                 Chart(chartPrices) { point in
@@ -67,31 +67,31 @@ struct PriceChartView: View {
                     VStack(alignment: .leading) {
                         Text("Low")
                             .font(.caption)
-                            .foregroundColor(.textSecondary)
+                            .foregroundColor(.clavixInk3)
                         Text("$\(Int(chartPrices.map { $0.price }.min() ?? 0))")
                             .font(.caption)
                             .fontWeight(.semibold)
-                            .foregroundColor(.textPrimary)
+                            .foregroundColor(.clavixInk)
                     }
                     Spacer()
                     VStack {
                         Text("High")
                             .font(.caption)
-                            .foregroundColor(.textSecondary)
+                            .foregroundColor(.clavixInk3)
                         Text("$\(Int(chartPrices.map { $0.price }.max() ?? 0))")
                             .font(.caption)
                             .fontWeight(.semibold)
-                            .foregroundColor(.textPrimary)
+                            .foregroundColor(.clavixInk)
                     }
                     Spacer()
                     VStack {
                         Text("Current")
                             .font(.caption)
-                            .foregroundColor(.textSecondary)
+                            .foregroundColor(.clavixInk3)
                         Text("$\(Int(chartPrices.last?.price ?? 0))")
                             .font(.caption)
                             .fontWeight(.semibold)
-                            .foregroundColor(.textPrimary)
+                            .foregroundColor(.clavixInk)
                     }
                 }
             }
@@ -102,9 +102,9 @@ struct PriceChartView: View {
 
     private var priceDirectionColor: Color {
         guard let first = chartPrices.first?.price, let last = chartPrices.last?.price else {
-            return .accentBlue
+            return .clavixAccent
         }
-        return last >= first ? .successTone : .criticalTone
+        return last >= first ? .clavixGood : .clavixBad
     }
 
     private var priceDirectionLabel: String {

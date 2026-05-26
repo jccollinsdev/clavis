@@ -39,6 +39,20 @@ targets:
       - path: Clavis/Resources/Design
     dependencies:
       - package: Supabase
+  ClavisTests:
+    type: bundle.unit-test
+    platform: iOS
+    hostApplication: Clavis
+    sources:
+      - path: ClavisTests
+        excludes:
+          - "**/.DS_Store"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.clavisdev.portfolioassistant.tests
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: Clavis
 
 packages:
   Supabase:

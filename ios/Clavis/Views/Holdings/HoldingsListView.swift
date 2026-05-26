@@ -216,7 +216,7 @@ struct HoldingsListView: View {
         )
         .overlay(alignment: .bottom) {
             Rectangle()
-                .fill(Color.border.opacity(0.5))
+                .fill(Color.clavixRule.opacity(0.5))
                 .frame(height: 0.5)
         }
     }
@@ -335,7 +335,7 @@ struct HoldingsListView: View {
                             .buttonStyle(.plain)
 
                             if index < viewModel.watchlistItems.count - 1 {
-                                Divider().overlay(Color.border)
+                                Divider().overlay(Color.clavixRule)
                             }
                         }
                     }
@@ -369,7 +369,7 @@ struct HoldingsListView: View {
                             .buttonStyle(.plain)
 
                             if index < tickerSearchResults.count - 1 {
-                                Divider().overlay(Color.border)
+                                Divider().overlay(Color.clavixRule)
                             }
                         }
                     }
@@ -763,7 +763,7 @@ private struct HoldingsAddSheet: View {
                                     .buttonStyle(.plain)
 
                                     if index < tickerSuggestions.count - 1 {
-                                        Divider().overlay(Color.border)
+                                        Divider().overlay(Color.clavixRule)
                                     }
                                 }
                             }
@@ -912,7 +912,7 @@ struct AddPositionProgressView: View {
                         GeometryReader { geo in
                             ZStack(alignment: .leading) {
                                 Rectangle()
-                                    .fill(Color.border)
+                                    .fill(Color.clavixRule)
                                     .frame(height: 4)
                                 Rectangle()
                                     .fill(iconColor)

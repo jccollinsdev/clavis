@@ -568,7 +568,7 @@ struct CX2Toggle: View {
     var body: some View {
         ZStack(alignment: isOn ? .trailing : .leading) {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(isOn ? Color.riskA : Color.border)
+                .fill(isOn ? Color.clavixAccent : Color.clavixRule)
                 .frame(width: 40, height: 24)
 
             Circle()

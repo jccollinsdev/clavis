@@ -84,11 +84,23 @@
 		E1BBCBA422C31F86357EF401 /* FinancialHealthAuditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D738964EAB3374EE58B76452 /* FinancialHealthAuditView.swift */; };
 		E1CD65CC0B44962A58C16B27 /* Sparkline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96DFB18A362EA01C347D21E7 /* Sparkline.swift */; };
 		E9D835436887C65DC61A0B7C /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = A5451017CC31874BF6BE7AAD /* Supabase */; };
+		EA4EBFF8D9043FCE842B99DA /* PositionDecoderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8B4AD58741EB045D95F15B1 /* PositionDecoderTests.swift */; };
 		F0F488E4218A118D1566EB56 /* ClavisCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C8B94F66156A937403DBA44 /* ClavisCopy.swift */; };
+		F23C4A685DBA60743282EFEB /* TickerDetailDebugFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8096670C0289B5C0E86BC964 /* TickerDetailDebugFixture.swift */; };
 		F3F9830BF143FBD22392D3C7 /* ArticleDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 723C913265F4BD04FE9F014C /* ArticleDetailSheet.swift */; };
 		FA0755FB18875171EAD7FFD7 /* TickerDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12E13C8D040E91F932034B3 /* TickerDetailView.swift */; };
 		FF2EFFAFA4C71C004E7BE8F0 /* Alert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87747037B87C524712EB60CE /* Alert.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		9C15B39822778498360519EF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 87A6CC0588C607C5399160C6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D6FE17FA964BA9FB7FC4EC18;
+			remoteInfo = Clavis;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		011115DAEE21B65A0074A27C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -136,6 +148,7 @@
 		741B24BE5B94DBF045AACBD4 /* Dashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dashboard.swift; sourceTree = "<group>"; };
 		770F7DC8D4FA49517326EDF6 /* ClavixVQAComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClavixVQAComponents.swift; sourceTree = "<group>"; };
 		7842C6597A0754FBE7FFDDC5 /* Tokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tokens.swift; sourceTree = "<group>"; };
+		8096670C0289B5C0E86BC964 /* TickerDetailDebugFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TickerDetailDebugFixture.swift; sourceTree = "<group>"; };
 		80FF9274D7054F9FFD043346 /* clavix-hifi-v2.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "clavix-hifi-v2.html"; sourceTree = "<group>"; };
 		865D86FE1054F68F98487739 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		87747037B87C524712EB60CE /* Alert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Alert.swift; sourceTree = "<group>"; };
@@ -162,10 +175,12 @@
 		C7329C45BCAFB27231224405 /* ChipBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChipBadge.swift; sourceTree = "<group>"; };
 		C739D74C2D9236A111A6601C /* Grade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Grade.swift; sourceTree = "<group>"; };
 		C817DB08A99C10D844AEEFD3 /* Buttons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Buttons.swift; sourceTree = "<group>"; };
+		C8F8134257A5559F8140167F /* ClavisTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ClavisTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C975E3EE7708580754A98684 /* MacroExposureAuditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroExposureAuditView.swift; sourceTree = "<group>"; };
 		CA68D051F7E6B3D8396319F1 /* Position.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Position.swift; sourceTree = "<group>"; };
 		D12E13C8D040E91F932034B3 /* TickerDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TickerDetailView.swift; sourceTree = "<group>"; };
 		D738964EAB3374EE58B76452 /* FinancialHealthAuditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinancialHealthAuditView.swift; sourceTree = "<group>"; };
+		D8B4AD58741EB045D95F15B1 /* PositionDecoderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositionDecoderTests.swift; sourceTree = "<group>"; };
 		DAAB6D2108AEDFE74E487806 /* NewsSentimentAuditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewsSentimentAuditView.swift; sourceTree = "<group>"; };
 		DB1A7BF18764341D7867CC44 /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		E1FCE7F1240CC9D1BB5D9A91 /* PositionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositionDetailView.swift; sourceTree = "<group>"; };
@@ -250,6 +265,7 @@
 			isa = PBXGroup;
 			children = (
 				5D2D5EF09E956F001BB97806 /* Clavis.app */,
+				C8F8134257A5559F8140167F /* ClavisTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -344,6 +360,7 @@
 			isa = PBXGroup;
 			children = (
 				AC65E2D75EB32E12A33E4FD5 /* Clavis */,
+				A4CF667220B18CD7D0F9D1DD /* ClavisTests */,
 				B6E1D28A38A273CB900820BD /* Config */,
 				1EA8C6E91C0FC397242383BD /* Products */,
 			);
@@ -380,6 +397,14 @@
 				661F4F5923CFE0B8A301B005 /* UserPreferences.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		A4CF667220B18CD7D0F9D1DD /* ClavisTests */ = {
+			isa = PBXGroup;
+			children = (
+				D8B4AD58741EB045D95F15B1 /* PositionDecoderTests.swift */,
+			);
+			path = ClavisTests;
 			sourceTree = "<group>";
 		};
 		AC65E2D75EB32E12A33E4FD5 /* Clavis */ = {
@@ -444,6 +469,7 @@
 				6DE04452D246D5FAAB52974D /* DisplayText.swift */,
 				15B66612E5443B430352FAAB /* MainTabView.swift */,
 				9027BA75CB22430CF3A61B46 /* NetworkStatusMonitor.swift */,
+				8096670C0289B5C0E86BC964 /* TickerDetailDebugFixture.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -488,6 +514,24 @@
 			productReference = 5D2D5EF09E956F001BB97806 /* Clavis.app */;
 			productType = "com.apple.product-type.application";
 		};
+		F19C7445CE3B86C3FA4E2645 /* ClavisTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4EF575CBD9475FDE32D9B590 /* Build configuration list for PBXNativeTarget "ClavisTests" */;
+			buildPhases = (
+				82CCDCC0B6C5C69D807DE9DF /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				11048738855EA1CE88B88DBA /* PBXTargetDependency */,
+			);
+			name = ClavisTests;
+			packageProductDependencies = (
+			);
+			productName = ClavisTests;
+			productReference = C8F8134257A5559F8140167F /* ClavisTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -498,6 +542,10 @@
 				LastUpgradeCheck = 1400;
 				TargetAttributes = {
 					D6FE17FA964BA9FB7FC4EC18 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					F19C7445CE3B86C3FA4E2645 = {
 						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
@@ -521,6 +569,7 @@
 			projectRoot = "";
 			targets = (
 				D6FE17FA964BA9FB7FC4EC18 /* Clavis */,
+				F19C7445CE3B86C3FA4E2645 /* ClavisTests */,
 			);
 		};
 /* End PBXProject section */
@@ -615,6 +664,7 @@
 				E1CD65CC0B44962A58C16B27 /* Sparkline.swift in Sources */,
 				43838696AA2414C499640B61 /* SupabaseAuthService.swift in Sources */,
 				4843CD00210B5AAC2C3CDD0B /* TabBar.swift in Sources */,
+				F23C4A685DBA60743282EFEB /* TickerDetailDebugFixture.swift in Sources */,
 				FA0755FB18875171EAD7FFD7 /* TickerDetailView.swift in Sources */,
 				C8D02AC324342D1EFF715A53 /* TickerDriverCardsSection.swift in Sources */,
 				5D883C42A0F125BF0C18D149 /* Tokens.swift in Sources */,
@@ -623,7 +673,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		82CCDCC0B6C5C69D807DE9DF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EA4EBFF8D9043FCE842B99DA /* PositionDecoderTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		11048738855EA1CE88B88DBA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D6FE17FA964BA9FB7FC4EC18 /* Clavis */;
+			targetProxy = 9C15B39822778498360519EF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		00625FAD165797F1B1863089 /* Release */ = {
@@ -685,6 +751,23 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.9;
 				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		46E1A963A8D16831BC699341 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.clavisdev.portfolioassistant.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clavis.app/Clavis";
 			};
 			name = Release;
 		};
@@ -757,6 +840,23 @@
 			};
 			name = Debug;
 		};
+		645D584303C8517AD1D34B8F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.clavisdev.portfolioassistant.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clavis.app/Clavis";
+			};
+			name = Debug;
+		};
 		64B6351F32E6C615FA3C01B5 /* Release */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 64339F378E9D1A25949DCD60 /* Secrets.xcconfig */;
@@ -799,6 +899,15 @@
 			buildConfigurations = (
 				46EF0D46C94982F64ACB14C5 /* Debug */,
 				00625FAD165797F1B1863089 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		4EF575CBD9475FDE32D9B590 /* Build configuration list for PBXNativeTarget "ClavisTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				645D584303C8517AD1D34B8F /* Debug */,
+				46E1A963A8D16831BC699341 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

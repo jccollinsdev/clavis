@@ -604,3 +604,37 @@ Still pending (not on critical path; pull next cycle):
 - Add-holding & CSV-import sheets — current functional UI, not yet HiFi-styled
 - Settings toggle tint: swap UISwitch tint to `clavixAccent`
 
+### 2026-05-26 · Cycle 3 — Radar + executive summary + honest backend verification
+
+**Not committed yet:** branch `ios/hifi-parity-cycle-3` is live locally; no commit/PR created because this cycle is waiting on review.
+
+Completed the remaining high-priority Ticker Detail parity work against the extracted JSX in `docs/design/clavix-hifi-v2.html`:
+
+**Ticker Detail (Cycle 3):**
+- Replaced the hero sparkline placeholder with a true 5-axis radar (`FIN / NEWS / MAC / SEC / VOL`) driven from `sharedAnalysis.riskDimensions`, with `clavixAccentSoft` fill and `clavixAccent` stroke. Missing dimension values now stay honest: the label hides and the polygon skips that vertex instead of inventing a score.
+- Added the `Executive summary` block between Key drivers and Recent news, with separate `Bull case`, `Risk case`, and `What to watch` cards. Each card only renders if the backend supplies that specific field; null fields disappear entirely.
+- Added shared period chips (`1D / 1W / 1M / 3M / 1Y`) above both the price chart and the score-history chart. Selection now filters the underlying `PricePoint` and `ScoreHistoryPoint` arrays rather than changing labels only.
+- Preserved the honest composite delta line: still renders `— · no prior session score` when no real prior-session delta exists.
+
+**Small remaining live parity fixes:**
+- Settings toggles now use `clavixAccent` instead of the default green tint via `CX2Toggle`.
+- Today sector normalization now maps `SEM` / semiconductor variants to `Tech` in the sector-exposure renderer.
+- Added `ios/ClavisTests/PositionDecoderTests.swift` and a test target in `ios/project.yml` to lock the nested `shared_analysis.previous_close` decode path used by day-change calculations.
+- Cleared the remaining legacy color-token matches under `ios/Clavis/Views/`; the grep at the handoff doc's token-check step now returns no matches.
+
+**Screenshot artifacts:**
+- `docs/AUDITS/hifi_parity_cycle3_ticker_2026-05-26.png` captures the live Swift ticker hero + radar + hold row + price chart state.
+- `docs/AUDITS/hifi_parity_cycle3_summary_2026-05-26.png` captures the live Swift executive-summary cards and recent-news ledger.
+- To make these captures meaningful without depending on the production API, added a DEBUG-only `ticker-live` / `ticker-live-summary` route in the Visual QA shell that renders the real `TickerDetailView` with a local fixture instead of the static mock component.
+
+**Backend verification findings (production data):**
+- Supabase REST is reachable; `clavis.andoverdigital.com` is not currently reachable from this workspace. `curl` and direct web fetches to `/health` time out with 0 bytes returned, so route-level verification is blocked by the tunnel/backend path rather than by auth.
+- `backfill_14d` is complete in `job_runs` (`items_processed = 4054`, `items_failed = 0`, started `2026-05-26T12:06:47Z`).
+- `ticker_risk_snapshots` has real 30-day depth for AAPL (`37` rows since `2026-04-26`), and current v2 rows exist for AAPL / NVDA / MSFT / GOOGL / META, but their latest populated `snapshot_date` is `2026-05-25`, not the table-wide max of `2026-05-26`.
+- `macro_regime_snapshots` is now populated, but the latest row is still `data_status = price_only` with `rates_signal`, `credit_signal`, and `inflation_signal` null.
+- `sector_regime_snapshots` is populated for today's run, but the schema currently exposes ETF/day-change fields and `data_status`, not the `regime_state` column assumed by the original SQL checklist.
+- `sector_medians` is still empty in production, which blocks the Hi-Fi medians table in the methodology drill-down.
+
+**Methodology drill-down status:**
+- Deferred honestly to the next cycle. The current backend route `backend/app/routes/methodology.py` still returns the older per-dimension envelope and does not expose the Hi-Fi audit contract of `formula`, `inputs[]`, and `sector_medians[]` rows. Shipping the full §8 drill-down UI now would require fabricating rows client-side, which this cycle explicitly avoided.
+- Follow-up entries were added to `backlog.md` for the missing methodology payload shape, missing `executive_summary_breakdown` contract, empty `sector_medians`, and the production route timeout blocker.
