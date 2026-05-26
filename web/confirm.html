@@ -235,12 +235,12 @@
       <h1>Email confirmed</h1>
       <p class="subtitle">Your account is ready. Clavix should open automatically &mdash; if not, tap below.</p>
       <button class="btn btn-primary" onclick="openApp()">Open Clavix</button>
-      <a href="https://apps.apple.com/app/clavix/id0000000000" class="store-link" id="appstore-link" style="display:none">
+      <div class="store-link" id="appstore-link" style="display:none">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M7 1L9.5 5.5H12.5L10.5 8.5L11.5 12.5L7 10L2.5 12.5L3.5 8.5L1.5 5.5H4.5L7 1Z" stroke="#6B6560" stroke-width="1.2" stroke-linejoin="round"/>
         </svg>
-        Not installed? Get Clavix on the App Store
-      </a>
+        Need the app first? Install Clavix on your iPhone, then reopen this link.
+      </div>
     </div>
 
     <!-- STATE: error -->
@@ -313,7 +313,7 @@
         // Attempt to open the custom scheme
         window.location.href = deepLink;
 
-        // After 2.5s, if still on page, show App Store fallback
+        // After 2.5s, if still on page, show install guidance fallback
         setTimeout(function () {
           var link = document.getElementById('appstore-link');
           if (link) link.style.display = 'inline-flex';
