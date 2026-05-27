@@ -22,3 +22,8 @@
 - Alert center now loads real data instead of appearing broken, which removes a major comprehension barrier
 - Ticker Detail no longer traps users behind endless loading while waiting for chart data
 - Active-tab-only mounting reduces hidden activity and makes the app feel more deterministic
+
+## 2026-05-27 resume-pass notes
+- Each dimension row is now a real navigation push, so VoiceOver reads it as a standard "button → audit view" action rather than as an opaque tap surface. The rows also carry `accessibilityIdentifier("dimension-row-<key>")` to keep future UI tests stable.
+- The Ticker Detail history chip strip `1D 1W 1M 3M 1Y` continues to render on a single line at default Dynamic Type, with `1M` highlighted as the active selection.
+- The Settings preferences-failure banner uses the existing `DashboardErrorCard` so it matches the rest of the app's failure-card readability conventions instead of relying on a hidden console error.

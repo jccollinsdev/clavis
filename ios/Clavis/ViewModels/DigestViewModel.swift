@@ -33,38 +33,50 @@ final class DigestViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            async let digestResponse = api.fetchTodayDigest(timeoutInterval: 75)
-            async let holdingsResponse = api.fetchHoldings()
-            async let preferencesResponse = api.fetchPreferences()
-            async let latestRunResponse = api.fetchLatestAnalysisRun()
-            async let alertsResponse = api.fetchAlerts()
-            async let todayResponse = api.fetchToday()
-
-            let digest = try await digestResponse
-            let holdings = try await holdingsResponse
-            let preferences = try await preferencesResponse
-            let latestRun = try await latestRunResponse
-            let alerts = (try? await alertsResponse) ?? []
-            let today = try? await todayResponse
-
-            self.todayDigest = digest.digest ?? digest.generatedDigest ?? digest.savedDigest
+            let holdings = try await api.fetchHoldings()
             self.holdings = holdings
-            self.alerts = alerts
-            self.today = today
-            self.activeRun = digest.analysisRun ?? latestRun
-            self.summaryLength = DigestLengthOption(rawValue: preferences.summaryLength?.lowercased() ?? "standard") ?? .standard
-            self.subscriptionTier = preferences.subscriptionTier?.lowercased() ?? "free"
             updateMorningReportState(digest: self.todayDigest)
-            if self.todayDigest == nil, !holdings.isEmpty {
-                await refreshMorningReportStatus()
+
+            Task {
+                let preferences = try? await api.fetchPreferences()
+                await MainActor.run {
+                    self.summaryLength = DigestLengthOption(rawValue: preferences?.summaryLength?.lowercased() ?? "standard") ?? .standard
+                    self.subscriptionTier = preferences?.subscriptionTier?.lowercased() ?? "free"
+                }
+            }
+
+            Task {
+                let digestResponse = try? await api.fetchTodayDigest(timeoutInterval: 30)
+                let latestRun = try? await api.fetchLatestAnalysisRun()
+                await MainActor.run {
+                    let digest = digestResponse?.digest ?? digestResponse?.generatedDigest ?? digestResponse?.savedDigest
+                    self.todayDigest = digest
+                    self.activeRun = digestResponse?.analysisRun ?? latestRun
+                    self.updateMorningReportState(digest: digest)
+                }
+                if digestResponse == nil, !holdings.isEmpty {
+                    await refreshMorningReportStatus()
+                }
+            }
+
+            Task {
+                let alerts = (try? await api.fetchAlerts()) ?? []
+                await MainActor.run {
+                    self.alerts = alerts
+                }
+            }
+
+            Task {
+                let today = try? await api.fetchToday()
+                await MainActor.run {
+                    self.today = today
+                }
             }
         } catch {
             self.errorMessage = ClavisCopy.Errors.digestLoad(error)
         }
 
-        if showLoading {
-            isLoading = false
-        }
+        isLoading = false
     }
 
     func reloadDigestFromDatabase() async {

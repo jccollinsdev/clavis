@@ -25,6 +25,7 @@ class SettingsViewModel: ObservableObject {
     @Published var subscriptionTier: String = "free"
     @Published var isLoading = false
     @Published var accountMessage: String?
+    @Published var preferencesMessage: String?
     @Published var isExportingAccount = false
     @Published var isDeletingAccount = false
 
@@ -35,6 +36,7 @@ class SettingsViewModel: ObservableObject {
         isLoading = true
         isHydrating = true
         accountMessage = nil
+        preferencesMessage = nil
         userEmail = await SupabaseAuthService.shared.getUserEmail() ?? "Unknown"
 
         do {
@@ -102,6 +104,7 @@ class SettingsViewModel: ObservableObject {
             }
         } catch {
             print("Failed to load preferences: \(error)")
+            preferencesMessage = "Live settings are unavailable right now. Showing local defaults until the connection recovers."
         }
 
         isLoading = false
@@ -176,8 +179,10 @@ class SettingsViewModel: ObservableObject {
                 summaryLength: summaryLength.rawValue.lowercased(),
                 weekdayOnly: weekdayOnly
             )
+            preferencesMessage = nil
         } catch {
             print("Failed to save digest time: \(error)")
+            preferencesMessage = "Couldn't save your settings. Your live preferences were not updated."
         }
     }
 
@@ -190,8 +195,10 @@ class SettingsViewModel: ObservableObject {
                 summaryLength: nil,
                 weekdayOnly: nil
             )
+            preferencesMessage = nil
         } catch {
             print("Failed to save notifications: \(error)")
+            preferencesMessage = "Couldn't save your settings. Your live preferences were not updated."
         }
     }
 
@@ -204,8 +211,10 @@ class SettingsViewModel: ObservableObject {
                 summaryLength: summaryLength.rawValue.lowercased(),
                 weekdayOnly: nil
             )
+            preferencesMessage = nil
         } catch {
             print("Failed to save summary length: \(error)")
+            preferencesMessage = "Couldn't save your settings. Your live preferences were not updated."
         }
     }
 
@@ -218,8 +227,10 @@ class SettingsViewModel: ObservableObject {
                 summaryLength: nil,
                 weekdayOnly: weekdayOnly
             )
+            preferencesMessage = nil
         } catch {
             print("Failed to save weekday only: \(error)")
+            preferencesMessage = "Couldn't save your settings. Your live preferences were not updated."
         }
     }
 
@@ -235,8 +246,10 @@ class SettingsViewModel: ObservableObject {
                 quietHoursStart: quietHoursStart,
                 quietHoursEnd: quietHoursEnd
             )
+            preferencesMessage = nil
         } catch {
             print("Failed to save alert settings: \(error)")
+            preferencesMessage = "Couldn't save your settings. Your live preferences were not updated."
         }
     }
 }

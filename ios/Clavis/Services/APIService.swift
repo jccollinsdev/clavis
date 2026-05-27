@@ -187,8 +187,8 @@ class APIService {
 
     // MARK: - Holdings
 
-    func fetchHoldings() async throws -> [Position] {
-        let data = try await makeRequest(path: "/holdings")
+    func fetchHoldings(timeoutInterval: TimeInterval = 15) async throws -> [Position] {
+        let data = try await makeRequest(path: "/holdings", timeoutInterval: timeoutInterval)
         return try decoder.decode([Position].self, from: data)
     }
 
@@ -206,24 +206,28 @@ class APIService {
 
     // MARK: - Tickers
 
-    func searchTickers(query: String, limit: Int = 20) async throws -> [TickerSearchResult] {
+    func searchTickers(query: String, limit: Int = 20, timeoutInterval: TimeInterval = 12) async throws -> [TickerSearchResult] {
         let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
-        let data = try await makeRequest(path: "/tickers/search?q=\(encoded)&limit=\(limit)")
+        let data = try await makeRequest(path: "/tickers/search?q=\(encoded)&limit=\(limit)", timeoutInterval: timeoutInterval)
         let response = try decoder.decode(TickerSearchResponse.self, from: data)
         return response.results
     }
 
-    func fetchTickerDetail(ticker: String, positionId: String? = nil) async throws -> TickerDetailResponse {
+    func fetchTickerDetail(
+        ticker: String,
+        positionId: String? = nil,
+        timeoutInterval: TimeInterval = 15
+    ) async throws -> TickerDetailResponse {
         let query = positionId.flatMap { id -> String? in
             let encoded = id.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? id
             return "?position_id=\(encoded)"
         } ?? ""
-        let data = try await makeRequest(path: "/tickers/\(ticker)\(query)")
+        let data = try await makeRequest(path: "/tickers/\(ticker)\(query)", timeoutInterval: timeoutInterval)
         return try decoder.decode(TickerDetailResponse.self, from: data)
     }
 
-    func fetchTickerMethodology(ticker: String) async throws -> MethodologyResponse {
-        let data = try await makeRequest(path: "/tickers/\(ticker)/methodology")
+    func fetchTickerMethodology(ticker: String, timeoutInterval: TimeInterval = 15) async throws -> MethodologyResponse {
+        let data = try await makeRequest(path: "/tickers/\(ticker)/methodology", timeoutInterval: timeoutInterval)
         return try decoder.decode(MethodologyResponse.self, from: data)
     }
 
@@ -248,8 +252,8 @@ class APIService {
         let ticker: String
     }
 
-    func fetchWatchlists() async throws -> [Watchlist] {
-        let data = try await makeRequest(path: "/watchlists")
+    func fetchWatchlists(timeoutInterval: TimeInterval = 12) async throws -> [Watchlist] {
+        let data = try await makeRequest(path: "/watchlists", timeoutInterval: timeoutInterval)
         let response = try decoder.decode(WatchlistsResponse.self, from: data)
         return response.watchlists
     }
@@ -303,8 +307,8 @@ class APIService {
         let alerts: [Alert]
     }
 
-    func fetchAlerts() async throws -> [Alert] {
-        let data = try await makeRequest(path: "/alerts")
+    func fetchAlerts(timeoutInterval: TimeInterval = 12) async throws -> [Alert] {
+        let data = try await makeRequest(path: "/alerts", timeoutInterval: timeoutInterval)
         let response = try decoder.decode(AlertsResponse.self, from: data)
         return response.alerts
     }
@@ -323,8 +327,8 @@ class APIService {
         }
     }
 
-    func fetchLatestAnalysisRun() async throws -> AnalysisRun? {
-        let data = try await makeRequest(path: "/analysis-runs/latest")
+    func fetchLatestAnalysisRun(timeoutInterval: TimeInterval = 12) async throws -> AnalysisRun? {
+        let data = try await makeRequest(path: "/analysis-runs/latest", timeoutInterval: timeoutInterval)
         let response = try decoder.decode(LatestAnalysisRunResponse.self, from: data)
         return response.analysisRun
     }
@@ -488,13 +492,13 @@ class APIService {
         let auto_sync_enabled: Bool
     }
 
-    func fetchPreferences() async throws -> PreferencesResponse {
-        let data = try await makeRequest(path: "/preferences")
+    func fetchPreferences(timeoutInterval: TimeInterval = 10) async throws -> PreferencesResponse {
+        let data = try await makeRequest(path: "/preferences", timeoutInterval: timeoutInterval)
         return try decoder.decode(PreferencesResponse.self, from: data)
     }
 
-    func fetchBrokerageStatus() async throws -> BrokerageStatusResponse {
-        let data = try await makeRequest(path: "/brokerage/status")
+    func fetchBrokerageStatus(timeoutInterval: TimeInterval = 12) async throws -> BrokerageStatusResponse {
+        let data = try await makeRequest(path: "/brokerage/status", timeoutInterval: timeoutInterval)
         return try decoder.decode(BrokerageStatusResponse.self, from: data)
     }
 
@@ -637,8 +641,8 @@ class APIService {
 
     // MARK: - Today envelope
 
-    func fetchToday() async throws -> TodayResponse {
-        let data = try await makeRequest(path: "/today", timeoutInterval: 45)
+    func fetchToday(timeoutInterval: TimeInterval = 18) async throws -> TodayResponse {
+        let data = try await makeRequest(path: "/today", timeoutInterval: timeoutInterval)
         return try decoder.decode(TodayResponse.self, from: data)
     }
 

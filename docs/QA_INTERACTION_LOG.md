@@ -30,3 +30,14 @@
 - The largest live interaction failures were on Alerts and Ticker Detail. Both were retested after fresh install of the rebuilt app.
 - Alert center now loads. Ticker Detail now renders without waiting on the slow price-history endpoint.
 - A dedicated Alert Detail surface is still missing from the exercised live path; current alert rows behave as deep links.
+
+## 2026-05-27 resume pass — live taps verified
+- Search tab → recent `AAPL` row tap → Ticker Detail rendered hero/composite/radar/dimensions in under a second; price chart hydrated ~1s later. History chip strip `1D 1W 1M 3M 1Y` renders on one line with `1M` selected.
+- Ticker Detail → Financial Health row tap → opened `FinancialHealthAuditView` (title "Financial Health", AAPL header). Back chevron returned to Ticker Detail.
+- Ticker Detail → News Sentiment row tap → opened `NewsSentimentAuditView`. Back returned.
+- Ticker Detail → Macro Exposure row tap → opened `MacroExposureAuditView` (TNX/DXY/WTI/VIX/SPY factor table). Back returned.
+- Ticker Detail → Sector Exposure row tap → opened `SectorExposureAuditView` (Sector Beta / Momentum / Breadth). Back returned.
+- Ticker Detail → Volatility row tap → opened `VolatilityAuditView` (Realized 30d/90d, Vol Ratio, Max Drawdown, Beta to SPY, IV Rank, Implied Vol, Vol Trend chart). Back returned.
+- Settings tab → live preferences loaded without showing the new `preferencesMessage` banner, confirming the failure-only banner stays hidden when the live call succeeds.
+- Alerts tab → PORT, NEWS, and GRADE row taps each deep-linked to the Holdings tab. No dedicated Alert Detail surface opened in any case (P1 still open).
+- Today tab → live portfolio `$24,443 (+$1,865, +7.09%)`, BB composite `56`, five-axis snapshot all rendered. Morning Report briefing was honestly labeled "not generated yet" with an "Open →" CTA.

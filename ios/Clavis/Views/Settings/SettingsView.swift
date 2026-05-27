@@ -13,6 +13,9 @@ struct SettingsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
                     accountHeader
+                    if let message = viewModel.preferencesMessage {
+                        DashboardErrorCard(message: message)
+                    }
                     digestSection
                     alertsSection
                     quietHoursSection

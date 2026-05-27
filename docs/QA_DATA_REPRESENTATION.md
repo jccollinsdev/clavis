@@ -32,3 +32,9 @@
 - Alert center shows real unread counts and category counts from live backend data.
 - Price history is still backend-latency sensitive; the UI fix prevents the entire detail screen from looking broken and allows the chart to fill in later.
 - One methodology caveat remains from backend preflight: structured limited-data row existed for `HIMS:news_sentiment`. This pass did not fully rerun the HIMS UI drill-down.
+
+## 2026-05-27 resume-pass notes
+- Live `AAPL` Ticker Detail still degrades progressively. With this pass's new latency budgets, the hero/composite/radar/dimensions land first; price history and methodology hydrate in independent background tasks so a stalled secondary call cannot freeze the screen.
+- When the methodology payload is delayed or missing, every dimension audit view now surfaces "Unavailable" rather than fabricating values. The Financial Health screen in this pass showed all six ratio rows as "Unavailable" because the methodology call had not completed when the user navigated in — that is the intended honest state.
+- Settings adds a visible `preferencesMessage` banner whenever `/preferences` load fails or any save call fails. The live load in this pass succeeded so the banner stayed hidden — but the path is now testable on failure.
+- Alert-row interaction was reverified: PORT, NEWS, and GRADE rows all deep-link into Holdings. There is still no dedicated Alert Detail surface representing the alert's actual context. P1 stays open.

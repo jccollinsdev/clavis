@@ -21,7 +21,6 @@ struct TickerDetailView: View {
     @State private var showAllArticles = false
     @State private var scoreHistoryDimensions: Set<String> = []
     @State private var selectedHistoryPeriod: TickerHistoryPeriod = .oneMonth
-    @State private var activeMethodologySheet: MethodologySheetSelection?
 
     init(
         ticker: String,
@@ -86,8 +85,8 @@ struct TickerDetailView: View {
                 }
             }
         }
-        .sheet(item: $activeMethodologySheet) { selection in
-            methodologySheet(for: selection)
+        .navigationDestination(for: AuditDestination.self) { destination in
+            auditDestinationView(for: destination)
         }
         .sheet(item: $selectedArticle) { article in
             ArticleDetailSheet(article: article, ticker: ticker)
@@ -422,14 +421,22 @@ struct TickerDetailView: View {
             ClavixCard(padding: 0, fill: .clavixPaper) {
                 VStack(spacing: 0) {
                     ForEach(Array(dimensions.enumerated()), id: \.element.key) { index, dimension in
-                        Button(action: { openMethodology(dimension.key) }) {
+                        if let destination = auditDestination(for: dimension.key) {
+                            NavigationLink(value: destination) {
+                                dimensionRow(dimension)
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 12)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("dimension-row-\(dimension.key)")
+                        } else {
                             dimensionRow(dimension)
                                 .padding(.horizontal, 14)
                                 .padding(.vertical, 12)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
 
                         if index < dimensions.count - 1 {
                             Rectangle()
@@ -738,25 +745,34 @@ struct TickerDetailView: View {
         }
     }
 
-    private func openMethodology(_ key: String) {
-        let selection = MethodologySheetSelection(key: key)
-        if methodology != nil {
-            activeMethodologySheet = selection
-            return
+    private func auditDestination(for key: String) -> AuditDestination? {
+        switch key {
+        case "financial_health": return .financialHealth
+        case "news_sentiment": return .newsSentiment
+        case "macro_exposure": return .macroExposure
+        case "sector_exposure": return .sectorExposure
+        case "volatility": return .volatility
+        default: return nil
         }
+    }
 
-        Task {
-            do {
-                let response = try await APIService.shared.fetchTickerMethodology(ticker: ticker)
-                await MainActor.run {
-                    methodology = response
-                    activeMethodologySheet = selection
-                }
-            } catch {
-                await MainActor.run {
-                    errorMessage = error.localizedDescription
-                }
-            }
+    @ViewBuilder
+    private func auditDestinationView(for destination: AuditDestination) -> some View {
+        switch destination {
+        case .financialHealth:
+            FinancialHealthAuditView(ticker: ticker, methodology: methodology)
+        case .newsSentiment:
+            NewsSentimentAuditView(ticker: ticker, methodology: methodology)
+        case .macroExposure:
+            MacroExposureAuditView(ticker: ticker, methodology: methodology)
+        case .sectorExposure:
+            SectorExposureAuditView(ticker: ticker, methodology: methodology)
+        case .volatility:
+            VolatilityAuditView(
+                ticker: ticker,
+                methodology: methodology,
+                scoreHistory: ScoreHistoryConversion.snapshots(from: scoreHistory)
+            )
         }
     }
 
@@ -765,16 +781,16 @@ struct TickerDetailView: View {
         defer { isLoading = false }
 
         do {
-            async let detailResponse = APIService.shared.fetchTickerDetail(ticker: ticker, positionId: positionId)
-            async let scoreResponse = APIService.shared.fetchScoreHistory(ticker: ticker, days: 365)
-
-            let loadedDetail = try await detailResponse
-            let loadedScore = (try? await scoreResponse)?.points ?? []
+            let loadedDetail = try await APIService.shared.fetchTickerDetail(
+                ticker: ticker,
+                positionId: positionId,
+                timeoutInterval: 15
+            )
 
             await MainActor.run {
                 detail = loadedDetail
                 priceHistory = []
-                scoreHistory = loadedScore
+                scoreHistory = []
                 errorMessage = nil
             }
 
@@ -785,16 +801,25 @@ struct TickerDetailView: View {
                 }
             }
 
-            do {
-                let loadedMethodology = try await APIService.shared.fetchTickerMethodology(ticker: ticker)
+            Task {
+                let loadedScore = try? await APIService.shared.fetchScoreHistory(ticker: ticker, days: 365)
                 await MainActor.run {
-                    methodology = loadedMethodology
+                    scoreHistory = loadedScore?.points ?? []
                 }
-            } catch {
-                // Methodology payload is optional on Ticker Detail; the dimension
-                // rows fall back to honest "Limited Data" labels when absent.
-                await MainActor.run {
-                    methodology = nil
+            }
+
+            Task {
+                do {
+                    let loadedMethodology = try await APIService.shared.fetchTickerMethodology(ticker: ticker, timeoutInterval: 15)
+                    await MainActor.run {
+                        methodology = loadedMethodology
+                    }
+                } catch {
+                    // Methodology payload is optional on Ticker Detail; the dimension
+                    // rows fall back to honest "Limited Data" labels when absent.
+                    await MainActor.run {
+                        methodology = nil
+                    }
                 }
             }
         } catch {
@@ -1094,32 +1119,6 @@ struct TickerDetailView: View {
         detail?.portfolioOverlay?.isInWatchlist ?? detail?.userContext.isInWatchlist ?? false
     }
 
-    @ViewBuilder
-    private func methodologySheet(for selection: MethodologySheetSelection) -> some View {
-        if let methodology {
-            MethodologyDrawerSheet(
-                ticker: ticker,
-                methodology: methodology,
-                tappedDimension: selection.key
-            )
-        } else {
-            NavigationStack {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Methodology unavailable.")
-                        .font(ClavisTypography.clavixSerif(20, weight: .medium))
-                        .foregroundColor(.clavixInk)
-                    Text("This audit view couldn't be loaded from the current snapshot.")
-                        .font(ClavisTypography.body)
-                        .foregroundColor(.clavixInk3)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .padding(ClavisTheme.screenPadding)
-                .background(Color.clavixPage.ignoresSafeArea())
-                .navigationTitle("Methodology")
-                .navigationBarTitleDisplayMode(.inline)
-            }
-        }
-    }
 }
 
 private struct TickerDimensionItem {
@@ -1202,12 +1201,6 @@ private struct HistoryPeriodChips: View {
         .scrollBounceBehavior(.basedOnSize)
         .defaultScrollAnchor(.trailing)
     }
-}
-
-private struct MethodologySheetSelection: Identifiable, Equatable {
-    let key: String
-
-    var id: String { key }
 }
 
 private struct TickerAddHoldingSheet: View {

@@ -35,24 +35,40 @@ class HoldingsViewModel: ObservableObject {
         showError = false
 
         do {
-            async let fetchedHoldings = api.fetchHoldings()
-            async let fetchedWatchlists = api.fetchWatchlists()
-            async let fetchedPreferences = api.fetchPreferences()
-            holdings = try await fetchedHoldings
-            let watchlists = try await fetchedWatchlists
-            let preferences = try await fetchedPreferences
-            watchlistItems = watchlists.first?.items ?? []
-            subscriptionTier = preferences.subscriptionTier?.lowercased() ?? "free"
+            holdings = try await api.fetchHoldings()
             lastRefreshedAt = Date()
-            if let brokerageStatus = try? await api.fetchBrokerageStatus() {
-                applyBrokerageStatus(brokerageStatus)
+
+            Task {
+                let watchlists = try? await api.fetchWatchlists()
+                let preferences = try? await api.fetchPreferences()
+
+                await MainActor.run {
+                    self.watchlistItems = watchlists?.first?.items ?? []
+                    self.subscriptionTier = preferences?.subscriptionTier?.lowercased() ?? "free"
+                }
+            }
+
+            Task {
+                guard let brokerageStatus = try? await api.fetchBrokerageStatus() else { return }
+
+                await MainActor.run {
+                    self.applyBrokerageStatus(brokerageStatus)
+                }
+
                 if shouldAutoSyncBrokerage(brokerageStatus) {
                     _ = try? await api.syncBrokerage(refreshRemote: false)
-                    holdings = try await api.fetchHoldings()
-                    brokerageLastSyncedAt = Date()
-                    lastRefreshedAt = Date()
-                    if let refreshedStatus = try? await api.fetchBrokerageStatus() {
-                        applyBrokerageStatus(refreshedStatus)
+                    let refreshedHoldings = try? await api.fetchHoldings()
+                    let refreshedStatus = try? await api.fetchBrokerageStatus()
+
+                    await MainActor.run {
+                        if let refreshedHoldings {
+                            self.holdings = refreshedHoldings
+                            self.lastRefreshedAt = Date()
+                            self.brokerageLastSyncedAt = Date()
+                        }
+                        if let refreshedStatus {
+                            self.applyBrokerageStatus(refreshedStatus)
+                        }
                     }
                 }
             }

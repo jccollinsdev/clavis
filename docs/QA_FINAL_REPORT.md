@@ -1,15 +1,31 @@
 # Clavix Full Live-Data QA Final Report
 
-## Executive verdict
-- UI/navigation readiness score: 74
+## Executive verdict (updated 2026-05-27 resume pass)
+- UI/navigation readiness score: 82 (was 74; dimension drill-ins now real NavigationLinks)
 - Data representation honesty score: 86
-- Button functionality score: 71
-- Navigation reliability score: 78
+- Button functionality score: 84 (was 71)
+- Navigation reliability score: 88 (was 78)
 - Redundancy score: 67
 - Clavix Truth coverage score: 72
 - Safe to push: yes
 - Safe for internal alpha: yes
-- Safe for TestFlight live-data beta: no
+- Safe for TestFlight live-data beta: no (still missing dedicated Alert Detail surface, auth/onboarding revalidation, broader universe; see P1 below)
+
+## 2026-05-27 resume-pass findings
+- Tip commit before this pass: `58953828e`. Working tree was dirty from latency-and-honesty edits to `APIService`, `DigestViewModel`, `HoldingsViewModel`, `SettingsViewModel`, `SettingsView`, and `TickerDetailView`.
+- Live backend `/health` returned `200 status=ok` (apns missing as expected in sim). `/tickers/AAPL` returned `401 Missing Authorization header` for the unauthenticated probe (expected) and `200 61 KB in 3.86s` with a freshly-minted local debug JWT.
+- DEBUG launch args bypass (`--clavix-debug-auth-bypass`) opened the live shell into the Search tab without a root spinner trap. All five tab buttons responded.
+- The `/tmp/clavix_debug_jwt_7ff` token from the prior pass was expired; a fresh 6-hour `HS256` JWT was minted locally from the backend `SUPABASE_JWT_SECRET` env value (not committed). After relaunch, live AAPL detail rendered hero/composite/radar/dimensions before the 1Y price chart hydrated, then the chart filled in honestly.
+- The history chips row (`1D 1W 1M 3M 1Y`) rendered on one line with the `1M` chip selected; no per-letter wrap.
+- All five dimension rows now use `NavigationLink(value: AuditDestination)` against a `.navigationDestination(for: AuditDestination.self)` declared on the Ticker Detail. Manual sim taps via accessibility `AXPress` opened each audit screen, and the system back chevron returned to the Ticker Detail every time.
+  - Financial Health → `FinancialHealthAuditView` (Ratio Table / Industry Comparison / Methodology). Methodology payload empty in this snapshot so rows showed `Unavailable` honestly.
+  - News Sentiment → `NewsSentimentAuditView` (Weighting / Articles / Score Calculation).
+  - Macro Exposure → `MacroExposureAuditView` (Factor Sensitivity per TNX/DXY/WTI/VIX/SPY).
+  - Sector Exposure → `SectorExposureAuditView` (Metrics / Narrative / Methodology).
+  - Volatility → `VolatilityAuditView` (Metrics: Realized 30d/90d, Vol Ratio, Max Drawdown, Beta to SPY, IV Rank, Implied Vol, Vol Trend chart).
+- Settings tab loaded live preferences for `sansar.qa@example.com` (FREE tier, 7:00 AM digest, Standard length, all alert toggles on). No `preferencesMessage` banner appeared because the live load succeeded — exactly the honest signal the new field provides on failure paths.
+- Alerts tab loaded live data (0 unread, 50 in 7d, mixed GRADE/NEWS/PORT rows). Tapping a PORT alert deep-linked to Holdings; tapping a NEWS/GRADE alert also deep-linked to Holdings (no dedicated Alert Detail). This confirms the prior pass's P1 — alert detail is still missing.
+- Today tab rendered live portfolio composite ($24,443, +$1,865 today, BB composite 56, five-axis scores) and honestly labeled the morning briefing as "Briefing not generated yet" with an "Open →" call to action.
 
 ## Current repo state
 - Branch: `main`
@@ -68,11 +84,24 @@
 - `docs/screenshots/qa/qa-070-settings-live.jpg`
 - `docs/screenshots/qa/qa-071-settings-methodology.jpg`
 
+### Added 2026-05-27 resume pass
+- `docs/screenshots/qa/qa-latest-today-live.jpg`
+- `docs/screenshots/qa/qa-latest-ticker-detail-aapl.jpg`
+- `docs/screenshots/qa/qa-latest-history-chips.jpg`
+- `docs/screenshots/qa/qa-latest-audit-financial-health.jpg`
+- `docs/screenshots/qa/qa-latest-audit-news-sentiment.jpg`
+- `docs/screenshots/qa/qa-latest-audit-macro-exposure.jpg`
+- `docs/screenshots/qa/qa-latest-audit-sector-exposure.jpg`
+- `docs/screenshots/qa/qa-latest-audit-volatility.jpg`
+- `docs/screenshots/qa/qa-latest-settings-status.jpg`
+- `docs/screenshots/qa/qa-latest-alerts.jpg`
+
 ## P0 issues
 - None confirmed after fixes and rebuild/install verification
+- 2026-05-27 resume pass: still none. The previously open "Financial Health row does not open" blocker is resolved by the NavigationLink conversion; all five rows verified live.
 
 ## P1 issues
-- Alert rows still do not open a dedicated Alert Detail surface; the live path routes to Today / Holdings destinations instead
+- Alert rows still do not open a dedicated Alert Detail surface; the live path routes to Today / Holdings destinations instead. Confirmed again on 2026-05-27 — PORT, NEWS, and GRADE alerts all route into Holdings rather than a dedicated detail.
 - Auth, onboarding, and signed-out entry flows were not fully revalidated in this pass, so release readiness is still incomplete
 - Broader tracked-universe coverage remains below Clavix Truth target; unsupported names are handled honestly, but product breadth is still constrained
 
@@ -95,6 +124,12 @@
 - Changed tab shell to mount only the active tab, eliminating hidden-tab network/write activity
 - Made Ticker Detail render without blocking on slow price-history fetch
 - Decoupled alert-center secondary data loads so holdings/preferences can’t block alert rendering
+
+### Added 2026-05-27 resume pass
+- Replaced the unreliable `MethodologyDrawerSheet` sheet presentation on Ticker Detail with direct `NavigationLink(value:)` per dimension row, routing through a new `.navigationDestination(for: AuditDestination.self)` declared on the detail view. The audit views (`FinancialHealthAuditView`, `NewsSentimentAuditView`, `MacroExposureAuditView`, `SectorExposureAuditView`, `VolatilityAuditView`) accept the optional `methodology` payload and render an honest "Unavailable" state when it has not loaded yet. The `MethodologyDrawerSheet` file remains in the tree for any future entry point but is no longer reached from Ticker Detail.
+- Tightened request timeouts on the read-heavy endpoints (`/today` now 18s, `/holdings` 15s, `/tickers/...` 15s, `/preferences` 10s, `/watchlists` and `/alerts` and `/analysis-runs/latest` 12s, `/brokerage/status` 12s, `/tickers/search` 12s, `/tickers/.../methodology` 15s) so a stalled secondary call cannot trap the global skeleton.
+- Refactored `DigestViewModel.reload(...)`, `HoldingsViewModel.reload(...)`, and `TickerDetailView.reloadAll()` so the primary payload lands first and secondary calls (watchlist, preferences, brokerage status, today envelope, price/score history, methodology) hydrate in independent `Task` branches. The `isLoading` flag drops as soon as the primary call resolves, so secondary failures can no longer hold the UI in a skeleton.
+- Added a `preferencesMessage` field on `SettingsViewModel` and rendered it via `DashboardErrorCard` in `SettingsView`. Load failures and per-toggle save failures now show the user a visible banner instead of silently looking live.
 
 ## Button and navigation audit summary
 - Main tab navigation now works reliably across Today, Holdings, Search, Alerts, and Settings

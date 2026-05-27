@@ -36,3 +36,10 @@
 | Limited-data behavior exists | unsupported / chart unavailable | present | `docs/screenshots/qa/qa-042-search-outside-universe.jpg` | Honest limited/unsupported states observed | `P1` |
 | Source transparency exists | recent news | present | `docs/screenshots/qa/qa-050-ticker-detail-live.jpg` | Source and recency shown | `P2` |
 | Refresh/freshness timestamps exist | backend payload / some UI surfaces | partial | none | Backend carries freshness; not fully audited across UI | `P2` |
+
+## 2026-05-27 resume-pass updates
+| Truth element | Where surfaced | Status | Evidence | Notes | Severity if gap |
+| --- | --- | --- | --- | --- | --- |
+| Dimension drill-in audits | Ticker Detail row tap | present | `docs/screenshots/qa/qa-latest-audit-financial-health.jpg` / `qa-latest-audit-news-sentiment.jpg` / `qa-latest-audit-macro-exposure.jpg` / `qa-latest-audit-sector-exposure.jpg` / `qa-latest-audit-volatility.jpg` | All five audit views now reachable via NavigationLink; methodology data was partial in this snapshot so all five honestly showed "Unavailable" for missing fields. | `P1` |
+| Settings honesty on failure | Settings | present | `docs/screenshots/qa/qa-latest-settings-status.jpg` | New `preferencesMessage` banner renders via `DashboardErrorCard` on load or save failure; success path remains clean. | `P2` |
+| Alert detail surface | Alerts | still missing | none | PORT, NEWS, and GRADE rows deep-link to Holdings instead of opening a dedicated detail. | `P1` |
