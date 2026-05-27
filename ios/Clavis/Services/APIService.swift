@@ -299,9 +299,14 @@ class APIService {
 
     // MARK: - Alerts
 
+    struct AlertsResponse: Codable {
+        let alerts: [Alert]
+    }
+
     func fetchAlerts() async throws -> [Alert] {
         let data = try await makeRequest(path: "/alerts")
-        return try decoder.decode([Alert].self, from: data)
+        let response = try decoder.decode(AlertsResponse.self, from: data)
+        return response.alerts
     }
 
     // MARK: - Analysis Runs

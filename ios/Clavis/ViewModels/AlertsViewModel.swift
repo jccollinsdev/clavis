@@ -29,19 +29,24 @@ class AlertsViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            async let alertsResponse = api.fetchAlerts()
-            async let holdingsResponse = api.fetchHoldings()
-            async let preferencesResponse = api.fetchPreferences()
+            alerts = try await api.fetchAlerts()
+            errorMessage = nil
 
-            alerts = try await alertsResponse
-            holdings = (try? await holdingsResponse) ?? []
-            let preferences = try await preferencesResponse
-            quietHoursEnabled = preferences.quietHoursEnabled ?? false
-            quietHoursStart = preferences.quietHoursStart
-            quietHoursEnd = preferences.quietHoursEnd
+            Task {
+                let loadedHoldings = (try? await api.fetchHoldings()) ?? []
+                let preferences = try? await api.fetchPreferences()
+
+                await MainActor.run {
+                    holdings = loadedHoldings
+                    quietHoursEnabled = preferences?.quietHoursEnabled ?? false
+                    quietHoursStart = preferences?.quietHoursStart
+                    quietHoursEnd = preferences?.quietHoursEnd
+                }
+            }
         } catch is CancellationError {
             errorMessage = nil
         } catch {
+            print("Failed to load alerts: \(error)")
             errorMessage = ClavisCopy.Errors.alertsLoad(error)
         }
 

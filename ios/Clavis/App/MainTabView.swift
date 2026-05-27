@@ -29,27 +29,21 @@ struct MainTabView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ZStack {
-                // Keep each tab's view alive so navigation state survives tab switches.
-                DigestView(selectedTab: $selectedTab)
-                    .opacity(selectedTab == 0 ? 1 : 0)
-                    .allowsHitTesting(selectedTab == 0)
-
-                HoldingsListView(selectedTab: $selectedTab, deepLinkTicker: $pendingTickerDetail)
-                    .opacity(selectedTab == 1 ? 1 : 0)
-                    .allowsHitTesting(selectedTab == 1)
-
-                SearchView()
-                    .opacity(selectedTab == 2 ? 1 : 0)
-                    .allowsHitTesting(selectedTab == 2)
-
-                AlertsView(selectedTab: $selectedTab)
-                    .opacity(selectedTab == 3 ? 1 : 0)
-                    .allowsHitTesting(selectedTab == 3)
-
-                SettingsView()
-                    .opacity(selectedTab == 4 ? 1 : 0)
-                    .allowsHitTesting(selectedTab == 4)
+            Group {
+                switch selectedTab {
+                case 0:
+                    DigestView(selectedTab: $selectedTab)
+                case 1:
+                    HoldingsListView(selectedTab: $selectedTab, deepLinkTicker: $pendingTickerDetail)
+                case 2:
+                    SearchView()
+                case 3:
+                    AlertsView(selectedTab: $selectedTab)
+                case 4:
+                    SettingsView()
+                default:
+                    DigestView(selectedTab: $selectedTab)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 

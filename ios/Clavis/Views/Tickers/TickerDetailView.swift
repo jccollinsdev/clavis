@@ -770,18 +770,23 @@ struct TickerDetailView: View {
 
         do {
             async let detailResponse = APIService.shared.fetchTickerDetail(ticker: ticker, positionId: positionId)
-            async let priceResponse = APIService.shared.fetchPriceHistory(ticker: ticker, days: 365)
             async let scoreResponse = APIService.shared.fetchScoreHistory(ticker: ticker, days: 365)
 
             let loadedDetail = try await detailResponse
-            let loadedPrice = try await priceResponse
             let loadedScore = (try? await scoreResponse)?.points ?? []
 
             await MainActor.run {
                 detail = loadedDetail
-                priceHistory = loadedPrice.prices
+                priceHistory = []
                 scoreHistory = loadedScore
                 errorMessage = nil
+            }
+
+            Task {
+                let loadedPrice = try? await APIService.shared.fetchPriceHistory(ticker: ticker, days: 365)
+                await MainActor.run {
+                    priceHistory = loadedPrice?.prices ?? []
+                }
             }
 
             do {

@@ -109,7 +109,7 @@ struct SettingsView: View {
                 DatePicker("Delivery time", selection: $viewModel.digestTime, displayedComponents: .hourAndMinute)
                     .labelsHidden()
                     .tint(.clavixAccent)
-                    .onChange(of: viewModel.digestTime) { _ in
+                    .onChange(of: viewModel.digestTime, initial: false) { _, _ in
                         Task { await viewModel.saveDigestTime() }
                     }
             }
@@ -158,7 +158,7 @@ struct SettingsView: View {
                 DatePicker("Start", selection: $viewModel.quietHoursStart, displayedComponents: .hourAndMinute)
                     .labelsHidden()
                     .tint(.clavixAccent)
-                    .onChange(of: viewModel.quietHoursStart) { _ in
+                    .onChange(of: viewModel.quietHoursStart, initial: false) { _, _ in
                         Task { await viewModel.saveAlertSettings() }
                     }
             }
@@ -167,7 +167,7 @@ struct SettingsView: View {
                 DatePicker("End", selection: $viewModel.quietHoursEnd, displayedComponents: .hourAndMinute)
                     .labelsHidden()
                     .tint(.clavixAccent)
-                    .onChange(of: viewModel.quietHoursEnd) { _ in
+                    .onChange(of: viewModel.quietHoursEnd, initial: false) { _, _ in
                         Task { await viewModel.saveAlertSettings() }
                     }
             }

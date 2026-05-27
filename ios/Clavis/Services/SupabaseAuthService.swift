@@ -9,12 +9,46 @@ class SupabaseAuthService {
     static let shared = SupabaseAuthService()
 
     private let supabase: SupabaseClient
+    private let processInfo = ProcessInfo.processInfo
 
     private init() {
         supabase = SupabaseClient(
             supabaseURL: URL(string: Config.supabaseUrl)!,
             supabaseKey: Config.supabaseAnonKey
         )
+    }
+
+    private var debugBypassToken: String? {
+        #if DEBUG
+        guard processInfo.environment["CLAVIX_DEBUG_AUTH_BYPASS"] == "1" else { return nil }
+        let raw = processInfo.environment["CLAVIX_DEBUG_JWT"]?.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let raw, !raw.isEmpty else { return nil }
+        return raw
+        #else
+        return nil
+        #endif
+    }
+
+    private var debugBypassEmail: String? {
+        #if DEBUG
+        guard debugBypassToken != nil else { return nil }
+        let raw = processInfo.environment["CLAVIX_DEBUG_USER_EMAIL"]?.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let raw, !raw.isEmpty else { return nil }
+        return raw
+        #else
+        return nil
+        #endif
+    }
+
+    private var debugBypassUserId: String? {
+        #if DEBUG
+        guard debugBypassToken != nil else { return nil }
+        let raw = processInfo.environment["CLAVIX_DEBUG_USER_ID"]?.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let raw, !raw.isEmpty else { return nil }
+        return raw
+        #else
+        return nil
+        #endif
     }
 
     var client: SupabaseClient {
@@ -41,11 +75,17 @@ class SupabaseAuthService {
 
     @MainActor
     func refreshSession() async throws {
+        if debugBypassToken != nil {
+            return
+        }
         try await supabase.auth.refreshSession()
     }
 
     @MainActor
     func signOut() async throws {
+        if debugBypassToken != nil {
+            return
+        }
         try await supabase.auth.signOut()
     }
 
@@ -66,6 +106,9 @@ class SupabaseAuthService {
 
     @MainActor
     func checkSession() async -> Bool {
+        if debugBypassToken != nil {
+            return true
+        }
         do {
             _ = try await supabase.auth.session
             return true
@@ -76,6 +119,9 @@ class SupabaseAuthService {
 
     @MainActor
     func getAccessToken() async -> String? {
+        if let debugBypassToken {
+            return debugBypassToken
+        }
         do {
             let session = try await supabase.auth.session
             return session.accessToken
@@ -86,6 +132,9 @@ class SupabaseAuthService {
 
     @MainActor
     func getUserId() async -> String? {
+        if let debugBypassUserId {
+            return debugBypassUserId
+        }
         do {
             let user = try await supabase.auth.user()
             return user.id.uuidString
@@ -96,6 +145,9 @@ class SupabaseAuthService {
 
     @MainActor
     func getUserEmail() async -> String? {
+        if let debugBypassEmail {
+            return debugBypassEmail
+        }
         do {
             let user = try await supabase.auth.user()
             return user.email

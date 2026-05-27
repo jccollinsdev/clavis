@@ -29,9 +29,11 @@ class SettingsViewModel: ObservableObject {
     @Published var isDeletingAccount = false
 
     private let api = APIService.shared
+    private var isHydrating = false
 
     func load() async {
         isLoading = true
+        isHydrating = true
         accountMessage = nil
         userEmail = await SupabaseAuthService.shared.getUserEmail() ?? "Unknown"
 
@@ -103,6 +105,11 @@ class SettingsViewModel: ObservableObject {
         }
 
         isLoading = false
+
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            isHydrating = false
+        }
     }
 
     func exportAccount() async {
@@ -158,6 +165,7 @@ class SettingsViewModel: ObservableObject {
     }
 
     func saveDigestTime() async {
+        guard !isHydrating else { return }
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
         let timeStr = formatter.string(from: digestTime)
@@ -174,6 +182,7 @@ class SettingsViewModel: ObservableObject {
     }
 
     func saveNotifications() async {
+        guard !isHydrating else { return }
         do {
             try await api.updatePreferences(
                 digestTime: nil,
@@ -187,6 +196,7 @@ class SettingsViewModel: ObservableObject {
     }
 
     func saveSummaryLength() async {
+        guard !isHydrating else { return }
         do {
             try await api.updatePreferences(
                 digestTime: nil,
@@ -200,6 +210,7 @@ class SettingsViewModel: ObservableObject {
     }
 
     func saveWeekdayOnly() async {
+        guard !isHydrating else { return }
         do {
             try await api.updatePreferences(
                 digestTime: nil,
@@ -213,12 +224,13 @@ class SettingsViewModel: ObservableObject {
     }
 
     func saveAlertSettings() async {
+        guard !isHydrating else { return }
         do {
             try await api.updateAlertPreferences(
                 gradeChanges: alertsGradeChanges,
                 majorEvents: alertsMajorEvents,
                 portfolioRisk: alertsPortfolioRisk,
-                largePriceMoves: alertsLargePriceMoves,
+                largePriceMoves: nil,
                 quietHoursEnabled: quietHoursEnabled,
                 quietHoursStart: quietHoursStart,
                 quietHoursEnd: quietHoursEnd
