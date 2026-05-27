@@ -7,6 +7,7 @@ import UIKit
 struct MainTabView: View {
     @AppStorage("clavix.selectedTab") private var selectedTab = 0
     @State private var pendingTickerDetail: String?
+    @State private var mountedTabs: Set<Int> = []
 
     init() {
         // Keep nav bar appearance cream/paper for any sheet that does present
@@ -29,20 +30,21 @@ struct MainTabView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Group {
-                switch selectedTab {
-                case 0:
+            ZStack {
+                cachedTab(0) {
                     DigestView(selectedTab: $selectedTab)
-                case 1:
+                }
+                cachedTab(1) {
                     HoldingsListView(selectedTab: $selectedTab, deepLinkTicker: $pendingTickerDetail)
-                case 2:
+                }
+                cachedTab(2) {
                     SearchView()
-                case 3:
+                }
+                cachedTab(3) {
                     AlertsView(selectedTab: $selectedTab)
-                case 4:
+                }
+                cachedTab(4) {
                     SettingsView()
-                default:
-                    DigestView(selectedTab: $selectedTab)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -51,6 +53,12 @@ struct MainTabView: View {
         }
         .background(Color.clavixPage.ignoresSafeArea())
         .preferredColorScheme(.light)
+        .onAppear {
+            mountedTabs.insert(selectedTab)
+        }
+        .onChange(of: selectedTab) { tab in
+            mountedTabs.insert(tab)
+        }
         .onReceive(NotificationCenter.default.publisher(for: .openDigest)) { _ in
             selectedTab = 0
         }
@@ -61,6 +69,18 @@ struct MainTabView: View {
         .onReceive(NotificationCenter.default.publisher(for: .positionAnalysisComplete)) { notification in
             selectedTab = 1
             pendingTickerDetail = notification.object as? String
+        }
+    }
+
+    @ViewBuilder
+    private func cachedTab<Content: View>(_ index: Int, @ViewBuilder content: () -> Content) -> some View {
+        if mountedTabs.contains(index) || selectedTab == index {
+            content()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .opacity(selectedTab == index ? 1 : 0)
+                .allowsHitTesting(selectedTab == index)
+                .accessibilityHidden(selectedTab != index)
+                .zIndex(selectedTab == index ? 1 : 0)
         }
     }
 }

@@ -34,7 +34,7 @@ struct MethodologyDrawerSheet: View {
                         title: "Methodology",
                         ticker: ticker,
                         score: methodology.composite.score,
-                        subtitle: "Methodology v\(methodology.composite.methodologyVersion ?? "—")"
+                        subtitle: methodologyVersionSubtitle
                     )
 
                     drawerDimension(
@@ -127,6 +127,17 @@ struct MethodologyDrawerSheet: View {
         case .volatility:
             VolatilityAuditView(ticker: ticker, methodology: methodology, scoreHistory: [])
         }
+    }
+
+    private var methodologyVersionSubtitle: String {
+        let raw = methodology.composite.methodologyVersion?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if raw.isEmpty {
+            return "Methodology —"
+        }
+        if raw.lowercased().hasPrefix("v") {
+            return "Methodology \(raw)"
+        }
+        return "Methodology v\(raw)"
     }
 
     private func drawerDimension(key: String, title: String, score: Double?, destination: AuditDestination, @ViewBuilder content: () -> some View) -> some View {

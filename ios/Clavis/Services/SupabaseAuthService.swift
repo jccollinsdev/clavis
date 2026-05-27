@@ -20,8 +20,8 @@ class SupabaseAuthService {
 
     private var debugBypassToken: String? {
         #if DEBUG
-        guard processInfo.environment["CLAVIX_DEBUG_AUTH_BYPASS"] == "1" else { return nil }
-        let raw = processInfo.environment["CLAVIX_DEBUG_JWT"]?.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard debugFlag(envKey: "CLAVIX_DEBUG_AUTH_BYPASS", argumentKey: "--clavix-debug-auth-bypass") else { return nil }
+        let raw = debugValue(envKey: "CLAVIX_DEBUG_JWT", argumentKey: "--clavix-debug-jwt")
         guard let raw, !raw.isEmpty else { return nil }
         return raw
         #else
@@ -32,7 +32,7 @@ class SupabaseAuthService {
     private var debugBypassEmail: String? {
         #if DEBUG
         guard debugBypassToken != nil else { return nil }
-        let raw = processInfo.environment["CLAVIX_DEBUG_USER_EMAIL"]?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let raw = debugValue(envKey: "CLAVIX_DEBUG_USER_EMAIL", argumentKey: "--clavix-debug-user-email")
         guard let raw, !raw.isEmpty else { return nil }
         return raw
         #else
@@ -43,7 +43,7 @@ class SupabaseAuthService {
     private var debugBypassUserId: String? {
         #if DEBUG
         guard debugBypassToken != nil else { return nil }
-        let raw = processInfo.environment["CLAVIX_DEBUG_USER_ID"]?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let raw = debugValue(envKey: "CLAVIX_DEBUG_USER_ID", argumentKey: "--clavix-debug-user-id")
         guard let raw, !raw.isEmpty else { return nil }
         return raw
         #else
@@ -53,6 +53,38 @@ class SupabaseAuthService {
 
     var client: SupabaseClient {
         return supabase
+    }
+
+    #if DEBUG
+    private func debugFlag(envKey: String, argumentKey: String) -> Bool {
+        let envValue = processInfo.environment[envKey]?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if envValue == "1" || envValue == "true" || envValue == "yes" {
+            return true
+        }
+        return processInfo.arguments.contains(argumentKey)
+    }
+
+    private func debugValue(envKey: String, argumentKey: String) -> String? {
+        if let envValue = processInfo.environment[envKey]?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !envValue.isEmpty {
+            return envValue
+        }
+
+        let arguments = processInfo.arguments
+        guard let index = arguments.firstIndex(of: argumentKey) else { return nil }
+        let valueIndex = arguments.index(after: index)
+        guard valueIndex < arguments.endIndex else { return nil }
+        let raw = arguments[valueIndex].trimmingCharacters(in: .whitespacesAndNewlines)
+        return raw.isEmpty ? nil : raw
+    }
+    #endif
+
+    var isUsingDebugBypass: Bool {
+        #if DEBUG
+        debugBypassToken != nil
+        #else
+        false
+        #endif
     }
 
     @MainActor

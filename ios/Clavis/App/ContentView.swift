@@ -11,6 +11,8 @@ struct ContentView: View {
                 ClavixHiFiReferenceView()
             } else if debugVisualQAEnabled {
                 ClavixVisualQARoot(open: debugVisualQAOpen)
+            } else if allowDebugBypassLiveEntry {
+                MainTabView()
             } else {
                 authRoot
             }
@@ -20,6 +22,10 @@ struct ContentView: View {
         }
         .onAppear {
             guard !debugVisualQAEnabled else { return }
+            guard !allowDebugBypassLiveEntry else {
+                hasCheckedSession = true
+                return
+            }
             guard !hasCheckedSession else { return }
             hasCheckedSession = true
 
@@ -42,12 +48,14 @@ struct ContentView: View {
 
     @ViewBuilder
     private var authRoot: some View {
-        if authViewModel.isLoadingPreferences && !hasCheckedSession {
+        if allowDebugBypassLiveEntry && authViewModel.isAuthenticated {
+            MainTabView()
+        } else if authViewModel.isLoadingPreferences && !hasCheckedSession {
             LoadingView()
         } else if authViewModel.isAuthenticated && authViewModel.isLoadingPreferences {
             LoadingView()
         } else if authViewModel.isAuthenticated {
-            if authViewModel.hasCompletedOnboarding {
+            if authViewModel.hasCompletedOnboarding || allowDebugBypassLiveEntry {
                 MainTabView()
             } else {
                 OnboardingContainerView()
@@ -83,6 +91,14 @@ struct ContentView: View {
         ProcessInfo.processInfo.environment["CLAVIX_DEBUG_OPEN"]
         #else
         nil
+        #endif
+    }
+
+    private var allowDebugBypassLiveEntry: Bool {
+        #if DEBUG
+        SupabaseAuthService.shared.isUsingDebugBypass
+        #else
+        false
         #endif
     }
 }

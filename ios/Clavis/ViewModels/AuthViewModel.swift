@@ -17,6 +17,13 @@ class AuthViewModel: ObservableObject {
     func checkSession() async {
         isAuthenticated = await authService.checkSession()
         if isAuthenticated {
+            #if DEBUG
+            if authService.isUsingDebugBypass {
+                hasCompletedOnboarding = true
+                subscriptionTier = "free"
+                return
+            }
+            #endif
             await checkOnboardingStatus()
         }
     }

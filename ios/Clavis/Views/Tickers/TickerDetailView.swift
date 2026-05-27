@@ -16,13 +16,12 @@ struct TickerDetailView: View {
     @State private var hasLoaded = false
     @State private var isRefreshingTicker = false
     @State private var isMutatingWatchlist = false
-    @State private var showMethodologyDrawer = false
-    @State private var selectedDimensionKey = "financial_health"
     @State private var selectedArticle: MethodologyArticle?
     @State private var showAddHoldingSheet = false
     @State private var showAllArticles = false
     @State private var scoreHistoryDimensions: Set<String> = []
     @State private var selectedHistoryPeriod: TickerHistoryPeriod = .oneMonth
+    @State private var activeMethodologySheet: MethodologySheetSelection?
 
     init(
         ticker: String,
@@ -87,14 +86,8 @@ struct TickerDetailView: View {
                 }
             }
         }
-        .sheet(isPresented: $showMethodologyDrawer) {
-            if let methodology {
-                MethodologyDrawerSheet(
-                    ticker: ticker,
-                    methodology: methodology,
-                    tappedDimension: selectedDimensionKey
-                )
-            }
+        .sheet(item: $activeMethodologySheet) { selection in
+            methodologySheet(for: selection)
         }
         .sheet(item: $selectedArticle) { article in
             ArticleDetailSheet(article: article, ticker: ticker)
@@ -433,6 +426,8 @@ struct TickerDetailView: View {
                             dimensionRow(dimension)
                                 .padding(.horizontal, 14)
                                 .padding(.vertical, 12)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
 
@@ -474,6 +469,7 @@ struct TickerDetailView: View {
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundColor(.clavixInk4)
         }
+        .contentShape(Rectangle())
     }
 
     private func scoreToneColor(_ score: Double?) -> Color {
@@ -743,9 +739,9 @@ struct TickerDetailView: View {
     }
 
     private func openMethodology(_ key: String) {
-        selectedDimensionKey = key
+        let selection = MethodologySheetSelection(key: key)
         if methodology != nil {
-            showMethodologyDrawer = true
+            activeMethodologySheet = selection
             return
         }
 
@@ -754,7 +750,7 @@ struct TickerDetailView: View {
                 let response = try await APIService.shared.fetchTickerMethodology(ticker: ticker)
                 await MainActor.run {
                     methodology = response
-                    showMethodologyDrawer = true
+                    activeMethodologySheet = selection
                 }
             } catch {
                 await MainActor.run {
@@ -1097,6 +1093,33 @@ struct TickerDetailView: View {
     private var isInWatchlist: Bool {
         detail?.portfolioOverlay?.isInWatchlist ?? detail?.userContext.isInWatchlist ?? false
     }
+
+    @ViewBuilder
+    private func methodologySheet(for selection: MethodologySheetSelection) -> some View {
+        if let methodology {
+            MethodologyDrawerSheet(
+                ticker: ticker,
+                methodology: methodology,
+                tappedDimension: selection.key
+            )
+        } else {
+            NavigationStack {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Methodology unavailable.")
+                        .font(ClavisTypography.clavixSerif(20, weight: .medium))
+                        .foregroundColor(.clavixInk)
+                    Text("This audit view couldn't be loaded from the current snapshot.")
+                        .font(ClavisTypography.body)
+                        .foregroundColor(.clavixInk3)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .padding(ClavisTheme.screenPadding)
+                .background(Color.clavixPage.ignoresSafeArea())
+                .navigationTitle("Methodology")
+                .navigationBarTitleDisplayMode(.inline)
+            }
+        }
+    }
 }
 
 private struct TickerDimensionItem {
@@ -1153,25 +1176,38 @@ private struct HistoryPeriodChips: View {
     var compact: Bool = false
 
     var body: some View {
-        HStack(spacing: 4) {
-            ForEach(TickerHistoryPeriod.allCases, id: \.self) { period in
-                Button(action: { selected = period }) {
-                    Text(period.label)
-                        .font(ClavisTypography.clavixMono(11, weight: .semibold))
-                        .foregroundColor(selected == period ? .white : .clavixInk3)
-                        .padding(.horizontal, compact ? 8 : 10)
-                        .padding(.vertical, 6)
-                        .background(selected == period ? Color.clavixAccent : Color.clavixPaper2)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 4, style: .continuous)
-                                .stroke(selected == period ? Color.clavixAccent : Color.clavixRule2, lineWidth: 1)
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 4) {
+                ForEach(TickerHistoryPeriod.allCases, id: \.self) { period in
+                    Button(action: { selected = period }) {
+                        Text(period.label)
+                            .font(ClavisTypography.clavixMono(11, weight: .semibold))
+                            .foregroundColor(selected == period ? .white : .clavixInk3)
+                            .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
+                            .padding(.horizontal, compact ? 8 : 10)
+                            .padding(.vertical, 6)
+                            .frame(minWidth: compact ? 30 : 38)
+                            .background(selected == period ? Color.clavixAccent : Color.clavixPaper2)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                    .stroke(selected == period ? Color.clavixAccent : Color.clavixRule2, lineWidth: 1)
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
         }
+        .scrollBounceBehavior(.basedOnSize)
+        .defaultScrollAnchor(.trailing)
     }
+}
+
+private struct MethodologySheetSelection: Identifiable, Equatable {
+    let key: String
+
+    var id: String { key }
 }
 
 private struct TickerAddHoldingSheet: View {
