@@ -29,6 +29,11 @@ class _Query:
         self.rows = [row for row in self.rows if row.get(field) == value]
         return self
 
+    def in_(self, field, values):
+        allowed = set(values)
+        self.rows = [row for row in self.rows if row.get(field) in allowed]
+        return self
+
     def order(self, field, desc=False):
         self.rows = sorted(self.rows, key=lambda row: row.get(field) or "", reverse=desc)
         return self
@@ -161,3 +166,114 @@ async def test_methodology_response_includes_audit_depth(monkeypatch):
     assert news["sentiment_distribution"][0]["bucket"] == "positive"
     assert vol["iv_rank"] is not None
     assert vol["iv_source"] == "estimated"
+
+
+@pytest.mark.asyncio
+async def test_methodology_prefers_complete_snapshot_over_newer_partial(monkeypatch):
+    now = datetime.now(timezone.utc)
+    db = _DB(
+        {
+            "ticker_metadata": [{"ticker": "CFG", "sector": "Financials", "updated_at": now.isoformat()}],
+            "ticker_risk_snapshots": [
+                {
+                    "id": "partial",
+                    "ticker": "CFG",
+                    "snapshot_type": "backfill",
+                    "grade": "BBB",
+                    "composite_score": None,
+                    "financial_health": 54,
+                    "news_sentiment_dim": None,
+                    "macro_exposure_dim": None,
+                    "sector_exposure": 65,
+                    "volatility": 67,
+                    "analysis_as_of": (now + timedelta(seconds=5)).isoformat(),
+                    "methodology_version": "sp500-ai-backfill-v2",
+                    "factor_breakdown": {
+                        "ai_dimensions": {
+                            "financial_health": 54,
+                            "news_sentiment": 55,
+                            "macro_exposure": 100,
+                            "sector_exposure": 65,
+                            "volatility": 67,
+                        }
+                    },
+                },
+                {
+                    "id": "complete",
+                    "ticker": "CFG",
+                    "snapshot_type": "daily",
+                    "grade": "B",
+                    "composite_score": 48.2,
+                    "financial_health": 45,
+                    "news_sentiment_dim": 40,
+                    "macro_exposure_dim": 35,
+                    "sector_exposure": 50,
+                    "volatility": 45,
+                    "analysis_as_of": now.isoformat(),
+                    "methodology_version": "v2",
+                },
+            ],
+            "shared_ticker_events": [],
+            "sector_medians": [],
+            "peer_groups": [],
+        }
+    )
+    monkeypatch.setattr(methodology, "get_supabase", lambda: db)
+
+    result = await methodology.get_ticker_methodology("cfg", "u1")
+
+    assert result["composite"]["score"] == 48.2
+    assert result["dimensions"]["news_sentiment"]["score"] == 40
+    assert result["dimensions"]["macro_exposure"]["score"] == 35
+
+
+@pytest.mark.asyncio
+async def test_methodology_surfaces_limited_reason_for_missing_dimension(monkeypatch):
+    now = datetime.now(timezone.utc)
+    db = _DB(
+        {
+            "ticker_metadata": [{"ticker": "HIMS", "sector": "Health Care", "updated_at": now.isoformat()}],
+            "ticker_risk_snapshots": [
+                {
+                    "id": "limited",
+                    "ticker": "HIMS",
+                    "snapshot_type": "backfill",
+                    "grade": "BB",
+                    "composite_score": 51.0,
+                    "financial_health": 58,
+                    "news_sentiment_dim": None,
+                    "macro_exposure_dim": 41,
+                    "sector_exposure": 65,
+                    "volatility": 40,
+                    "analysis_as_of": now.isoformat(),
+                    "methodology_version": "v2",
+                    "dimension_inputs": {
+                        "news_sentiment": {
+                            "article_count_7d": 0,
+                            "weighted_score": None,
+                            "limited_data": True,
+                            "limited_reason": "Only 0 shared ticker event(s) were available in the last 7 days; at least 3 are required for a scored news sentiment dimension.",
+                        },
+                        "macro_exposure": {
+                            "limited_data": True,
+                            "limited_reason": "Macro regression only had 0 usable trading day(s) of factor history.",
+                        },
+                    },
+                }
+            ],
+            "shared_ticker_events": [],
+            "sector_medians": [],
+            "peer_groups": [],
+        }
+    )
+    monkeypatch.setattr(methodology, "get_supabase", lambda: db)
+
+    result = await methodology.get_ticker_methodology("hims", "u1")
+
+    news = result["dimensions"]["news_sentiment"]
+    macro = result["dimensions"]["macro_exposure"]
+    assert news["score"] is None
+    assert news["limited_data"] is True
+    assert "at least 3 are required" in news["limited_reason"]
+    assert macro["limited_data"] is True
+    assert "usable trading day" in macro["limited_reason"]

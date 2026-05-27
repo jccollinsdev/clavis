@@ -4342,7 +4342,10 @@ def _sync_ai_scores_to_ticker_snapshots_sync(
     analysis_run_id: str | None = None,
 ) -> None:
     from .analysis_utils import format_rationale, grade_direction, score_to_grade
-    from ..services.ticker_cache_service import _upsert_ticker_snapshot
+    from ..services.ticker_cache_service import (
+        _upsert_ticker_snapshot,
+        snapshot_is_schema_complete,
+    )
 
     user_id = SYSTEM_SP500_USER_ID
     ticker_upper = ticker.upper()
@@ -4361,22 +4364,47 @@ def _sync_ai_scores_to_ticker_snapshots_sync(
     if not position_rows:
         return
     position_id = position_rows[0]["id"]
-    latest_snap_rows = _execute_supabase_with_fresh_client_retry(
+    source_snapshot_rows = _execute_supabase_with_fresh_client_retry(
         lambda client: (
             client.table("ticker_risk_snapshots")
             .select("*")
             .eq("ticker", ticker_upper)
-            .eq("snapshot_type", job_type)
+            .order("analysis_as_of", desc=True)
+            .order("updated_at", desc=True)
             .order("created_at", desc=True)
-            .limit(1)
+            .limit(20)
             .execute()
             .data
         ),
-        context=f"latest ticker_risk_snapshots load for sync {ticker_upper}",
+        context=f"source ticker_risk_snapshots load for sync {ticker_upper}",
     )
-    if not latest_snap_rows:
-        return
-    ai_score = latest_snap_rows[0]
+    source_snapshot = next(
+        (
+            row
+            for row in (source_snapshot_rows or [])
+            if snapshot_is_schema_complete(row)
+        ),
+        None,
+    )
+    if not source_snapshot:
+        raise RuntimeError(
+            f"No schema-complete source snapshot available to sync {ticker_upper}"
+        )
+    ai_score = source_snapshot
+
+    def _dimension_value(
+        stored_dimensions: dict[str, Any],
+        dimension: str,
+        *fallback_columns: str,
+    ) -> Any:
+        stored_value = stored_dimensions.get(dimension)
+        if stored_value is not None:
+            return stored_value
+        for column in fallback_columns:
+            value = ai_score.get(column)
+            if value is not None:
+                return value
+        return None
 
     def _load_latest_analysis(client):
         analysis_query = (
@@ -4406,30 +4434,32 @@ def _sync_ai_scores_to_ticker_snapshots_sync(
     factor_breakdown = {
         **factor_breakdown,
         "ai_dimensions": {
-            "financial_health": (
-                stored_ai_dims.get("financial_health")
-                if stored_ai_dims.get("financial_health") is not None
-                else ai_score.get("financial_health")
+            "financial_health": _dimension_value(
+                stored_ai_dims,
+                "financial_health",
+                "financial_health",
             ),
-            "news_sentiment": (
-                stored_ai_dims.get("news_sentiment")
-                if stored_ai_dims.get("news_sentiment") is not None
-                else ai_score.get("news_sentiment")
+            "news_sentiment": _dimension_value(
+                stored_ai_dims,
+                "news_sentiment",
+                "news_sentiment_dim",
+                "news_sentiment",
             ),
-            "macro_exposure": (
-                stored_ai_dims.get("macro_exposure")
-                if stored_ai_dims.get("macro_exposure") is not None
-                else ai_score.get("macro_exposure")
+            "macro_exposure": _dimension_value(
+                stored_ai_dims,
+                "macro_exposure",
+                "macro_exposure_dim",
+                "macro_exposure",
             ),
-            "sector_exposure": (
-                stored_ai_dims.get("sector_exposure")
-                if stored_ai_dims.get("sector_exposure") is not None
-                else ai_score.get("sector_exposure")
+            "sector_exposure": _dimension_value(
+                stored_ai_dims,
+                "sector_exposure",
+                "sector_exposure",
             ),
-            "volatility": (
-                stored_ai_dims.get("volatility")
-                if stored_ai_dims.get("volatility") is not None
-                else ai_score.get("volatility")
+            "volatility": _dimension_value(
+                stored_ai_dims,
+                "volatility",
+                "volatility",
             ),
         },
     }
@@ -4487,13 +4517,14 @@ def _sync_ai_scores_to_ticker_snapshots_sync(
     ai_dimensions = factor_breakdown.get("ai_dimensions") or {}
     payload = {
         "ticker": ticker.upper(),
-        "snapshot_date": datetime.utcnow().date().isoformat(),
+        "snapshot_date": ai_score.get("snapshot_date") or datetime.utcnow().date().isoformat(),
         "snapshot_type": job_type,
         "grade": grade,
         "safety_score": round(float(public_score), 1),
+        "composite_score": ai_score.get("composite_score") or round(float(public_score), 1),
         "financial_health": ai_dimensions.get("financial_health"),
-        "news_sentiment": ai_dimensions.get("news_sentiment"),
-        "macro_exposure": ai_dimensions.get("macro_exposure"),
+        "news_sentiment_dim": ai_dimensions.get("news_sentiment"),
+        "macro_exposure_dim": ai_dimensions.get("macro_exposure"),
         "sector_exposure": ai_dimensions.get("sector_exposure"),
         "volatility": ai_dimensions.get("volatility"),
         "structural_base_score": ai_score.get("structural_base_score"),
@@ -4501,9 +4532,12 @@ def _sync_ai_scores_to_ticker_snapshots_sync(
         "event_adjustment": ai_score.get("event_adjustment") or 0.0,
         "confidence": ai_score.get("confidence"),
         "factor_breakdown": factor_breakdown,
+        "dimension_inputs": ai_score.get("dimension_inputs") or {},
+        "dimension_last_refreshed": ai_score.get("dimension_last_refreshed") or {},
+        "limited_data_dimensions": ai_score.get("limited_data_dimensions") or [],
         "dimension_rationale": ai_score.get("dimension_rationale") or {},
         "reasoning": reasoning,
-        "news_summary": analysis.get("summary") or "",
+        "news_summary": ai_score.get("news_summary") or analysis.get("summary") or "",
         "source_count": source_count,
         "methodology_version": (
             (
@@ -4920,7 +4954,7 @@ async def run_sp500_full_ai_analysis_fast(
         if position_rows:
             latest_snap_rows = (
                 supabase.table("ticker_risk_snapshots")
-                .select("grade, safety_score, financial_health, news_sentiment, macro_exposure, sector_exposure, volatility, reasoning, methodology_version")
+                .select("grade, safety_score, financial_health, news_sentiment_dim, macro_exposure_dim, sector_exposure, volatility, reasoning, methodology_version")
                 .eq("ticker", ticker.upper())
                 .order("created_at", desc=True)
                 .limit(1)
@@ -4947,8 +4981,8 @@ async def run_sp500_full_ai_analysis_fast(
         score = s.get("safety_score") or "N/A"
         method = s.get("methodology_version") or ""
         fh = latest_score.get("financial_health") if latest_score else "N/A"
-        news_sent = latest_score.get("news_sentiment") if latest_score else "N/A"
-        macro_exp = latest_score.get("macro_exposure") if latest_score else "N/A"
+        news_sent = latest_score.get("news_sentiment_dim") if latest_score else "N/A"
+        macro_exp = latest_score.get("macro_exposure_dim") if latest_score else "N/A"
         sector_exp = latest_score.get("sector_exposure") if latest_score else "N/A"
         vol = latest_score.get("volatility") if latest_score else "N/A"
         reasoning = (latest_score or {}).get("reasoning") or s.get("reasoning") or ""

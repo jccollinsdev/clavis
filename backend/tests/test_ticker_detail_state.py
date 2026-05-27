@@ -1281,6 +1281,73 @@ def test_get_latest_risk_snapshot_history_map_prefers_ai_snapshot_on_ties(monkey
     assert history["ABT"][1]["id"] == "snap-fallback"
 
 
+def test_get_latest_risk_snapshot_history_map_prefers_complete_snapshot_over_newer_partial(
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        "app.services.ticker_cache_service.ensure_sp500_universe_seeded",
+        lambda _supabase: None,
+    )
+    supabase = _FakeSupabase(
+        {
+            "ticker_risk_snapshots": [
+                {
+                    "id": "snap-partial",
+                    "ticker": "CFG",
+                    "snapshot_type": "backfill",
+                    "snapshot_date": "2026-05-24",
+                    "grade": "BBB",
+                    "safety_score": 68,
+                    "composite_score": None,
+                    "financial_health": 54,
+                    "news_sentiment_dim": None,
+                    "macro_exposure_dim": None,
+                    "sector_exposure": 65,
+                    "volatility": 67,
+                    "methodology_version": "sp500-ai-backfill-v2",
+                    "analysis_as_of": "2026-05-24T17:16:15+00:00",
+                    "created_at": "2026-05-24T17:16:15+00:00",
+                    "updated_at": "2026-05-24T17:16:15+00:00",
+                    "factor_breakdown": {
+                        "ai_dimensions": {
+                            "financial_health": 54,
+                            "news_sentiment": 55,
+                            "macro_exposure": 100,
+                            "sector_exposure": 65,
+                            "volatility": 67,
+                        }
+                    },
+                },
+                {
+                    "id": "snap-complete",
+                    "ticker": "CFG",
+                    "snapshot_type": "daily",
+                    "snapshot_date": "2026-05-24",
+                    "grade": "B",
+                    "safety_score": 48.2,
+                    "composite_score": 48.2,
+                    "financial_health": 45,
+                    "news_sentiment_dim": 40,
+                    "macro_exposure_dim": 35,
+                    "sector_exposure": 50,
+                    "volatility": 45,
+                    "methodology_version": "v2",
+                    "analysis_as_of": "2026-05-24T17:16:07+00:00",
+                    "created_at": "2026-05-24T17:16:07+00:00",
+                    "updated_at": "2026-05-24T17:16:07+00:00",
+                },
+            ]
+        }
+    )
+
+    history = ticker_cache_service.get_latest_risk_snapshot_history_map(
+        supabase, ["CFG"], per_ticker=2
+    )
+
+    assert history["CFG"][0]["id"] == "snap-complete"
+    assert history["CFG"][1]["id"] == "snap-partial"
+
+
 def test_get_ticker_detail_bundle_uses_canonical_ai_score_for_virtual_position(monkeypatch):
     monkeypatch.setattr(
         "app.services.ticker_cache_service.ensure_sp500_universe_seeded",

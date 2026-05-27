@@ -8,7 +8,10 @@ from fastapi import APIRouter, Depends, Request
 from ..pipeline.structural_scorer import estimate_iv_rank_from_realized_vol
 from ..services.personalisation import attach_latest_personalisation
 from ..services.supabase import get_supabase
-from ..services.ticker_cache_service import _shared_risk_dimensions
+from ..services.ticker_cache_service import (
+    _shared_risk_dimensions,
+    get_latest_risk_snapshot_history_map,
+)
 
 router = APIRouter()
 
@@ -159,16 +162,9 @@ async def get_ticker_methodology(
     sector_medians = _latest_sector_medians(supabase, sector)
     peers = _peer_comparisons(supabase, upper)
 
-    snapshot_result = (
-        supabase.table("ticker_risk_snapshots")
-        .select("*")
-        .eq("ticker", upper)
-        .order("analysis_as_of", desc=True)
-        .order("updated_at", desc=True)
-        .limit(1)
-        .execute()
+    snapshot = (
+        get_latest_risk_snapshot_history_map(supabase, [upper], per_ticker=1).get(upper, [{}])[0]
     )
-    snapshot = snapshot_result.data[0] if snapshot_result.data else {}
 
     factor_breakdown = snapshot.get("factor_breakdown") or {}
     if isinstance(factor_breakdown, str):
@@ -226,6 +222,17 @@ async def get_ticker_methodology(
     volatility_inputs = dimension_inputs.get("volatility") or {}
     financial_inputs = dimension_inputs.get("financial_health") or {}
     macro_regression = factor_breakdown.get("macro_regression") or {}
+
+    def _limited_data_flag(payload: dict[str, Any]) -> bool:
+        return bool(payload.get("limited_data") or payload.get("limited"))
+
+    def _limited_data_reason(payload: dict[str, Any]) -> str | None:
+        return (
+            payload.get("limited_reason")
+            or payload.get("limited_data_reason")
+            or payload.get("reason")
+        )
+
     factor_exposures = _factor_exposures(macro_inputs, macro_regression)
     iv_rank = volatility_inputs.get("iv_rank")
     iv_source = volatility_inputs.get("iv_source")
@@ -298,6 +305,8 @@ async def get_ticker_methodology(
         "dimensions": {
             "financial_health": {
                 "score": risk_dims.get("financial_health"),
+                "limited_data": _limited_data_flag(financial_inputs),
+                "limited_reason": _limited_data_reason(financial_inputs),
                 "debt_to_equity": financial_inputs.get("debt_to_equity"),
                 "fcf_margin": financial_inputs.get("fcf_margin"),
                 "interest_coverage": financial_inputs.get("interest_coverage"),
@@ -320,6 +329,8 @@ async def get_ticker_methodology(
             },
             "news_sentiment": {
                 "score": risk_dims.get("news_sentiment"),
+                "limited_data": _limited_data_flag(news_inputs),
+                "limited_reason": _limited_data_reason(news_inputs),
                 "article_count_7d": (
                     news_inputs.get("article_count_7d")
                     if news_inputs.get("article_count_7d") is not None
@@ -348,6 +359,7 @@ async def get_ticker_methodology(
                     if macro_inputs.get("limited_data") is not None
                     else macro_regression.get("limited_data")
                 ),
+                "limited_reason": _limited_data_reason(macro_inputs),
                 "as_of_date": macro_inputs.get("as_of_date") or macro_regression.get("as_of_date"),
                 "coefficients": macro_inputs.get("coefficients") or macro_regression.get("coefficients") or {},
                 "factor_exposures": factor_exposures,
@@ -357,6 +369,8 @@ async def get_ticker_methodology(
             },
             "sector_exposure": {
                 "score": risk_dims.get("sector_exposure"),
+                "limited_data": _limited_data_flag(sector_inputs),
+                "limited_reason": _limited_data_reason(sector_inputs),
                 "sector": sector_inputs.get("sector") or metadata.get("sector"),
                 "sector_etf": sector_inputs.get("sector_etf"),
                 "sector_beta": sector_inputs.get("sector_beta"),
@@ -372,6 +386,8 @@ async def get_ticker_methodology(
             },
             "volatility": {
                 "score": risk_dims.get("volatility"),
+                "limited_data": _limited_data_flag(volatility_inputs),
+                "limited_reason": _limited_data_reason(volatility_inputs),
                 "realized_vol_30d": volatility_inputs.get("realized_vol_30d"),
                 "realized_vol_90d": volatility_inputs.get("realized_vol_90d"),
                 "vol_ratio": volatility_inputs.get("vol_ratio"),

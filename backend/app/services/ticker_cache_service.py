@@ -26,6 +26,14 @@ from .ticker_metadata import upsert_ticker_metadata
 logger = logging.getLogger(__name__)
 _RATIONALE_BLOCK_COUNTS: Counter[str] = Counter()
 _RATIONALE_SOURCE_COUNTS: Counter[str] = Counter()
+_VALID_GRADES = {"AAA", "AA", "A", "BBB", "BB", "B", "CCC", "CC", "C", "F"}
+_DIMENSION_COLUMN_MAP = {
+    "financial_health": "financial_health",
+    "news_sentiment": "news_sentiment_dim",
+    "macro_exposure": "macro_exposure_dim",
+    "sector_exposure": "sector_exposure",
+    "volatility": "volatility",
+}
 
 
 SYSTEM_SP500_USER_ID = "00000000-0000-0000-0000-000000000001"
@@ -318,11 +326,24 @@ def _build_news_sentiment_inputs(news_rows: list[dict[str, Any]]) -> dict[str, A
         total_weight += weight
 
     baseline = article_count_28d / 4.0 if article_count_28d else 0.0
-    return {
+    weighted_score = round(weighted_total / total_weight, 1) if total_weight > 0 else None
+    result = {
         "article_count_7d": article_count_7d,
         "volume_signal": bool(article_count_7d and baseline and article_count_7d > baseline * 1.25),
-        "weighted_score": round(weighted_total / total_weight, 1) if total_weight > 0 else None,
+        "weighted_score": weighted_score,
     }
+    if article_count_7d < 3:
+        result["limited_data"] = True
+        result["limited_reason"] = (
+            f"Only {article_count_7d} shared ticker event(s) were available in the last 7 days; "
+            "at least 3 are required for a scored news sentiment dimension."
+        )
+    elif weighted_score is None:
+        result["limited_data"] = True
+        result["limited_reason"] = (
+            "Recent shared ticker events did not include usable sentiment scores for the news sentiment dimension."
+        )
+    return result
 
 
 def _build_sector_exposure_inputs(
@@ -493,7 +514,7 @@ def _build_macro_exposure_inputs(
         )
     if macro_result.get("r_squared") is not None:
         narrative_parts.append(f"regression fit is {macro_result['r_squared']:.2f} R²")
-    return {
+    result = {
         "r_squared": macro_result.get("r_squared"),
         "trading_days_used": macro_result.get("trading_days_used"),
         "limited_data": macro_result.get("limited_data", False),
@@ -502,6 +523,12 @@ def _build_macro_exposure_inputs(
         "current_factor_levels": current_factor_levels,
         "narrative": ". ".join(narrative_parts) + "." if narrative_parts else None,
     }
+    if result["limited_data"]:
+        trading_days_used = result.get("trading_days_used")
+        result["limited_reason"] = (
+            f"Macro regression only had {trading_days_used or 0} usable trading day(s) of factor history."
+        )
+    return result
 
 
 def _snapshot_methodology_priority(methodology_version: Any) -> int:
@@ -530,11 +557,92 @@ def _snapshot_sort_key(row: dict[str, Any]) -> tuple:
     )
 
 
+def _snapshot_dimension_detail(snapshot: dict[str, Any], dimension: str) -> dict[str, Any]:
+    factor_breakdown = snapshot.get("factor_breakdown") or {}
+    if isinstance(factor_breakdown, str):
+        import json
+
+        try:
+            factor_breakdown = json.loads(factor_breakdown)
+        except Exception:
+            factor_breakdown = {}
+    dimension_inputs = snapshot.get("dimension_inputs") or {}
+    if isinstance(dimension_inputs, str):
+        import json
+
+        try:
+            dimension_inputs = json.loads(dimension_inputs)
+        except Exception:
+            dimension_inputs = {}
+    dimension_input = (
+        dimension_inputs.get(dimension)
+        if isinstance(dimension_inputs, dict)
+        else None
+    ) or {}
+    if not isinstance(dimension_input, dict):
+        dimension_input = {}
+    limited_dimensions = snapshot.get("limited_data_dimensions") or []
+    if isinstance(limited_dimensions, str):
+        import json
+
+        try:
+            limited_dimensions = json.loads(limited_dimensions)
+        except Exception:
+            limited_dimensions = []
+    limited_dimensions = {
+        str(item)
+        for item in limited_dimensions
+        if str(item).strip()
+    }
+    limited_flag = bool(
+        dimension_input.get("limited_data")
+        or dimension_input.get("limited")
+        or dimension in limited_dimensions
+    )
+    limited_reason = (
+        dimension_input.get("limited_reason")
+        or dimension_input.get("limited_data_reason")
+        or dimension_input.get("reason")
+    )
+    column = _DIMENSION_COLUMN_MAP[dimension]
+    return {
+        "value": snapshot.get(column),
+        "limited_flag": limited_flag,
+        "limited_reason": limited_reason,
+    }
+
+
+def snapshot_is_schema_complete(snapshot: dict[str, Any] | None) -> bool:
+    if not snapshot:
+        return False
+    if snapshot.get("composite_score") is None:
+        return False
+    if str(snapshot.get("grade") or "") not in _VALID_GRADES:
+        return False
+    if _parse_iso_datetime(snapshot.get("analysis_as_of")) is None:
+        return False
+    for dimension in _DIMENSION_COLUMN_MAP:
+        detail = _snapshot_dimension_detail(snapshot, dimension)
+        if detail["value"] is not None:
+            continue
+        if detail["limited_flag"] and str(detail["limited_reason"] or "").strip():
+            continue
+        return False
+    return True
+
+
 def _canonical_snapshot_sort_key(row: dict[str, Any]) -> tuple:
     analysis_as_of, updated_at, created_at, method_priority, row_id = _snapshot_sort_key(
         row
     )
-    return (method_priority, analysis_as_of, updated_at, created_at, row_id)
+    return (
+        1 if snapshot_is_schema_complete(row) else 0,
+        method_priority,
+        analysis_as_of,
+        updated_at,
+        created_at,
+        row_id,
+    )
 
 
 def _chunked(values: list[dict[str, Any]], size: int) -> list[list[dict[str, Any]]]:
@@ -751,13 +859,14 @@ def search_supported_tickers(
 def get_metadata_map(supabase, tickers: list[str]) -> dict[str, dict[str, Any]]:
     if not tickers:
         return {}
-    result = (
-        supabase.table("ticker_metadata")
-        .select("*")
-        .in_("ticker", [ticker.upper() for ticker in tickers])
-        .execute()
-    )
-    return {row["ticker"]: row for row in (result.data or [])}
+    upper_tickers = {ticker.upper() for ticker in tickers}
+    query = supabase.table("ticker_metadata").select("*")
+    if hasattr(query, "in_"):
+        rows = query.in_("ticker", sorted(upper_tickers)).execute().data or []
+    else:
+        rows = query.execute().data or []
+        rows = [row for row in rows if str(row.get("ticker") or "").upper() in upper_tickers]
+    return {row["ticker"]: row for row in rows}
 
 
 def get_latest_risk_snapshot_history_map(
@@ -765,17 +874,21 @@ def get_latest_risk_snapshot_history_map(
 ) -> dict[str, list[dict[str, Any]]]:
     if not tickers:
         return {}
-    result = (
+    upper_tickers = {ticker.upper() for ticker in tickers}
+    query = (
         supabase.table("ticker_risk_snapshots")
         .select("*")
-        .in_("ticker", [ticker.upper() for ticker in tickers])
         .order("analysis_as_of", desc=True)
         .order("updated_at", desc=True)
         .order("created_at", desc=True)
-        .execute()
     )
+    if hasattr(query, "in_"):
+        rows = query.in_("ticker", sorted(upper_tickers)).execute().data or []
+    else:
+        rows = query.execute().data or []
+        rows = [row for row in rows if str(row.get("ticker") or "").upper() in upper_tickers]
     grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    rows = sorted(result.data or [], key=_snapshot_sort_key, reverse=True)
+    rows = sorted(rows, key=_canonical_snapshot_sort_key, reverse=True)
     for row in rows:
         ticker = row["ticker"]
         if len(grouped[ticker]) < per_ticker:
@@ -3739,6 +3852,15 @@ def refresh_ticker_snapshot(
             "sector_exposure": sector_inputs,
             "volatility": volatility_inputs,
         }
+        limited_data_dimensions = [
+            dimension
+            for dimension, inputs in dimension_inputs.items()
+            if isinstance(inputs, dict)
+            and (
+                inputs.get("limited_data")
+                or inputs.get("limited")
+            )
+        ]
         dimension_last_refreshed = {
             key: analysis_as_of for key in dimension_inputs
         }
@@ -3761,6 +3883,7 @@ def refresh_ticker_snapshot(
             "factor_breakdown": score["factor_breakdown"],
             "dimension_inputs": dimension_inputs,
             "dimension_last_refreshed": dimension_last_refreshed,
+            "limited_data_dimensions": limited_data_dimensions,
             "dimension_rationale": score["dimension_rationale"],
             "reasoning": score["reasoning"],
             "news_summary": (news_rows[0].get("summary") if news_rows else None),

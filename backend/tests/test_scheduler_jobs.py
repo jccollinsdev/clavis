@@ -717,12 +717,47 @@ class _SyncSnapshotFakeQuery:
                 [
                     {
                         "ticker": "AMD",
+                        "snapshot_type": "backfill",
+                        "snapshot_date": "2026-05-21",
+                        "grade": "BB",
+                        "safety_score": 68.0,
+                        "composite_score": 68.0,
+                        "analysis_as_of": "2026-05-21T12:00:00+00:00",
+                        "created_at": "2026-05-21T12:00:00+00:00",
+                        "updated_at": "2026-05-21T12:00:00+00:00",
+                        "confidence": 0.88,
+                        "source_count": 4,
+                        "llm_scoring_used": True,
+                        "factor_breakdown": {
+                            "ai_dimensions": {
+                                "financial_health": 72,
+                                "news_sentiment": 60,
+                                "macro_exposure": 58,
+                                "sector_exposure": 61,
+                                "volatility": 66,
+                            }
+                        },
+                    },
+                    {
+                        "ticker": "AMD",
+                        "snapshot_type": "daily",
+                        "snapshot_date": "2026-05-22",
+                        "grade": "A",
                         "safety_score": 82.0,
-                        "total_score": 82.0,
+                        "composite_score": 82.0,
                         "confidence": 0.91,
                         "source_count": 5,
                         "llm_scoring_used": True,
-                        "calculated_at": "2026-05-22T12:00:00+00:00",
+                        "analysis_as_of": "2026-05-22T12:00:00+00:00",
+                        "created_at": "2026-05-22T12:00:00+00:00",
+                        "updated_at": "2026-05-22T12:00:00+00:00",
+                        "financial_health": 80,
+                        "news_sentiment_dim": 84,
+                        "macro_exposure_dim": 78,
+                        "sector_exposure": 79,
+                        "volatility": 83,
+                        "dimension_inputs": {"macro_exposure": {"r_squared": 0.31}},
+                        "dimension_last_refreshed": {"macro_exposure": "2026-05-22T12:00:00+00:00"},
                         "factor_breakdown": {
                             "ai_dimensions": {
                                 "financial_health": 80,
@@ -773,8 +808,84 @@ def test_sync_ai_scores_retries_transient_snapshot_upsert_disconnect(monkeypatch
     assert calls["upsert"] == 2
     assert calls["payload"]["ticker"] == "AMD"
     assert calls["payload"]["safety_score"] == 82.0
-    assert calls["payload"]["news_sentiment"] == 84
-    assert calls["payload"]["macro_exposure"] == 78
+    assert calls["payload"]["composite_score"] == 82.0
+    assert calls["payload"]["news_sentiment_dim"] == 84
+    assert calls["payload"]["macro_exposure_dim"] == 78
+    assert calls["payload"]["dimension_inputs"] == {"macro_exposure": {"r_squared": 0.31}}
+
+
+class _CanonicalFallbackSyncSnapshotFakeQuery(_SyncSnapshotFakeQuery):
+    def execute(self):
+        if self.table_name == "positions":
+            return _FakeResult([{"id": "pos-amd", "ticker": "AMD"}])
+        if self.table_name == "position_analyses":
+            return _FakeResult([{"summary": "Real analysis summary.", "source_count": 5}])
+        if self.table_name == "ticker_risk_snapshots" and self.selected == "safety_score":
+            return _FakeResult([{"safety_score": 70.0}])
+        if self.table_name == "ticker_risk_snapshots":
+            return _FakeResult(
+                [
+                    {
+                        "ticker": "AMD",
+                        "snapshot_type": "daily",
+                        "snapshot_date": "2026-05-22",
+                        "grade": "A",
+                        "safety_score": 82.0,
+                        "composite_score": 82.0,
+                        "confidence": 0.91,
+                        "source_count": 5,
+                        "llm_scoring_used": True,
+                        "analysis_as_of": "2026-05-22T12:00:00+00:00",
+                        "created_at": "2026-05-22T12:00:00+00:00",
+                        "updated_at": "2026-05-22T12:00:00+00:00",
+                        "financial_health": 80,
+                        "news_sentiment_dim": 84,
+                        "macro_exposure_dim": 78,
+                        "sector_exposure": 79,
+                        "volatility": 83,
+                        "dimension_inputs": {"macro_exposure": {"r_squared": 0.31}},
+                        "dimension_last_refreshed": {"macro_exposure": "2026-05-22T12:00:00+00:00"},
+                        "factor_breakdown": None,
+                    }
+                ]
+            )
+        return _FakeResult([])
+
+
+class _CanonicalFallbackSyncSnapshotFakeSupabase:
+    def table(self, table_name):
+        return _CanonicalFallbackSyncSnapshotFakeQuery(table_name)
+
+
+def test_sync_ai_scores_uses_canonical_dimension_columns_when_factor_breakdown_missing(
+    monkeypatch,
+):
+    captured = {}
+
+    def _capture_upsert(_client, **kwargs):
+        captured["payload"] = kwargs["payload"]
+        return kwargs["payload"]
+
+    monkeypatch.setattr(
+        "app.services.supabase.get_supabase",
+        lambda: _CanonicalFallbackSyncSnapshotFakeSupabase(),
+    )
+    monkeypatch.setattr(
+        "app.services.ticker_cache_service._upsert_ticker_snapshot",
+        _capture_upsert,
+    )
+
+    scheduler._sync_ai_scores_to_ticker_snapshots_sync(
+        _CanonicalFallbackSyncSnapshotFakeSupabase(),
+        ticker="AMD",
+        job_type="backfill",
+        analysis_run_id="run-1",
+    )
+
+    assert captured["payload"]["news_sentiment_dim"] == 84
+    assert captured["payload"]["macro_exposure_dim"] == 78
+    assert captured["payload"]["factor_breakdown"]["ai_dimensions"]["news_sentiment"] == 84
+    assert captured["payload"]["factor_breakdown"]["ai_dimensions"]["macro_exposure"] == 78
 
 
 class _StatusFakeResult:

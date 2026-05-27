@@ -758,3 +758,120 @@ def test_refresh_ticker_snapshot_does_not_write_unsupported_news_cache_columns(
     assert result["status"] == "completed"
     assert "news_cache_status" not in captured
     assert "news_cache_count" not in captured
+
+
+def test_refresh_ticker_snapshot_marks_missing_news_dimension_as_limited(monkeypatch):
+    ticker_cache_service = importlib.import_module("app.services.ticker_cache_service")
+
+    supabase = _FakeSupabase(
+        {
+            "ticker_refresh_jobs": [],
+            "shared_ticker_events": [],
+            "ticker_risk_snapshots": [],
+        }
+    )
+    captured = {}
+
+    monkeypatch.setattr(
+        ticker_cache_service,
+        "get_supported_ticker",
+        lambda _supabase, _ticker: {"ticker": "HIMS"},
+    )
+    monkeypatch.setattr(
+        ticker_cache_service,
+        "ensure_ticker_in_universe",
+        lambda _supabase, _ticker: {"ticker": "HIMS"},
+    )
+    monkeypatch.setattr(
+        ticker_cache_service,
+        "upsert_ticker_metadata",
+        lambda *_args, **_kwargs: {
+            "ticker": "HIMS",
+            "sector": "Health Care",
+            "price_as_of": "2026-05-27T16:03:19.292155+00:00",
+        },
+    )
+    monkeypatch.setattr(ticker_cache_service, "fetch_aggs", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(
+        ticker_cache_service,
+        "run_macro_regression",
+        lambda *_args, **_kwargs: {
+            "limited_data": True,
+            "trading_days_used": 0,
+            "coefficients": {},
+            "r_squared": None,
+            "as_of_date": "2026-05-27",
+        },
+    )
+    monkeypatch.setattr(
+        ticker_cache_service,
+        "_build_sector_exposure_inputs",
+        lambda *_args, **_kwargs: {"sector": "Health Care"},
+    )
+    monkeypatch.setattr(
+        ticker_cache_service,
+        "_build_volatility_inputs",
+        lambda *_args, **_kwargs: {"realized_vol_30d": 0.9848},
+    )
+    monkeypatch.setattr(
+        ticker_cache_service,
+        "_build_event_analyses_from_news_rows",
+        lambda *_args, **_kwargs: [],
+    )
+    monkeypatch.setattr(
+        ticker_cache_service,
+        "score_position_structural",
+        lambda *_args, **_kwargs: {
+            "grade": "BB",
+            "safety_score": 51.0,
+            "total_score": 51.0,
+            "composite_score": 51.0,
+            "structural_base_score": 51.0,
+            "macro_adjustment": 0.0,
+            "event_adjustment": 0.0,
+            "confidence": 0.75,
+            "financial_health": 58,
+            "news_sentiment": None,
+            "macro_exposure": 41,
+            "sector_exposure": 65,
+            "volatility": 40,
+            "factor_breakdown": {
+                "ai_dimensions": {
+                    "financial_health": 58,
+                    "news_sentiment": None,
+                    "macro_exposure": 41,
+                    "sector_exposure": 65,
+                    "volatility": 40,
+                }
+            },
+            "dimension_rationale": {
+                "news_sentiment": "Event-driven sentiment from available articles.",
+            },
+            "reasoning": "BB - Mixed Signals",
+        },
+    )
+
+    def _capture_snapshot(*_args, **kwargs):
+        captured.update(kwargs["payload"])
+        return kwargs["payload"]
+
+    monkeypatch.setattr(
+        ticker_cache_service,
+        "_upsert_ticker_snapshot",
+        _capture_snapshot,
+    )
+
+    result = ticker_cache_service.refresh_ticker_snapshot(
+        supabase,
+        ticker="HIMS",
+        job_type="backfill",
+        requested_by_user_id=None,
+    )
+
+    assert result["status"] == "completed"
+    assert captured["news_sentiment_dim"] is None
+    assert "news_sentiment" in captured["limited_data_dimensions"]
+    assert captured["dimension_inputs"]["news_sentiment"]["limited_data"] is True
+    assert "at least 3 are required" in captured["dimension_inputs"]["news_sentiment"]["limited_reason"]
+    assert captured["dimension_inputs"]["macro_exposure"]["limited_data"] is True
+    assert "usable trading day" in captured["dimension_inputs"]["macro_exposure"]["limited_reason"]
