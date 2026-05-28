@@ -95,7 +95,12 @@ class HoldingsViewModel: ObservableObject {
         }
     }
 
-    func addHolding(ticker: String, shares: Double, purchasePrice: Double) async {
+    func addHolding(
+        ticker: String,
+        shares: Double,
+        purchasePrice: Double,
+        allowOutsideUniverse: Bool = false
+    ) async {
         errorMessage = nil
         showError = false
         showAddSheet = false
@@ -109,7 +114,8 @@ class HoldingsViewModel: ObservableObject {
             let workflow = try await api.createHolding(
                 ticker: ticker.uppercased(),
                 shares: shares,
-                purchasePrice: purchasePrice
+                purchasePrice: purchasePrice,
+                allowOutsideUniverse: allowOutsideUniverse ? true : nil
             )
             if let createdPosition = workflow.position {
                 createdPositionId = createdPosition.id

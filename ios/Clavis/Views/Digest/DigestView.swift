@@ -15,17 +15,21 @@ struct DigestView: View {
                 .background(Color.clavixPage.ignoresSafeArea())
                 .safeAreaInset(edge: .top, spacing: 0) {
                     ClavixLargeHeader(
-                        eyebrow: "Morning Report",
-                        title: "Today",
+                        eyebrow: headerEyebrow,
+                        title: headerTitle,
                         trailing: AnyView(
                             HStack(spacing: 18) {
-                                Button(action: { selectedTab = 2 }) {
-                                    Image(systemName: "magnifyingglass")
-                                        .foregroundColor(.clavixInk)
+                                if showHeaderActions {
+                                    Button(action: { selectedTab = 2 }) {
+                                        Image(systemName: "magnifyingglass")
+                                            .foregroundColor(.clavixInk)
+                                    }
                                 }
-                                Button(action: { selectedTab = 3 }) {
-                                    Image(systemName: "bell")
-                                        .foregroundColor(.clavixInk)
+                                if showHeaderActions {
+                                    Button(action: { selectedTab = 3 }) {
+                                        Image(systemName: "bell")
+                                            .foregroundColor(.clavixInk)
+                                    }
                                 }
                             }
                         )
@@ -53,13 +57,12 @@ struct DigestView: View {
     private var content: some View {
         if let errorMessage = viewModel.errorMessage, viewModel.todayDigest == nil {
             ScrollView {
-                stateCard(
-                    title: "Briefing unavailable",
-                    body: errorMessage,
-                    cta: "Retry"
-                ) {
-                    Task { await viewModel.loadDigest() }
-                }
+                statePanel(
+                    glyph: "exclamationmark.triangle",
+                    body: digestErrorBody(errorMessage),
+                    cta: "Try again",
+                    tone: .clavixBad
+                ) { Task { await viewModel.loadDigest() } }
                 .padding(.horizontal, ClavixLayout.pad)
                 .padding(.top, 8)
             }
@@ -81,8 +84,8 @@ struct DigestView: View {
             }
         } else if !viewModel.hasHoldings {
             ScrollView {
-                stateCard(
-                    title: "No positions yet",
+                statePanel(
+                    glyph: "briefcase",
                     body: "Add positions to generate a Morning Report and portfolio risk grade.",
                     cta: "Add positions"
                 ) { selectedTab = 1 }
@@ -578,23 +581,48 @@ struct DigestView: View {
 
     // MARK: - State card
 
-    private func stateCard(title: String, body: String, cta: String, action: @escaping () -> Void) -> some View {
-        ClavixCard {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(title)
-                    .font(ClavisTypography.clavixSerif(18, weight: .medium))
-                    .foregroundColor(.clavixInk)
-                Text(body)
-                    .font(ClavisTypography.clavixCaption)
-                    .foregroundColor(.clavixInk2)
-                    .fixedSize(horizontal: false, vertical: true)
-                Button(action: action) {
-                    Text(cta + " →")
-                        .font(ClavisTypography.clavixMono(11, weight: .semibold))
-                        .foregroundColor(.clavixAccent)
-                }
-            }
+    private func statePanel(
+        glyph: String,
+        body: String,
+        cta: String,
+        tone: Color = .clavixInk,
+        action: @escaping () -> Void
+    ) -> some View {
+        ClavixStatePanel(
+            glyph: glyph,
+            message: body,
+            cta: cta,
+            tone: tone,
+            action: action
+        )
+    }
+
+    private var headerEyebrow: String {
+        if viewModel.errorMessage != nil, viewModel.todayDigest == nil {
+            return "Connection"
         }
+        if !viewModel.isLoading && !viewModel.hasHoldings {
+            return "Today"
+        }
+        return "Morning Report"
+    }
+
+    private var headerTitle: String {
+        if viewModel.errorMessage != nil, viewModel.todayDigest == nil {
+            return "Could not load Today"
+        }
+        if !viewModel.isLoading && !viewModel.hasHoldings {
+            return "No positions yet"
+        }
+        return "Today"
+    }
+
+    private var showHeaderActions: Bool {
+        viewModel.errorMessage == nil && viewModel.hasHoldings
+    }
+
+    private func digestErrorBody(_ errorMessage: String) -> String {
+        return "Clavix could not refresh this view. Your last saved portfolio is unchanged."
     }
 
     // MARK: - Computed values

@@ -92,6 +92,40 @@ struct ClavixSection<Content: View>: View {
     }
 }
 
+struct ClavixStatePanel: View {
+    let glyph: String
+    let message: String
+    let cta: String
+    var tone: Color = .clavixInk
+    let action: () -> Void
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: glyph)
+                .font(.system(size: 52, weight: .light))
+                .foregroundColor(tone)
+            Text(message)
+                .font(ClavisTypography.clavixSerif(17, weight: .regular))
+                .foregroundColor(.clavixInk2)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+            Button(action: action) {
+                Text(cta)
+                    .font(ClavisTypography.clavixMono(11, weight: .semibold))
+                    .foregroundColor(.clavixPaper)
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 10)
+                    .background(tone)
+                    .clipShape(RoundedRectangle(cornerRadius: ClavixLayout.controlRadius, style: .continuous))
+            }
+            .buttonStyle(.plain)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 38)
+    }
+}
+
 /// AAA/AA/A/BBB/BB/B/CCC/CC/C/F grade badge in the bond-rating-agency visual style.
 struct ClavixGradeBadge: View {
     let grade: String

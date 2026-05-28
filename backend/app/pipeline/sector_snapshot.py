@@ -82,6 +82,7 @@ def _snapshot_row(sector: str, etf: str, latest: dict, prior: dict) -> dict:
         "source_etf":         etf,
         "etf_close":          close,
         "etf_previous_close": prev_close,
+        "etf_day_change_pct": day_change_pct,
         "day_change_pct":     day_change_pct,
         "day_change_amount":  day_change_amount,
         "generated_at":       datetime.now(timezone.utc).isoformat(),

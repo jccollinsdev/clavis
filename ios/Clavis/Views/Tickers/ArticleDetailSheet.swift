@@ -4,255 +4,226 @@ import UIKit
 struct ArticleDetailSheet: View {
     let article: MethodologyArticle
     let ticker: String
+    var portfolioContext: String? = nil
 
     @Environment(\.dismiss) private var dismiss
-    @State private var showWhyThisScore = false
 
     var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    headlineBlock
-                    metadataBlock
-                    sentimentBlock
-                    impactTagBlock
-                    personalisedSection
-                    tldrSection
-                    whatItMeansSection
-                    keyImplicationsSection
-                    whyThisScoreSection
-                    readOriginalButton
-                }
-                .padding(.horizontal, ClavisTheme.screenPadding)
-                .padding(.vertical, ClavisTheme.sectionSpacing)
-            }
-            .background(Color.clavixPage.ignoresSafeArea())
-            .navigationTitle("Article Detail")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") { dismiss() }
-                        .foregroundColor(.informational)
-                }
-            }
-        }
-    }
-
-    private var headlineBlock: some View {
-        Text(article.title ?? "")
-            .font(ClavisTypography.inter(18, weight: .semibold))
-            .foregroundColor(.clavixInk)
-            .fixedSize(horizontal: false, vertical: true)
-    }
-
-    private var metadataBlock: some View {
-        HStack(spacing: 8) {
-            if let source = article.source {
-                Text(source)
-                    .font(ClavisTypography.footnote)
+        ClavixScreen(
+            eyebrow: ticker,
+            title: "Article",
+            trailing: AnyView(
+                Button("Close") { dismiss() }
+                    .font(ClavisTypography.clavixMono(10, weight: .semibold))
+                    .foregroundColor(.clavixAccent)
+                    .buttonStyle(.plain)
+            )
+        ) {
+            HStack(spacing: 8) {
+                impactPill
+                tierLabel
+                Spacer()
+                Text(relativeTimestamp)
+                    .font(ClavisTypography.clavixMono(10, weight: .regular))
                     .foregroundColor(.clavixInk3)
             }
-            if let date = article.publishedAt {
-                Text("·")
-                    .foregroundColor(.clavixInk4)
-                Text(date.prefix(10))
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.clavixInk4)
-            }
-            if let tier = article.sourceTier {
-                tierPill(tier)
-            }
-        }
-    }
 
-    private var sentimentBlock: some View {
-        HStack(spacing: 12) {
-            if let score = article.sentimentScore {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Sentiment")
-                        .font(ClavisTypography.label)
-                        .foregroundColor(.clavixInk3)
-                    Text("\(Int(score.rounded()))")
-                        .font(.system(size: 36, weight: .bold, design: .monospaced))
-                        .foregroundColor(sentimentColor(score))
-                }
-            }
-
-            Spacer()
-
-            if let rw = article.recencyWeight {
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text("Recency")
-                        .font(ClavisTypography.label)
-                        .foregroundColor(.clavixInk3)
-                    HStack(spacing: 4) {
-                        Text("\(Int(rw.rounded()))x")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(.gradeCBBB)
-                    }
-                }
-            }
-        }
-        .padding()
-        .background(Color.clavixPaper2)
-        .cornerRadius(ClavisTheme.innerCornerRadius)
-    }
-
-    private var impactTagBlock: some View {
-        HStack {
-            if let tag = article.impactTag {
-                Text(tag.replacingOccurrences(of: "-", with: " ").capitalized)
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(.gradeCBB)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(Color.gradeCBB.opacity(0.12))
-                    .cornerRadius(4)
-            }
-        }
-    }
-
-    private var tldrSection: some View {
-        sectionBlock(title: "TLDR") {
-            Text(article.tldr ?? "Not available.")
-                .font(ClavisTypography.body)
+            Text(article.title?.sanitizedDisplayText ?? "Untitled article")
+                .font(ClavisTypography.clavixSerif(26, weight: .medium))
                 .foregroundColor(.clavixInk)
                 .fixedSize(horizontal: false, vertical: true)
-        }
-    }
 
-    @ViewBuilder
-    private var personalisedSection: some View {
-        if let structural = article.personalisedStructural, !structural.isEmpty {
-            AccentCard(eyebrow: "★ PERSONALISED") {
-                VStack(alignment: .leading, spacing: CXSpace.sm) {
-                    Text(structural)
-                        .font(CXFont.sans(13, weight: .semibold))
-                        .foregroundStyle(Color.cxAccentInk)
-                        .fixedSize(horizontal: false, vertical: true)
+            Rectangle()
+                .fill(Color.clavixRule)
+                .frame(height: 1)
 
-                    if let narrative = article.personalisedNarrative, !narrative.isEmpty {
-                        Text(narrative)
-                            .font(CXFont.sans(13))
-                            .foregroundStyle(Color.cxInk)
+            VStack(alignment: .leading, spacing: 6) {
+                ClavixEyebrow("Brief")
+                Text(briefText)
+                    .font(ClavisTypography.clavixSerif(16, weight: .regular))
+                    .foregroundColor(.clavixInk2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if let portfolioContextText {
+                ClavixCard(fill: .clavixAccentSoft) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ClavixEyebrow("Portfolio context")
+                        Text(portfolioContextText)
+                            .font(ClavisTypography.clavixSerif(15, weight: .regular))
+                            .foregroundColor(.clavixAccentInk)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }
-        }
-    }
 
-    private var whatItMeansSection: some View {
-        sectionBlock(title: "What It Means for \(ticker)") {
-            Text(article.whatItMeans ?? "Not available.")
-                .font(ClavisTypography.body)
-                .foregroundColor(.clavixInk)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
-    private var keyImplicationsSection: some View {
-        sectionBlock(title: "Key Implications") {
             VStack(alignment: .leading, spacing: 6) {
-                if let implications = article.keyImplications, !implications.isEmpty {
-                    ForEach(implications, id: \.self) { implication in
-                        HStack(alignment: .top, spacing: 8) {
-                            Text("•")
-                                .font(ClavisTypography.body)
-                                .foregroundColor(.clavixInk4)
-                            Text(implication)
-                                .font(ClavisTypography.body)
-                                .foregroundColor(.clavixInk3)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
+                ClavixEyebrow("Risk signal")
+                ClavixCard {
+                    HStack(alignment: .top, spacing: 12) {
+                        Text(sentimentValueText)
+                            .font(ClavisTypography.clavixMono(26, weight: .semibold))
+                            .foregroundColor(sentimentColor)
+
+                        Text(riskSignalText)
+                            .font(ClavisTypography.clavixCaption)
+                            .foregroundColor(.clavixInk2)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
-                } else {
-                    Text("Not available.")
-                        .font(ClavisTypography.body)
-                        .foregroundColor(.clavixInk3)
                 }
+            }
+
+            if let buttonLabel = readOriginalLabel {
+                Button(action: openSourceURL) {
+                    Text(buttonLabel)
+                        .font(ClavisTypography.inter(15, weight: .semibold))
+                        .foregroundColor(.clavixInk)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(Color.clear)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: ClavixLayout.controlRadius, style: .continuous)
+                                .stroke(Color.clavixRule, lineWidth: 1)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: ClavixLayout.controlRadius, style: .continuous))
+                }
+                .buttonStyle(.plain)
             }
         }
     }
 
-    private var whyThisScoreSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Button(action: { withAnimation { showWhyThisScore.toggle() } }) {
-                HStack {
-                    Text("Why this score?")
-                        .font(ClavisTypography.label)
-                        .foregroundColor(.clavixInk3)
-                    Spacer()
-                    Image(systemName: showWhyThisScore ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(.clavixInk4)
-                }
-            }
-            .buttonStyle(.plain)
-
-            if showWhyThisScore {
-                Text(article.sentimentReason ?? "Score reasoning not available.")
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.clavixInk3)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.top, 4)
-            }
+    private var briefText: String {
+        if let tldr = article.tldr?.sanitizedDisplayText, !tldr.isEmpty {
+            return tldr
         }
+        if let whatItMeans = article.whatItMeans?.sanitizedDisplayText, !whatItMeans.isEmpty {
+            return whatItMeans
+        }
+        return "Brief unavailable for this article."
     }
 
-    private var readOriginalButton: some View {
-        VStack(spacing: 0) {
-            Divider().background(Color.clavixRule)
-                .padding(.vertical, 8)
-
-            Button {
-                if let sourceUrl = article.sourceUrl,
-                   let url = URL(string: sourceUrl) {
-                    UIApplication.shared.open(url)
-                }
-            } label: {
-                HStack {
-                    Image(systemName: "safari")
-                        .font(.system(size: 14))
-                    Text("Read original article")
-                        .font(ClavisTypography.bodyEmphasis)
-                    Spacer()
-                    Image(systemName: "arrow.up.right")
-                        .font(.system(size: 12))
-                }
-                .foregroundColor(.informational)
-                .padding(.vertical, 10)
+    private var portfolioContextText: String? {
+        if let portfolioContext, !portfolioContext.isEmpty {
+            return portfolioContext.sanitizedDisplayText
+        }
+        if let personalised = article.personalisedStructural?.sanitizedDisplayText, !personalised.isEmpty {
+            if let narrative = article.personalisedNarrative?.sanitizedDisplayText, !narrative.isEmpty {
+                return "\(personalised) \(narrative)"
             }
-            .buttonStyle(.plain)
+            return personalised
         }
+        return nil
     }
 
-    private func sectionBlock<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(ClavisTypography.label)
-                .foregroundColor(.clavixInk3)
-                .textCase(.uppercase)
-            content()
+    private var riskSignalText: String {
+        if let sentimentReason = article.sentimentReason?.sanitizedDisplayText, !sentimentReason.isEmpty {
+            return sentimentReason
         }
-        .padding()
-        .background(Color.clavixPaper2)
-        .cornerRadius(ClavisTheme.innerCornerRadius)
+        if let whatItMeans = article.whatItMeans?.sanitizedDisplayText, !whatItMeans.isEmpty {
+            return whatItMeans
+        }
+        return "Risk signal unavailable for this article."
     }
 
-    private func sentimentColor(_ score: Double) -> Color {
-        if score >= 70 { return .gradeCAA }
-        if score >= 50 { return .gradeCBB }
-        return .gradeCF
+    private var sentimentValueText: String {
+        guard let score = article.sentimentScore else { return "—" }
+        return "\(Int(score.rounded()))"
     }
 
-    private func tierPill(_ tier: Int) -> some View {
-        Text("T\(tier)")
-            .font(.system(size: 9, weight: .bold))
-            .foregroundColor(.gradeCAA)
-            .padding(.horizontal, 4)
-            .padding(.vertical, 1)
-            .background(Color.gradeCAA.opacity(0.12))
-            .cornerRadius(3)
+    private var sentimentColor: Color {
+        guard let score = article.sentimentScore else { return .clavixInk3 }
+        if score >= 70 { return .clavixGood }
+        if score >= 50 { return .clavixWarn }
+        return .clavixBad
     }
+
+    private var impactPill: some View {
+        Text(impactLabel)
+            .font(ClavisTypography.clavixMono(10, weight: .bold))
+            .foregroundColor(impactInk)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 4)
+            .background(impactFill)
+            .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
+    }
+
+    private var impactLabel: String {
+        guard let impactTag = article.impactTag?.sanitizedDisplayText, !impactTag.isEmpty else {
+            return "ARTICLE"
+        }
+        return impactTag
+            .replacingOccurrences(of: "_", with: " ")
+            .replacingOccurrences(of: "-", with: " ")
+            .uppercased()
+    }
+
+    private var impactFill: Color {
+        let label = impactLabel
+        if label.contains("HIGH") { return .clavixWarnSoft }
+        if label.contains("LOW") { return .clavixPaper2 }
+        return .clavixAccentSoft
+    }
+
+    private var impactInk: Color {
+        let label = impactLabel
+        if label.contains("HIGH") { return .clavixWarnInk }
+        if label.contains("LOW") { return .clavixInk2 }
+        return .clavixAccentInk
+    }
+
+    private var tierLabel: some View {
+        Text(article.sourceTier.map { "Tier \($0) source" } ?? (article.source?.sanitizedDisplayText ?? "Source unavailable"))
+            .font(ClavisTypography.clavixMono(10, weight: .regular))
+            .foregroundColor(.clavixInk3)
+    }
+
+    private var relativeTimestamp: String {
+        guard let publishedAt = article.publishedAt, !publishedAt.isEmpty else { return "—" }
+        let date = Self.isoDateParser.date(from: publishedAt)
+            ?? Self.isoDateParserNoFraction.date(from: publishedAt)
+        guard let date else { return publishedAt.prefix(10).description }
+        let interval = Date().timeIntervalSince(date)
+        if interval < 60 * 60 * 24 * 3 {
+            return Self.relativeFormatter.localizedString(for: date, relativeTo: Date())
+        }
+        return Self.shortDateFormatter.string(from: date)
+    }
+
+    private var readOriginalLabel: String? {
+        guard article.sourceUrl != nil else { return nil }
+        if let source = article.source?.sanitizedDisplayText, !source.isEmpty {
+            return "Read full article at \(source) →"
+        }
+        return "Read full article →"
+    }
+
+    private func openSourceURL() {
+        guard let sourceUrl = article.sourceUrl,
+              let url = URL(string: sourceUrl) else { return }
+        UIApplication.shared.open(url)
+    }
+
+    private static let isoDateParser: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+
+    private static let isoDateParserNoFraction: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter
+    }()
+
+    private static let relativeFormatter: RelativeDateTimeFormatter = {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter
+    }()
+
+    private static let shortDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d"
+        return formatter
+    }()
 }

@@ -14,6 +14,7 @@ enum DigestLengthOption: String, CaseIterable {
 @MainActor
 final class DigestViewModel: ObservableObject {
     @Published var todayDigest: Digest?
+    @Published var digestHistory: [Digest] = []
     @Published var holdings: [Position] = []
     @Published var alerts: [Alert] = []
     @Published var isLoading = false
@@ -56,6 +57,13 @@ final class DigestViewModel: ObservableObject {
                 }
                 if digestResponse == nil, !holdings.isEmpty {
                     await refreshMorningReportStatus()
+                }
+            }
+
+            Task {
+                let history = (try? await api.fetchDigestHistory(limit: 7, timeoutInterval: 30)) ?? []
+                await MainActor.run {
+                    self.digestHistory = history.sorted { $0.generatedAt < $1.generatedAt }
                 }
             }
 

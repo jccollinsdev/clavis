@@ -85,70 +85,46 @@ private struct OnboardingWelcomeView: View {
     let onContinue: () -> Void
     let onSignIn: () -> Void
 
-    private let bullets: [(String, String)] = [
-        ("One morning briefing, tailored to your holdings", "Read 4-6 apps to piece together overnight news"),
-        ("Pre-translated: macro → sector → your positions, in order", "Manually translate macro news into \"what does this mean for me\""),
-        ("See every article, every formula, every input that produced every score", "Trust an opaque \"AI risk score\" from a fintech app")
-    ]
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Spacer(minLength: 40)
+        VStack(spacing: 28) {
+            Spacer()
 
-            VStack(alignment: .leading, spacing: 28) {
-                Text("CLAVIX")
-                    .font(ClavisTypography.clavixMono(11, weight: .bold))
-                    .tracking(4)
-                    .foregroundColor(.clavixAccent)
-
-                VStack(alignment: .leading, spacing: 14) {
-                    Text("Portfolio risk, measured.")
-                        .font(ClavisTypography.clavixSerif(32, weight: .medium))
-                        .foregroundColor(.clavixInk)
-
-                    Text("Clavix tells you what happened to your portfolio overnight, what it means, and how risky every position you own actually is — with the math shown.")
-                        .font(ClavisTypography.clavixSerif(15))
-                        .foregroundColor(.clavixInk2)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                VStack(alignment: .leading, spacing: 16) {
-                    ForEach(Array(bullets.enumerated()), id: \.offset) { index, bullet in
-                        HStack(alignment: .top, spacing: 12) {
-                            Text("\(index + 1)")
-                                .font(ClavisTypography.clavixMono(11, weight: .bold))
-                                .foregroundColor(.clavixInk)
-                                .frame(width: 28, height: 28)
-                                .background(Color.clavixPaper)
-                                .overlay(Rectangle().stroke(Color.clavixRule, lineWidth: 1))
-
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(bullet.0)
-                                    .font(ClavisTypography.bodyEmphasis)
-                                    .foregroundColor(.clavixInk)
-                                Text(bullet.1)
-                                    .font(ClavisTypography.footnote)
-                                    .foregroundColor(.clavixInk3)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                        }
-                    }
-                }
+            HStack(spacing: 8) {
+                Image(systemName: "waveform.path.ecg.rectangle")
+                    .font(.system(size: 18, weight: .regular))
+                Text("Clavix")
+                    .font(ClavisTypography.clavixSerif(19, weight: .semibold))
             }
-            .padding(.horizontal, 24)
+            .foregroundColor(.clavixInk)
+
+            ClavixEyebrow("Welcome to Clavix")
+
+            Text("Portfolio risk, measured.")
+                .font(ClavisTypography.clavixSerif(34, weight: .medium))
+                .foregroundColor(.clavixInk)
+                .multilineTextAlignment(.center)
+
+            Text("Every morning, Clavix tells you what changed overnight, what it means for your book, and how risky every position actually is, with the math shown.")
+                .font(ClavisTypography.inter(15, weight: .regular))
+                .foregroundColor(.clavixInk2)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 320)
+                .fixedSize(horizontal: false, vertical: true)
 
             Spacer()
 
-            VStack(spacing: 10) {
-                ClavisPrimaryButton(title: "Get Started", action: onContinue)
-                Button("Sign in") { onSignIn() }
-                    .font(ClavisTypography.footnoteEmphasis)
-                    .foregroundColor(.clavixInk3)
-                    .buttonStyle(.plain)
-            }
-            .padding(.horizontal, 24)
-            .padding(.bottom, 32)
+            ClavixPill(label: "1 of 2", active: true)
+
+            OnboardingActionButton(title: "Get started", fill: .clavixInk, foreground: .clavixPaper, action: onContinue)
+
+            Button("Sign in") { onSignIn() }
+                .font(ClavisTypography.inter(14, weight: .semibold))
+                .foregroundColor(.clavixInk3)
+                .buttonStyle(.plain)
         }
+        .padding(24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.clavixPage)
     }
 }
 
@@ -163,94 +139,153 @@ private struct OnboardingAddPortfolioView: View {
     let onSkip: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack {
-                Button(action: onBack) {
-                    Image(systemName: "chevron.left")
-                        .foregroundColor(.clavixInk3)
-                }
-                .buttonStyle(.plain)
-                Spacer()
-                Button("Skip for now", action: onSkip)
-                    .font(ClavisTypography.footnoteEmphasis)
-                    .foregroundColor(.clavixInk3)
+        ClavixScreen(
+            eyebrow: "Step 2 of 2",
+            title: "Add portfolio",
+            trailing: AnyView(
+                Button("Back", action: onBack)
+                    .font(ClavisTypography.clavixMono(10, weight: .semibold))
+                    .foregroundColor(.clavixAccent)
                     .buttonStyle(.plain)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 24)
+            )
+        ) {
+            Text("Choose how Clavix should read your positions.")
+                .font(ClavisTypography.clavixSerif(20, weight: .medium))
+                .foregroundColor(.clavixInk)
 
-            VStack(alignment: .leading, spacing: 12) {
-                Text("How would you like to add your portfolio?")
-                    .font(ClavisTypography.h1)
-                    .foregroundColor(.clavixInk)
-                Text("Choose the path that fits how you already track your book.")
-                    .font(ClavisTypography.body)
-                    .foregroundColor(.clavixInk3)
-            }
-            .padding(.horizontal, 24)
-            .padding(.top, 28)
+            OnboardingMethodCard(
+                title: "Connect your brokerage",
+                description: "Read-only position sync for Pro accounts.",
+                icon: "link",
+                badge: "PRO",
+                detail: "Clavix never has trading access.",
+                action: onConnectBrokerage
+            )
+            OnboardingMethodCard(
+                title: "Enter manually",
+                description: "Ticker, share count, and cost basis.",
+                icon: "plus",
+                action: onAddManually
+            )
+            OnboardingMethodCard(
+                title: "Upload CSV",
+                description: isFreeTier ? "Coming soon for Pro accounts." : "Map rows from a portfolio export.",
+                icon: "doc",
+                badge: "PRO",
+                action: onImportCSV
+            )
 
-            VStack(spacing: 12) {
-                pathCard(title: "Connect Brokerage", subtitle: "Sync automatically", badge: "Pro", isRecommended: true, action: onConnectBrokerage)
-                pathCard(title: "Import CSV", subtitle: "Upload from your brokerage", badge: "Pro", isRecommended: false, action: onImportCSV)
-                pathCard(title: "Add Manually", subtitle: "Enter positions yourself", badge: "Free", isRecommended: false, action: onAddManually)
+            if let errorMessage = errorMessage?.sanitizedDisplayText, !errorMessage.isEmpty {
+                ClavixCard(fill: .clavixBadSoft) {
+                    Text(errorMessage)
+                        .font(ClavisTypography.inter(14, weight: .regular))
+                        .foregroundColor(.clavixInk2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 24)
-
-            if let errorMessage {
-                Text(errorMessage)
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.clavixBad)
-                    .padding(.horizontal, 24)
-                    .padding(.top, 12)
-            }
-
-            Spacer()
 
             if isCompleting {
                 ProgressView()
                     .tint(.clavixInk)
-                    .frame(maxWidth: .infinity)
-                    .padding(.bottom, 24)
+                    .frame(maxWidth: .infinity, alignment: .center)
             }
-        }
-        .background(Color.clavixPage)
-    }
 
-    private func pathCard(title: String, subtitle: String, badge: String, isRecommended: Bool, action: @escaping () -> Void) -> some View {
+            OnboardingActionButton(
+                title: "Continue manually",
+                fill: .clavixInk,
+                foreground: .clavixPaper,
+                isEnabled: !isCompleting,
+                action: onAddManually
+            )
+
+            Button("Skip for now", action: onSkip)
+                .font(ClavisTypography.clavixCaption)
+                .foregroundColor(.clavixInk3)
+                .buttonStyle(.plain)
+                .frame(maxWidth: .infinity, alignment: .center)
+        }
+    }
+}
+
+private struct OnboardingMethodCard: View {
+    let title: String
+    let description: String
+    let icon: String
+    var badge: String? = nil
+    var detail: String? = nil
+    let action: () -> Void
+
+    var bodyView: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text(title)
-                        .font(ClavisTypography.bodyEmphasis)
-                        .foregroundColor(.clavixInk)
-                    Spacer()
-                    Text(badge)
-                        .font(ClavisTypography.label)
-                        .foregroundColor(badge == "Pro" ? .clavixAccent : .clavixInk3)
-                }
-                Text(subtitle)
-                    .font(ClavisTypography.footnote)
-                    .foregroundColor(.clavixInk3)
-                if isRecommended {
-                    Text("Recommended")
-                        .font(ClavisTypography.label)
+            ClavixCard {
+                HStack(spacing: 12) {
+                    Image(systemName: icon)
+                        .frame(width: 28)
                         .foregroundColor(.clavixAccent)
-                }
-                if title == "Connect Brokerage" {
-                    Text("Read-only sync through your brokerage. Clavix never has trading access.")
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.clavixInk3)
-                        .fixedSize(horizontal: false, vertical: true)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 8) {
+                            Text(title)
+                                .font(ClavisTypography.inter(15, weight: .semibold))
+                                .foregroundColor(.clavixInk)
+                            if let badge {
+                                Text(badge)
+                                    .font(ClavisTypography.clavixMono(9, weight: .bold))
+                                    .foregroundColor(.clavixAccentInk)
+                                    .padding(.horizontal, 5)
+                                    .padding(.vertical, 2)
+                                    .background(Color.clavixAccentSoft)
+                                    .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
+                            }
+                        }
+
+                        Text(description)
+                            .font(ClavisTypography.clavixCaption)
+                            .foregroundColor(.clavixInk2)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        if let detail {
+                            Text(detail)
+                                .font(ClavisTypography.clavixCaption)
+                                .foregroundColor(.clavixInk3)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .regular))
+                        .foregroundColor(.clavixInk4)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(ClavisTheme.cardPadding)
-            .background(Color.clavixPaper)
-            .overlay(Rectangle().stroke(Color.clavixRule, lineWidth: 1))
         }
         .buttonStyle(.plain)
+    }
+
+    var body: some View { bodyView }
+}
+
+private struct OnboardingActionButton: View {
+    let title: String
+    let fill: Color
+    let foreground: Color
+    var isEnabled: Bool = true
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(ClavisTypography.inter(15, weight: .semibold))
+                .foregroundColor(isEnabled ? foreground : .clavixInk4)
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .background(fill)
+                .clipShape(RoundedRectangle(cornerRadius: ClavixLayout.controlRadius, style: .continuous))
+                .opacity(isEnabled ? 1 : 0.7)
+        }
+        .buttonStyle(.plain)
+        .disabled(!isEnabled)
     }
 }
 

@@ -19,6 +19,9 @@ def get_user_id(request: Request) -> str:
 SECTOR_ETF_MAP = {
     "technology": "XLK",
     "information technology": "XLK",
+    "semiconductors": "XLK",
+    "semiconductor": "XLK",
+    "semis": "XLK",
     "health care": "XLV",
     "healthcare": "XLV",
     "financials": "XLF",
@@ -46,7 +49,7 @@ def _float(value: Any) -> float | None:
 def _sector_snapshot_map(supabase) -> dict[str, dict[str, Any]]:
     rows = (
         supabase.table("sector_regime_snapshots")
-        .select("source_etf,sector,etf_day_change_pct,snapshot_date,data_status")
+        .select("source_etf,sector,etf_day_change_pct,day_change_pct,snapshot_date,data_status")
         .order("snapshot_date", desc=True)
         .limit(50)
         .execute()
@@ -57,6 +60,9 @@ def _sector_snapshot_map(supabase) -> dict[str, dict[str, Any]]:
     for row in rows:
         etf = str(row.get("source_etf") or "").upper()
         if etf and etf not in snapshots:
+            # Normalise: pipeline historically wrote day_change_pct; new rows write etf_day_change_pct
+            if row.get("etf_day_change_pct") is None and row.get("day_change_pct") is not None:
+                row["etf_day_change_pct"] = row["day_change_pct"]
             snapshots[etf] = row
     return snapshots
 

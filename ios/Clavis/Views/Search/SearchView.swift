@@ -164,8 +164,8 @@ struct SearchView: View {
 
     @ViewBuilder
     private var recentSection: some View {
-        if !recents.isEmpty {
-            ClavixSection(eyebrow: "Recent", title: "Last viewed") {
+        ClavixSection(eyebrow: "Recent", title: "Last viewed") {
+            if !recents.isEmpty {
                 HStack {
                     Spacer()
                     Button("Clear →") { clearRecents() }
@@ -187,6 +187,12 @@ struct SearchView: View {
                             }
                         }
                     }
+                }
+            } else {
+                ClavixCard {
+                    Text("Tickers you open will appear here.")
+                        .font(ClavisTypography.clavixCaption)
+                        .foregroundColor(.clavixInk3)
                 }
             }
         }

@@ -6,7 +6,7 @@ struct Position: Identifiable, Codable, Hashable {
     let ticker: String
     let shares: Double
     let purchasePrice: Double
-    let archetype: Archetype
+    let archetype: Archetype?
     let createdAt: Date
     let updatedAt: Date
     var currentPrice: Double?
@@ -184,7 +184,7 @@ struct Position: Identifiable, Codable, Hashable {
         ticker = try container.decode(String.self, forKey: .ticker)
         shares = try container.decodeFlexibleDouble(forKey: .shares)
         purchasePrice = try container.decodeFlexibleDouble(forKey: .purchasePrice)
-        archetype = try container.decode(Archetype.self, forKey: .archetype)
+        archetype = try container.decodeIfPresent(Archetype.self, forKey: .archetype)
         createdAt = try container.decode(Date.self, forKey: .createdAt)
         updatedAt = try container.decode(Date.self, forKey: .updatedAt)
         currentPrice = try container.decodeFlexibleDoubleIfPresent(forKey: .currentPrice)

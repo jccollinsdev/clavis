@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Hi-Fi v2 "Key drivers" cards. Each driver renders as a tone-tinted card
-/// (TAILWIND / WATCH / HEADWIND) with a serif title and a strength badge.
+/// (TAILWIND / PRESSURE / HEADWIND) with a serif title and a strength badge.
 struct TickerDriverCardsSection: View {
     let analysis: PositionAnalysis?
 
@@ -44,7 +44,7 @@ private struct HiFiDriverCard: View {
     private var tag: String {
         switch card.direction {
         case .negative: return "HEADWIND"
-        case .neutral:  return "WATCH"
+        case .neutral:  return "PRESSURE"
         case .positive: return "TAILWIND"
         }
     }

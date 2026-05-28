@@ -22,6 +22,7 @@ class SettingsViewModel: ObservableObject {
     @Published var quietHoursEnd = Calendar.current.date(from: DateComponents(hour: 7, minute: 0)) ?? Date()
     @Published var userEmail: String = "Loading..."
     @Published var userName: String = ""
+    @Published var birthYear: Int?
     @Published var subscriptionTier: String = "free"
     @Published var isLoading = false
     @Published var accountMessage: String?
@@ -58,6 +59,7 @@ class SettingsViewModel: ObservableObject {
                 notificationsEnabled = enabled
             }
             userName = prefs.name ?? ""
+            birthYear = prefs.birthYear
             subscriptionTier = prefs.subscriptionTier?.lowercased() ?? "free"
             if let sl = prefs.summaryLength, let length = SummaryLength(rawValue: sl.capitalized) {
                 summaryLength = length
@@ -250,6 +252,21 @@ class SettingsViewModel: ObservableObject {
         } catch {
             print("Failed to save alert settings: \(error)")
             preferencesMessage = "Couldn't save your settings. Your live preferences were not updated."
+        }
+    }
+
+    func saveProfile(name: String, birthYear: Int?) async {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        do {
+            try await api.updateProfile(
+                name: trimmedName.isEmpty ? nil : trimmedName,
+                birthYear: birthYear
+            )
+            userName = trimmedName
+            self.birthYear = birthYear
+            accountMessage = "Profile updated."
+        } catch {
+            accountMessage = "Couldn't update your profile. Your live account details were not changed."
         }
     }
 }

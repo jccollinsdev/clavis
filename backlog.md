@@ -112,3 +112,119 @@ These three external dependencies are NOT in place and gate parts of the impleme
 | Ticker score history data exists but VisualQA needs a chart contract | Add endpoint or embed ordered history arrays. |
 | Paywall UI exists in VisualQA but no StoreKit/entitlement exists | Keep in backlog only; do not implement during P0 data work. |
 | CSV import appears in VisualQA but no implementation exists | Keep in backlog only. |
+
+## 2026-05-27 — Hi-Fi live-parity port (backend follow-ups)
+
+Numbering continues from the highest existing item in the document
+(P0 ends at 20, P1 ends at 15, P2 ends at 10; the Cycle 3 list ends at 5).
+The items below are numbered fresh from 21 across the parity sweep so they
+do not collide with any prior list.
+
+21. **`POST /holdings` `allow_outside_universe` opt-in via iOS encoder.**
+    Screen: `holding-outside` (Add position, outside universe).
+    Backend already supports `positions.outside_universe = true`, but the
+    iOS `APIService.CreateHoldingRequest` does not carry the field, so the
+    Search→Add flow silently rejects unsupported tickers despite the live
+    sheet's outside-universe banner being present elsewhere.
+    Smallest backend change: none — purely an iOS wire-model addition.
+    Cross-reference: existing P0#16 ("Allow outside-universe manual position
+    add"). This item tracks the iOS side.
+    iOS can ship a placeholder first: render the search row tag (OUTSIDE)
+    and route to `TickerDetailView` (which already renders the banner)
+    without enabling the actual add path. Once shipped, replace the
+    placeholder with a real "Save as outside-universe" button.
+
+22. **`PATCH /holdings/{id}` for edit-position.**
+    Screen: `edit-holding` (Edit position) and the related
+    "Edit shares / cost basis / account" affordance referenced in
+    `ticker-held`.
+    Smallest backend change: a single `PATCH /holdings/{id}` route accepting
+    `{shares?, purchase_price?, account?}` and returning the updated Position.
+    iOS placeholder: hide the "Edit position" CTA until the route ships;
+    the swipe-to-delete flow already works.
+
+23. **`POST /holdings` accept `purchase_date`.**
+    Screen: `holding-manual` (manual add). The live `HoldingsAddSheet`
+    already collects a `DatePicker` value but a TODO line tells the user
+    "Purchase date will be sent once the backend route supports it."
+    Smallest backend change: add `purchase_date` to the create-holding
+    payload and persist it on `positions.purchase_date`.
+    iOS can ship a placeholder first: today's TODO message is the
+    placeholder.
+
+24. **Per-dimension `score_delta` on `MethodologyResponse` and on
+    `TickerDetailResponse.dimensionBreakdown`.**
+    Screens: `ticker` (five-dimensions ledger) and all five
+    `methodology-{financial,news,macro,sector,volatility}` audits.
+    The composite `scoreDelta` exists, but the five-row ledger shows `—`
+    for every per-dimension delta because the field is not on the wire.
+    Smallest backend change: persist yesterday's per-dimension scores when
+    `ticker_risk_snapshots` rolls and compute today−yesterday for each
+    dimension; expose as `dimension_breakdown.{dim}_score_delta`.
+    iOS can ship a placeholder first: current `—` rendering is honest;
+    swap to real delta once the field lands.
+
+25. **`Alert.read_at` on the iOS decoder + alerts list pagination.**
+    Screen: `alerts`. Backend migration already added `alerts.read_at`,
+    `delivered_at`, `severity`, `destination_type`, `destination_id`. The
+    iOS `Alert` decoder still tracks unread via `UserDefaults.lastSeenAt`.
+    Smallest backend change: include `read_at` (and the rest of the v2
+    fields) on the `/alerts` envelope response.
+    iOS placeholder: current UserDefaults `lastSeenAt` is functional but
+    not cross-device; safe to keep until backend exposes `read_at`.
+    Pagination (`/alerts?before=…&limit=…`) is a separate backend change
+    needed to make the "Load earlier alerts" button work.
+
+26. **`GET /alerts/{id}` for the `alert-detail` screen.**
+    Screen: `alert-detail` (grade-change detail). The VQA screen needs
+    before/after grade, hysteresis proof (composite ≤ X for 2 days), the
+    driving dimension's before/after score, and the 3 articles that drove
+    the change.
+    Cross-reference: this is the existing P0#13.
+    iOS placeholder: tapping an alert today routes to digest / holdings /
+    ticker — keep that behaviour until the detail endpoint exists.
+
+27. **Article extraction status on `MethodologyArticle`.**
+    Screens: `article-paywalled` and `article-failed`. Both states are
+    referenced from the `methodology-news` and `ticker` recent-news ledgers
+    but the iOS `MethodologyArticle` decoder has no
+    `extraction_status` / `paywall_state` / `included_in_score` field.
+    Smallest backend change: surface `shared_ticker_events.extraction_status`
+    and a `paywalled: bool` on the article objects in
+    `/tickers/{ticker}` `recent_news` and `/tickers/{ticker}/methodology`
+    `news_sentiment.articles[]`.
+    iOS placeholder: never branch — render the full body and trust the
+    backend to omit unscored articles. Add the warn-soft/bad-soft state
+    cards once the field exists.
+
+28. **`Digest.structuredSections.sources` (lineage rows) for the Morning
+    Report VI section.**
+    Screen: `digest`. The VQA "VI Sources & Methodology" block expects a
+    short list of feeds + the methodology version + a "generated at X using
+    data refreshed within the last N hours" line. Today the iOS view falls
+    back to a static "Generated at <time>" caption.
+    Smallest backend change: include a `sources_freshness` block on
+    `Digest.structured_sections` with `{generated_at, data_age_minutes,
+    methodology_version, sources: [string]}`.
+    iOS placeholder: render only the timestamp + methodology version
+    caption today.
+
+29. **Watchlist enrichment: `day_change_pct` + `score_delta` on
+    `WatchlistItem`.**
+    Screen: `holdings` (tracked tickers section) and `tracked-tickers`.
+    Cross-reference: existing P1#1 already requests this; this row tracks
+    the specific fields the VQA ledger row needs (price already exists; day
+    change % and grade delta do not).
+    iOS placeholder: render `—` for both columns until the fields ship.
+
+30. **Settings → dedicated `NotificationPrefs` view requires
+    `alerts_macro_shock`, `alerts_watchlist`, `alerts_digest_ready`,
+    `alert_severity_threshold` columns.**
+    Screen: `notification-prefs`. The VQA layout has rows for "Macro
+    shock" and "Tracked ticker alerts" that map directly to those columns.
+    Cross-reference: existing P1#7. The schema migration already added
+    these columns server-side; the missing piece is the iOS PATCH wiring
+    and exposing them on `PreferencesResponse`.
+    iOS placeholder: render the unimplemented rows as disabled with
+    "Coming soon" until the response includes the values.
+

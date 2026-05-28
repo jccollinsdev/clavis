@@ -54,7 +54,12 @@ struct TickerDetailView: View {
             }
             .background(Color.clavixPage.ignoresSafeArea())
             .safeAreaInset(edge: .top, spacing: 0) {
-                topHeader
+                topHeader {
+                    guard hasExecutiveSummary else { return }
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        proxy.scrollTo("executive-summary", anchor: .top)
+                    }
+                }
             }
             .toolbar(.hidden, for: .navigationBar)
             .task {
@@ -89,7 +94,11 @@ struct TickerDetailView: View {
             auditDestinationView(for: destination)
         }
         .sheet(item: $selectedArticle) { article in
-            ArticleDetailSheet(article: article, ticker: ticker)
+            ArticleDetailSheet(
+                article: article,
+                ticker: ticker,
+                portfolioContext: articlePortfolioContext(detail: detail)
+            )
         }
         .sheet(isPresented: $showAddHoldingSheet) {
             TickerAddHoldingSheet(
@@ -103,7 +112,7 @@ struct TickerDetailView: View {
         }
     }
 
-    private var topHeader: some View {
+    private func topHeader(onSummaryTap: @escaping () -> Void) -> some View {
         HStack(spacing: 10) {
             Button(action: { dismiss() }) {
                 Image(systemName: "chevron.left")
@@ -122,6 +131,23 @@ struct TickerDetailView: View {
             }
 
             Spacer()
+
+            if hasExecutiveSummary {
+                Button(action: onSummaryTap) {
+                    Text("Summary")
+                        .font(ClavisTypography.clavixMono(10, weight: .semibold))
+                        .foregroundColor(.clavixAccent)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 5)
+                        .background(Color.clavixPaper2)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                .stroke(Color.clavixRule, lineWidth: 1)
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                }
+                .buttonStyle(.plain)
+            }
 
             Button(action: { Task { await toggleWatchlist() } }) {
                 if isMutatingWatchlist {
@@ -143,6 +169,13 @@ struct TickerDetailView: View {
                 .fill(Color.clavixRule)
                 .frame(height: 1)
         }
+    }
+
+    private var hasExecutiveSummary: Bool {
+        guard let summary = detail?.sharedAnalysis?.executiveSummaryBreakdown else {
+            return false
+        }
+        return summary.hasAnyContent
     }
 
     @ViewBuilder
@@ -471,6 +504,11 @@ struct TickerDetailView: View {
                 .font(ClavisTypography.clavixMono(16, weight: .semibold))
                 .foregroundColor(scoreToneColor(dimension.score))
                 .frame(width: 38, alignment: .trailing)
+
+            Text("—")
+                .font(ClavisTypography.clavixMono(10, weight: .semibold))
+                .foregroundColor(.clavixInk3)
+                .frame(width: 18, alignment: .trailing)
 
             Image(systemName: "chevron.right")
                 .font(.system(size: 11, weight: .semibold))
@@ -934,6 +972,20 @@ struct TickerDetailView: View {
             return methodologyArticles
         }
         return detail.recentNews
+    }
+
+    private func articlePortfolioContext(detail: TickerDetailResponse?) -> String? {
+        guard let detail,
+              let weight = detail.portfolioOverlay?.portfolioWeight,
+              isHeld else {
+            return nil
+        }
+
+        let weightText = String(format: "%.1f", weight * 100)
+        if let grade = detail.sharedAnalysis?.summary.currentGrade ?? detail.position.resolvedRiskGrade {
+            return "\(ticker) is \(weightText)% of your book, so this signal has visible portfolio-level impact even while the ticker rating remains \(grade)."
+        }
+        return "\(ticker) is \(weightText)% of your book, so this signal has visible portfolio-level impact."
     }
 
     private func driverSummary(_ detail: TickerDetailResponse) -> String {
