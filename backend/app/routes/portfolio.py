@@ -19,9 +19,9 @@ def get_user_id(request: Request) -> str:
 SECTOR_ETF_MAP = {
     "technology": "XLK",
     "information technology": "XLK",
-    "semiconductors": "XLK",
-    "semiconductor": "XLK",
-    "semis": "XLK",
+    "semiconductors": "SOXX",
+    "semiconductor": "SOXX",
+    "semis": "SOXX",
     "health care": "XLV",
     "healthcare": "XLV",
     "financials": "XLF",

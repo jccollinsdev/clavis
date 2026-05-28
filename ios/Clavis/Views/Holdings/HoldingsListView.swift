@@ -17,6 +17,7 @@ struct HoldingsListView: View {
 
     @StateObject private var viewModel = HoldingsViewModel()
     @StateObject private var brokerageViewModel = BrokerageViewModel()
+    @State private var navigationPath: [String] = []
     @State private var deleteCandidate: Position?
     @State private var showUpgradeSheet = false
     @State private var showAddHoldingSheet = false
@@ -58,7 +59,7 @@ struct HoldingsListView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             ScrollView {
                 VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
                     if let errorMessage = viewModel.errorMessage {
@@ -102,8 +103,9 @@ struct HoldingsListView: View {
                 await viewModel.refreshHoldings()
             }
             .onChange(of: deepLinkTicker) { newValue in
-                guard newValue != nil else { return }
+                guard let ticker = newValue else { return }
                 deepLinkTicker = nil
+                navigationPath.append(ticker)
             }
             .sheet(isPresented: $showAddHoldingSheet) {
                 HoldingsAddMethodSheet(

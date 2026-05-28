@@ -799,8 +799,8 @@ struct DigestView: View {
 
         private var normalizedSector: String {
             switch sector.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
-            case "sem", "semis", "semiconductors", "semiconductor": return "Tech"
-            case "information technology", "technology": return "Tech"
+            case "sem", "semis", "semiconductors", "semiconductor": return "Semiconductors"
+            case "information technology", "technology": return "Technology"
             default: return sector
             }
         }
@@ -810,8 +810,7 @@ struct DigestView: View {
         var etfSymbol: String {
             if let etf, !etf.isEmpty { return etf }
             switch normalizedSector.lowercased() {
-            case "tech":                                 return "XLK"
-            case "technology", "information technology": return "XLK"
+            case "tech", "technology", "information technology", "semiconductors", "semis": return "XLK"
             case "health care", "healthcare":            return "XLV"
             case "financials", "financial services":     return "XLF"
             case "energy":                                return "XLE"
@@ -830,7 +829,8 @@ struct DigestView: View {
 
         var shortName: String {
             switch normalizedSector.lowercased() {
-            case "tech":                    return "Tech"
+            case "tech", "technology":      return "Tech"
+            case "semiconductors", "semis": return "Semis"
             case "consumer discretionary": return "Consumer D"
             case "consumer staples":       return "Consumer S"
             case "communication services": return "Comm Svcs"

@@ -941,9 +941,11 @@ def enrich_positions_with_ticker_cache(
     for position in positions:
         ticker = (position.get("ticker") or "").upper()
         metadata = metadata_map.get(ticker, {})
-        resolved_price = position.get("current_price")
+        # Prefer fresh metadata price over cached position price
+        resolved_price = metadata.get("price")
         if resolved_price is None:
-            resolved_price = metadata.get("price")
+            resolved_price = position.get("current_price")
+        position["current_price"] = resolved_price
         shares = position.get("shares")
         if resolved_price is not None and shares is not None:
             total_portfolio_value += float(resolved_price) * float(shares)
@@ -2025,6 +2027,8 @@ def _project_shared_summary_compatibility(
         **base,
         "shared_analysis": shared_summary,
         "portfolio_overlay": overlay or None,
+        # Explicit override: **base spreads stale current_price from DB; use live price from overlay/metadata instead
+        "current_price": overlay.get("current_price") or shared_summary.get("latest_price"),
         "grade": shared_summary.get("current_grade"),
         "risk_grade": shared_summary.get("current_grade"),
         "safety_score": shared_summary.get("current_score"),
@@ -3690,7 +3694,28 @@ def refresh_ticker_snapshot(
         .data
     )
     if active_job:
-        return active_job[0]
+        job_data = active_job[0]
+        started_at_str = job_data.get("started_at") or job_data.get("created_at")
+        is_stale = False
+        if started_at_str:
+            try:
+                started_dt = _parse_iso_datetime(started_at_str)
+                if started_dt and (datetime.now(timezone.utc) - started_dt).total_seconds() > 1800:
+                    is_stale = True
+            except Exception:
+                pass
+        
+        if is_stale:
+            try:
+                supabase.table("ticker_refresh_jobs").update({
+                    "status": "failed",
+                    "error_message": "Job marked stale by watchdog after timeout",
+                    "updated_at": _utcnow_iso()
+                }).eq("id", job_data["id"]).execute()
+            except Exception:
+                pass
+        else:
+            return job_data
 
     job_result = (
         supabase.table("ticker_refresh_jobs")

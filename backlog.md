@@ -228,3 +228,64 @@ do not collide with any prior list.
     iOS placeholder: render the unimplemented rows as disabled with
     "Coming soon" until the response includes the values.
 
+
+## 2026-05-28 — Alpha QA pass findings
+
+Verified in iOS Simulator (iPhone 17, iOS 26.3) with real backend + real user data.
+Fixed: 1 bug. Documented: 3 new backend bugs.
+
+31. **[FIXED] Alerts deep-link → wrong Ticker Detail.**
+    Screen: `alerts` → tap GRADE or NEWS alert with `positionTicker`.
+    Bug: `HoldingsListView.onChange(of: deepLinkTicker)` was clearing the
+    binding but never pushing the ticker onto `navigationPath`, so the nav
+    stack didn't move.
+    Fix applied in `ios/Clavis/Views/Holdings/HoldingsListView.swift`:
+    - Added `@State private var navigationPath: [String] = []`
+    - Bound it to `NavigationStack(path: $navigationPath)`
+    - Changed handler to `navigationPath.append(ticker)` before clearing.
+    Verified: SMCI grade alert now opens SMCI Ticker Detail (was AMD).
+    Verified: SMCI news alert also routes to SMCI Ticker Detail correctly.
+
+32. **[BUG] Holdings position row price stale vs Ticker Detail price.**
+    Screen: `holdings` (positions), `ticker`.
+    Observed: AMD position row shows $467.51 but Ticker Detail shows
+    $495.54. SMCI: $35.58 vs $38.19. Same `price_as_of` timestamp on both
+    endpoints yet different prices.
+    Root cause: `/holdings` returns `positions.current_price` which is
+    written at analysis time. `/tickers/{ticker}` returns
+    `latest_price.price` from the current price snapshot. The positions
+    table is not updated between analysis runs, so `current_price` can lag
+    by hours or days.
+    Fix: `/holdings` enrichment should JOIN with the latest price snapshot
+    row for each ticker rather than using the stale `positions.current_price`.
+    This affects displayed P&L, portfolio value accuracy, and day-change %.
+    Cross-reference: P0#4 ("holdings envelope… market value, day change,
+    P&L").
+
+33. **[BUG] Backend event loop blocked by synchronous Supabase calls.**
+    Observed: `/tickers/{ticker}` occasionally takes 10-15 seconds to
+    respond, briefly freezing all endpoints including `/health`.
+    Root cause: `async def get_ticker_detail` calls synchronous
+    `get_ticker_detail_bundle()` directly, blocking the asyncio event loop.
+    Fix: wrap in `asyncio.get_event_loop().run_in_executor(None, ...)` or
+    migrate Supabase queries to the async client.
+    File: `backend/app/routes/tickers.py`
+
+34. **[BUG] GitHub Actions `PROD_SSH_KEY` secret not configured.**
+    Deploy workflow at `.github/workflows/deploy-prod.yml` requires
+    `secrets.PROD_SSH_KEY` to SSH to `134.122.114.241`. The secret is not
+    set in GitHub repo settings, so `git push` auto-deploy is broken.
+    Manual SSH deploy (`ssh clavix-backend@134.122.114.241` with local key
+    `~/.ssh/clavix_vps_ed25519`) still works as a fallback.
+    Fix: add the contents of `~/.ssh/clavix_vps_ed25519` as the
+    `PROD_SSH_KEY` secret in GitHub → Settings → Secrets and variables →
+    Actions.
+
+35. **[COSMETIC] Sector exposure shows two XLK rows on Today and Holdings.**
+    Screen: `today` (sector exposure card), `holdings` (composition section).
+    Observed: Two rows both labeled "XLK / Tech", one at 94% weight (AMD)
+    and one at 6% (AAPL + SMCI). Should show distinct sector names:
+    "Semiconductors" (AMD) and "Technology" (AAPL + SMCI).
+    Root cause: sector normalization collapses both into "Technology/XLK".
+    Cross-reference: P0#20 ("normalize VisualQA sector taxonomy").
+

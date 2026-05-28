@@ -1,4 +1,5 @@
 from __future__ import annotations
+import asyncio
 import logging
 from datetime import datetime, time, timedelta, timezone
 
@@ -126,7 +127,7 @@ async def search_tickers(
     user_id: str = Depends(get_user_id),
 ):
     supabase = get_supabase()
-    results = search_supported_tickers(supabase, q, limit=limit, user_id=user_id)
+    results = await asyncio.to_thread(search_supported_tickers, supabase, q, limit=limit, user_id=user_id)
     return {"results": results, "message": "ok"}
 
 
@@ -170,10 +171,11 @@ async def get_ticker_detail(
 ):
     supabase = get_supabase()
     try:
-        outside_universe = _outside_universe_detail(supabase, user_id, ticker)
+        outside_universe = await asyncio.to_thread(_outside_universe_detail, supabase, user_id, ticker)
         if outside_universe:
             return outside_universe
-        result = get_ticker_detail_bundle(
+        result = await asyncio.to_thread(
+            get_ticker_detail_bundle,
             supabase,
             user_id,
             ticker,
@@ -196,11 +198,12 @@ async def get_ticker_detail(
 @router.post("/{ticker}/refresh")
 async def refresh_ticker(ticker: str, user_id: str = Depends(get_user_id)):
     supabase = get_supabase()
-    tier = _user_subscription_tier(supabase, user_id)
-    _enforce_refresh_limit(supabase, user_id, ticker, tier)
+    tier = await asyncio.to_thread(_user_subscription_tier, supabase, user_id)
+    await asyncio.to_thread(_enforce_refresh_limit, supabase, user_id, ticker, tier)
 
     try:
-        job = refresh_ticker_snapshot(
+        job = await asyncio.to_thread(
+            refresh_ticker_snapshot,
             supabase,
             ticker=ticker,
             job_type="manual_refresh",
@@ -224,7 +227,7 @@ async def refresh_ticker(ticker: str, user_id: str = Depends(get_user_id)):
 @router.get("/{ticker}/refresh-status")
 async def get_refresh_status(ticker: str, user_id: str = Depends(get_user_id)):
     supabase = get_supabase()
-    job = get_latest_refresh_job(supabase, ticker)
+    job = await asyncio.to_thread(get_latest_refresh_job, supabase, ticker)
     return {
         "ticker": ticker.upper(),
         "status": job.get("status") if job else "idle",
@@ -249,7 +252,7 @@ async def get_score_history(
     normalized = ticker.upper()
     cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).date().isoformat()
 
-    rows = (
+    query = (
         supabase.table("ticker_risk_snapshots")
         .select(
             "snapshot_date,composite_score,safety_score,grade,"
@@ -259,10 +262,9 @@ async def get_score_history(
         .eq("ticker", normalized)
         .gte("snapshot_date", cutoff)
         .order("snapshot_date", desc=False)
-        .execute()
-        .data
-        or []
     )
+    res = await asyncio.to_thread(query.execute)
+    rows = res.data or []
 
     points = []
     for row in rows:
