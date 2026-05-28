@@ -47,7 +47,7 @@ struct MorningReportView: View {
     }
 
     private func masthead(_ digest: Digest) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .firstTextBaseline) {
                 Text("CLAVIX · MORNING REPORT")
                     .font(ClavisTypography.clavixMono(10, weight: .bold))
@@ -85,17 +85,9 @@ struct MorningReportView: View {
                         .foregroundColor(.clavixInk3)
                 }
             }
-
-            Rectangle()
-                .fill(Color.clavixInk)
-                .frame(height: 2)
-
-            Text(digest.structuredSections?.header?.summaryLine.sanitizedDisplayText ?? digest.summary?.sanitizedDisplayText ?? "Your portfolio briefing is ready.")
-                .font(ClavisTypography.clavixSerif(15))
-                .foregroundColor(.clavixInk2)
-                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(.bottom, 10)
+        .padding(.bottom, 14)
+        .overlay(alignment: .bottom) { Rectangle().fill(Color.clavixInk).frame(height: 2) }
     }
 
     private func macroSection(_ digest: Digest) -> some View {
@@ -118,54 +110,100 @@ struct MorningReportView: View {
     }
 
     private func sectorSection(_ digest: Digest) -> some View {
-        let sectors = digest.structuredSections?.sectorHeat ?? []
+        let sectorHeat = digest.structuredSections?.sectorHeat ?? []
+        let todaySectors = viewModel.today?.sectorExposure ?? []
         return ReportRomanSection("II", "Sector exposure", tag: "Your sectors") {
-            if sectors.isEmpty {
-                ClavixCard {
-                    Text("Sector detail is being assembled for your holdings.")
-                        .font(ClavisTypography.clavixCaption)
-                        .foregroundColor(.clavixInk3)
-                }
-            } else {
+            // Opening prose: first sectorHeat brief gives the overall sector read
+            if let opening = sectorHeat.first?.brief.sanitizedDisplayText, !opening.isEmpty {
+                Text(opening)
+                    .font(ClavisTypography.clavixSerif(16))
+                    .foregroundColor(.clavixInk)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            // Compact VQA-format ledger: ETF symbol | name + weight | day-change
+            if !todaySectors.isEmpty {
+                let rows = Array(todaySectors.prefix(3))
                 ClavixCard(padding: 0) {
                     VStack(spacing: 0) {
-                        ForEach(Array(sectors.enumerated()), id: \.element.id) { index, sector in
-                            HStack(alignment: .top, spacing: 10) {
-                                Text(sector.sector.humanizedTitleCasedDisplayText)
-                                    .font(ClavisTypography.clavixMono(12, weight: .bold))
-                                    .foregroundColor(.clavixInk)
-                                    .frame(width: 84, alignment: .leading)
-
-                                VStack(alignment: .leading, spacing: 3) {
-                                    Text(sector.brief.sanitizedDisplayText)
-                                        .font(ClavisTypography.clavixCaption)
-                                        .foregroundColor(.clavixInk2)
-                                        .fixedSize(horizontal: false, vertical: true)
-
-                                    if let headline = sector.headlines.first?.sanitizedDisplayText, !headline.isEmpty {
-                                        Text(headline)
-                                            .font(ClavisTypography.clavixMono(10, weight: .regular))
-                                            .foregroundColor(.clavixInk3)
-                                            .fixedSize(horizontal: false, vertical: true)
-                                    }
-                                }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(12)
-
-                            if index < sectors.count - 1 {
+                        ForEach(Array(rows.enumerated()), id: \.element.sector) { index, s in
+                            sectorLedgerRow(
+                                etf: s.etf,
+                                name: s.sector,
+                                weightPct: s.portfolioWeightPct,
+                                changePct: s.etfDayChangePct
+                            )
+                            if index < rows.count - 1 {
                                 Rectangle().fill(Color.clavixRule).frame(height: 1)
                             }
                         }
                     }
                 }
+            } else if !sectorHeat.isEmpty {
+                // Fallback: compact display from sectorHeat when Today endpoint hasn't loaded
+                ClavixCard(padding: 0) {
+                    VStack(spacing: 0) {
+                        ForEach(Array(sectorHeat.prefix(3).enumerated()), id: \.element.id) { index, sector in
+                            sectorLedgerRow(
+                                etf: nil,
+                                name: sector.sector.humanizedTitleCasedDisplayText,
+                                weightPct: nil,
+                                changePct: nil
+                            )
+                            if index < min(sectorHeat.count, 3) - 1 {
+                                Rectangle().fill(Color.clavixRule).frame(height: 1)
+                            }
+                        }
+                    }
+                }
+            } else {
+                ClavixCard {
+                    Text("Sector detail is being assembled for your holdings.")
+                        .font(ClavisTypography.clavixCaption)
+                        .foregroundColor(.clavixInk3)
+                }
             }
         }
     }
 
+    private func sectorLedgerRow(etf: String?, name: String, weightPct: Double?, changePct: Double?) -> some View {
+        let changeText: String = {
+            guard let pct = changePct else { return "—" }
+            return String(format: "%@%.2f%%", pct >= 0 ? "+" : "", pct)
+        }()
+        let changeTone: Color = {
+            guard let pct = changePct else { return .clavixInk3 }
+            if pct > 0.05 { return .clavixGood }
+            if pct < -0.05 { return .clavixBad }
+            return .clavixInk3
+        }()
+        return HStack {
+            Text(etf ?? "—")
+                .font(ClavisTypography.clavixMono(12, weight: .bold))
+                .foregroundColor(.clavixInk)
+                .frame(width: 42, alignment: .leading)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(name)
+                    .font(ClavisTypography.clavixCaption)
+                    .foregroundColor(.clavixInk)
+                    .lineLimit(1)
+                if let w = weightPct {
+                    Text("weight \(Int(w.rounded()))%")
+                        .font(ClavisTypography.clavixMono(10, weight: .regular))
+                        .foregroundColor(.clavixInk3)
+                }
+            }
+            Spacer()
+            Text(changeText)
+                .font(ClavisTypography.clavixMono(12, weight: .semibold))
+                .foregroundColor(changeTone)
+        }
+        .padding(12)
+    }
+
     private func positionsSection(_ digest: Digest) -> some View {
         let positions = digest.structuredSections?.positions ?? []
-        return ReportRomanSection("III", "Position changes", tag: "Personalized") {
+        return ReportRomanSection("III", "Position changes", tag: "Personalised") {
             if positions.isEmpty {
                 ClavixCard {
                     Text("No material position changes in this briefing.")

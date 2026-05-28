@@ -134,14 +134,9 @@ struct DigestView: View {
                         .foregroundColor(.clavixInk)
                         .lineLimit(1)
                         .minimumScaleFactor(0.76)
-                    HStack(spacing: 6) {
-                        Text("Today")
-                            .font(ClavisTypography.clavixMono(12, weight: .regular))
-                            .foregroundColor(.clavixInk3)
-                        Text(portfolioDayChangeText)
-                            .font(ClavisTypography.clavixMono(12, weight: .semibold))
-                            .foregroundColor(portfolioDayChangeColor)
-                    }
+                    Text(portfolioDayChangeText)
+                        .font(ClavisTypography.clavixMono(12, weight: .regular))
+                        .foregroundColor(portfolioDayChangeColor)
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 4) {
@@ -374,7 +369,7 @@ struct DigestView: View {
                     HStack {
                         Text("SYM")
                         Spacer()
-                        Text("GRADE · DELTA")
+                        Text("GRADE · DELTA · TODAY")
                     }
                     .font(ClavisTypography.clavixMono(9, weight: .bold))
                     .foregroundColor(.clavixInk3)
@@ -688,10 +683,10 @@ struct DigestView: View {
     /// Sum of (shares × day_change_amount) across holdings whose backend payload
     /// includes a previous-close price. Returns "—" when no positions report it.
     private var portfolioDayChangeText: String {
-        if let amount = viewModel.today?.portfolio.dayChangeAmount,
-           let pct = viewModel.today?.portfolio.dayChangePct {
+        // VQA format: "-$5,438 today" — dollar amount + "today", no percentage
+        if let amount = viewModel.today?.portfolio.dayChangeAmount {
             let sign = amount >= 0 ? "+" : "−"
-            return String(format: "%@%@ (%@%.2f%%)", sign, formatCurrency(abs(amount)), pct >= 0 ? "+" : "−", abs(pct))
+            return "\(sign)\(formatCurrency(abs(amount))) today"
         }
         let positions = viewModel.holdings
         var totalDelta: Double = 0
@@ -705,10 +700,8 @@ struct DigestView: View {
             totalPrev += prevClose * position.shares
         }
         guard anyReported, totalPrev > 0 else { return "—" }
-        let pct = (totalDelta / totalPrev) * 100
         let sign = totalDelta >= 0 ? "+" : "−"
-        let amountText = formatCurrency(abs(totalDelta))
-        return String(format: "%@%@ (%@%.2f%%)", sign, amountText, totalDelta >= 0 ? "+" : "−", abs(pct))
+        return "\(sign)\(formatCurrency(abs(totalDelta))) today"
     }
 
     private var portfolioDayChangeColor: Color {
@@ -810,8 +803,9 @@ struct DigestView: View {
         var etfSymbol: String {
             if let etf, !etf.isEmpty { return etf }
             switch normalizedSector.lowercased() {
-            case "tech", "technology", "information technology", "semiconductors", "semis": return "XLK"
-            case "health care", "healthcare":            return "XLV"
+            case "tech", "technology", "information technology": return "XLK"
+            case "semiconductors", "semis":                      return "SOXX"
+            case "health care", "healthcare":                    return "XLV"
             case "financials", "financial services":     return "XLF"
             case "energy":                                return "XLE"
             case "consumer discretionary":                return "XLY"
@@ -829,12 +823,15 @@ struct DigestView: View {
 
         var shortName: String {
             switch normalizedSector.lowercased() {
-            case "tech", "technology":      return "Tech"
-            case "semiconductors", "semis": return "Semis"
-            case "consumer discretionary": return "Consumer D"
-            case "consumer staples":       return "Consumer S"
-            case "communication services": return "Comm Svcs"
-            case "us total market":        return "US Total"
+            case "tech", "technology":                       return "Technology"
+            case "information technology":                   return "Tech"
+            case "semiconductors", "semis":                  return "Semis"
+            case "health care", "healthcare":                return "Health"
+            case "financials", "financial services":         return "Financials"
+            case "consumer discretionary":                   return "Consumer D"
+            case "consumer staples":                         return "Consumer S"
+            case "communication services":                   return "Comm Svcs"
+            case "us total market":                          return "US Total"
             default: return normalizedSector
             }
         }
@@ -902,7 +899,7 @@ struct DigestView: View {
         case .majorEvent:               return "News"
         case .portfolioGradeChange,
              .portfolioSafetyThresholdBreach:
-                                         return "Portfolio"
+                                         return "Port"
         case .macroShock:               return "Macro"
         case .safetyDeterioration,
              .concentrationDanger,
