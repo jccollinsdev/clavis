@@ -73,9 +73,10 @@ class APIService {
         path: String,
         method: String = "GET",
         body: Data? = nil,
-        timeoutInterval: TimeInterval = 30
+        timeoutInterval: TimeInterval = 30,
+        suppressSessionExpired: Bool = false
     ) async throws -> Data {
-        try await _makeRequest(path: path, method: method, body: body, timeoutInterval: timeoutInterval)
+        try await _makeRequest(path: path, method: method, body: body, timeoutInterval: timeoutInterval, suppressSessionExpired: suppressSessionExpired)
     }
 
     private func _makeRequest(
@@ -83,7 +84,8 @@ class APIService {
         method: String = "GET",
         body: Data? = nil,
         timeoutInterval: TimeInterval = 30,
-        isRetry: Bool = false
+        isRetry: Bool = false,
+        suppressSessionExpired: Bool = false
     ) async throws -> Data {
         guard let url = URL(string: "\(baseURL)\(path)") else {
             print("API request invalid URL base=\(baseURL) path=\(path)")
@@ -131,14 +133,21 @@ class APIService {
                     try? await SupabaseAuthService.shared.refreshSession()
                     return try await _makeRequest(
                         path: path, method: method, body: body,
-                        timeoutInterval: timeoutInterval, isRetry: true
+                        timeoutInterval: timeoutInterval, isRetry: true,
+                        suppressSessionExpired: suppressSessionExpired
                     )
                 }
-                // Second 401 after refresh — session is truly invalid. Signal
-                // the app to sign the user out so they can re-authenticate.
-                print("[API] 401 persists after refresh — session expired, posting clavixSessionExpired")
-                await MainActor.run {
-                    NotificationCenter.default.post(name: .clavixSessionExpired, object: nil)
+                // Second 401 after refresh — session is truly invalid.
+                // Only signal session-expired for requests that opt in; the
+                // preferences check right after login must not sign the user out
+                // when the backend has a transient validation failure.
+                if suppressSessionExpired {
+                    print("[API] 401 persists after refresh on \(path) — suppressing sign-out (non-critical path)")
+                } else {
+                    print("[API] 401 persists after refresh — session expired, posting clavixSessionExpired")
+                    await MainActor.run {
+                        NotificationCenter.default.post(name: .clavixSessionExpired, object: nil)
+                    }
                 }
                 throw APIError.unauthorized
             default:
@@ -520,7 +529,7 @@ class APIService {
     }
 
     func fetchPreferences(timeoutInterval: TimeInterval = 10) async throws -> PreferencesResponse {
-        let data = try await makeRequest(path: "/preferences", timeoutInterval: timeoutInterval)
+        let data = try await makeRequest(path: "/preferences", timeoutInterval: timeoutInterval, suppressSessionExpired: true)
         return try decoder.decode(PreferencesResponse.self, from: data)
     }
 
