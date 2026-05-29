@@ -29,6 +29,12 @@ jobs:
         run: |
           ssh "${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}" "mkdir -p /opt/clavis/backend/apns"
 
+      - name: Fix __pycache__ permissions on droplet
+        run: |
+          ssh "${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}" \
+            "find /opt/clavis/backend -type d -name '__pycache__' -exec chmod 777 {} + 2>/dev/null || true; \
+             find /opt/clavis/backend -name '*.pyc' -exec chmod 666 {} + 2>/dev/null || true"
+
       - name: Sync repository to droplet
         run: |
           rsync -az --delete \
@@ -40,6 +46,8 @@ jobs:
             --exclude 'ios/' \
             --exclude 'backend/.env' \
             --exclude 'backend/apns/apns.p8' \
+            --exclude '__pycache__/' \
+            --exclude '*.pyc' \
             ./ "${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}:/opt/clavis/"
 
       - name: Restart stack and verify health
