@@ -25,9 +25,12 @@ class AuthViewModel: ObservableObject {
             queue: .main
         ) { [weak self] _ in
             guard let self else { return }
-            print("[Auth] clavixSessionExpired received — signing out")
+            print("[Auth] clavixSessionExpired received — clearing local session")
             Task { @MainActor in
-                try? await self.authService.signOut()
+                // The token is expired so a normal signOut() call would itself
+                // get a 401 and fail before clearing Keychain. Use the local-only
+                // path so the SDK removes the stored session unconditionally.
+                await self.authService.clearLocalSession()
                 self.isAuthenticated = false
                 self.hasCompletedOnboarding = false
             }
@@ -135,11 +138,14 @@ class AuthViewModel: ObservableObject {
     func signOut() async {
         do {
             try await authService.signOut()
-            isAuthenticated = false
-            hasCompletedOnboarding = false
         } catch {
-            errorMessage = error.localizedDescription
+            // Server-side revocation failed (e.g. expired token causes 401).
+            // Fall back to local-only sign-out so the Keychain entry is cleared
+            // regardless of the server response.
+            await authService.clearLocalSession()
         }
+        isAuthenticated = false
+        hasCompletedOnboarding = false
     }
 
     func checkOnboardingStatus() async {

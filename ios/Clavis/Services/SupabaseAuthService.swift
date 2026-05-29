@@ -145,14 +145,36 @@ class SupabaseAuthService {
             return true
         }
         do {
-            _ = try await supabase.auth.session
-            // Pre-warm: refresh now so the access token is fresh for the
-            // API calls that fire immediately after the app enters the Today tab.
-            _ = try? await supabase.auth.refreshSession()
+            let session = try await supabase.auth.session
+            let diff = Date(timeIntervalSince1970: session.expiresAt).timeIntervalSinceNow
+            print("[Auth] checkSession: isExpired=\(session.isExpired) expiresAt=\(Int(session.expiresAt)) diff=\(Int(diff))s")
+            if session.isExpired {
+                // Access token is past its expiry — must refresh now.
+                // If the refresh token is also expired this throws, which
+                // correctly returns false and routes the user to login.
+                print("[Auth] checkSession: token expired — attempting refresh")
+                try await supabase.auth.refreshSession()
+                print("[Auth] checkSession: refresh succeeded")
+            } else {
+                // Pre-warm: refresh while still valid so the access token is
+                // fresh for the API calls that fire immediately after launch.
+                _ = try? await supabase.auth.refreshSession()
+            }
             return true
         } catch {
+            print("[Auth] checkSession: failed — \(error)")
             return false
         }
+    }
+
+    // Clears the local Supabase session without requiring a valid server token.
+    // Use this when the session is known-expired and a normal signOut() would
+    // fail because the server rejects the stale access token.
+    @MainActor
+    func clearLocalSession() async {
+        // scope: .local tells the SDK to only clear device-side storage and
+        // send a best-effort server notification — it does not block on a 401.
+        try? await supabase.auth.signOut(scope: .local)
     }
 
     @MainActor
@@ -162,26 +184,24 @@ class SupabaseAuthService {
         }
         do {
             let session = try await supabase.auth.session
-            #if DEBUG
-            let expDate = Date(timeIntervalSince1970: session.expiresAt)
-            let diff = expDate.timeIntervalSinceNow
-            print("[Auth] token expiresAt=\(Int(session.expiresAt)) diff=\(Int(diff))s isExpired=\(session.isExpired)")
-            #endif
-            return session.accessToken
-        } catch {
-            // Session missing or access token unreadable — attempt a forced refresh
-            // before giving up. This covers the common case where the app resumes
-            // after the 1-hour access token window has passed.
-            print("[Auth] getAccessToken: session unavailable (\(error)) — attempting refresh")
-            do {
+            let diff2 = Date(timeIntervalSince1970: session.expiresAt).timeIntervalSinceNow
+            print("[Auth] getAccessToken: isExpired=\(session.isExpired) diff=\(Int(diff2))s")
+            if session.isExpired {
+                // Token is expired but the SDK didn't auto-refresh (e.g. the
+                // SDK read from storage without triggering the refresh path).
+                // Force a refresh now; if it fails, return nil so the caller
+                // receives a 401 and the retry/sign-out chain fires.
+                print("[Auth] getAccessToken: session expired — forcing refresh")
                 try await supabase.auth.refreshSession()
                 let fresh = try await supabase.auth.session
                 print("[Auth] getAccessToken: refresh succeeded")
                 return fresh.accessToken
-            } catch {
-                print("[Auth] getAccessToken: refresh failed — \(error)")
-                return nil
             }
+            return session.accessToken
+        } catch {
+            // Session missing or refresh failed — signal no token available.
+            print("[Auth] getAccessToken: failed — \(error)")
+            return nil
         }
     }
 
