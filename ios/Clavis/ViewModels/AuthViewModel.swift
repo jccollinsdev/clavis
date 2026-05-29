@@ -13,6 +13,26 @@ class AuthViewModel: ObservableObject {
 
     private let authService = SupabaseAuthService.shared
     private let api = APIService.shared
+    private var sessionExpiredObserver: NSObjectProtocol?
+
+    init() {
+        // Observe session-expired notifications posted by APIService after a
+        // final 401-after-refresh. Force sign-out so the user can re-authenticate
+        // instead of being stuck on an error screen with no way forward.
+        sessionExpiredObserver = NotificationCenter.default.addObserver(
+            forName: .clavixSessionExpired,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self else { return }
+            print("[Auth] clavixSessionExpired received — signing out")
+            Task { @MainActor in
+                try? await self.authService.signOut()
+                self.isAuthenticated = false
+                self.hasCompletedOnboarding = false
+            }
+        }
+    }
 
     func checkSession() async {
         isAuthenticated = await authService.checkSession()

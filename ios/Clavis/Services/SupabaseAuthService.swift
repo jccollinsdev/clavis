@@ -3,6 +3,9 @@ import Supabase
 
 extension Notification.Name {
     static let supabaseAuthCallbackReceived = Notification.Name("supabaseAuthCallbackReceived")
+    /// Posted when a final 401 is received after a token-refresh attempt,
+    /// indicating the session is truly invalid. Observers should sign the user out.
+    static let clavixSessionExpired = Notification.Name("clavixSessionExpired")
 }
 
 class SupabaseAuthService {
@@ -143,6 +146,9 @@ class SupabaseAuthService {
         }
         do {
             _ = try await supabase.auth.session
+            // Pre-warm: refresh now so the access token is fresh for the
+            // API calls that fire immediately after the app enters the Today tab.
+            _ = try? await supabase.auth.refreshSession()
             return true
         } catch {
             return false
@@ -156,9 +162,26 @@ class SupabaseAuthService {
         }
         do {
             let session = try await supabase.auth.session
+            #if DEBUG
+            let expDate = Date(timeIntervalSince1970: session.expiresAt)
+            let diff = expDate.timeIntervalSinceNow
+            print("[Auth] token expiresAt=\(Int(session.expiresAt)) diff=\(Int(diff))s isExpired=\(session.isExpired)")
+            #endif
             return session.accessToken
         } catch {
-            return nil
+            // Session missing or access token unreadable — attempt a forced refresh
+            // before giving up. This covers the common case where the app resumes
+            // after the 1-hour access token window has passed.
+            print("[Auth] getAccessToken: session unavailable (\(error)) — attempting refresh")
+            do {
+                try await supabase.auth.refreshSession()
+                let fresh = try await supabase.auth.session
+                print("[Auth] getAccessToken: refresh succeeded")
+                return fresh.accessToken
+            } catch {
+                print("[Auth] getAccessToken: refresh failed — \(error)")
+                return nil
+            }
         }
     }
 

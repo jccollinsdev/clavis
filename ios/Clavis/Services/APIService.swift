@@ -75,27 +75,24 @@ class APIService {
         body: Data? = nil,
         timeoutInterval: TimeInterval = 30
     ) async throws -> Data {
-        do {
-            return try await _makeRequest(path: path, method: method, body: body, timeoutInterval: timeoutInterval)
-        } catch let error as APIError {
-            guard case .unauthorized = error else { throw error }
-            try? await SupabaseAuthService.shared.refreshSession()
-            return try await _makeRequest(path: path, method: method, body: body, timeoutInterval: timeoutInterval)
-        }
+        try await _makeRequest(path: path, method: method, body: body, timeoutInterval: timeoutInterval)
     }
 
     private func _makeRequest(
         path: String,
         method: String = "GET",
         body: Data? = nil,
-        timeoutInterval: TimeInterval = 30
+        timeoutInterval: TimeInterval = 30,
+        isRetry: Bool = false
     ) async throws -> Data {
         guard let url = URL(string: "\(baseURL)\(path)") else {
             print("API request invalid URL base=\(baseURL) path=\(path)")
             throw APIError.invalidURL
         }
 
-        print("API request \(method) \(url.absoluteString)")
+        if !isRetry {
+            print("API request \(method) \(url.absoluteString)")
+        }
 
         var request = URLRequest(url: url)
         request.httpMethod = method
@@ -106,6 +103,8 @@ class APIService {
 
         if let token = await SupabaseAuthService.shared.getAccessToken() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        } else {
+            print("[API] No token available for \(method) \(path) — request will 401")
         }
 
         if let body = body {
@@ -124,6 +123,23 @@ class APIService {
             case 200...299:
                 return data
             case 401:
+                // On the first 401, force-refresh the Supabase session and retry
+                // once with the new token. This covers the common case of an
+                // expired access token that wasn't caught before the request fired.
+                if !isRetry {
+                    print("[API] 401 on \(method) \(path) — refreshing session and retrying once")
+                    try? await SupabaseAuthService.shared.refreshSession()
+                    return try await _makeRequest(
+                        path: path, method: method, body: body,
+                        timeoutInterval: timeoutInterval, isRetry: true
+                    )
+                }
+                // Second 401 after refresh — session is truly invalid. Signal
+                // the app to sign the user out so they can re-authenticate.
+                print("[API] 401 persists after refresh — session expired, posting clavixSessionExpired")
+                await MainActor.run {
+                    NotificationCenter.default.post(name: .clavixSessionExpired, object: nil)
+                }
                 throw APIError.unauthorized
             default:
                 throw APIError.serverError(httpResponse.statusCode)
