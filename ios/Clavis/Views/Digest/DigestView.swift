@@ -145,7 +145,7 @@ struct DigestView: View {
     // MARK: - Sector exposure (1:1 VQA sector cell: symbol + name + change/weight)
 
     private var sectorExposure: some View {
-        ClavixSection(eyebrow: "Portfolio sectors", title: "Sector exposure") {
+        ClavixSection(eyebrow: "Portfolio sectors", title: "Your sectors") {
             if sectorRows.isEmpty {
                 ClavixCard {
                     Text("Sector breakdown will appear once positions have analysis data.")
@@ -726,34 +726,18 @@ struct DigestView: View {
     }
 
     private var todayStickyBar: some View {
-        ZStack {
-            HStack(spacing: 12) {
-                Image("clavix_logo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 36, height: 36)
-                    .accessibilityHidden(true)
-                Spacer(minLength: 8)
-                HStack(spacing: 18) {
-                    Button(action: { selectedTab = 2 }) {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(.clavixInk)
-                    }
-                    Button(action: { selectedTab = 3 }) {
-                        Image(systemName: "bell")
-                            .foregroundColor(.clavixInk)
-                    }
+        ClavixStickyBar(trailing: AnyView(
+            HStack(spacing: 18) {
+                Button(action: { selectedTab = 2 }) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.clavixInk)
+                }
+                Button(action: { selectedTab = 3 }) {
+                    Image(systemName: "bell")
+                        .foregroundColor(.clavixInk)
                 }
             }
-            Text("CLAVIX")
-                .font(ClavisTypography.clavixMono(21, weight: .bold))
-                .tracking(1.5)
-                .foregroundColor(.clavixInk)
-        }
-        .padding(.horizontal, ClavixLayout.pad)
-        .padding(.vertical, 10)
-        .background(Color.clavixPage.ignoresSafeArea(edges: .top))
-        .overlay(alignment: .bottom) { Rectangle().fill(Color.clavixRule).frame(height: 1) }
+        ))
     }
 
     private func simpleSection<Content: View>(
@@ -859,8 +843,7 @@ private struct AxisSnapshotCard: View {
         }
         .padding(2)
         .background(Color.clavixPaper)
-        .clipShape(Capsule())
-        .overlay(Capsule().stroke(score == nil ? Color.clavixRule : tone.opacity(0.40), lineWidth: 1))
+        .overlay(Rectangle().stroke(score == nil ? Color.clavixRule : tone.opacity(0.40), lineWidth: 1))
     }
 
     private func segmentView(index: Int) -> some View {

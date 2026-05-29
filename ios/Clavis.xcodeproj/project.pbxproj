@@ -61,6 +61,7 @@
 		8FA2D2834E7E84E515B83A7F /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB1A7BF18764341D7867CC44 /* SettingsViewModel.swift */; };
 		9112C7EA91240C472D69C7AC /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15B66612E5443B430352FAAB /* MainTabView.swift */; };
 		93232D1707B89B3DFBD4D1DA /* MorningReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6758D1ED48A934CA8F640A80 /* MorningReportView.swift */; };
+		93E72878DDD61A1E3B6DD358 /* SectorHeatmapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00FFD559FB9BBE224BD8F233 /* SectorHeatmapView.swift */; };
 		A07E209B16067F077DE89AB7 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 865D86FE1054F68F98487739 /* LoginView.swift */; };
 		A2374B88B846298636A93F5B /* NewsItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D8545E60D1223D1BE1CAC01 /* NewsItem.swift */; };
 		A6D86F7D83B09AC32F18B799 /* ClavisCardComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C7B7E052980D0A7FF3CFA16 /* ClavisCardComponents.swift */; };
@@ -103,6 +104,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		00FFD559FB9BBE224BD8F233 /* SectorHeatmapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectorHeatmapView.swift; sourceTree = "<group>"; };
 		011115DAEE21B65A0074A27C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		0C394F153A0BBF81D597DFF4 /* SafariView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariView.swift; sourceTree = "<group>"; };
 		0FBC158DBA1385D691EFFC37 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
@@ -292,6 +294,7 @@
 			children = (
 				6C7B7E052980D0A7FF3CFA16 /* ClavisCardComponents.swift */,
 				770F7DC8D4FA49517326EDF6 /* ClavixVQAComponents.swift */,
+				00FFD559FB9BBE224BD8F233 /* SectorHeatmapView.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -658,6 +661,7 @@
 				C188EBCA0860A8809B63399B /* ScoreHistoryChart.swift in Sources */,
 				B1DCA91EDA51D1BC794CC012 /* SearchView.swift in Sources */,
 				C6155195A47362A5F9785E89 /* SectorExposureAuditView.swift in Sources */,
+				93E72878DDD61A1E3B6DD358 /* SectorHeatmapView.swift in Sources */,
 				B9DD10F0D12C47D0C61BEF8D /* SettingsView.swift in Sources */,
 				8FA2D2834E7E84E515B83A7F /* SettingsViewModel.swift in Sources */,
 				260312ED46C93D4855AA49AF /* SharedTickerAnalysis.swift in Sources */,

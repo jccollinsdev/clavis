@@ -22,25 +22,27 @@ struct SearchView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                searchHeader
-
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
-                        if !trimmedQuery.isEmpty {
-                            queryResultsSection
-                        } else {
-                            recentSection
-                            trendingSection
-                            browseSection
-                        }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    if !trimmedQuery.isEmpty {
+                        queryResultsSection
+                    } else {
+                        recentSection
+                        trendingSection
+                        browseSection
                     }
-                    .padding(.horizontal, ClavixLayout.pad)
-                    .padding(.top, 14)
-                    .padding(.bottom, ClavixLayout.bottomPad)
                 }
+                .padding(.horizontal, ClavixLayout.pad)
+                .padding(.top, 14)
+                .padding(.bottom, ClavixLayout.bottomPad)
             }
             .background(Color.clavixPage.ignoresSafeArea())
+            .safeAreaInset(edge: .top, spacing: 0) {
+                VStack(spacing: 0) {
+                    ClavixStickyBar()
+                    searchHeader
+                }
+            }
             .toolbar(.hidden, for: .navigationBar)
             .onAppear {
                 hasLoadedInitialState = true
@@ -105,7 +107,7 @@ struct SearchView: View {
         .padding(.horizontal, 16)
         .padding(.top, 4)
         .padding(.bottom, 12)
-        .background(Color.clavixPage.ignoresSafeArea(edges: .top))
+        .background(Color.clavixPage)
         .overlay(alignment: .bottom) { Rectangle().fill(Color.clavixRule).frame(height: 1) }
     }
 

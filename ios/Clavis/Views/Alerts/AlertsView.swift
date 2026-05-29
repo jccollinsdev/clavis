@@ -58,21 +58,17 @@ struct AlertsView: View {
             }
             .background(Color.clavixPage.ignoresSafeArea())
             .safeAreaInset(edge: .top, spacing: 0) {
-                ClavixLargeHeader(
-                    eyebrow: alertsEyebrow,
-                    title: "Alerts",
-                    trailing: AnyView(
-                        HStack(spacing: 14) {
-                            Image(systemName: "slider.horizontal.3")
+                ClavixStickyBar(trailing: AnyView(
+                    HStack(spacing: 18) {
+                        Image(systemName: "slider.horizontal.3")
+                            .foregroundColor(.clavixInk)
+                        Button(action: { Task { try? await APIService.shared.markAllAlertsRead(); viewModel.markAlertsSeen() } }) {
+                            Image(systemName: "checkmark")
                                 .foregroundColor(.clavixInk)
-                            Button(action: { Task { try? await APIService.shared.markAllAlertsRead(); viewModel.markAlertsSeen() } }) {
-                                Image(systemName: "checkmark")
-                                    .foregroundColor(.clavixInk)
-                            }
-                            .buttonStyle(.plain)
                         }
-                    )
-                )
+                        .buttonStyle(.plain)
+                    }
+                ))
             }
             .toolbar(.hidden, for: .navigationBar)
             .task {

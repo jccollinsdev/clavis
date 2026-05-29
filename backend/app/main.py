@@ -96,7 +96,7 @@ def _resolve_user_id_from_token(token: str) -> str | None:
             token,
             settings.supabase_jwt_secret,
             algorithms=["HS256"],
-            audience="authenticated",
+            options={"verify_aud": False},
         )
         user_id = payload.get("sub")
         if user_id:

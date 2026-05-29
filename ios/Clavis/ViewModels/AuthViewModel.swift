@@ -14,6 +14,7 @@ class AuthViewModel: ObservableObject {
     private let authService = SupabaseAuthService.shared
     private let api = APIService.shared
     private var sessionExpiredObserver: NSObjectProtocol?
+    private static let onboardingCacheKey = "clavix.hasCompletedOnboarding"
 
     init() {
         // Observe session-expired notifications posted by APIService after a
@@ -31,6 +32,7 @@ class AuthViewModel: ObservableObject {
                 // get a 401 and fail before clearing Keychain. Use the local-only
                 // path so the SDK removes the stored session unconditionally.
                 await self.authService.clearLocalSession()
+                UserDefaults.standard.removeObject(forKey: AuthViewModel.onboardingCacheKey)
                 self.isAuthenticated = false
                 self.hasCompletedOnboarding = false
             }
@@ -144,6 +146,7 @@ class AuthViewModel: ObservableObject {
             // regardless of the server response.
             await authService.clearLocalSession()
         }
+        UserDefaults.standard.removeObject(forKey: Self.onboardingCacheKey)
         isAuthenticated = false
         hasCompletedOnboarding = false
     }
@@ -152,19 +155,23 @@ class AuthViewModel: ObservableObject {
         isLoadingPreferences = true
         do {
             let prefs = try await api.fetchPreferences()
-            hasCompletedOnboarding = prefs.hasCompletedOnboarding ?? false
+            let completed = prefs.hasCompletedOnboarding ?? false
+            hasCompletedOnboarding = completed
             subscriptionTier = prefs.subscriptionTier ?? "free"
+            UserDefaults.standard.set(completed, forKey: Self.onboardingCacheKey)
         } catch let error as APIError {
             print("[Auth] checkOnboardingStatus failed: \(error.localizedDescription)")
             if case .unauthorized = error {
                 print("[Auth] 401 after token refresh — preserving onboarding state")
             } else {
-                hasCompletedOnboarding = false
+                // Use cached value on transient errors so users who have completed
+                // onboarding aren't bounced back to it when the backend is briefly down.
+                hasCompletedOnboarding = UserDefaults.standard.bool(forKey: Self.onboardingCacheKey)
                 subscriptionTier = "free"
             }
         } catch {
             print("[Auth] checkOnboardingStatus failed: \(error.localizedDescription)")
-            hasCompletedOnboarding = false
+            hasCompletedOnboarding = UserDefaults.standard.bool(forKey: Self.onboardingCacheKey)
             subscriptionTier = "free"
         }
         isLoadingPreferences = false
@@ -172,6 +179,7 @@ class AuthViewModel: ObservableObject {
 
     func markOnboardingComplete() {
         hasCompletedOnboarding = true
+        UserDefaults.standard.set(true, forKey: Self.onboardingCacheKey)
     }
 
     // Called when the OS delivers a clavis://auth/callback URL (email confirm or password reset).

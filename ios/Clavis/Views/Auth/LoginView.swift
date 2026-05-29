@@ -55,13 +55,6 @@ struct LoginView: View {
     private var welcomeSurface: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                HStack(alignment: .center) {
-                    AuthBrand()
-                    Spacer()
-                    ClavixEyebrow("Andover Digital")
-                }
-                .padding(.top, 28)
-
                 Spacer(minLength: 20)
 
                 ClavixCard {
@@ -122,6 +115,9 @@ struct LoginView: View {
             .padding(.bottom, 32)
             .frame(maxWidth: 520)
             .frame(maxWidth: .infinity)
+        }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            ClavixStickyBar(trailing: AnyView(ClavixEyebrow("Andover Digital")))
         }
     }
 
@@ -356,18 +352,6 @@ struct LoginView: View {
                 return
             }
         }
-    }
-}
-
-private struct AuthBrand: View {
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "waveform.path.ecg.rectangle")
-                .font(.system(size: 18, weight: .regular))
-            Text("Clavix")
-                .font(ClavisTypography.clavixSerif(19, weight: .semibold))
-        }
-        .foregroundColor(.clavixInk)
     }
 }
 

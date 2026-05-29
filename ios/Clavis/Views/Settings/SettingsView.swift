@@ -8,98 +8,107 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
-            ClavixScreen(eyebrow: "Account", title: "Settings") {
-                if let message = viewModel.preferencesMessage {
-                    SettingsMessageCard(message: message, fill: .clavixWarnSoft, foreground: .clavixWarnInk)
-                }
-                if let message = viewModel.accountMessage {
-                    SettingsMessageCard(message: message, fill: .clavixAccentSoft, foreground: .clavixAccentInk)
-                }
-
-                NavigationLink {
-                    ProfileSettingsDetailView(viewModel: viewModel)
-                } label: {
-                    SettingsSectionCard("PROFILE") {
-                        SettingsValueRow("Name", value: profileDisplayName, detail: profileDetail)
-                        Divider()
-                        SettingsValueRow(
-                            "Plan",
-                            value: planSummary,
-                            valueColor: isFreeTier ? .clavixInk3 : .clavixAccent
-                        )
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    if let message = viewModel.preferencesMessage {
+                        SettingsMessageCard(message: message, fill: .clavixWarnSoft, foreground: .clavixWarnInk)
                     }
-                }
-                .buttonStyle(.plain)
-
-                NavigationLink {
-                    MorningReportSettingsDetailView(viewModel: viewModel)
-                } label: {
-                    SettingsSectionCard("MORNING REPORT") {
-                        SettingsValueRow("Delivery time", value: deliveryTimeValue)
-                        Divider()
-                        SettingsValueRow("Length", value: viewModel.summaryLength.rawValue)
+                    if let message = viewModel.accountMessage {
+                        SettingsMessageCard(message: message, fill: .clavixAccentSoft, foreground: .clavixAccentInk)
                     }
-                }
-                .buttonStyle(.plain)
 
-                NavigationLink {
-                    BrokerageSettingsDetailView(viewModel: brokerageViewModel)
-                } label: {
-                    SettingsSectionCard("BROKERAGE") {
-                        SettingsValueRow(
-                            "Connected brokerage",
-                            value: brokerageStatusValue,
-                            detail: brokerageDetail,
-                            valueColor: brokerageViewModel.isConnected ? .clavixGood : .clavixInk3
-                        )
-                        Divider()
-                        SettingsValueRow(
-                            "Auto-sync",
-                            value: brokerageViewModel.autoSyncEnabled ? "On" : "Off",
-                            valueColor: brokerageViewModel.autoSyncEnabled ? .clavixGood : .clavixInk3
-                        )
-                    }
-                }
-                .buttonStyle(.plain)
-
-                NavigationLink {
-                    ReferenceSettingsDetailView()
-                } label: {
-                    SettingsSectionCard("REFERENCE") {
-                        SettingsValueRow("Methodology", value: "Open")
-                    }
-                }
-                .buttonStyle(.plain)
-
-                SettingsSectionCard("ACCOUNT") {
                     NavigationLink {
-                        ExportDataDetailView(viewModel: viewModel)
+                        ProfileSettingsDetailView(viewModel: viewModel)
                     } label: {
-                        SettingsActionRow("Export data")
+                        SettingsSectionCard("PROFILE") {
+                            SettingsValueRow("Name", value: profileDisplayName, detail: profileDetail)
+                            Divider()
+                            SettingsValueRow(
+                                "Plan",
+                                value: planSummary,
+                                valueColor: isFreeTier ? .clavixInk3 : .clavixAccent
+                            )
+                        }
                     }
                     .buttonStyle(.plain)
 
-                    Divider()
-
                     NavigationLink {
-                        SupportLegalDetailView()
+                        MorningReportSettingsDetailView(viewModel: viewModel)
                     } label: {
-                        SettingsActionRow("Support & legal")
+                        SettingsSectionCard("MORNING REPORT") {
+                            SettingsValueRow("Delivery time", value: deliveryTimeValue)
+                            Divider()
+                            SettingsValueRow("Length", value: viewModel.summaryLength.rawValue)
+                        }
                     }
                     .buttonStyle(.plain)
 
-                    Divider()
-
                     NavigationLink {
-                        DeleteAccountDetailView(viewModel: viewModel)
-                            .environmentObject(authViewModel)
+                        BrokerageSettingsDetailView(viewModel: brokerageViewModel)
                     } label: {
-                        SettingsActionRow("Delete account", foreground: .clavixBad)
+                        SettingsSectionCard("BROKERAGE") {
+                            SettingsValueRow(
+                                "Connected brokerage",
+                                value: brokerageStatusValue,
+                                detail: brokerageDetail,
+                                valueColor: brokerageViewModel.isConnected ? .clavixGood : .clavixInk3
+                            )
+                            Divider()
+                            SettingsValueRow(
+                                "Auto-sync",
+                                value: brokerageViewModel.autoSyncEnabled ? "On" : "Off",
+                                valueColor: brokerageViewModel.autoSyncEnabled ? .clavixGood : .clavixInk3
+                            )
+                        }
                     }
                     .buttonStyle(.plain)
+
+                    NavigationLink {
+                        ReferenceSettingsDetailView()
+                    } label: {
+                        SettingsSectionCard("REFERENCE") {
+                            SettingsValueRow("Methodology", value: "Open")
+                        }
+                    }
+                    .buttonStyle(.plain)
+
+                    SettingsSectionCard("ACCOUNT") {
+                        NavigationLink {
+                            ExportDataDetailView(viewModel: viewModel)
+                        } label: {
+                            SettingsActionRow("Export data")
+                        }
+                        .buttonStyle(.plain)
+
+                        Divider()
+
+                        NavigationLink {
+                            SupportLegalDetailView()
+                        } label: {
+                            SettingsActionRow("Support & legal")
+                        }
+                        .buttonStyle(.plain)
+
+                        Divider()
+
+                        NavigationLink {
+                            DeleteAccountDetailView(viewModel: viewModel)
+                                .environmentObject(authViewModel)
+                        } label: {
+                            SettingsActionRow("Delete account", foreground: .clavixBad)
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    versionFooter
                 }
-
-                versionFooter
+                .padding(.horizontal, ClavixLayout.pad)
+                .padding(.top, 8)
+                .padding(.bottom, ClavixLayout.bottomPad)
+            }
+            .background(Color.clavixPage.ignoresSafeArea())
+            .safeAreaInset(edge: .top, spacing: 0) {
+                ClavixStickyBar()
             }
             .toolbar(.hidden, for: .navigationBar)
             .task {

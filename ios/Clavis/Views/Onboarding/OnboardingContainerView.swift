@@ -89,13 +89,17 @@ private struct OnboardingWelcomeView: View {
         VStack(spacing: 28) {
             Spacer()
 
-            HStack(spacing: 8) {
-                Image(systemName: "waveform.path.ecg.rectangle")
-                    .font(.system(size: 18, weight: .regular))
-                Text("Clavix")
-                    .font(ClavisTypography.clavixSerif(19, weight: .semibold))
+            HStack(spacing: 10) {
+                Image("clavix_logo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 36, height: 36)
+                    .accessibilityHidden(true)
+                Text("CLAVIX")
+                    .font(ClavisTypography.clavixMono(21, weight: .bold))
+                    .tracking(1.5)
+                    .foregroundColor(.clavixInk)
             }
-            .foregroundColor(.clavixInk)
 
             ClavixEyebrow("Welcome to Clavix")
 
