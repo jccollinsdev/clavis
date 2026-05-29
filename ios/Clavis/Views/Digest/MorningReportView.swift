@@ -121,35 +121,39 @@ struct MorningReportView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            // Compact VQA-format ledger: ETF symbol | name + weight | day-change
             if !todaySectors.isEmpty {
-                let rows = Array(todaySectors.prefix(3))
                 ClavixCard(padding: 0) {
-                    VStack(spacing: 0) {
-                        ForEach(Array(rows.enumerated()), id: \.element.sector) { index, s in
-                            sectorLedgerRow(
-                                etf: s.etf,
+                    SectorHeatmapView(
+                        items: todaySectors.prefix(6).map { s in
+                            SectorHeatmapItem(
+                                id: s.sector,
+                                symbol: s.etf ?? "—",
                                 name: s.sector,
-                                weightPct: s.portfolioWeightPct,
+                                weight: s.portfolioWeightPct / 100.0,
                                 changePct: s.etfDayChangePct
                             )
-                            if index < rows.count - 1 {
-                                Rectangle().fill(Color.clavixRule).frame(height: 1)
-                            }
                         }
-                    }
+                    )
+                    .frame(height: SectorHeatmapView.height(for: todaySectors.count))
                 }
             } else if !sectorHeat.isEmpty {
                 // Fallback: compact display from sectorHeat when Today endpoint hasn't loaded
                 ClavixCard(padding: 0) {
                     VStack(spacing: 0) {
                         ForEach(Array(sectorHeat.prefix(3).enumerated()), id: \.element.id) { index, sector in
-                            sectorLedgerRow(
-                                etf: nil,
-                                name: sector.sector.humanizedTitleCasedDisplayText,
-                                weightPct: nil,
-                                changePct: nil
-                            )
+                            HStack(spacing: 0) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("—")
+                                        .font(ClavisTypography.clavixMono(12, weight: .bold))
+                                        .foregroundColor(.clavixInk)
+                                    Text(sector.sector.humanizedTitleCasedDisplayText)
+                                        .font(ClavisTypography.clavixCaption)
+                                        .foregroundColor(.clavixInk2)
+                                        .lineLimit(2)
+                                }
+                                Spacer()
+                            }
+                            .padding(12)
                             if index < min(sectorHeat.count, 3) - 1 {
                                 Rectangle().fill(Color.clavixRule).frame(height: 1)
                             }
@@ -164,41 +168,6 @@ struct MorningReportView: View {
                 }
             }
         }
-    }
-
-    private func sectorLedgerRow(etf: String?, name: String, weightPct: Double?, changePct: Double?) -> some View {
-        let changeText: String = {
-            guard let pct = changePct else { return "—" }
-            return String(format: "%@%.2f%%", pct >= 0 ? "+" : "", pct)
-        }()
-        let changeTone: Color = {
-            guard let pct = changePct else { return .clavixInk3 }
-            if pct > 0.05 { return .clavixGood }
-            if pct < -0.05 { return .clavixBad }
-            return .clavixInk3
-        }()
-        return HStack {
-            Text(etf ?? "—")
-                .font(ClavisTypography.clavixMono(12, weight: .bold))
-                .foregroundColor(.clavixInk)
-                .frame(width: 42, alignment: .leading)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(name)
-                    .font(ClavisTypography.clavixCaption)
-                    .foregroundColor(.clavixInk)
-                    .lineLimit(1)
-                if let w = weightPct {
-                    Text("weight \(Int(w.rounded()))%")
-                        .font(ClavisTypography.clavixMono(10, weight: .regular))
-                        .foregroundColor(.clavixInk3)
-                }
-            }
-            Spacer()
-            Text(changeText)
-                .font(ClavisTypography.clavixMono(12, weight: .semibold))
-                .foregroundColor(changeTone)
-        }
-        .padding(12)
     }
 
     private func positionsSection(_ digest: Digest) -> some View {
@@ -315,7 +284,7 @@ struct MorningReportView: View {
 
     private func whatToWatchSection(_ digest: Digest) -> some View {
         let items = digest.structuredSections?.whatToWatchToday?.catalysts ?? []
-        return ReportRomanSection("V", "What to track today", tag: "Calendar") {
+        return ReportRomanSection("V", "What to Watch", tag: "Catalysts") {
             if items.isEmpty {
                 ClavixCard {
                     Text("No scheduled events surfaced for your portfolio today.")
@@ -323,10 +292,14 @@ struct MorningReportView: View {
                         .foregroundColor(.clavixInk3)
                 }
             } else {
-                ClavixCard(padding: 0) {
-                    VStack(spacing: 0) {
+                ClavixCard {
+                    VStack(alignment: .leading, spacing: 10) {
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                            calendarLine(item)
+                            Text(cleanWatchText(item))
+                                .font(ClavisTypography.clavixCaption)
+                                .foregroundColor(.clavixInk2)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             if index < items.count - 1 {
                                 Rectangle().fill(Color.clavixRule).frame(height: 1)
                             }
@@ -335,6 +308,13 @@ struct MorningReportView: View {
                 }
             }
         }
+    }
+
+    private func cleanWatchText(_ item: DigestWhatMattersItem) -> String {
+        let raw = item.catalyst.sanitizedDisplayText
+        let (_, _, title) = parseCalendarLine(raw, tickers: item.impactedPositions)
+        let t = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        return t.isEmpty ? raw : t
     }
 
     private func methodologySection(_ digest: Digest) -> some View {
@@ -458,28 +438,6 @@ struct MorningReportView: View {
             return watchList
         }
         return structured?.alerts ?? []
-    }
-
-    private func calendarLine(_ item: DigestWhatMattersItem) -> some View {
-        let raw = item.catalyst.sanitizedDisplayText
-        let (time, type, title) = parseCalendarLine(raw, tickers: item.impactedPositions)
-        return HStack(spacing: 12) {
-            Text(time)
-                .font(ClavisTypography.clavixMono(12, weight: .semibold))
-                .foregroundColor(.clavixInk)
-                .frame(width: 46, alignment: .leading)
-            Text(type)
-                .font(ClavisTypography.clavixMono(9, weight: .bold))
-                .tracking(0.4)
-                .foregroundColor(.clavixInk3)
-                .frame(width: 50, alignment: .leading)
-            Text(title)
-                .font(ClavisTypography.clavixCaption)
-                .foregroundColor(.clavixInk2)
-                .lineLimit(2)
-            Spacer()
-        }
-        .padding(12)
     }
 
     private func parseCalendarLine(_ raw: String, tickers: [String]) -> (String, String, String) {

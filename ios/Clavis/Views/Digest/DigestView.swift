@@ -1,8 +1,6 @@
 import SwiftUI
 
 /// Today tab. Cream/paper VisualQA design ported to live data.
-/// Heavy editorial content lives in `MorningReportView`, presented from the
-/// Morning Report card.
 struct DigestView: View {
     @Binding var selectedTab: Int
     @StateObject var viewModel = DigestViewModel()
@@ -14,26 +12,7 @@ struct DigestView: View {
             content
                 .background(Color.clavixPage.ignoresSafeArea())
                 .safeAreaInset(edge: .top, spacing: 0) {
-                    ClavixLargeHeader(
-                        eyebrow: headerEyebrow,
-                        title: headerTitle,
-                        trailing: AnyView(
-                            HStack(spacing: 18) {
-                                if showHeaderActions {
-                                    Button(action: { selectedTab = 2 }) {
-                                        Image(systemName: "magnifyingglass")
-                                            .foregroundColor(.clavixInk)
-                                    }
-                                }
-                                if showHeaderActions {
-                                    Button(action: { selectedTab = 3 }) {
-                                        Image(systemName: "bell")
-                                            .foregroundColor(.clavixInk)
-                                    }
-                                }
-                            }
-                        )
-                    )
+                    todayStickyBar
                 }
                 .toolbar(.hidden, for: .navigationBar)
                 .task {
@@ -86,7 +65,7 @@ struct DigestView: View {
             ScrollView {
                 statePanel(
                     glyph: "briefcase",
-                    body: "Add positions to generate a Morning Report and portfolio risk grade.",
+                    body: "Add positions to generate a Today digest and portfolio risk grade.",
                     cta: "Add positions"
                 ) { selectedTab = 1 }
                 .padding(.horizontal, ClavixLayout.pad)
@@ -114,14 +93,10 @@ struct DigestView: View {
 
     private var portfolioHero: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text(headerDateText)
-                Spacer()
-                Text(freshnessLabel)
-            }
-            .font(ClavisTypography.clavixMono(10, weight: .regular))
-            .tracking(0.7)
-            .foregroundColor(.clavixInk3)
+            Text("Today's Digest")
+                .font(ClavisTypography.clavixSerif(34, weight: .medium))
+                .tracking(-0.6)
+                .foregroundColor(.clavixInk)
 
             HStack(alignment: .bottom, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
@@ -134,6 +109,10 @@ struct DigestView: View {
                         .foregroundColor(.clavixInk)
                         .lineLimit(1)
                         .minimumScaleFactor(0.76)
+                    Text(headerDateText)
+                        .font(ClavisTypography.clavixMono(10, weight: .regular))
+                        .tracking(0.7)
+                        .foregroundColor(.clavixInk3)
                     Text(portfolioDayChangeText)
                         .font(ClavisTypography.clavixMono(12, weight: .regular))
                         .foregroundColor(portfolioDayChangeColor)
@@ -149,6 +128,50 @@ struct DigestView: View {
         }
         .padding(.bottom, 14)
         .overlay(alignment: .bottom) { Rectangle().fill(Color.clavixRule).frame(height: 1) }
+    }
+
+    // MARK: - Five-axis snapshot
+
+    private var dimensionSnapshot: some View {
+        simpleSection(title: "Five-axis snapshot") {
+            HStack(spacing: 8) {
+                ForEach(dimensionTuples, id: \.0) { code, score in
+                    AxisSnapshotCard(code: code, score: score)
+                }
+            }
+        }
+    }
+
+    // MARK: - Sector exposure (1:1 VQA sector cell: symbol + name + change/weight)
+
+    private var sectorExposure: some View {
+        ClavixSection(eyebrow: "Portfolio sectors", title: "Sector exposure") {
+            if sectorRows.isEmpty {
+                ClavixCard {
+                    Text("Sector breakdown will appear once positions have analysis data.")
+                        .font(ClavisTypography.clavixCaption)
+                        .foregroundColor(.clavixInk3)
+                }
+            } else {
+                VStack(spacing: 0) {
+                    SectorHeatmapView(
+                        items: sectorRows.map {
+                            SectorHeatmapItem(
+                                id: $0.sector,
+                                symbol: $0.etfSymbol,
+                                name: $0.shortName,
+                                weight: $0.weight,
+                                changePct: $0.etfDayChangePct
+                            )
+                        }
+                    )
+                    .frame(height: SectorHeatmapView.height(for: sectorRows.count))
+                }
+                .background(Color.clavixPaper)
+                .overlay(RoundedRectangle(cornerRadius: 2, style: .continuous).stroke(Color.clavixRule, lineWidth: 1))
+                .clipShape(RoundedRectangle(cornerRadius: 2, style: .continuous))
+            }
+        }
     }
 
     // MARK: - Morning Report card
@@ -179,83 +202,13 @@ struct DigestView: View {
         .buttonStyle(.plain)
     }
 
-    // MARK: - Five-axis snapshot
-
-    private var dimensionSnapshot: some View {
-        ClavixSection(eyebrow: "Portfolio risk by dimension", title: "Five-axis snapshot") {
-            HStack(spacing: 1) {
-                ForEach(dimensionTuples, id: \.0) { code, score in
-                    VStack(spacing: 8) {
-                        Text(code)
-                            .font(ClavisTypography.clavixMono(10, weight: .bold))
-                            .foregroundColor(.clavixInk3)
-                        Text(score)
-                            .font(ClavisTypography.clavixMono(22, weight: .semibold))
-                            .foregroundColor(.clavixInk)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(Color.clavixPaper)
-                }
-            }
-            .overlay(Rectangle().stroke(Color.clavixRule, lineWidth: 1))
-        }
-    }
-
-    // MARK: - Sector exposure (1:1 VQA sector cell: symbol + name + change/weight)
-
-    private var sectorExposure: some View {
-        ClavixSection(eyebrow: "Portfolio sectors", title: "Sector exposure") {
-            if sectorRows.isEmpty {
-                ClavixCard {
-                    Text("Sector breakdown will appear once positions have analysis data.")
-                        .font(ClavisTypography.clavixCaption)
-                        .foregroundColor(.clavixInk3)
-                }
-            } else {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 1), count: 3), spacing: 1) {
-                    ForEach(sectorRows, id: \.sector) { row in
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(row.etfSymbol)
-                                .font(ClavisTypography.clavixMono(12, weight: .bold))
-                                .foregroundColor(.clavixInk)
-                            Text(row.shortName)
-                                .font(ClavisTypography.clavixCaption)
-                                .foregroundColor(.clavixInk2)
-                                .lineLimit(2)
-                            HStack {
-                                Text(row.changeText)
-                                    .font(ClavisTypography.clavixMono(12, weight: .semibold))
-                                    .foregroundColor(row.changeColor)
-                                Spacer()
-                                Text("w \(row.weightInt)%")
-                                    .font(ClavisTypography.clavixMono(10, weight: .regular))
-                                    .foregroundColor(.clavixInk3)
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(10)
-                        .background(Color.clavixPaper)
-                    }
-                }
-                .overlay(Rectangle().stroke(Color.clavixRule, lineWidth: 1))
-            }
-        }
-    }
-
     // MARK: - Attention (alerts preview)
 
     private var attention: some View {
-        ClavixSection(eyebrow: attentionEyebrow, title: "Attention") {
-            HStack {
-                Spacer()
-                Button("See all →") { selectedTab = 3 }
-                    .font(ClavisTypography.clavixCaption)
-                    .foregroundColor(.clavixAccent)
-            }
-            .offset(y: -48)
-            .padding(.bottom, -38)
-
+        simpleSection(title: "Key Alerts", trailing: AnyView(Button("See all →") { selectedTab = 3 }
+            .font(ClavisTypography.clavixCaption)
+            .foregroundColor(.clavixAccent)
+        )) {
             if viewModel.alerts.isEmpty {
                 ClavixCard {
                     Text("All quiet.")
@@ -351,19 +304,13 @@ struct DigestView: View {
         return nil
     }
 
-    // MARK: - Top movers
+    // MARK: - Your Positions
 
     private var bookPreview: some View {
-        ClavixSection(eyebrow: bookEyebrow, title: "Your book") {
-            HStack {
-                Spacer()
-                Button("Holdings →") { selectedTab = 1 }
-                    .font(ClavisTypography.clavixCaption)
-                    .foregroundColor(.clavixAccent)
-            }
-            .offset(y: -48)
-            .padding(.bottom, -38)
-
+        simpleSection(title: "Your Positions", trailing: AnyView(Button("Holdings →") { selectedTab = 1 }
+            .font(ClavisTypography.clavixCaption)
+            .foregroundColor(.clavixAccent)
+        )) {
             ClavixCard(padding: 0) {
                 VStack(spacing: 0) {
                     HStack {
@@ -399,18 +346,12 @@ struct DigestView: View {
         }
     }
 
-    /// VQABookRow 1:1 — ticker + 2-line truncated note + grade + delta + today%.
+    /// VQABookRow 1:1 — ticker + grade + delta + today%.
     private func bookRow(_ position: Position) -> some View {
         HStack(alignment: .center, spacing: 10) {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(position.ticker)
-                    .font(ClavisTypography.clavixMono(13, weight: .bold))
-                    .foregroundColor(.clavixInk)
-                Text(position.sharedAnalysis?.displaySummary ?? "No driver note yet.")
-                    .font(ClavisTypography.clavixCaption)
-                    .foregroundColor(.clavixInk3)
-                    .lineLimit(2)
-            }
+            Text(position.ticker)
+                .font(ClavisTypography.clavixMono(13, weight: .bold))
+                .foregroundColor(.clavixInk)
             Spacer()
             ClavixGradeBadge(position.resolvedRiskGrade ?? "—", size: 24)
             Text(deltaText(for: position.scoreDelta))
@@ -454,97 +395,55 @@ struct DigestView: View {
     // MARK: - Calendar
 
     private var calendar: some View {
-        ClavixSection(eyebrow: "Today", title: "Calendar") {
+        simpleSection(title: "What to Watch") {
             let todayItems = viewModel.today?.calendar ?? []
             let items = viewModel.todayDigest?.structuredSections?.whatToWatchToday?.catalysts ?? []
-            if items.isEmpty {
-                if todayItems.isEmpty {
-                    ClavixCard {
-                        Text("No scheduled events surfaced for your portfolio today.")
-                            .font(ClavisTypography.clavixCaption)
-                            .foregroundColor(.clavixInk3)
-                    }
-                } else {
-                    ClavixCard(padding: 0) {
-                        VStack(spacing: 0) {
-                            ForEach(Array(todayItems.enumerated()), id: \.element.id) { index, item in
-                                calendarLine(item)
-                                if index < todayItems.count - 1 {
-                                    Rectangle().fill(Color.clavixRule).frame(height: 1)
-                                }
-                            }
-                        }
-                    }
-                }
-            } else if todayItems.isEmpty {
-                ClavixCard(padding: 0) {
-                    VStack(spacing: 0) {
+            if !items.isEmpty {
+                ClavixCard {
+                    VStack(alignment: .leading, spacing: 10) {
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                            calendarLine(item)
+                            Text(whatToWatchText(for: item))
+                                .font(ClavisTypography.clavixCaption)
+                                .foregroundColor(.clavixInk2)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             if index < items.count - 1 {
                                 Rectangle().fill(Color.clavixRule).frame(height: 1)
                             }
                         }
                     }
                 }
-            } else {
-                ClavixCard(padding: 0) {
-                    VStack(spacing: 0) {
+            } else if !todayItems.isEmpty {
+                ClavixCard {
+                    VStack(alignment: .leading, spacing: 10) {
                         ForEach(Array(todayItems.enumerated()), id: \.element.id) { index, item in
-                            calendarLine(item)
+                            Text(item.title?.sanitizedDisplayText ?? "Scheduled event")
+                                .font(ClavisTypography.clavixCaption)
+                                .foregroundColor(.clavixInk2)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             if index < todayItems.count - 1 {
                                 Rectangle().fill(Color.clavixRule).frame(height: 1)
                             }
                         }
                     }
                 }
+            } else {
+                ClavixCard {
+                    Text("No scheduled events surfaced for your portfolio today.")
+                        .font(ClavisTypography.clavixCaption)
+                        .foregroundColor(.clavixInk3)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
     }
 
-    private func calendarLine(_ item: TodayResponse.CalendarItem) -> some View {
-        HStack(spacing: 12) {
-            Text((item.time?.isEmpty == false ? item.time : "—") ?? "—")
-                .font(ClavisTypography.clavixMono(12, weight: .semibold))
-                .foregroundColor(.clavixInk)
-                .frame(width: 46, alignment: .leading)
-            Text((item.type?.isEmpty == false ? item.type : "DATA") ?? "DATA")
-                .font(ClavisTypography.clavixMono(9, weight: .bold))
-                .tracking(0.4)
-                .foregroundColor(.clavixInk3)
-                .frame(width: 50, alignment: .leading)
-            Text(item.title?.sanitizedDisplayText ?? "Scheduled event")
-                .font(ClavisTypography.clavixCaption)
-                .foregroundColor(.clavixInk2)
-                .lineLimit(2)
-            Spacer()
-        }
-        .padding(12)
-    }
-
-    /// VQACalendarLine 1:1 — `08:30 | DATA | title`. We extract the leading
-    /// time + tag from the catalyst string when present; otherwise leave them
-    /// blank rather than fabricate.
-    private func calendarLine(_ item: DigestWhatMattersItem) -> some View {
+    private func whatToWatchText(for item: DigestWhatMattersItem) -> String {
         let raw = item.catalyst.sanitizedDisplayText
-        let (time, type, title) = parseCalendarLine(raw, tickers: item.impactedPositions)
-        return HStack(spacing: 12) {
-            Text(time)
-                .font(ClavisTypography.clavixMono(12, weight: .semibold))
-                .foregroundColor(.clavixInk)
-                .frame(width: 46, alignment: .leading)
-            Text(type)
-                .font(ClavisTypography.clavixMono(9, weight: .bold))
-                .tracking(0.4)
-                .foregroundColor(.clavixInk3)
-                .frame(width: 50, alignment: .leading)
-            Text(title)
-                .font(ClavisTypography.clavixCaption)
-                .foregroundColor(.clavixInk2)
-                .lineLimit(2)
-            Spacer()
-        }
-        .padding(12)
+        let (_, _, title) = parseCalendarLine(raw, tickers: item.impactedPositions)
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? raw : trimmed
     }
 
     /// Parse "HH:MM TYPE rest…" out of a digest catalyst string. When the
@@ -592,34 +491,6 @@ struct DigestView: View {
         )
     }
 
-    private var headerEyebrow: String {
-        if viewModel.errorMessage != nil, viewModel.todayDigest == nil {
-            return "Connection"
-        }
-        if !viewModel.isLoading && !viewModel.hasHoldings {
-            return "Today"
-        }
-        return "Morning Report"
-    }
-
-    private var headerTitle: String {
-        if viewModel.errorMessage != nil, viewModel.todayDigest == nil {
-            return "Could not load Today"
-        }
-        if !viewModel.isLoading && !viewModel.hasHoldings {
-            return "No positions yet"
-        }
-        return "Today"
-    }
-
-    private var showHeaderActions: Bool {
-        viewModel.errorMessage == nil && viewModel.hasHoldings
-    }
-
-    private func digestErrorBody(_ errorMessage: String) -> String {
-        return "Clavix could not refresh this view. Your last saved portfolio is unchanged."
-    }
-
     // MARK: - Computed values
 
     private var headerDateText: String {
@@ -630,19 +501,6 @@ struct DigestView: View {
         let time = now.formatted(.dateTime.hour(.defaultDigits(amPM: .omitted)).minute())
         let tz = TimeZone.current.abbreviation() ?? ""
         return "\(weekday) · \(day) · \(time) \(tz)"
-    }
-
-    private var freshnessLabel: String {
-        if let age = viewModel.today?.freshness?.ageSeconds {
-            if age < 60 * 60 { return "Updated" }
-            if age < 60 * 60 * 24 { return "Today" }
-            return "Stale"
-        }
-        guard let digest = viewModel.todayDigest else { return "Updating" }
-        let interval = Date().timeIntervalSince(digest.generatedAt)
-        if interval < 60 * 60 { return "Updated" }
-        if interval < 60 * 60 * 24 { return "Today" }
-        return "Stale"
     }
 
     private var portfolioValueText: String {
@@ -752,10 +610,10 @@ struct DigestView: View {
     /// Portfolio per-dimension snapshot. Each cell is the value-weighted average
     /// of the dimension across held tickers; "—" when no ticker exposes that
     /// dimension yet (CLAVIX_TRUTH §6 limited-data rule).
-    private var dimensionTuples: [(String, String)] {
+    private var dimensionTuples: [(String, Int?)] {
         if let dimensions = viewModel.today?.dimensions, !dimensions.isEmpty {
             return dimensions.map { item in
-                (item.code, item.score.map { "\(Int($0.rounded()))" } ?? "—")
+                (item.code, item.score.map { Int($0.rounded()) })
             }
         }
         let entries: [(String, (SharedRiskDimensions) -> Double?)] = [
@@ -777,9 +635,9 @@ struct DigestView: View {
                 denom += value
             }
             if denom == 0 {
-                return (label, "—")
+                return (label, nil)
             }
-            return (label, "\(Int((num / denom).rounded()))")
+            return (label, Int((num / denom).rounded()))
         }
     }
 
@@ -788,7 +646,6 @@ struct DigestView: View {
         let weight: Double
         let etf: String?
         let etfDayChangePct: Double?
-        var weightInt: Int { Int((weight * 100).rounded()) }
 
         private var normalizedSector: String {
             switch sector.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
@@ -840,12 +697,6 @@ struct DigestView: View {
             guard let pct = etfDayChangePct else { return "—" }
             return String(format: "%@%.1f%%", pct >= 0 ? "+" : "", pct)
         }
-        var changeColor: Color {
-            guard let pct = etfDayChangePct else { return .clavixInk3 }
-            if pct > 0.05 { return .clavixGood }
-            if pct < -0.05 { return .clavixBad }
-            return .clavixInk3
-        }
     }
 
     private var sectorRows: [SectorRow] {
@@ -874,15 +725,60 @@ struct DigestView: View {
             .map { $0 }
     }
 
-    private var attentionEyebrow: String {
-        let n = viewModel.alerts.count
-        if n == 0 { return "No new alerts" }
-        return "\(n) alert\(n == 1 ? "" : "s")"
+    private var todayStickyBar: some View {
+        ZStack {
+            HStack(spacing: 12) {
+                Image("clavix_logo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 36, height: 36)
+                    .accessibilityHidden(true)
+                Spacer(minLength: 8)
+                HStack(spacing: 18) {
+                    Button(action: { selectedTab = 2 }) {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.clavixInk)
+                    }
+                    Button(action: { selectedTab = 3 }) {
+                        Image(systemName: "bell")
+                            .foregroundColor(.clavixInk)
+                    }
+                }
+            }
+            Text("CLAVIX")
+                .font(ClavisTypography.clavixMono(21, weight: .bold))
+                .tracking(1.5)
+                .foregroundColor(.clavixInk)
+        }
+        .padding(.horizontal, ClavixLayout.pad)
+        .padding(.vertical, 10)
+        .background(Color.clavixPage.ignoresSafeArea(edges: .top))
+        .overlay(alignment: .bottom) { Rectangle().fill(Color.clavixRule).frame(height: 1) }
     }
 
-    private var bookEyebrow: String {
-        let n = viewModel.holdings.count
-        return "Top movers · \(n) position\(n == 1 ? "" : "s")"
+    private func simpleSection<Content: View>(
+        title: String,
+        trailing: AnyView? = nil,
+        @ViewBuilder content: @escaping () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                Text(title)
+                    .font(ClavisTypography.clavixSerif(20, weight: .medium))
+                    .tracking(-0.3)
+                    .foregroundColor(.clavixInk)
+                Spacer()
+                if let trailing {
+                    trailing
+                }
+            }
+            content()
+        }
+        .padding(.top, 6)
+    }
+
+    private func digestErrorBody(_ errorMessage: String) -> String {
+        "Clavix could not refresh this view. Your last saved portfolio is unchanged."
     }
 
     private var topMovers: [Position] {
@@ -908,4 +804,97 @@ struct DigestView: View {
         case .ratingReady, .digestReady:return "Update"
         }
     }
+}
+
+private struct AxisSnapshotCard: View {
+    let code: String
+    let score: Int?
+
+    private var tone: Color {
+        axisTone(for: score)
+    }
+
+    private var scoreText: String {
+        score.map(String.init) ?? "—"
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(code)
+                .font(ClavisTypography.clavixMono(10, weight: .bold))
+                .tracking(0.5)
+                .foregroundColor(.clavixInk3)
+            Text(scoreText)
+                .font(ClavisTypography.clavixMono(22, weight: .semibold))
+                .foregroundColor(score == nil ? .clavixInk3 : tone)
+            AxisScorePill(score: score, tone: tone)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(10)
+        .background(score == nil ? Color.clavixPaper : tone.opacity(0.13))
+        .overlay(Rectangle().stroke(score == nil ? Color.clavixRule : tone.opacity(0.42), lineWidth: 1))
+    }
+}
+
+    private struct AxisScorePill: View {
+    let score: Int?
+    let tone: Color
+
+    private var fillCount: Int {
+        guard let score else { return 0 }
+        return min(max(score, 0), 100)
+    }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            segmentView(index: 0)
+            separator
+            segmentView(index: 1)
+            separator
+            segmentView(index: 2)
+            separator
+            segmentView(index: 3)
+            separator
+            segmentView(index: 4)
+        }
+        .padding(2)
+        .background(Color.clavixPaper)
+        .clipShape(Capsule())
+        .overlay(Capsule().stroke(score == nil ? Color.clavixRule : tone.opacity(0.40), lineWidth: 1))
+    }
+
+    private func segmentView(index: Int) -> some View {
+        let lower = index * 20
+        let upper = lower + 20
+        let segmentFill: CGFloat
+        if fillCount <= lower {
+            segmentFill = 0
+        } else if fillCount >= upper {
+            segmentFill = 1
+        } else {
+            segmentFill = CGFloat(fillCount - lower) / 20.0
+        }
+
+        return GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Rectangle().fill(tone.opacity(score == nil ? 0.08 : 0.15))
+                Rectangle()
+                    .fill(tone.opacity(0.90))
+                    .frame(width: geo.size.width * segmentFill)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 14)
+    }
+
+    private var separator: some View {
+        Rectangle()
+            .fill(Color.clavixPaper)
+            .frame(width: 2, height: 14)
+    }
+}
+
+private func axisTone(for score: Int?) -> Color {
+    guard let score else { return .clavixInk3 }
+    return score >= 50 ? .clavixGood : .clavixBad
 }
