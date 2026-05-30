@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -135,20 +136,12 @@ def _factor_exposures(
     return {key: value for key, value in mapped.items() if value is not None}
 
 
-@router.get("/{ticker}/methodology")
-async def get_ticker_methodology(
-    ticker: str,
-    user_id: str = Depends(get_user_id),
-):
-    """Return cached methodology data for a ticker.
+def _build_methodology_response(supabase, upper: str, user_id: str) -> dict[str, Any]:
+    """All synchronous DB work for the methodology endpoint.
 
-    Returns only what is already stored in ticker_risk_snapshots and
-    shared_ticker_events — no live Polygon API calls are made. If a
-    dimension's cached inputs are absent the field is returned as null
-    rather than blocking on a slow computation.
+    Called via asyncio.to_thread so it does not block the event loop.
     """
-    supabase = get_supabase()
-    upper = ticker.upper()
+    import json
 
     metadata_result = (
         supabase.table("ticker_metadata")
@@ -168,7 +161,6 @@ async def get_ticker_methodology(
 
     factor_breakdown = snapshot.get("factor_breakdown") or {}
     if isinstance(factor_breakdown, str):
-        import json
         try:
             factor_breakdown = json.loads(factor_breakdown)
         except Exception:
@@ -176,7 +168,6 @@ async def get_ticker_methodology(
 
     dimension_inputs = snapshot.get("dimension_inputs") or {}
     if isinstance(dimension_inputs, str):
-        import json
         try:
             dimension_inputs = json.loads(dimension_inputs)
         except Exception:
@@ -204,7 +195,6 @@ async def get_ticker_methodology(
         if (pub := _parse_iso_datetime(a.get("published_at"))) and now - pub <= timedelta(days=14)
     ]
 
-    # Build display article list — enriched articles first, fall back to all 7-day articles.
     enriched_articles = [
         a for a in seven_day_articles
         if a.get("sentiment_score") is not None
@@ -215,7 +205,6 @@ async def get_ticker_methodology(
     ]
     display_articles = enriched_articles or seven_day_articles
 
-    # Pull cached dimension inputs — no live Polygon calls.
     news_inputs = dimension_inputs.get("news_sentiment") or {}
     macro_inputs = dimension_inputs.get("macro_exposure") or {}
     sector_inputs = dimension_inputs.get("sector_exposure") or {}
@@ -244,8 +233,6 @@ async def get_ticker_methodology(
         if iv_rank is not None:
             iv_source = "estimated"
 
-    # Compute weighted news score on-the-fly from available articles when
-    # the cached value is absent — this is a cheap in-memory calculation.
     if news_inputs.get("weighted_score") is None:
         weighted_total = 0.0
         total_weight = 0.0
@@ -261,7 +248,6 @@ async def get_ticker_methodology(
         if total_weight > 0:
             news_inputs["weighted_score"] = round(weighted_total / total_weight, 1)
 
-    # Sector fallback: use cached metadata when dimension_inputs lacks sector data.
     if not sector_inputs.get("sector_etf") and metadata.get("sector"):
         sector_inputs = {
             "sector": metadata.get("sector"),
@@ -415,3 +401,20 @@ async def get_ticker_methodology(
             "methodology_version": snapshot.get("methodology_version"),
         },
     }
+
+
+@router.get("/{ticker}/methodology")
+async def get_ticker_methodology(
+    ticker: str,
+    user_id: str = Depends(get_user_id),
+):
+    """Return cached methodology data for a ticker.
+
+    Returns only what is already stored in ticker_risk_snapshots and
+    shared_ticker_events — no live Polygon API calls are made. If a
+    dimension's cached inputs are absent the field is returned as null
+    rather than blocking on a slow computation.
+    """
+    supabase = get_supabase()
+    upper = ticker.upper()
+    return await asyncio.to_thread(_build_methodology_response, supabase, upper, user_id)
