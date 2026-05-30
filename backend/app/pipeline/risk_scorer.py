@@ -595,6 +595,27 @@ def _macro_rationale(metadata: dict, score: int) -> str:
 
 
 def _score_sector_exposure(metadata: dict) -> int:
+    # Prefer real computed inputs (sector_beta, momentum, breadth from Polygon bars)
+    sector_inputs = metadata.get("sector_inputs") or {}
+    sector_beta = _safe_float(sector_inputs.get("sector_beta"))
+    sector_momentum = _safe_float(sector_inputs.get("sector_momentum_30d"))
+    sector_breadth = _safe_float(sector_inputs.get("sector_breadth"))
+
+    if sector_beta is not None or sector_momentum is not None:
+        # Real data path: use measured sector dynamics
+        score = 65.0
+        # High sector beta → more exposure to sector moves → lower score (more risk)
+        if sector_beta is not None:
+            score -= (sector_beta - 1.0) * 8.0
+        # Positive momentum → sector supporting → slightly better
+        if sector_momentum is not None:
+            score += max(-10.0, min(10.0, sector_momentum * 80.0))
+        # Broader breadth → more supportive → slightly better
+        if sector_breadth is not None:
+            score += (sector_breadth - 0.5) * 10.0
+        return clamp_score(round(score), 0)
+
+    # Fallback: heuristic based on sector class + market cap (unchanged legacy path)
     sector = str(metadata.get("sector") or "").strip().lower()
     market_cap = _safe_float(metadata.get("market_cap"))
 
@@ -624,6 +645,31 @@ def _sector_rationale(metadata: dict, score: int) -> str:
 
 
 def _score_volatility(metadata: dict, worsening_major: int, improving_major: int) -> int:
+    # Prefer real computed inputs (realized_vol, beta_to_spy, drawdown from Polygon bars)
+    vol_inputs = metadata.get("volatility_inputs") or {}
+    realized_vol_30d = _safe_float(vol_inputs.get("realized_vol_30d"))
+    beta_to_spy = _safe_float(vol_inputs.get("beta_to_spy"))
+    max_drawdown = _safe_float(vol_inputs.get("max_drawdown_252d"))
+
+    if realized_vol_30d is not None or beta_to_spy is not None:
+        # Real data path
+        # Base starts at 78; realized vol and beta pull it down
+        # Calibration: SPY rv30~0.12 → score≈84; TSLA rv30~0.80 → score≈42
+        score = 78.0
+        if realized_vol_30d is not None:
+            # 0.20 (20% ann vol) = neutral; each 1% above costs ~0.6 pts
+            score -= (realized_vol_30d - 0.20) * 60.0
+        if beta_to_spy is not None:
+            score -= min(18.0, max(0.0, (abs(beta_to_spy) - 1.0) * 10.0))
+        if max_drawdown is not None:
+            # max_drawdown is negative (e.g. -0.40 = 40% peak-to-trough)
+            # Larger drawdown = lower score; each 10% drawdown costs 3 pts
+            score += max_drawdown * 30.0
+        score -= worsening_major * 5
+        score += improving_major * 3
+        return clamp_score(round(score), 0)
+
+    # Fallback: proxy-based (unchanged legacy path)
     volatility_proxy = _safe_float(metadata.get("volatility_proxy"), 0.0)
     beta = abs(_safe_float(metadata.get("beta"), 0.0))
 

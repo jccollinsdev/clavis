@@ -361,6 +361,7 @@ def _build_sector_exposure_inputs(
             "sector_momentum_30d": None,
             "sector_breadth": None,
             "narrative": None,
+            "limited_data": True,
         }
 
     sector_bars = fetch_aggs(sector_etf, days=90)
@@ -397,6 +398,8 @@ def _build_sector_exposure_inputs(
         "sector_momentum_30d": round(sector_momentum, 4) if sector_momentum is not None else None,
         "sector_breadth": round(sector_breadth, 4) if sector_breadth is not None else None,
         "narrative": ". ".join(narrative_parts) + "." if narrative_parts else None,
+        # Mark limited when sector_beta is absent (bars were unavailable)
+        "limited_data": sector_beta is None,
     }
 
 
@@ -446,6 +449,8 @@ def _build_volatility_inputs(
         "iv_rank": iv_rank,
         "iv_source": iv_source,
         "as_of_date": as_of_date,
+        # Mark limited when both realized vol and SPY beta are absent (bars unavailable)
+        "limited_data": realized_vol_30d is None and beta_to_spy is None,
     }
 
 
@@ -3856,6 +3861,9 @@ def refresh_ticker_snapshot(
             "factor_breakdown": {
                 **macro_audit,
             },
+            # Pass real computed inputs so the scorer can use them instead of heuristics
+            "sector_inputs": sector_inputs,
+            "volatility_inputs": volatility_inputs,
         }
         score = score_position_structural(
             {},

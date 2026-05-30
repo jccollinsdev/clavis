@@ -8,11 +8,11 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 FACTOR_TICKERS = {
-    "tnx": "I:TNX",
-    "dxy": "UUP",
-    "wti": "USO",
-    "vix": "I:VIX",
-    "spy": "SPY",
+    "tnx": "TLT",    # iShares 20+ Year Treasury Bond ETF (proxy for rate sensitivity; inversely correlated with 10Y yield)
+    "dxy": "UUP",    # Invesco DB USD Index Bullish ETF (DXY proxy)
+    "wti": "USO",    # United States Oil Fund ETF (WTI proxy)
+    "vix": "VIXY",   # ProShares VIX Short-Term Futures ETF (VIX proxy)
+    "spy": "SPY",    # S&P 500 ETF (market beta)
 }
 
 _REQUIRED_TRADING_DAYS = 60
@@ -196,19 +196,13 @@ def run_macro_regression(
     for factor_key, factor_ticker in FACTOR_TICKERS.items():
         factor_bars = factor_bars_map.get(factor_key, [])
         factor_prices = _parse_polygon_close(factor_bars)
-        if factor_key in ("tnx", "dxy", "vix"):
-            factor_changes = _price_to_change([p for _, p in factor_prices[-_TRAILING_DAYS:]])
-            factor_returns[factor_key] = [
-                (factor_prices[i + 1][0], factor_changes[i])
-                for i in range(min(len(factor_changes), len(ticker_returns)))
-            ]
-        else:
-            factor_price_list = [p for _, p in factor_prices[-_TRAILING_DAYS:]]
-            factor_ret = _daily_returns(factor_price_list)
-            factor_returns[factor_key] = [
-                (factor_prices[i + 1][0], factor_ret[i])
-                for i in range(min(len(factor_ret), len(ticker_returns)))
-            ]
+        # All factors are ETF proxies — use daily % returns for consistent OLS scaling
+        factor_price_list = [p for _, p in factor_prices[-_TRAILING_DAYS:]]
+        factor_ret = _daily_returns(factor_price_list)
+        factor_returns[factor_key] = [
+            (factor_prices[i + 1][0], factor_ret[i])
+            for i in range(min(len(factor_ret), len(ticker_returns)))
+        ]
 
     n = min(len(ticker_returns), *(len(fr) for fr in factor_returns.values()))
     if n < _REQUIRED_TRADING_DAYS:

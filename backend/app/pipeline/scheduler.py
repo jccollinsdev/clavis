@@ -5599,14 +5599,14 @@ def start_scheduler():
     _schedule_active_ticker_news_refresh()
     _schedule_bulk_sentiment_enrichment()
 
+    # Always reconcile per-user digest + structural-refresh jobs regardless of tier.
+    # The intraday tier suppresses heavy data jobs (above) but per-user digest
+    # CronTriggers are lightweight delivery jobs that must run in both tiers.
     current_jobs = [
         job.id for job in scheduler.get_jobs() if job.id.startswith(JOB_PREFIX)
     ]
     for job_id in current_jobs:
         scheduler.remove_job(job_id)
-
-    if tier == "intraday":
-        return
 
     users = (
         supabase.table("user_preferences")
@@ -5652,3 +5652,9 @@ def start_scheduler():
             last_run_status="orphaned",
             last_error="Scheduler entry no longer has matching user_preferences row.",
         )
+
+    # Intraday tier only runs news/enrichment + per-user digest jobs (registered above).
+    # Heavy daily data jobs (sp500_backfill, composite_recompute, etc.) are handled
+    # by external cron and are not registered here for intraday.
+    if tier == "intraday":
+        return

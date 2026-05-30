@@ -30,6 +30,18 @@ class _SyntheticResponse:
         return {}
 
 
+def _is_index_ticker_request(url: str) -> bool:
+    """Return True if this Polygon URL targets an index ticker (e.g. I:TNX, I:VIX).
+
+    Index tickers appear as /aggs/ticker/I:XXX/ or snapshot/.../I:XXX in the URL.
+    These may not be entitled on a basic Polygon plan; their 403 should not
+    poison the global auth gate and block all equity fetches.
+    """
+    # URL-encode colon or literal colon in path segments
+    upper = url.upper()
+    return "/I:" in upper or "%2FI%3A" in upper
+
+
 def _block_polygon_auth() -> None:
     global _polygon_auth_failed_until
     with _polygon_auth_state_lock:
@@ -76,11 +88,15 @@ def _retry_request(fn, *args, **kwargs):
                     )
                     continue
                 if result.status_code == 401 or result.status_code == 403:
-                    failed_url = kwargs.get("url") or (args[0] if args else "unknown")
+                    failed_url = str(kwargs.get("url") or (args[0] if args else "unknown"))
                     print(
                         f"Polygon auth error {result.status_code} for {failed_url}"
                     )
-                    _block_polygon_auth()
+                    # Index tickers (I:TNX, I:VIX, etc.) may not be entitled on this
+                    # Polygon plan. Do NOT poison the global auth gate for them — only
+                    # a true equity-ticker 403 means the API key itself is invalid.
+                    if not _is_index_ticker_request(failed_url):
+                        _block_polygon_auth()
                     return result
             return result
         except Exception as e:

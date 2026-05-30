@@ -58,18 +58,6 @@
         <true/>
         <key>NSAllowsArbitraryLoads</key>
         <false/>
-        <key>NSExceptionDomains</key>
-        <dict>
-            <key>trycloudflare.com</key>
-            <dict>
-                <key>NSExceptionAllowsInsecureHTTPLoads</key>
-                <true/>
-                <key>NSExceptionRequiresForwardSecrecy</key>
-                <false/>
-                <key>NSIncludesSubdomains</key>
-                <true/>
-            </dict>
-        </dict>
     </dict>
     <key>UIBackgroundModes</key>
     <array>
