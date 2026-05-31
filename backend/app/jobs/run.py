@@ -147,6 +147,11 @@ JOB_REGISTRY: dict[str, JobSpec] = {
         "weekly_fundamentals_sweep", "weekly", _fundamentals_sweep
     ),
     "tldr_backfill": JobSpec("tldr_backfill", "manual", _tldr_backfill),
+    # Volatility is computed per-ticker as part of composite_recompute.
+    # weekly_volatility_recompute aliases it so the Saturday cron entry works.
+    "weekly_volatility_recompute": JobSpec(
+        "weekly_volatility_recompute", "weekly", _composite_recompute
+    ),
 }
 
 
