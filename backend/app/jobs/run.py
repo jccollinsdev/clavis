@@ -97,6 +97,18 @@ def _backfill_14d() -> dict:
     return run_from_env()
 
 
+def _fundamentals_sweep() -> dict:
+    from app.jobs.fundamentals_sweep import run_from_env
+
+    return run_from_env()
+
+
+def _tldr_backfill() -> dict:
+    from app.jobs.tldr_backfill import run_from_env
+
+    return run_from_env()
+
+
 JOB_REGISTRY: dict[str, JobSpec] = {
     "daily_macro_snapshot": JobSpec("daily_macro_snapshot", "daily", _macro_snapshot),
     "daily_sector_snapshot": JobSpec("daily_sector_snapshot", "daily", _sector_snapshot),
@@ -131,6 +143,10 @@ JOB_REGISTRY: dict[str, JobSpec] = {
         "weekly_universe_audit", "weekly", _universe_audit
     ),
     "backfill_14d": JobSpec("backfill_14d", "manual", _backfill_14d),
+    "weekly_fundamentals_sweep": JobSpec(
+        "weekly_fundamentals_sweep", "weekly", _fundamentals_sweep
+    ),
+    "tldr_backfill": JobSpec("tldr_backfill", "manual", _tldr_backfill),
 }
 
 
