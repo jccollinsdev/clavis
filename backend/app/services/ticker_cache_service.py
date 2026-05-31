@@ -297,6 +297,74 @@ def _current_factor_levels(factor_bars_map: dict[str, list[dict[str, Any]]]) -> 
     }
 
 
+def _is_article_relevant_to_ticker(row: dict, ticker: str, company_name: str | None) -> bool:
+    """Return True if this article is likely primarily about `ticker`.
+
+    Fast heuristic applied to stored articles before scoring. This is the second
+    layer of defence — the candidate_ranker prevents future ingestion of off-ticker
+    articles; this function filters existing stored ones at scoring time.
+
+    Logic (in priority order):
+    1. If the TLDR/summary explicitly says "no information about <ticker>" → False.
+    2. If ticker symbol (≥3 chars) appears in the title → True (strong signal).
+    3. If company name (first word, ≥4 chars) appears in title → True.
+    4. Short tickers (<3 chars) → pass through without filtering (too ambiguous).
+    5. No match in title → False (exclude from scoring).
+    """
+    if not ticker:
+        return True
+    if len(ticker) < 3:
+        return True  # short tickers: ambiguous, keep
+
+    title = str(row.get("title") or row.get("headline") or "").strip()
+    tldr = str(row.get("tldr") or "").lower()
+
+    # Hard exclude: TLDR explicitly says the article is not about this ticker
+    _no_info_phrases = (
+        "does not contain any information about",
+        "no content about",
+        "no information about",
+        "insufficient article content",
+        "the provided text does not contain",
+    )
+    if tldr and any(p in tldr for p in _no_info_phrases):
+        return False
+
+    title_upper = title.upper()
+    if ticker.upper() in title_upper:
+        return True
+
+    # Company name first-word check (e.g. "Apple" for AAPL)
+    if company_name:
+        first_word = company_name.strip().split()[0].lower() if company_name.strip() else ""
+        if len(first_word) >= 4 and first_word in title.lower():
+            return True
+
+    return False  # ticker absent from title → likely off-ticker
+
+
+def _filter_news_rows_by_relevance(
+    news_rows: list[dict[str, Any]],
+    ticker: str,
+    company_name: str | None = None,
+) -> list[dict[str, Any]]:
+    """Remove off-ticker articles from the scoring window.
+
+    Preserves paywalled/headline-only articles (we can't check their body) and
+    always keeps at least the first article to avoid an empty set on thin tickers.
+    """
+    if not news_rows:
+        return news_rows
+    relevant = [
+        row for row in news_rows
+        if row.get("paywalled") or row.get("headline_only")  # can't confirm, keep
+        or _is_article_relevant_to_ticker(row, ticker, company_name)
+    ]
+    # If every article was filtered (e.g. all paywalled+off-topic), return empty so
+    # limited_data kicks in correctly rather than silently surfacing garbage.
+    return relevant
+
+
 def _normalize_growth_trend_label(value: Any) -> str | None:
     numeric = _coerce_float(value)
     if numeric is None:
@@ -3890,7 +3958,16 @@ def refresh_ticker_snapshot(
             .data
             or []
         )
-        news_rows = _filter_news_rows_through_date(news_rows, target_date=target_date)[:10]
+        news_rows = _filter_news_rows_through_date(news_rows, target_date=target_date)[:50]
+        # CLAVIX TRUTH §10: "drop articles with low ticker relevance — not a passing mention"
+        # Filter off-ticker articles BEFORE scoring. This handles both:
+        # (a) existing stored off-ticker articles (scoring-time guard)
+        # (b) future leakage the candidate_ranker misses (paywalled titles etc.)
+        news_rows = _filter_news_rows_by_relevance(
+            news_rows,
+            ticker=ticker,
+            company_name=str(metadata.get("company_name") or ""),
+        )[:10]
         recent_events = _build_event_analyses_from_news_rows(
             news_rows, ticker=ticker, position_id=f"virtual:{ticker}"
         )
