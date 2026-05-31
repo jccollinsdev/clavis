@@ -10,7 +10,6 @@ Auto: added to cron monthly_tldr_backfill on the 1st of each month.
 """
 from __future__ import annotations
 
-import asyncio
 import logging
 from datetime import datetime, timedelta
 from typing import Any
@@ -23,7 +22,7 @@ MIN_BODY_LENGTH = 50
 BATCH_SIZE = 200
 
 
-def run(days_back: int = 30) -> dict[str, Any]:
+async def run(days_back: int = 30) -> dict[str, Any]:
     from app.services.supabase import get_supabase
     from app.services.news_enrichment import enrich_and_store_articles_batch
 
@@ -60,13 +59,11 @@ def run(days_back: int = 30) -> dict[str, Any]:
     for i in range(0, total, BATCH_SIZE):
         batch = candidates[i : i + BATCH_SIZE]
         try:
-            result = asyncio.run(
-                enrich_and_store_articles_batch(
-                    supabase,
-                    batch,
-                    skip_existing=False,  # preserves non-null fields, only fills nulls
-                    max_concurrency=5,
-                )
+            result = await enrich_and_store_articles_batch(
+                supabase,
+                batch,
+                skip_existing=False,  # preserves non-null fields, only fills nulls
+                max_concurrency=5,
             )
             stored += len(result)
         except Exception as exc:
@@ -83,7 +80,7 @@ def run(days_back: int = 30) -> dict[str, Any]:
     }
 
 
-def run_from_env() -> dict[str, Any]:
+async def run_from_env() -> dict[str, Any]:
     import os
     days = int(os.getenv("TLDR_BACKFILL_DAYS", "30"))
-    return run(days_back=days)
+    return await run(days_back=days)
