@@ -332,6 +332,22 @@ async def get_today(user_id: str = Depends(get_user_id)) -> dict[str, Any]:
         ):
             five_axis = snap_dims
 
+    # Compute score_delta live from portfolio_score vs the snapshot's previous_score.
+    # The snapshot's score_delta was computed against the snapshot's composite_score
+    # (which may be wrong due to zero-inflation). The live portfolio_score is correct,
+    # so the live delta against the correct previous_score gives an honest trend line.
+    previous_score: float | None = None
+    score_delta: float | None = None
+    if portfolio_snapshot:
+        try:
+            prev = portfolio_snapshot.get("previous_score")
+            if prev is not None:
+                previous_score = round(float(prev), 1)
+        except (TypeError, ValueError):
+            pass
+    if portfolio_score is not None and previous_score is not None:
+        score_delta = round(portfolio_score - previous_score, 1)
+
     return {
         "portfolio": {
             "value": round(total_value, 2) if total_value > 0 else (
@@ -341,8 +357,8 @@ async def get_today(user_id: str = Depends(get_user_id)) -> dict[str, Any]:
             "day_change_pct": day_change_pct,
             "composite_score": portfolio_score,
             "grade": portfolio_grade,
-            "previous_score": portfolio_snapshot.get("previous_score") if portfolio_snapshot else None,
-            "score_delta": portfolio_snapshot.get("score_delta") if portfolio_snapshot else None,
+            "previous_score": previous_score,
+            "score_delta": score_delta,
             "position_count": len(holdings),
             "generated_at": portfolio_snapshot.get("as_of_date") if portfolio_snapshot else datetime.now(timezone.utc).isoformat(),
         },
