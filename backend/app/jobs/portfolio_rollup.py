@@ -111,12 +111,18 @@ def rollup_user(supabase, user_id: str, positions: list[dict[str, Any]]) -> dict
         portfolio_value += market_value
 
         snapshot = snapshots.get(ticker) or {}
-        composite = _float(snapshot.get("composite_score")) or _float(snapshot.get("safety_score"))
-        if composite is not None:
+        # Prefer safety_score: it is the user-facing grade score and correctly
+        # excludes limited-data dimensions. composite_score may be 0-inflated
+        # when the scorer stores 0 for excluded dimensions.
+        composite = _float(snapshot.get("safety_score")) or _float(snapshot.get("composite_score"))
+        if composite is not None and composite > 0:
             composite_rows.append((composite, market_value))
         for column, _code, _name in DIMENSIONS:
             score = _float(snapshot.get(column))
-            if score is not None:
+            # Skip zero scores: a stored 0 means the dimension was excluded
+            # from the composite (limited-data flag), not that it actually
+            # scored zero. Treating it as missing is more accurate.
+            if score is not None and score > 0:
                 dimension_rows[column].append((score, market_value))
 
         sector = str(meta.get("sector") or "Unclassified")

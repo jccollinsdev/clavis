@@ -301,14 +301,42 @@ async def get_today(user_id: str = Depends(get_user_id)) -> dict[str, Any]:
         or []
     )
     portfolio_snapshot = portfolio_snapshot_rows[0] if portfolio_snapshot_rows else None
-    if portfolio_snapshot:
-        portfolio_score = portfolio_snapshot.get("composite_score") or portfolio_score
-        portfolio_grade = portfolio_snapshot.get("grade") or portfolio_grade
-        five_axis = portfolio_snapshot.get("dimensions") or five_axis
+
+    # Use live-computed portfolio_score/grade/five_axis as the primary source.
+    # The snapshot can have stale or zero-inflated dimensions (e.g. after a
+    # limited-data exclusion change stores 0 for excluded dims). We only read
+    # previous_score and score_delta from the snapshot for trend display.
+    # If the live computation has no coverage (no holdings with scores), fall
+    # back to the snapshot's composite_score as a last resort.
+    if portfolio_score is None and portfolio_snapshot:
+        snapshot_score = portfolio_snapshot.get("composite_score")
+        if snapshot_score is not None:
+            try:
+                snapshot_score = float(snapshot_score)
+                if snapshot_score > 0:
+                    portfolio_score = round(snapshot_score, 1)
+                    portfolio_grade = _grade_for_score(portfolio_score)
+            except (TypeError, ValueError):
+                pass
+
+    # Similarly, only use snapshot dimensions if the live five_axis has no
+    # coverage at all (all scores None) and the snapshot dimensions look valid
+    # (all scores > 0 and on the expected 0-100 scale).
+    live_has_dims = any(d.get("score") is not None for d in five_axis)
+    if not live_has_dims and portfolio_snapshot:
+        snap_dims = portfolio_snapshot.get("dimensions") or []
+        if isinstance(snap_dims, list) and all(
+            isinstance(d, dict) and (d.get("score") or 0) > 0
+            for d in snap_dims
+            if d.get("score") is not None
+        ):
+            five_axis = snap_dims
 
     return {
         "portfolio": {
-            "value": portfolio_snapshot.get("portfolio_value") if portfolio_snapshot else (round(total_value, 2) if total_value > 0 else None),
+            "value": round(total_value, 2) if total_value > 0 else (
+                portfolio_snapshot.get("portfolio_value") if portfolio_snapshot else None
+            ),
             "day_change_amount": round(total_day_change, 2) if total_value > 0 else None,
             "day_change_pct": day_change_pct,
             "composite_score": portfolio_score,
