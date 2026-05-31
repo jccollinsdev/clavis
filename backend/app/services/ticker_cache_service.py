@@ -1472,6 +1472,24 @@ def _first_non_none(*values: Any) -> Any:
     return None
 
 
+def _first_positive(*values: Any) -> Any:
+    """Return the first value that is not None and > 0.
+
+    Used for dimension scores where 0 means "excluded from composite by the
+    limited-data exclusion logic" (B3 fix), not "actually scored zero."
+    A true zero-score dimension is theoretically possible but does not occur
+    in practice; treating stored 0 as missing is safer than treating it as real.
+    """
+    for v in values:
+        if v is not None:
+            try:
+                if float(v) > 0:
+                    return v
+            except (TypeError, ValueError):
+                pass
+    return None
+
+
 def _shared_risk_dimensions(snapshot: dict[str, Any] | None) -> dict[str, Any]:
     snapshot = snapshot or {}
     factor_breakdown = snapshot.get("factor_breakdown") or {}
@@ -1492,27 +1510,32 @@ def _shared_risk_dimensions(snapshot: dict[str, Any] | None) -> dict[str, Any]:
     # math doesn't add up, which destroys trust with the sophisticated ICP.
     limited_dims: set[str] = set(snapshot.get("limited_data_dimensions") or [])
 
+    # Use _first_positive for all snapshot dimension reads: a stored value of 0
+    # means the dimension was excluded from the composite by the limited-data
+    # exclusion logic (B3 fix), not that the dimension actually scored zero.
+    # Returning None for 0-valued dimensions keeps the API response honest —
+    # the iOS five-axis shows "—" instead of a misleadingly small bar.
     news_score = (
         None if "news_sentiment" in limited_dims
-        else _first_non_none(snapshot.get("news_sentiment_dim"), ai_dims.get("news_sentiment"))
+        else _first_positive(snapshot.get("news_sentiment_dim"), ai_dims.get("news_sentiment"))
     )
 
     return {
-        "financial_health": _first_non_none(
+        "financial_health": _first_positive(
             snapshot.get("financial_health"),
             ai_dims.get("financial_health"),
             ai_dims.get("position_sizing"),
         ),
         "news_sentiment": news_score,
-        "macro_exposure": _first_non_none(
+        "macro_exposure": _first_positive(
             snapshot.get("macro_exposure_dim"),
             ai_dims.get("macro_exposure"),
-        ),
-        "sector_exposure": _first_non_none(
+        ) if "macro_exposure" not in limited_dims else None,
+        "sector_exposure": _first_positive(
             snapshot.get("sector_exposure"),
             ai_dims.get("sector_exposure"),
         ),
-        "volatility": _first_non_none(
+        "volatility": _first_positive(
             snapshot.get("volatility"),
             ai_dims.get("volatility"),
             ai_dims.get("volatility_trend"),
@@ -1799,9 +1822,13 @@ def build_shared_ticker_analysis_summary(
     current_analysis = _sanitize_public_analysis_payload(current_analysis) or {}
     latest_event_analyses = latest_event_analyses or []
 
-    current_score = snapshot.get("composite_score") or snapshot.get("safety_score")
-    previous_score = previous_snapshot.get("composite_score") or previous_snapshot.get(
-        "safety_score"
+    # Prefer safety_score: it is the user-facing grade score and is correct
+    # even when composite_score was zeroed-out by the limited-data exclusion
+    # logic (B3 fix). safety_score == composite_score for pre-B3 snapshots,
+    # so this change is backwards-compatible.
+    current_score = snapshot.get("safety_score") or snapshot.get("composite_score")
+    previous_score = previous_snapshot.get("safety_score") or previous_snapshot.get(
+        "composite_score"
     )
     source_count = snapshot.get("source_count")
     if source_count is None:
