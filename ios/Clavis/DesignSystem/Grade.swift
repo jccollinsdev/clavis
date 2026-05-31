@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Bond-grade letter pill.
-/// Bands → tier: AAA/AA = good (green) · A = neutral (ink) · BBB/BB = warn (amber) · B/CCC/CC/C = bad (oxblood).
+/// Bands → tier: AAA/AA = good (solid green) · A = good-soft (light green) · BBB/BB = warn (amber) · B/CCC/CC/C = bad (oxblood).
 enum CXGrade: String, CaseIterable {
     case AAA, AA, A, BBB, BB, B, CCC, CC, C
 }
@@ -61,9 +61,9 @@ struct GradePill: View {
 
     private func tier(for g: CXGrade) -> (bg: Color, fg: Color, ink: Color) {
         switch g {
-        case .AAA, .AA:    return (.cxGood,  .white,      .cxGoodInk)
-        case .A:           return (theme.ink, theme.paper, theme.ink)
-        case .BBB, .BB:    return (.cxWarn,  .white,      .cxWarnInk)
+        case .AAA, .AA:    return (.cxGood,     .white,      .cxGoodInk)
+        case .A:           return (.cxGoodSoft, .cxGoodInk,  .cxGoodInk)
+        case .BBB, .BB:    return (.cxWarn,     .white,      .cxWarnInk)
         default:           return (.cxBad,   .white,      .cxBadInk)
         }
     }

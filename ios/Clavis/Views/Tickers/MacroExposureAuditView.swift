@@ -6,28 +6,36 @@ struct MacroExposureAuditView: View {
 
     private var dimension: MethodologyMacroExposure? { methodology?.dimensions.macroExposure }
     private let factors = ["tnx", "dxy", "wti", "vix", "spy"]
+    private var isReferenceMode: Bool { methodology == nil }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                AuditHeaderCard(
-                    title: "Macro Exposure",
-                    ticker: ticker,
-                    score: dimension?.score,
-                    subtitle: "R² \(format(dimension?.rSquared, places: 3)) · days \(dimension?.tradingDaysUsed.map(String.init) ?? "—")"
-                )
+                if isReferenceMode {
+                    AuditReferenceContextView(
+                        dimensionName: "Macro Exposure",
+                        message: "Open a ticker from Search, Holdings, Alerts, or the Morning Report to inspect live factor sensitivities and macro narrative for that stock."
+                    )
+                } else {
+                    AuditHeaderCard(
+                        title: "Macro Exposure",
+                        ticker: ticker,
+                        score: dimension?.score,
+                        subtitle: "R² \(format(dimension?.rSquared, places: 3)) · days \(dimension?.tradingDaysUsed.map(String.init) ?? "—")"
+                    )
 
-                if dimension?.limitedData == true {
-                    AuditLimitedDataView(message: "Limited Data — the regression did not have enough clean history to support a full macro read.")
-                }
+                    if dimension?.limitedData == true {
+                        AuditLimitedDataView(message: "Limited Data — the regression did not have enough clean history to support a full macro read.")
+                    }
 
-                AuditSectionCard(title: "Factor Sensitivity") {
-                    ForEach(factors, id: \.self) { factor in
-                        AuditValueRow(
-                            label: factor.uppercased(),
-                            value: format(dimension?.coefficients?[factor], places: 4),
-                            status: format(dimension?.currentFactorLevels?[factor], places: 2)
-                        )
+                    AuditSectionCard(title: "Factor Sensitivity") {
+                        ForEach(factors, id: \.self) { factor in
+                            AuditValueRow(
+                                label: factor.uppercased(),
+                                value: format(dimension?.coefficients?[factor], places: 4),
+                                status: format(dimension?.currentFactorLevels?[factor], places: 2)
+                            )
+                        }
                     }
                 }
 

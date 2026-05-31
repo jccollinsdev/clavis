@@ -17,6 +17,8 @@ struct SettingsView: View {
                         SettingsMessageCard(message: message, fill: .clavixAccentSoft, foreground: .clavixAccentInk)
                     }
 
+                    settingsOverviewCard
+
                     NavigationLink {
                         ProfileSettingsDetailView(viewModel: viewModel)
                     } label: {
@@ -186,6 +188,19 @@ struct SettingsView: View {
 
     private var isFreeTier: Bool {
         viewModel.subscriptionTier == "free"
+    }
+
+    private var settingsOverviewCard: some View {
+        ClavixInlineNoticeCard(
+            eyebrow: "Preferences",
+            title: "Control delivery, not methodology",
+            message: "Settings manage your account profile and Morning Report cadence. Risk grades and score definitions remain fixed and auditable from Reference.",
+            footnote: ClavisCopy.settingsDisclaimer,
+            glyph: "slider.horizontal.3",
+            fill: .clavixAccentSoft,
+            foreground: .clavixAccentInk,
+            secondary: .clavixAccentInk
+        )
     }
 }
 
@@ -998,7 +1013,7 @@ struct SettingsUpgradeSheet: View {
                 .padding(.horizontal, ClavisTheme.screenPadding)
                 .padding(.vertical, ClavisTheme.sectionSpacing)
             }
-            .background(ClavisAtmosphereBackground())
+            .background(Color.clavixPage.ignoresSafeArea())
             .navigationTitle("Upgrade")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -1041,7 +1056,7 @@ struct ScoreExplanationView: View {
             .padding(.horizontal, ClavisTheme.screenPadding)
             .padding(.vertical, ClavisTheme.largeSpacing)
         }
-        .background(ClavisAtmosphereBackground())
+        .background(Color.clavixPage.ignoresSafeArea())
         .navigationTitle("Score Explanation")
         .navigationBarTitleDisplayMode(.inline)
     }

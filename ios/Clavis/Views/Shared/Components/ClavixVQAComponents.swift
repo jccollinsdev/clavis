@@ -152,6 +152,67 @@ struct ClavixStatePanel: View {
     }
 }
 
+struct ClavixInlineNoticeCard: View {
+    let eyebrow: String
+    let title: String
+    let message: String
+    var footnote: String? = nil
+    var glyph: String? = nil
+    var fill: Color = .clavixPaper
+    var foreground: Color = .clavixInk
+    var secondary: Color = .clavixInk2
+    var buttonTitle: String? = nil
+    var action: (() -> Void)? = nil
+
+    var body: some View {
+        ClavixCard(fill: fill) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .top, spacing: 12) {
+                    if let glyph {
+                        Image(systemName: glyph)
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundColor(foreground)
+                            .frame(width: 24, alignment: .leading)
+                            .padding(.top, 2)
+                    }
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        ClavixEyebrow(eyebrow)
+                        Text(title)
+                            .font(ClavisTypography.clavixSerif(18, weight: .medium))
+                            .foregroundColor(foreground)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text(message)
+                            .font(ClavisTypography.clavixCaption)
+                            .foregroundColor(secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        if let footnote, !footnote.isEmpty {
+                            Text(footnote)
+                                .font(ClavisTypography.clavixMono(10, weight: .regular))
+                                .tracking(0.3)
+                                .foregroundColor(secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+
+                if let buttonTitle, let action {
+                    Button(action: action) {
+                        Text(buttonTitle)
+                            .font(ClavisTypography.clavixMono(11, weight: .semibold))
+                            .foregroundColor(.clavixPaper)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 11)
+                            .background(foreground)
+                            .clipShape(RoundedRectangle(cornerRadius: ClavixLayout.controlRadius, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+}
+
 /// AAA/AA/A/BBB/BB/B/CCC/CC/C/F grade badge in the bond-rating-agency visual style.
 struct ClavixGradeBadge: View {
     let grade: String
@@ -185,7 +246,7 @@ struct ClavixGradeBadge: View {
     private var color: Color {
         switch grade {
         case "AAA", "AA": return .clavixGood
-        case "A":         return .clavixInk
+        case "A":         return .clavixGoodSoft
         case "BBB", "BB": return .clavixWarn
         case "—":         return .clavixInk4
         default:           return .clavixBad
@@ -193,7 +254,11 @@ struct ClavixGradeBadge: View {
     }
 
     private var foreground: Color {
-        grade == "A" ? .clavixPaper : .white
+        switch grade {
+        case "AAA", "AA", "BBB", "BB": return .white
+        case "A":                       return .clavixGoodInk
+        default:                        return .white
+        }
     }
 }
 

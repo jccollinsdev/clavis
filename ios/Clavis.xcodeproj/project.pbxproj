@@ -36,6 +36,7 @@
 		4C67DB796D30B8B099615B2E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3EF9D33F89ABA37D1B82F8FF /* Assets.xcassets */; };
 		4D460994A1250C58933CBE7A /* clavix-hifi-v2.html in Resources */ = {isa = PBXBuildFile; fileRef = 80FF9274D7054F9FFD043346 /* clavix-hifi-v2.html */; };
 		4E2788D874AA22953477EE2A /* PriceChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F46151C0C929856200978D9 /* PriceChartView.swift */; };
+		529D674B4CA12C34CD5FDBC9 /* PositionHeatmapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C63319087949D420671AC07E /* PositionHeatmapView.swift */; };
 		5325BE30E38E60F995043C32 /* OnboardingContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E39592197B205D7C5872DC4B /* OnboardingContainerView.swift */; };
 		59E27730391F02665109EBB6 /* SafariView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C394F153A0BBF81D597DFF4 /* SafariView.swift */; };
 		5D883C42A0F125BF0C18D149 /* Tokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7842C6597A0754FBE7FFDDC5 /* Tokens.swift */; };
@@ -174,6 +175,7 @@
 		C14E81BC308213A3F72CD885 /* ClavixMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClavixMark.swift; sourceTree = "<group>"; };
 		C30AAE01DC38DF049E30EA36 /* RiskEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiskEnums.swift; sourceTree = "<group>"; };
 		C337E9434261287EE3A82F3C /* ScoreHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreHistory.swift; sourceTree = "<group>"; };
+		C63319087949D420671AC07E /* PositionHeatmapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositionHeatmapView.swift; sourceTree = "<group>"; };
 		C7329C45BCAFB27231224405 /* ChipBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChipBadge.swift; sourceTree = "<group>"; };
 		C739D74C2D9236A111A6601C /* Grade.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Grade.swift; sourceTree = "<group>"; };
 		C817DB08A99C10D844AEEFD3 /* Buttons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Buttons.swift; sourceTree = "<group>"; };
@@ -259,6 +261,7 @@
 			isa = PBXGroup;
 			children = (
 				B47422C72E57F1AD65337925 /* HoldingsListView.swift */,
+				C63319087949D420671AC07E /* PositionHeatmapView.swift */,
 			);
 			path = Holdings;
 			sourceTree = "<group>";
@@ -415,6 +418,7 @@
 			children = (
 				E4CF20F0809491F4543430C1 /* App */,
 				B6E1D28A38A273CB900820BD /* Config */,
+				F66A0617D7C541449EBBA0CE /* DesignConcepts */,
 				08943CAF6232695BB0760A00 /* DesignSystem */,
 				92AA54F4898E4A5413AFB424 /* Models */,
 				77D100D22D580D259613F232 /* Resources */,
@@ -492,6 +496,13 @@
 				1F46151C0C929856200978D9 /* PriceChartView.swift */,
 			);
 			path = PositionDetail;
+			sourceTree = "<group>";
+		};
+		F66A0617D7C541449EBBA0CE /* DesignConcepts */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = DesignConcepts;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -650,6 +661,7 @@
 				10A597D9B89AF751C8F6220F /* Position.swift in Sources */,
 				3EAE8B2B99CE87F9C797C551 /* PositionAnalysis.swift in Sources */,
 				C3B908BF8D2C24F59E42F8D6 /* PositionDetailView.swift in Sources */,
+				529D674B4CA12C34CD5FDBC9 /* PositionHeatmapView.swift in Sources */,
 				4E2788D874AA22953477EE2A /* PriceChartView.swift in Sources */,
 				6F0B803D54BA6BD919253616 /* PricePoint.swift in Sources */,
 				2D0A2D28435796BB5DF7C2ED /* PushNotificationManager.swift in Sources */,
@@ -732,6 +744,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -746,6 +759,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = Clavis/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.clavisdev.portfolioassistant;
@@ -762,6 +776,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -811,6 +826,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -831,6 +847,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = Clavis/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -848,6 +865,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -867,11 +885,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = Clavis/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.clavisdev.portfolioassistant;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -884,11 +904,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = Clavis/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.clavisdev.portfolioassistant;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";

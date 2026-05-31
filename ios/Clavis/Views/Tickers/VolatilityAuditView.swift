@@ -6,30 +6,38 @@ struct VolatilityAuditView: View {
     let scoreHistory: [ScoreSnapshot]
 
     private var dimension: MethodologyVolatility? { methodology?.dimensions.volatility }
+    private var isReferenceMode: Bool { methodology == nil }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                AuditHeaderCard(
-                    title: "Volatility",
-                    ticker: ticker,
-                    score: dimension?.score,
-                    subtitle: "Updated \(dimension?.asOfDate ?? "Date unavailable")"
-                )
+                if isReferenceMode {
+                    AuditReferenceContextView(
+                        dimensionName: "Volatility",
+                        message: "Open a ticker from Search, Holdings, Alerts, or the Morning Report to inspect live realized volatility, drawdown, beta, and implied-vol inputs for that stock."
+                    )
+                } else {
+                    AuditHeaderCard(
+                        title: "Volatility",
+                        ticker: ticker,
+                        score: dimension?.score,
+                        subtitle: "Updated \(AuditSupport.formattedAsOfDate(dimension?.asOfDate))"
+                    )
 
-                AuditSectionCard(title: "Metrics") {
-                    AuditValueRow(label: "Realized Vol 30d", value: percent(dimension?.realizedVol30d), status: "Metric")
-                    AuditValueRow(label: "Realized Vol 90d", value: percent(dimension?.realizedVol90d), status: "Metric")
-                    AuditValueRow(label: "Vol Ratio", value: format(dimension?.volRatio), status: (dimension?.volRatio ?? 1) > 1 ? "Rising" : "Falling")
-                    AuditValueRow(label: "Max Drawdown 252d", value: percent(dimension?.maxDrawdown252d), status: "Metric")
-                    AuditValueRow(label: "Beta to SPY", value: format(dimension?.betaToSpy), status: "Metric")
-                    AuditValueRow(label: "IV Rank", value: dimension?.ivRank.map { String(format: "%.1f", $0) } ?? "—", status: dimension?.ivSource?.humanizedTitleCasedDisplayText ?? "Metric")
-                    AuditValueRow(label: "Implied Vol", value: percent(dimension?.impliedVolatility), status: "Metric")
-                }
+                    AuditSectionCard(title: "Metrics") {
+                        AuditValueRow(label: "Realized Vol 30d", value: percent(dimension?.realizedVol30d), status: "Metric")
+                        AuditValueRow(label: "Realized Vol 90d", value: percent(dimension?.realizedVol90d), status: "Metric")
+                        AuditValueRow(label: "Vol Ratio", value: format(dimension?.volRatio), status: (dimension?.volRatio ?? 1) > 1 ? "Rising" : "Falling")
+                        AuditValueRow(label: "Max Drawdown 252d", value: percent(dimension?.maxDrawdown252d), status: "Metric")
+                        AuditValueRow(label: "Beta to SPY", value: format(dimension?.betaToSpy), status: "Metric")
+                        AuditValueRow(label: "IV Rank", value: dimension?.ivRank.map { String(format: "%.1f", $0) } ?? "—", status: dimension?.ivSource?.humanizedTitleCasedDisplayText ?? "Metric")
+                        AuditValueRow(label: "Implied Vol", value: percent(dimension?.impliedVolatility), status: "Metric")
+                    }
 
-                AuditSectionCard(title: "Vol Trend") {
-                    // TODO: backend expose volatility-specific history for the full audit screen.
-                    ScoreHistoryChart(snapshots: scoreHistory, showAllDimensions: false, toggledDimensions: .constant([]))
+                    AuditSectionCard(title: "Vol Trend") {
+                        // TODO: backend expose volatility-specific history for the full audit screen.
+                        ScoreHistoryChart(snapshots: scoreHistory, showAllDimensions: false, toggledDimensions: .constant([]))
+                    }
                 }
 
                 AuditSectionCard(title: "Methodology") {

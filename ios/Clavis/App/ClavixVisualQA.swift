@@ -469,13 +469,16 @@ private struct VQAGrade: View {
     private var color: Color {
         switch grade {
         case "AAA", "AA": return .vqaGood
-        case "A": return .vqaInk
+        case "A":         return .vqaGoodSoft
         case "BBB", "BB": return .vqaWarn
-        default: return .vqaBad
+        default:           return .vqaBad
         }
     }
     private var foreground: Color {
-        grade == "A" ? .vqaPaper : .white
+        switch grade {
+        case "A": return .vqaGoodInk
+        default:  return .white
+        }
     }
 }
 

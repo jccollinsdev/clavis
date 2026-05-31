@@ -127,6 +127,7 @@ class HoldingsViewModel: ObservableObject {
             progressMessage = workflowMessage(for: workflow)
             progressValue = workflowProgressValue(for: workflow.analysisState)
             await loadHoldings(showLoading: false)
+            NotificationCenter.default.post(name: .holdingsDidChange, object: nil)
 
             switch workflow.analysisState {
             case "queued", "running":
@@ -201,6 +202,7 @@ class HoldingsViewModel: ObservableObject {
 
         do {
             try await api.deleteHolding(id: position.id)
+            NotificationCenter.default.post(name: .holdingsDidChange, object: nil)
         } catch {
             holdings.insert(backup, at: index)
             errorMessage = ClavisCopy.Errors.holdingDelete(error)

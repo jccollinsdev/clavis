@@ -6,11 +6,23 @@ struct NewsSentimentAuditView: View {
     @State private var selectedArticle: MethodologyArticle?
 
     private var dimension: MethodologyNewsSentiment? { methodology?.dimensions.newsSentiment }
+    private var isReferenceMode: Bool { methodology == nil }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                if let dimension, (dimension.articleCount7d ?? 0) < 3 {
+                if isReferenceMode {
+                    AuditReferenceContextView(
+                        dimensionName: "News Sentiment",
+                        message: "Open a ticker from Search, Holdings, Alerts, or the Morning Report to inspect the real article set, weighting, and signal balance for that stock."
+                    )
+
+                    AuditSectionCard(title: "How scoring works") {
+                        Text("Recency tiers: last 24h = 3x, 24-72h = 2x, 72h-7d = 1x. Source tiers: T1, T2, T3 reflect source quality.")
+                            .font(ClavisTypography.body)
+                            .foregroundColor(.clavixInk3)
+                    }
+                } else if let dimension, (dimension.articleCount7d ?? 0) < 3 {
                     AuditLimitedDataView(message: "Limited Data — fewer than 3 relevant articles were available in the seven-day window.")
                 } else {
                     AuditHeaderCard(

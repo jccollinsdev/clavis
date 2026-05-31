@@ -93,7 +93,8 @@ class APIService {
 
     private let baseURL: String
     private let decoder: JSONDecoder
-    private let session: URLSession
+    private let sessionLock = NSLock()
+    private var session: URLSession
 
     // Paths whose responses are safe to cache for 2 minutes.
     // Freshness-critical paths (/today, /alerts, /positions, etc.) are NOT cached.
@@ -119,6 +120,10 @@ class APIService {
             }
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "Cannot decode date")
         }
+        self.session = APIService.makeSession()
+    }
+
+    private static func makeSession() -> URLSession {
         let configuration = URLSessionConfiguration.default
         configuration.timeoutIntervalForRequest = 30
         configuration.timeoutIntervalForResource = 90
@@ -130,7 +135,21 @@ class APIService {
         // requests to the same host (ticker detail + prices + methodology).
         configuration.httpMaximumConnectionsPerHost = 6
         configuration.waitsForConnectivity = false
-        self.session = URLSession(configuration: configuration)
+        return URLSession(configuration: configuration)
+    }
+
+    private func activeSession() -> URLSession {
+        sessionLock.lock()
+        defer { sessionLock.unlock() }
+        return session
+    }
+
+    private func rebuildSession() {
+        sessionLock.lock()
+        let previous = session
+        session = APIService.makeSession()
+        sessionLock.unlock()
+        previous.invalidateAndCancel()
     }
 
     private func isCacheable(path: String) -> Bool {
@@ -179,7 +198,8 @@ class APIService {
         body: Data? = nil,
         timeoutInterval: TimeInterval = 30,
         isRetry: Bool = false,
-        suppressSessionExpired: Bool = false
+        suppressSessionExpired: Bool = false,
+        didResetTransport: Bool = false
     ) async throws -> Data {
         guard let url = URL(string: "\(baseURL)\(path)") else {
             print("API request invalid URL base=\(baseURL) path=\(path)")
@@ -209,7 +229,7 @@ class APIService {
 
         do {
             request.timeoutInterval = timeoutInterval
-            let (data, response) = try await session.data(for: request)
+            let (data, response) = try await activeSession().data(for: request)
 
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw APIError.invalidResponse
@@ -228,7 +248,8 @@ class APIService {
                     return try await _makeRequest(
                         path: path, method: method, body: body,
                         timeoutInterval: timeoutInterval, isRetry: true,
-                        suppressSessionExpired: suppressSessionExpired
+                        suppressSessionExpired: suppressSessionExpired,
+                        didResetTransport: didResetTransport
                     )
                 }
                 // Second 401 after refresh — session is truly invalid.
@@ -252,9 +273,31 @@ class APIService {
             throw error
         } catch let error as URLError where error.code == .cancelled {
             throw CancellationError()
+        } catch let error as URLError where shouldRetryTransportError(error, method: method, didResetTransport: didResetTransport) {
+            print("[API] transport issue on \(method) \(path) — rebuilding session and retrying once: \(error)")
+            rebuildSession()
+            return try await _makeRequest(
+                path: path,
+                method: method,
+                body: body,
+                timeoutInterval: timeoutInterval,
+                isRetry: isRetry,
+                suppressSessionExpired: suppressSessionExpired,
+                didResetTransport: true
+            )
         } catch {
             print("API request failed \(method) \(url.absoluteString): \(error)")
             throw APIError.networkError(url.absoluteString, error)
+        }
+    }
+
+    private func shouldRetryTransportError(_ error: URLError, method: String, didResetTransport: Bool) -> Bool {
+        guard !didResetTransport, method == "GET" else { return false }
+        switch error.code {
+        case .timedOut, .networkConnectionLost, .cannotFindHost, .cannotConnectToHost, .dnsLookupFailed:
+            return true
+        default:
+            return false
         }
     }
 

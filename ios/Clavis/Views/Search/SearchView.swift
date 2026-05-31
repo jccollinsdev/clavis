@@ -30,6 +30,7 @@ struct SearchView: View {
                     if !trimmedQuery.isEmpty {
                         queryResultsSection
                     } else {
+                        searchPrimerSection
                         recentSection
                         trendingSection
                         browseSection
@@ -119,34 +120,31 @@ struct SearchView: View {
     @ViewBuilder
     private var queryResultsSection: some View {
         if let errorMessage {
-            ClavixCard {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Search unavailable")
-                        .font(ClavisTypography.clavixSerif(15, weight: .medium))
-                        .foregroundColor(.clavixInk)
-                    Text(errorMessage)
-                        .font(ClavisTypography.clavixCaption)
-                        .foregroundColor(.clavixInk2)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
+            ClavixInlineNoticeCard(
+                eyebrow: "Search",
+                title: "Search is temporarily unavailable",
+                message: errorMessage,
+                footnote: "Clavix only returns tickers from the tracked universe.",
+                glyph: "wifi.exclamationmark",
+                fill: .clavixBadSoft,
+                foreground: .clavixBadInk,
+                secondary: .clavixBadInk
+            )
         } else if isLoading {
-            ClavixCard {
-                Text("Searching tracked universe…")
-                    .font(ClavisTypography.clavixCaption)
-                    .foregroundColor(.clavixInk3)
-            }
+            ClavixInlineNoticeCard(
+                eyebrow: "Search",
+                title: "Searching the tracked universe",
+                message: "Matching tickers, company names, and any saved grades will appear here.",
+                glyph: "magnifyingglass"
+            )
         } else if results.isEmpty {
-            ClavixCard {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("No supported ticker matched \"\(trimmedQuery)\"")
-                        .font(ClavisTypography.clavixSerif(15, weight: .medium))
-                        .foregroundColor(.clavixInk)
-                    Text("Try a different ticker symbol or company name.")
-                        .font(ClavisTypography.clavixCaption)
-                        .foregroundColor(.clavixInk2)
-                }
-            }
+            ClavixInlineNoticeCard(
+                eyebrow: "No match",
+                title: "No supported ticker matched \"\(trimmedQuery)\"",
+                message: "Try a different ticker symbol or company name.",
+                footnote: "If a company is outside the tracked universe, Clavix will say so once you open it.",
+                glyph: "questionmark.circle"
+            )
         } else {
             ClavixSection(eyebrow: "Results · \(results.count)", title: "Tracked universe") {
                 ClavixCard(padding: 0) {
@@ -165,6 +163,17 @@ struct SearchView: View {
                 }
             }
         }
+    }
+
+    private var searchPrimerSection: some View {
+        ClavixInlineNoticeCard(
+            eyebrow: "Tracked universe",
+            title: "Search by ticker or company name",
+            message: "Each result is built for a fast morning read: latest grade, score context, and the most recent scored coverage that Clavix has captured.",
+            footnote: "Coverage is honest by design. If a name has limited data or sits outside the tracked universe, the app should say so directly.",
+            glyph: "sparkle.magnifyingglass"
+        )
+        .padding(.bottom, 18)
     }
 
     @ViewBuilder
@@ -194,22 +203,25 @@ struct SearchView: View {
                     }
                 }
             } else {
-                ClavixCard {
-                    Text("Tickers you open will appear here.")
-                        .font(ClavisTypography.clavixCaption)
-                        .foregroundColor(.clavixInk3)
-                }
+                ClavixInlineNoticeCard(
+                    eyebrow: "Recent",
+                    title: "No recent tickers yet",
+                    message: "Tickers you open will appear here for quick return trips.",
+                    glyph: "clock.arrow.circlepath"
+                )
             }
         }
     }
 
     private var trendingSection: some View {
         ClavixSection(eyebrow: "What others are looking at", title: "Trending") {
-            ClavixCard {
-                Text("Trending tickers will appear here once enough activity is captured.")
-                    .font(ClavisTypography.clavixCaption)
-                    .foregroundColor(.clavixInk3)
-            }
+            ClavixInlineNoticeCard(
+                eyebrow: "Activity",
+                title: "Trending data has not populated yet",
+                message: "This module fills in only after enough search activity is captured.",
+                footnote: "Until then, Browse remains the fastest way to jump into supported names.",
+                glyph: "chart.line.uptrend.xyaxis"
+            )
         }
     }
 
@@ -262,7 +274,7 @@ struct SearchView: View {
                 guard !Task.isCancelled else { return }
                 await MainActor.run {
                     results = []
-                    errorMessage = error.localizedDescription
+                    errorMessage = ClavisCopy.Errors.tickerSearch(error)
                     isLoading = false
                 }
             }

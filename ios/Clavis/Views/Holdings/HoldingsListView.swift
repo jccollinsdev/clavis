@@ -2,6 +2,8 @@ import SwiftUI
 
 extension Notification.Name {
     static let openAddHoldingFromOnboarding = Notification.Name("openAddHoldingFromOnboarding")
+    static let holdingsDidChange = Notification.Name("holdingsDidChange")
+    static let watchlistDidChange = Notification.Name("watchlistDidChange")
 }
 
 private enum HoldingsSortKey {
@@ -58,6 +60,10 @@ struct HoldingsListView: View {
         viewModel.subscriptionTier == "free"
     }
 
+    private var isInitialHydration: Bool {
+        viewModel.isLoading && viewModel.holdings.isEmpty
+    }
+
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ScrollView {
@@ -95,6 +101,9 @@ struct HoldingsListView: View {
             .toolbar(.hidden, for: .navigationBar)
             .task {
                 await viewModel.loadHoldings()
+            }
+            .onAppear {
+                Task { await viewModel.refreshWatchlist() }
             }
             .refreshable {
                 await viewModel.refreshHoldings()
@@ -148,6 +157,9 @@ struct HoldingsListView: View {
             .onReceive(NotificationCenter.default.publisher(for: .openAddHoldingFromOnboarding)) { _ in
                 openAddHolding()
             }
+            .onReceive(NotificationCenter.default.publisher(for: .watchlistDidChange)) { _ in
+                Task { await viewModel.refreshWatchlist() }
+            }
         }
     }
 
@@ -177,8 +189,7 @@ struct HoldingsListView: View {
                             .tracking(0.7)
                             .foregroundColor(.clavixInk3)
                     }
-                    let h = viewModel.holdings.count
-                    Text("\(h) position\(h == 1 ? "" : "s") · \(viewModel.watchlistItems.count) tracked")
+                    Text(holdingsSummaryText)
                         .font(ClavisTypography.clavixMono(10, weight: .regular))
                         .tracking(0.3)
                         .foregroundColor(.clavixInk3)
@@ -197,6 +208,9 @@ struct HoldingsListView: View {
     }
 
     private var syncStampText: String? {
+        if isInitialHydration {
+            return "SYNCING LATEST BOOK"
+        }
         if let ts = viewModel.brokerageLastSyncedAt {
             let stamp = ts.formatted(date: .omitted, time: .shortened)
             return "SYNCED \(stamp.uppercased()) · BROKERAGE"
@@ -206,6 +220,15 @@ struct HoldingsListView: View {
             return "UPDATED \(dateText.uppercased())"
         }
         return nil
+    }
+
+    private var holdingsSummaryText: String {
+        if isInitialHydration {
+            return "Loading positions and watchlist"
+        }
+
+        let holdingsCount = viewModel.holdings.count
+        return "\(holdingsCount) position\(holdingsCount == 1 ? "" : "s") · \(viewModel.watchlistItems.count) tracked"
     }
 
     // MARK: - Sort toolbar
@@ -274,7 +297,9 @@ struct HoldingsListView: View {
                     .buttonStyle(.plain)
             )
         ) {
-            if viewModel.watchlistItems.isEmpty {
+            if isInitialHydration && viewModel.watchlistItems.isEmpty {
+                ClavisLoadingCard(title: "Loading watchlist", subtitle: "Checking the tickers you already track.")
+            } else if viewModel.watchlistItems.isEmpty {
                 ClavixCard {
                     Text("Track tickers here to monitor grade and price changes alongside your positions.")
                         .font(ClavisTypography.clavixCaption)
@@ -301,14 +326,12 @@ struct HoldingsListView: View {
 
     @ViewBuilder
     private var sectorCompositionSection: some View {
-        if !sectorRows.isEmpty {
-            simpleSection(title: "By Sector") {
-                ClavixCard {
-                    VStack(spacing: 8) {
-                        ForEach(sectorRows, id: \.name) { row in
-                            SectorCompositionRow(row: row)
-                        }
-                    }
+        if !viewModel.holdings.isEmpty {
+            simpleSection(title: "Grade Map") {
+                ClavixCard(padding: 0) {
+                    PositionHeatmapView(positions: sortedHoldings)
+                        .frame(height: PositionHeatmapView.height(for: sortedHoldings.count))
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
             }
         }
@@ -648,17 +671,13 @@ private struct WatchlistRow: View {
             }
             .frame(width: 84, alignment: .leading)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(item.price.map { currency($0) } ?? "—")
                     .font(ClavisTypography.clavixMono(13, weight: .semibold))
                     .foregroundColor(.clavixInk)
-                HStack(spacing: 6) {
-                    ClavixMiniSpark(tone: dayTone, seed: item.ticker.hashValue)
-                        .frame(width: 48, height: 14)
-                    Text(dayText)
-                        .font(ClavisTypography.clavixMono(10, weight: .semibold))
-                        .foregroundColor(dayTone)
-                }
+                Text(dayText)
+                    .font(ClavisTypography.clavixMono(10, weight: .semibold))
+                    .foregroundColor(dayTone)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -784,28 +803,15 @@ struct HoldingsEmptyState: View {
     let onAddPosition: () -> Void
 
     var body: some View {
-        ClavixCard(fill: .clavixPaper) {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Add your first holding")
-                    .font(ClavisTypography.clavixSerif(20, weight: .medium))
-                    .foregroundColor(.clavixInk)
-                Text("Start with the positions you track most closely. Clavix will build your morning briefing around them.")
-                    .font(ClavisTypography.clavixCaption)
-                    .foregroundColor(.clavixInk2)
-                    .fixedSize(horizontal: false, vertical: true)
-                Button(action: onAddPosition) {
-                    Text("Add your first holding")
-                        .font(ClavisTypography.clavixMono(11, weight: .bold))
-                        .tracking(0.4)
-                        .foregroundColor(.clavixPaper)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(Color.clavixInk)
-                        .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-                }
-                .buttonStyle(.plain)
-            }
-        }
+        ClavixInlineNoticeCard(
+            eyebrow: "Portfolio",
+            title: "Add your first holding",
+            message: "Start with the positions you follow most closely. Clavix builds the Morning Report around what actually sits in your book.",
+            footnote: "If you are not ready to add a holding yet, you can still track names from Search and the Watchlist.",
+            glyph: "briefcase",
+            buttonTitle: "Add your first holding",
+            action: onAddPosition
+        )
     }
 }
 

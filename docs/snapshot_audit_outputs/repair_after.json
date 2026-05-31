@@ -1,0 +1,54 @@
+{
+  "after": {
+    "complete_5d_count": 6,
+    "latest_snapshot_count": 6,
+    "rows_marked_partial_selected_as_latest": []
+  },
+  "attempted_tickers": [
+    "CFG",
+    "CINF",
+    "NVR",
+    "NWSA",
+    "WBD",
+    "ZBRA"
+  ],
+  "before": {
+    "complete_5d_count": 6,
+    "latest_snapshot_count": 6,
+    "rows_marked_partial_selected_as_latest": []
+  },
+  "completed_tickers": [
+    "CFG",
+    "CINF",
+    "NVR",
+    "NWSA",
+    "WBD",
+    "ZBRA"
+  ],
+  "failed_tickers": [],
+  "finished_at": "2026-05-28T19:34:00.198806+00:00",
+  "label": "repair-stuck-2026-05-28",
+  "other_results": [],
+  "requested_tickers": [
+    "CFG",
+    "CINF",
+    "NVR",
+    "NWSA",
+    "WBD",
+    "ZBRA"
+  ],
+  "skipped_complete_tickers": [],
+  "sp500_result": {
+    "artifact_dir": "/Users/sansarkarki/Documents/Clavis/BACKFILL/ae538531-1d42-41cd-b6b9-e8f047cd4fe4",
+    "artifact_dirs": [
+      "/Users/sansarkarki/Documents/Clavis/BACKFILL/52a29401-08e2-4bbb-bf2e-e435bce44fd8",
+      "/Users/sansarkarki/Documents/Clavis/BACKFILL/ae538531-1d42-41cd-b6b9-e8f047cd4fe4"
+    ],
+    "failed": [],
+    "job_type": "backfill",
+    "refreshed": 6,
+    "requested": 6,
+    "status": "ok"
+  },
+  "started_at": "2026-05-28T19:29:10.845840+00:00"
+}

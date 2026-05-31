@@ -20,6 +20,14 @@ struct DigestView: View {
                     hasLoaded = true
                     await viewModel.loadDigest()
                 }
+                .onAppear {
+                    guard hasLoaded, !viewModel.isLoading else { return }
+                    Task { await viewModel.loadDigest(showLoading: false) }
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .holdingsDidChange)) { _ in
+                    guard !viewModel.isLoading else { return }
+                    Task { await viewModel.loadDigest(showLoading: false) }
+                }
                 .refreshable {
                     await viewModel.loadDigest(showLoading: false)
                 }
@@ -225,9 +233,22 @@ struct DigestView: View {
 
     /// VQAAlertRow 1:1 — colored bullet dot, category eyebrow, time, headline,
     /// truncated body, trailing meta pill.
+    @ViewBuilder
     private func alertRow(_ alert: Alert) -> some View {
         let tone = alertTone(alert)
-        return ClavixCard(padding: 12) {
+        if let ticker = alert.positionTicker?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !ticker.isEmpty {
+            NavigationLink(value: ticker.uppercased()) {
+                alertCard(alert, tone: tone)
+            }
+            .buttonStyle(.plain)
+        } else {
+            alertCard(alert, tone: tone)
+        }
+    }
+
+    private func alertCard(_ alert: Alert, tone: Color) -> some View {
+        ClavixCard(padding: 12) {
             HStack(alignment: .top, spacing: 12) {
                 Circle()
                     .fill(tone)
@@ -313,10 +334,16 @@ struct DigestView: View {
         )) {
             ClavixCard(padding: 0) {
                 VStack(spacing: 0) {
-                    HStack {
+                    HStack(spacing: 10) {
                         Text("SYM")
-                        Spacer()
-                        Text("GRADE · DELTA · TODAY")
+                            .frame(width: Self.bookTickerColumnWidth, alignment: .leading)
+                        Spacer(minLength: 8)
+                        Text("GRADE")
+                            .frame(width: Self.bookGradeColumnWidth, alignment: .center)
+                        Text("DELTA")
+                            .frame(width: Self.bookDeltaColumnWidth, alignment: .trailing)
+                        Text("TODAY")
+                            .frame(width: Self.bookTodayColumnWidth, alignment: .trailing)
                     }
                     .font(ClavisTypography.clavixMono(9, weight: .bold))
                     .foregroundColor(.clavixInk3)
@@ -352,16 +379,18 @@ struct DigestView: View {
             Text(position.ticker)
                 .font(ClavisTypography.clavixMono(13, weight: .bold))
                 .foregroundColor(.clavixInk)
+                .frame(width: Self.bookTickerColumnWidth, alignment: .leading)
             Spacer()
             ClavixGradeBadge(position.resolvedRiskGrade ?? "—", size: 24)
+                .frame(width: Self.bookGradeColumnWidth, alignment: .center)
             Text(deltaText(for: position.scoreDelta))
                 .font(ClavisTypography.clavixMono(11, weight: .semibold))
                 .foregroundColor(deltaColor(for: position.scoreDelta))
-                .frame(width: 32, alignment: .trailing)
+                .frame(width: Self.bookDeltaColumnWidth, alignment: .trailing)
             Text(todayText(for: position))
                 .font(ClavisTypography.clavixMono(11, weight: .semibold))
                 .foregroundColor(todayColor(for: position))
-                .frame(width: 56, alignment: .trailing)
+                .frame(width: Self.bookTodayColumnWidth, alignment: .trailing)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
@@ -391,6 +420,11 @@ struct DigestView: View {
         if pct < -0.05 { return .clavixBad }
         return .clavixInk3
     }
+
+    private static let bookTickerColumnWidth: CGFloat = 44
+    private static let bookGradeColumnWidth: CGFloat = 44
+    private static let bookDeltaColumnWidth: CGFloat = 36
+    private static let bookTodayColumnWidth: CGFloat = 56
 
     // MARK: - Calendar
 
@@ -590,21 +624,44 @@ struct DigestView: View {
     }
 
     private var morningReportTitle: String {
-        if viewModel.todayDigest != nil {
+        guard let digest = viewModel.todayDigest else {
+            return "Briefing not generated yet"
+        }
+        if isDigestFromToday(digest) {
             return "Your daily risk brief is ready"
         }
-        return "Briefing not generated yet"
+        return "Latest saved brief available"
     }
 
     private var morningReportPreview: String {
-        if let line = viewModel.todayDigest?.structuredSections?.header?.summaryLine,
+        guard let digest = viewModel.todayDigest else {
+            return "Open to see overnight macro, sector heat, and per-position changes."
+        }
+        if !isDigestFromToday(digest) {
+            return "Generated \(digestCardDateLabel(digest)). This saved briefing may not reflect the latest holdings, watchlist, or score changes."
+        }
+        if let line = digest.structuredSections?.header?.summaryLine,
            !line.isEmpty {
             return line.sanitizedDisplayText
         }
-        if let text = viewModel.todayDigest?.summary?.sanitizedDisplayText, !text.isEmpty {
+        if let text = digest.summary?.sanitizedDisplayText, !text.isEmpty {
             return text
         }
         return "Open to see overnight macro, sector heat, and per-position changes."
+    }
+
+    private func isDigestFromToday(_ digest: Digest) -> Bool {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "America/New_York") ?? .current
+        return calendar.isDate(digest.generatedAt, inSameDayAs: Date())
+    }
+
+    private func digestCardDateLabel(_ digest: Digest) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        formatter.timeZone = TimeZone(identifier: "America/New_York") ?? .current
+        return formatter.string(from: digest.generatedAt)
     }
 
     /// Portfolio per-dimension snapshot. Each cell is the value-weighted average

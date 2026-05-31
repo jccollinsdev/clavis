@@ -22,19 +22,28 @@ struct AlertsView: View {
                     filterChips
                         .padding(.horizontal, ClavixLayout.pad)
 
+                    alertsSummaryCard
+                        .padding(.horizontal, ClavixLayout.pad)
+
                     if let errorMessage = viewModel.errorMessage, viewModel.alerts.isEmpty {
-                        ClavixCard {
-                            Text(errorMessage)
-                                .font(ClavisTypography.clavixCaption)
-                                .foregroundColor(.clavixInk2)
-                        }
+                        ClavixInlineNoticeCard(
+                            eyebrow: "Alerts",
+                            title: "Alerts are temporarily unavailable",
+                            message: errorMessage,
+                            footnote: "Morning Reports still act as the primary daily briefing when alert loading fails.",
+                            glyph: "wifi.exclamationmark",
+                            fill: .clavixBadSoft,
+                            foreground: .clavixBadInk,
+                            secondary: .clavixBadInk
+                        )
                         .padding(.horizontal, ClavixLayout.pad)
                     } else if viewModel.isLoading && viewModel.alerts.isEmpty {
-                        ClavixCard {
-                            Text("Loading alerts…")
-                                .font(ClavisTypography.clavixCaption)
-                                .foregroundColor(.clavixInk3)
-                        }
+                        ClavixInlineNoticeCard(
+                            eyebrow: "Alerts",
+                            title: "Loading your alert tape",
+                            message: "Clavix is pulling recent grade changes, risk notices, and major news tied to your portfolio.",
+                            glyph: "bell.badge"
+                        )
                         .padding(.horizontal, ClavixLayout.pad)
                     } else if filteredAlerts.isEmpty {
                         emptyState
@@ -85,11 +94,45 @@ struct AlertsView: View {
         }
     }
 
+    private var alertsSummaryCard: some View {
+        ClavixInlineNoticeCard(
+            eyebrow: alertsEyebrow,
+            title: alertsSummaryTitle,
+            message: alertsSummaryMessage,
+            footnote: selectedFilter == .all ? "The Morning Report remains the authoritative daily summary." : "Filter counts reflect the last 7 days of captured activity.",
+            glyph: "bell.badge"
+        )
+    }
+
     private var alertsEyebrow: String {
         let unread = viewModel.unreadCount
         let total = viewModel.alerts.count
         if total == 0 { return "Alert center" }
         return "\(unread) unread · \(total) in 7D"
+    }
+
+    private var alertsSummaryTitle: String {
+        if viewModel.isLoading && viewModel.alerts.isEmpty {
+            return "Reviewing the latest portfolio signals"
+        }
+        if viewModel.alerts.isEmpty {
+            return "No captured alerts yet"
+        }
+        let filteredCount = filteredAlerts.count
+        if selectedFilter == .all {
+            return "\(filteredCount) alert\(filteredCount == 1 ? "" : "s") ready for review"
+        }
+        return "\(selectedFilter.title) alerts narrowed to \(filteredCount)"
+    }
+
+    private var alertsSummaryMessage: String {
+        if viewModel.isLoading && viewModel.alerts.isEmpty {
+            return "Alerts surface notable changes between Morning Reports, but they only appear when data has actually been captured."
+        }
+        if viewModel.alerts.isEmpty {
+            return "Grade changes, portfolio risk notices, and major news will appear here once Clavix has something worth flagging."
+        }
+        return "Use alerts for triage, then open a ticker or return to Today when you need the full narrative behind a move."
     }
 
     private var filterChips: some View {
@@ -107,20 +150,13 @@ struct AlertsView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 14) {
-            Image(systemName: "bell.slash")
-                .font(.system(size: 48))
-                .foregroundColor(.clavixInk4)
-            Text("All quiet.")
-                .font(ClavisTypography.clavixSerif(24, weight: .medium))
-                .foregroundColor(.clavixInk)
-            Text("Grade changes and major news will appear here. Your Morning Report still arrives every weekday.")
-                .font(ClavisTypography.clavixCaption)
-                .foregroundColor(.clavixInk3)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 36)
+        ClavixInlineNoticeCard(
+            eyebrow: "All quiet",
+            title: "No alerts match this filter",
+            message: "Clavix has not captured any \(selectedFilter.title.lowercased()) alerts in the current view.",
+            footnote: "Morning Reports still arrive on schedule even when the alert tape is quiet.",
+            glyph: "bell.slash"
+        )
         .padding(.horizontal, ClavixLayout.pad)
     }
 

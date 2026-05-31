@@ -16,6 +16,7 @@ struct TickerDetailView: View {
     @State private var hasLoaded = false
     @State private var isRefreshingTicker = false
     @State private var isMutatingWatchlist = false
+    @State private var watchlistOverride: Bool?
     @State private var selectedArticle: MethodologyArticle?
     @State private var showAddHoldingSheet = false
     @State private var showAllArticles = false
@@ -106,6 +107,7 @@ struct TickerDetailView: View {
                     Task { await reloadAll() }
                 }
             )
+            .presentationBackground(Color.clavixPage)
         }
     }
 
@@ -272,10 +274,16 @@ struct TickerDetailView: View {
 
     private var loadingState: some View {
         VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
+            ClavixInlineNoticeCard(
+                eyebrow: "Coverage",
+                title: "Building \(ticker) coverage",
+                message: "Clavix is pulling the latest rating, dimensions, and scored news for this name.",
+                footnote: "If market data is thin or the name sits outside the tracked universe, the app should say so instead of guessing.",
+                glyph: "chart.line.text.clipboard"
+            )
             ClavisLoadingCard(title: "Loading \(ticker)", subtitle: "Pulling the latest rating, dimensions, and news.")
             ClavisLoadingCard(title: "Loading dimensions", subtitle: "Fetching methodology inputs and score components.")
             ClavisLoadingCard(title: "Loading recent news", subtitle: "Scoring the latest article set for this ticker.")
-
         }
     }
 
@@ -633,11 +641,13 @@ struct TickerDetailView: View {
             )
 
             if visibleArticles.isEmpty {
-                ClavixCard(fill: .clavixPaper) {
-                    Text("No recent news for this ticker")
-                        .font(ClavisTypography.body)
-                        .foregroundColor(.clavixInk3)
-                }
+                ClavixInlineNoticeCard(
+                    eyebrow: "Recent news",
+                    title: "No scored articles are available yet",
+                    message: "Clavix has not captured recent article coverage for this ticker in the current window.",
+                    footnote: "That can mean the name is quiet, the feed is thin, or coverage has not been scored yet.",
+                    glyph: "newspaper"
+                )
             } else {
                 ClavixCard(fill: .clavixPaper) {
                     VStack(spacing: 0) {
@@ -816,6 +826,7 @@ struct TickerDetailView: View {
                 priceHistory = []
                 scoreHistory = []
                 errorMessage = nil
+                watchlistOverride = nil
             }
 
             Task {
@@ -860,20 +871,25 @@ struct TickerDetailView: View {
         scoreHistory = fixture.scoreHistory
         errorMessage = nil
         isLoading = false
+        watchlistOverride = nil
     }
 
     private func toggleWatchlist() async {
+        let targetState = !isInWatchlist
         isMutatingWatchlist = true
+        watchlistOverride = targetState
         defer { isMutatingWatchlist = false }
 
         do {
-            if isInWatchlist {
-                _ = try await APIService.shared.removeFromWatchlist(ticker: ticker)
-            } else {
+            if targetState {
                 _ = try await APIService.shared.addToWatchlist(ticker: ticker)
+            } else {
+                _ = try await APIService.shared.removeFromWatchlist(ticker: ticker)
             }
+            NotificationCenter.default.post(name: .watchlistDidChange, object: nil)
             await reloadAll()
         } catch {
+            watchlistOverride = nil
             errorMessage = ClavisCopy.Errors.watchlistUpdate(error)
         }
     }
@@ -1154,7 +1170,10 @@ struct TickerDetailView: View {
     }
 
     private var isInWatchlist: Bool {
-        detail?.portfolioOverlay?.isInWatchlist ?? detail?.userContext.isInWatchlist ?? false
+        watchlistOverride
+            ?? detail?.portfolioOverlay?.isInWatchlist
+            ?? detail?.userContext.isInWatchlist
+            ?? false
     }
 
 }
@@ -1259,44 +1278,50 @@ private struct TickerAddHoldingSheet: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                    ClavixCard(fill: .clavixPaper) {
-                        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                            Text(companyName ?? ticker)
-                                .font(ClavisTypography.cardTitle)
-                                .foregroundColor(.clavixInk)
-                            Text(ticker)
-                                .font(ClavisTypography.footnoteEmphasis)
-                                .foregroundColor(.clavixAccent)
+            ZStack {
+                Color.clavixPage
+                    .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
+                        ClavixCard(fill: .clavixPaper) {
+                            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                                Text(companyName ?? ticker)
+                                    .font(ClavisTypography.cardTitle)
+                                    .foregroundColor(.clavixInk)
+                                Text(ticker)
+                                    .font(ClavisTypography.footnoteEmphasis)
+                                    .foregroundColor(.clavixAccent)
+                            }
                         }
-                    }
 
-                    field(title: "Shares", text: $shares)
-                    field(title: "Cost basis per share", text: $costBasis)
+                        field(title: "Shares", text: $shares)
+                        field(title: "Cost basis per share", text: $costBasis)
 
-                    ClavixCard(fill: .clavixPaper) {
-                        VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                            Text("Purchase date")
-                                .font(ClavisTypography.label)
-                                .foregroundColor(.clavixInk3)
-                            DatePicker("Purchase date", selection: $purchaseDate, displayedComponents: .date)
-                                .datePickerStyle(.compact)
-                                .labelsHidden()
+                        ClavixCard(fill: .clavixPaper) {
+                            VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
+                                Text("Purchase date")
+                                    .font(ClavisTypography.label)
+                                    .foregroundColor(.clavixInk3)
+                                DatePicker("Purchase date", selection: $purchaseDate, displayedComponents: .date)
+                                    .datePickerStyle(.compact)
+                                    .labelsHidden()
+                            }
                         }
-                    }
 
-                    if let errorMessage {
-                        DashboardErrorCard(message: errorMessage)
-                    }
+                        if let errorMessage {
+                            DashboardErrorCard(message: errorMessage)
+                        }
 
+                    }
+                    .padding(.horizontal, ClavisTheme.screenPadding)
+                    .padding(.vertical, ClavisTheme.sectionSpacing)
                 }
-                .padding(.horizontal, ClavisTheme.screenPadding)
-                .padding(.vertical, ClavisTheme.sectionSpacing)
             }
-            .background(ClavisAtmosphereBackground())
             .navigationTitle("Add to Holdings")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarBackground(Color.clavixPage, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }

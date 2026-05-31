@@ -1,0 +1,107 @@
+{
+  "after": {
+    "complete_5d_count": 14,
+    "latest_snapshot_count": 17,
+    "rows_marked_partial_selected_as_latest": [
+      "HIMS",
+      "NVR",
+      "WBD"
+    ]
+  },
+  "attempted_tickers": [
+    "CFG",
+    "CINF",
+    "NVR",
+    "NWSA",
+    "WBD",
+    "ZBRA",
+    "HIMS"
+  ],
+  "before": {
+    "complete_5d_count": 10,
+    "latest_snapshot_count": 17,
+    "rows_marked_partial_selected_as_latest": [
+      "CFG",
+      "CINF",
+      "HIMS",
+      "NVR",
+      "NWSA",
+      "WBD",
+      "ZBRA"
+    ]
+  },
+  "completed_tickers": [
+    "AAPL",
+    "AMZN",
+    "CFG",
+    "CINF",
+    "GOOGL",
+    "JNJ",
+    "JPM",
+    "META",
+    "MSFT",
+    "NVDA",
+    "NWSA",
+    "UNH",
+    "XOM",
+    "ZBRA"
+  ],
+  "failed_tickers": [
+    "HIMS",
+    "NVR",
+    "WBD"
+  ],
+  "finished_at": "2026-05-27T16:03:43.249789+00:00",
+  "label": "canary-2026-05-27",
+  "other_results": [
+    {
+      "snapshot_complete": false,
+      "status": "completed",
+      "ticker": "HIMS"
+    }
+  ],
+  "requested_tickers": [
+    "AAPL",
+    "AMZN",
+    "CFG",
+    "CINF",
+    "GOOGL",
+    "HIMS",
+    "JNJ",
+    "JPM",
+    "META",
+    "MSFT",
+    "NVDA",
+    "NVR",
+    "NWSA",
+    "UNH",
+    "WBD",
+    "XOM",
+    "ZBRA"
+  ],
+  "skipped_complete_tickers": [
+    "AAPL",
+    "AMZN",
+    "GOOGL",
+    "JNJ",
+    "JPM",
+    "META",
+    "MSFT",
+    "NVDA",
+    "UNH",
+    "XOM"
+  ],
+  "sp500_result": {
+    "artifact_dir": "/Users/sansarkarki/Documents/Clavis/BACKFILL/9ac29bb1-41cc-46e7-94b1-90c1bf9286f9",
+    "artifact_dirs": [
+      "/Users/sansarkarki/Documents/Clavis/BACKFILL/ce93ad73-6bbe-475a-b554-da1ee9872058",
+      "/Users/sansarkarki/Documents/Clavis/BACKFILL/9ac29bb1-41cc-46e7-94b1-90c1bf9286f9"
+    ],
+    "failed": [],
+    "job_type": "backfill",
+    "refreshed": 6,
+    "requested": 6,
+    "status": "ok"
+  },
+  "started_at": "2026-05-27T15:50:51.766769+00:00"
+}

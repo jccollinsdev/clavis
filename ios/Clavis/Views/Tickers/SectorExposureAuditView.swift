@@ -5,32 +5,40 @@ struct SectorExposureAuditView: View {
     let methodology: MethodologyResponse?
 
     private var dimension: MethodologySectorExposure? { methodology?.dimensions.sectorExposure }
+    private var isReferenceMode: Bool { methodology == nil }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: ClavisTheme.sectionSpacing) {
-                AuditHeaderCard(
-                    title: "Sector Exposure",
-                    ticker: ticker,
-                    score: dimension?.score,
-                    subtitle: "\(dimension?.sector ?? "Sector unavailable") · \(dimension?.sectorEtf ?? "ETF unavailable")"
-                )
+                if isReferenceMode {
+                    AuditReferenceContextView(
+                        dimensionName: "Sector Exposure",
+                        message: "Open a ticker from Search, Holdings, Alerts, or the Morning Report to inspect live sector beta, momentum, breadth, and narrative context for that stock."
+                    )
+                } else {
+                    AuditHeaderCard(
+                        title: "Sector Exposure",
+                        ticker: ticker,
+                        score: dimension?.score,
+                        subtitle: "\(dimension?.sector ?? "Sector unavailable") · \(dimension?.sectorEtf ?? "ETF unavailable")"
+                    )
 
-                AuditSectionCard(title: "Metrics") {
-                    AuditValueRow(label: "Sector Beta", value: format(dimension?.sectorBeta), status: "Metric")
-                    AuditValueRow(label: "Sector Momentum (30d)", value: percent(dimension?.sectorMomentum30d), status: "Metric")
-                    AuditValueRow(label: "Sector Breadth", value: percent(dimension?.sectorBreadth), status: "Metric")
-                    // TODO: backend expose sector metric sparklines for the full audit screen.
-                    Text("Sparklines will appear once historical sector metric series are returned.")
-                        .font(ClavisTypography.footnote)
-                        .foregroundColor(.clavixInk3)
-                }
+                    AuditSectionCard(title: "Metrics") {
+                        AuditValueRow(label: "Sector Beta", value: format(dimension?.sectorBeta), status: "Metric")
+                        AuditValueRow(label: "Sector Momentum (30d)", value: percent(dimension?.sectorMomentum30d), status: "Metric")
+                        AuditValueRow(label: "Sector Breadth", value: percent(dimension?.sectorBreadth), status: "Metric")
+                        // TODO: backend expose sector metric sparklines for the full audit screen.
+                        Text("Sparklines will appear once historical sector metric series are returned.")
+                            .font(ClavisTypography.footnote)
+                            .foregroundColor(.clavixInk3)
+                    }
 
-                AuditSectionCard(title: "Narrative") {
-                    Text(dimension?.narrative ?? "Sector narrative unavailable.")
-                        .font(ClavisTypography.body)
-                        .foregroundColor(.clavixInk3)
-                        .fixedSize(horizontal: false, vertical: true)
+                    AuditSectionCard(title: "Narrative") {
+                        Text(dimension?.narrative ?? "Sector narrative unavailable.")
+                            .font(ClavisTypography.body)
+                            .foregroundColor(.clavixInk3)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
 
                 AuditSectionCard(title: "Methodology") {

@@ -7,13 +7,24 @@ struct MorningReportView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("Today's Morning Digest")
+                Text(viewModel.todayDigest.map(reportTitle(for:)) ?? "Morning Digest")
                     .font(ClavisTypography.clavixSerif(28, weight: .medium))
                     .tracking(-0.5)
                     .foregroundColor(.clavixInk)
                     .padding(.top, 4)
 
                 if let digest = viewModel.todayDigest {
+                    if let latestDigestMessage = latestDigestMessage(for: digest) {
+                        ClavixInlineNoticeCard(
+                            eyebrow: "Latest Available",
+                            title: "Showing the most recent saved briefing",
+                            message: latestDigestMessage,
+                            footnote: "Use Holdings for the live book. Saved briefings can lag behind new positions, removals, watchlist edits, or refreshed scores.",
+                            glyph: "clock.arrow.circlepath",
+                            fill: .clavixPaper2,
+                            secondary: .clavixInk3
+                        )
+                    }
                     masthead(digest)
                     macroSection(digest)
                     sectorSection(digest)
@@ -368,6 +379,21 @@ struct MorningReportView: View {
         f.dateFormat = "MMM d, yyyy"
         f.locale = Locale(identifier: "en_US_POSIX")
         return f.string(from: digest.generatedAt).uppercased()
+    }
+
+    private func reportTitle(for digest: Digest) -> String {
+        isDigestFromToday(digest) ? "Today's Morning Digest" : "Latest Morning Digest"
+    }
+
+    private func latestDigestMessage(for digest: Digest) -> String? {
+        guard !isDigestFromToday(digest) else { return nil }
+        return "This digest was generated on \(mastheadDateLabel(digest)) and may not reflect holdings, watchlist, or score changes made after that time."
+    }
+
+    private func isDigestFromToday(_ digest: Digest) -> Bool {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "America/New_York") ?? .current
+        return calendar.isDate(digest.generatedAt, inSameDayAs: Date())
     }
 
     private func deltaText(_ ticker: String) -> String {
