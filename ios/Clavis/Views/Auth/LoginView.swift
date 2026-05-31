@@ -54,34 +54,35 @@ struct LoginView: View {
 
     private var welcomeSurface: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                Spacer(minLength: 20)
+            VStack(alignment: .leading, spacing: 0) {
+                Spacer(minLength: 32)
+
+                Text("Portfolio risk,\nmeasured.")
+                    .font(ClavisTypography.clavixSerif(40, weight: .medium))
+                    .tracking(-0.5)
+                    .foregroundColor(.clavixInk)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.bottom, 14)
+
+                Text("Every morning, Clavix scores your positions across five risk dimensions — macro, sector, financials, news, and volatility — and explains the reasoning.")
+                    .font(ClavisTypography.inter(15, weight: .regular))
+                    .foregroundColor(.clavixInk2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.bottom, 28)
 
                 ClavixCard {
-                    VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 8) {
                         ClavixEyebrow("Morning Report")
-                        Text("One briefing. Every score audited.")
-                            .font(ClavisTypography.clavixSerif(26, weight: .medium))
+                        Text("One briefing. Every grade audited.")
+                            .font(ClavisTypography.clavixSerif(20, weight: .medium))
                             .foregroundColor(.clavixInk)
-                        Text("Macro, sector, and position risk in one daily view, with the math behind every grade.")
-                            .font(ClavisTypography.inter(15, weight: .regular))
+                        Text("Macro conditions, sector exposure, and position-level risk in a single daily view. The math behind each grade is always inspectable.")
+                            .font(ClavisTypography.inter(14, weight: .regular))
                             .foregroundColor(.clavixInk2)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
-
-                Spacer(minLength: 20)
-
-                Text("Portfolio risk, measured.")
-                    .font(ClavisTypography.clavixSerif(36, weight: .medium))
-                    .foregroundColor(.clavixInk)
-
-                Text("Built for investors who want the morning answer without opening six different apps.")
-                    .font(ClavisTypography.inter(15, weight: .regular))
-                    .foregroundColor(.clavixInk2)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                Spacer(minLength: 20)
+                .padding(.bottom, 32)
 
                 AuthActionButton(
                     title: "Create account",
@@ -91,6 +92,7 @@ struct LoginView: View {
                     mode = .signUp
                     focusedField = .email
                 }
+                .padding(.bottom, 10)
 
                 AuthActionButton(
                     title: "Sign in",
@@ -101,15 +103,17 @@ struct LoginView: View {
                     mode = .signIn
                     focusedField = .email
                 }
+                .padding(.bottom, 20)
 
-                Text("Clavix is informational only.")
+                Text(ClavisCopy.riskAcknowledgment)
                     .font(ClavisTypography.clavixCaption)
                     .foregroundColor(.clavixInk3)
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, 4)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .multilineTextAlignment(.center)
+                    .padding(.bottom, 8)
 
                 termsFooter
-                    .padding(.top, 8)
+                    .padding(.bottom, 16)
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 32)
@@ -117,7 +121,7 @@ struct LoginView: View {
             .frame(maxWidth: .infinity)
         }
         .safeAreaInset(edge: .top, spacing: 0) {
-            ClavixStickyBar(trailing: AnyView(ClavixEyebrow("Andover Digital")))
+            ClavixStickyBar()
         }
     }
 
