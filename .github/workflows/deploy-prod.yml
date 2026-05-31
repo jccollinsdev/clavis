@@ -37,15 +37,17 @@ jobs:
 
       - name: Sync repository to droplet
         run: |
-          rsync -az --delete \
+          rsync -rlptD --delete \
+            --no-owner --no-group \
             --exclude '.git/' \
             --exclude '.github/' \
             --exclude '.xcodebuildmcp/' \
+            --exclude '.DS_Store' \
             --exclude 'BACKFILL/' \
             --exclude 'BACKFILL_IMPORT/' \
             --exclude 'ios/' \
             --exclude 'backend/.env' \
-            --exclude 'backend/apns/apns.p8' \
+            --exclude 'backend/apns/' \
             --exclude '__pycache__/' \
             --exclude '*.pyc' \
             ./ "${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}:/opt/clavis/"
