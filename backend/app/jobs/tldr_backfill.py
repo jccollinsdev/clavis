@@ -27,24 +27,50 @@ async def run(days_back: int = 30) -> dict[str, Any]:
     from app.services.news_enrichment import enrich_and_store_articles_batch
 
     supabase = get_supabase()
+    cutoff = (datetime.utcnow() - timedelta(days=days_back)).isoformat()
+    COLS = "id, ticker, title, body, sentiment_score, tldr, what_it_means, key_implications, source, published_at, source_url"
 
-    # Find articles with body but incomplete enrichment
-    rows = (
+    # Query 1: articles missing tldr or what_it_means (NULL)
+    rows_null = (
         supabase.table("shared_ticker_events")
-        .select("id, ticker, title, body, sentiment_score, tldr, what_it_means, key_implications, source, published_at, source_url")
-        .gte("published_at", (datetime.utcnow() - timedelta(days=days_back)).isoformat())
+        .select(COLS)
+        .gte("published_at", cutoff)
         .not_.is_("body", "null")
-        .or_("tldr.is.null,what_it_means.is.null,key_implications.is.null")
+        .or_("tldr.is.null,what_it_means.is.null")
         .order("published_at", desc=True)
         .limit(2000)
         .execute()
-        .data
-        or []
+        .data or []
     )
+
+    # Query 2: articles with empty key_implications [] (the most common backlog case)
+    # Most articles were enriched before key_implications was added, so they have
+    # tldr+what_it_means but key_implications stored as [] (empty array, not NULL).
+    rows_empty_ki = (
+        supabase.table("shared_ticker_events")
+        .select(COLS)
+        .gte("published_at", cutoff)
+        .not_.is_("body", "null")
+        .not_.is_("sentiment_score", "null")
+        .eq("key_implications", "[]")
+        .order("published_at", desc=True)
+        .limit(2000)
+        .execute()
+        .data or []
+    )
+
+    # Merge and deduplicate by id
+    seen: set[str] = set()
+    merged: list[dict] = []
+    for row in rows_null + rows_empty_ki:
+        rid = str(row.get("id") or "")
+        if rid and rid not in seen:
+            seen.add(rid)
+            merged.append(row)
 
     # Filter to articles with meaningful body
     candidates = [
-        r for r in rows
+        r for r in merged
         if r.get("body") and len(str(r.get("body") or "")) >= MIN_BODY_LENGTH
     ]
     total = len(candidates)
