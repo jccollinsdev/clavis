@@ -1483,16 +1483,27 @@ def _shared_risk_dimensions(snapshot: dict[str, Any] | None) -> dict[str, Any]:
         except Exception:
             factor_breakdown = {}
     ai_dims = (factor_breakdown or {}).get("ai_dimensions") or {}
+
+    # Dimensions explicitly flagged as limited_data must NOT fall back to a
+    # cached raw score from factor_breakdown.ai_dimensions. Returning None here
+    # ensures the API response is internally consistent: a user seeing
+    # news_sentiment=None alongside composite=76.0 (4-dim average) will get
+    # a coherent picture. Showing news=37 while composite=76.0 would imply the
+    # math doesn't add up, which destroys trust with the sophisticated ICP.
+    limited_dims: set[str] = set(snapshot.get("limited_data_dimensions") or [])
+
+    news_score = (
+        None if "news_sentiment" in limited_dims
+        else _first_non_none(snapshot.get("news_sentiment_dim"), ai_dims.get("news_sentiment"))
+    )
+
     return {
         "financial_health": _first_non_none(
             snapshot.get("financial_health"),
             ai_dims.get("financial_health"),
             ai_dims.get("position_sizing"),
         ),
-        "news_sentiment": _first_non_none(
-            snapshot.get("news_sentiment_dim"),
-            ai_dims.get("news_sentiment"),
-        ),
+        "news_sentiment": news_score,
         "macro_exposure": _first_non_none(
             snapshot.get("macro_exposure_dim"),
             ai_dims.get("macro_exposure"),
