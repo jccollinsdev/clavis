@@ -97,6 +97,26 @@ _SPAM_TITLE_PATTERNS = re.compile(
     re.IGNORECASE,
 )
 
+# Title patterns that signal the article is primarily about a FUND/ETF/BASKET,
+# not the individual ticker fetched. Finnhub company_news occasionally returns
+# articles where the ticker is only a passing mention (e.g., "AAPL is 10% of QQQ").
+# These should be penalised heavily so they don't pollute the ticker's news feed.
+_FUND_PRIMARY_TITLE_PATTERNS = re.compile(
+    r"\b("
+    r"(QQQ|SPY|VOO|VTI|IVV|XL[KBCEFHIPUVY]|SOXX|SMH|VGT|ARKK|ARKG|ARKW|ARKF)\b"
+    r"|invesco q|vanguard (s&p|total|growth|value|dividend|balanced)"
+    r"|ishares|schwab (us|international|equity|large|small|mid)"
+    r"|fidelity (magellan|contrafund|500 index|total market)"
+    r"|top \d+ holding"
+    r"|fund'?s? (top|largest|biggest|portfolio|holding)"
+    r"|\d+ stock.? (to buy|investors overlook|you should)"
+    r"|\d+ (best|worst|top) stock"
+    r"|concentration risk"
+    r"|hidden.?risk"
+    r")",
+    re.IGNORECASE,
+)
+
 # Source URLs that are clearly not article bodies
 _NON_ARTICLE_PATH_PATTERNS = re.compile(
     r"/(quote|chart|charts|screener|portfolio|login|signup|subscribe"
@@ -146,6 +166,53 @@ def _is_google_wrapper_url(url: str) -> bool:
         return "news.google.com" in host
     except Exception:
         return False
+
+
+def _ticker_relevance_penalty(article: dict) -> tuple[float, str]:
+    """Return (penalty, reason) when an article is likely off-ticker.
+
+    Called with articles that come from Finnhub company_news per-ticker. Finnhub
+    sometimes returns articles that only mention the ticker as a passing detail
+    (e.g., "AAPL is one of QQQ's top holdings"). These should not score sentiment
+    for that ticker.
+
+    Penalty scale:
+    - 0   : article is clearly about the ticker (no penalty)
+    - 30  : title looks like a fund/basket article; ticker probably a passing mention
+    - 60  : fund title pattern + ticker NOT found in title at all → very likely off-ticker
+
+    The penalty is subtracted from score_candidate's running score. A score of 0
+    means the article will be filtered by rank_and_filter_candidates.
+    """
+    ticker = str(article.get("ticker") or "").strip().upper()
+    title = str(article.get("title") or "").strip()
+    summary = str(article.get("summary") or "").strip()
+
+    if not ticker:
+        return 0.0, "no_ticker"
+
+    title_upper = title.upper()
+
+    # If the ticker symbol is in the title, it's almost certainly relevant.
+    # Allow short ticker symbols (≥3 chars) to avoid false positives on common words.
+    if len(ticker) >= 3 and ticker in title_upper:
+        return 0.0, "ticker_in_title"
+
+    # Ticker in summary → soft relevance signal; still check for fund titles
+    ticker_in_summary = len(ticker) >= 3 and ticker in summary.upper()
+
+    # Title looks like it's about a fund/ETF/basket, not the ticker
+    is_fund_title = bool(_FUND_PRIMARY_TITLE_PATTERNS.search(title))
+
+    if is_fund_title and not ticker_in_summary:
+        return 60.0, "fund_primary_title_no_ticker_mention"
+    if is_fund_title:
+        return 30.0, "fund_primary_title"
+    if not ticker_in_summary and len(title) > 20:
+        # Ticker absent from both title and summary → soft penalty
+        return 15.0, "ticker_absent_from_title_and_summary"
+
+    return 0.0, "ok"
 
 
 def score_candidate(article: dict) -> tuple[float, str]:
@@ -203,7 +270,17 @@ def score_candidate(article: dict) -> tuple[float, str]:
         if _re.search(r"2026-05-1[5-6]", published_at):
             score += 5.0
 
-    return min(max(score, 0.0), 100.0), f"policy={policy}"
+    # Ticker-relevance: penalise articles where the fetched ticker is only a
+    # passing mention (e.g., Finnhub returning an ETF article for AAPL because
+    # AAPL happens to be a top holding of that ETF).
+    relevance_penalty, relevance_reason = _ticker_relevance_penalty(article)
+    if relevance_penalty > 0:
+        score -= relevance_penalty
+        reason_suffix = f",relevance={relevance_reason}"
+    else:
+        reason_suffix = ""
+
+    return min(max(score, 0.0), 100.0), f"policy={policy}{reason_suffix}"
 
 
 def rank_and_filter_candidates(

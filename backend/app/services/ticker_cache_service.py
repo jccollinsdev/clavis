@@ -13,7 +13,7 @@ from uuid import uuid4
 from fastapi import HTTPException
 
 from ..pipeline.risk_scorer import score_position_structural
-from ..pipeline.analysis_utils import score_to_grade, grade_direction, sanitize_rationale, sanitize_public_analysis_text, format_rationale, evidence_strength, sanitize_text_field, normalize_event_analysis_payload
+from ..pipeline.analysis_utils import score_to_grade, grade_direction, sanitize_rationale, sanitize_public_analysis_text, format_rationale, evidence_strength, sanitize_text_field, normalize_event_analysis_payload, calculate_weighted_score
 from ..pipeline.structural_scorer import estimate_iv_rank_from_realized_vol, percentile_rank
 from ..pipeline.position_report_builder import _build_driver_cards
 from .alert_payloads import enrich_alert_rows
@@ -3904,18 +3904,46 @@ def refresh_ticker_snapshot(
             "sector_inputs": sector_inputs,
             "volatility_inputs": volatility_inputs,
         }
+        prev_score_for_smoothing = (
+            previous_snapshot.get("composite_score")
+            if previous_snapshot and previous_snapshot.get("composite_score") is not None
+            else previous_snapshot.get("safety_score")
+            if previous_snapshot
+            else None
+        )
         score = score_position_structural(
             {},
             ticker_metadata=scoring_metadata,
             recent_events=recent_events,
-            previous_safety_score=(
-                previous_snapshot.get("composite_score")
-                if previous_snapshot and previous_snapshot.get("composite_score") is not None
-                else previous_snapshot.get("safety_score")
-                if previous_snapshot
-                else None
-            ),
+            previous_safety_score=prev_score_for_smoothing,
         )
+
+        # ── CLAVIX TRUTH §7: Limited-data exclusion ─────────────────────────
+        # score_position_structural counts all recent_events (which may include
+        # articles older than 7 days) when deciding whether news_sentiment is
+        # computable. news_inputs uses a strict 7-day window. When news_inputs
+        # flags limited_data=True, we override news_sentiment to None and
+        # recompute the composite from the remaining 4 dimensions — never
+        # average a "thin" news signal into the grade.
+        if news_inputs.get("limited_data") and score.get("news_sentiment") is not None:
+            normalized_excl_news = {
+                "financial_health": score.get("financial_health"),
+                "news_sentiment": None,  # excluded
+                "macro_exposure": score.get("macro_exposure"),
+                "sector_exposure": score.get("sector_exposure"),
+                "volatility": score.get("volatility"),
+            }
+            recomputed_composite = round(calculate_weighted_score(normalized_excl_news), 1)
+            recomputed_grade = score_to_grade(recomputed_composite)
+            score = {
+                **score,
+                "news_sentiment": None,
+                "total_score": recomputed_composite,
+                "safety_score": recomputed_composite,
+                "composite_score": recomputed_composite,
+                "grade": recomputed_grade,
+            }
+
         analysis_as_of = _utcnow_iso()
         dimension_inputs = {
             "financial_health": financial_inputs,
