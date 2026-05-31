@@ -48,6 +48,32 @@ struct ClavixLargeHeader: View {
     }
 }
 
+struct ClavixStickyBar: View {
+    var trailing: AnyView? = nil
+
+    var body: some View {
+        ZStack {
+            HStack(spacing: 12) {
+                Image("clavix_logo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 36, height: 36)
+                    .accessibilityHidden(true)
+                Spacer(minLength: 8)
+                if let trailing { trailing }
+            }
+            Text("CLAVIX")
+                .font(ClavisTypography.clavixMono(21, weight: .bold))
+                .tracking(1.5)
+                .foregroundColor(.clavixInk)
+        }
+        .padding(.horizontal, ClavixLayout.pad)
+        .padding(.vertical, 10)
+        .background(Color.clavixPage.ignoresSafeArea(edges: .top))
+        .overlay(alignment: .bottom) { Rectangle().fill(Color.clavixRule).frame(height: 1) }
+    }
+}
+
 struct ClavixEyebrow: View {
     let text: String
     init(_ text: String) { self.text = text }
@@ -211,24 +237,32 @@ struct ClavixTabBar: View {
 
 struct ClavixScoreBar: View {
     let score: Int
+
+    /// Interpolate a solid color: red (0) → amber (50) → green (100).
+    private var scoreColor: Color {
+        let t = CGFloat(min(max(score, 0), 100)) / 100.0
+        let red   = (r: 0.88 as CGFloat, g: 0.14 as CGFloat, b: 0.14 as CGFloat)
+        let amber = (r: 1.00 as CGFloat, g: 0.70 as CGFloat, b: 0.00 as CGFloat)
+        let green = (r: 0.08 as CGFloat, g: 0.74 as CGFloat, b: 0.30 as CGFloat)
+        let from = t <= 0.5 ? red   : amber
+        let to   = t <= 0.5 ? amber : green
+        let u    = t <= 0.5 ? t / 0.5 : (t - 0.5) / 0.5
+        return Color(
+            red:   Double(from.r + u * (to.r - from.r)),
+            green: Double(from.g + u * (to.g - from.g)),
+            blue:  Double(from.b + u * (to.b - from.b))
+        )
+    }
+
     var body: some View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
-                Rectangle().fill(Color.clavixRule2)
-                Rectangle()
-                    .fill(scoreTone(score))
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Color.clavixRule2)
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(scoreColor)
                     .frame(width: geo.size.width * CGFloat(min(max(score, 0), 100)) / 100)
             }
-        }
-        .frame(height: 4)
-    }
-
-    private func scoreTone(_ score: Int) -> Color {
-        switch score {
-        case 80...100: return .clavixGood
-        case 60..<80:  return .clavixAccent
-        case 40..<60:  return .clavixWarn
-        default:        return .clavixBad
         }
     }
 }

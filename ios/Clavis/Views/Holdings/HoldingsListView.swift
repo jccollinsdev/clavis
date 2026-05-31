@@ -828,20 +828,22 @@ private struct HoldingsAddMethodSheet: View {
                 dismiss()
             }
 
-            HoldingsMethodCard(
-                title: "Refresh from your brokerage",
-                description: brokerageViewModel.isConnected
-                    ? "Connected brokerage can update share counts and cost data."
-                    : "Connect your brokerage to pull positions read-only.",
-                icon: "arrow.clockwise",
-                badge: brokerageViewModel.isConnected ? "LIVE" : nil
-            ) {
-                Task {
-                    if brokerageViewModel.isConnected {
-                        await brokerageViewModel.syncNow(refreshRemote: true)
-                        await viewModel.refreshHoldings()
-                    } else {
-                        await brokerageViewModel.startConnect()
+            if FeatureFlags.brokerageEnabled {
+                HoldingsMethodCard(
+                    title: "Refresh from your brokerage",
+                    description: brokerageViewModel.isConnected
+                        ? "Connected brokerage can update share counts and cost data."
+                        : "Connect your brokerage to pull positions read-only.",
+                    icon: "arrow.clockwise",
+                    badge: brokerageViewModel.isConnected ? "LIVE" : nil
+                ) {
+                    Task {
+                        if brokerageViewModel.isConnected {
+                            await brokerageViewModel.syncNow(refreshRemote: true)
+                            await viewModel.refreshHoldings()
+                        } else {
+                            await brokerageViewModel.startConnect()
+                        }
                     }
                 }
             }
@@ -1282,7 +1284,7 @@ private struct HoldingsUpgradeSheet: View {
     var body: some View {
         ClavixScreen(eyebrow: "Free plan", title: "Position limit reached") {
             ClavixCard(fill: .clavixAccentSoft) {
-                Text("Free accounts can track three positions. Upgrade to add more positions, connect your brokerage, and unlock full history.")
+                Text("Free accounts can track three positions. Upgrade for unlimited positions, the verbose morning brief, and full history.")
                     .font(ClavisTypography.inter(14, weight: .regular))
                     .foregroundColor(.clavixAccentInk)
                     .fixedSize(horizontal: false, vertical: true)

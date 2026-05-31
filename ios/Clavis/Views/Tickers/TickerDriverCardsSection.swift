@@ -50,70 +50,57 @@ private struct HiFiDriverCard: View {
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 8) {
-                    Text(tag)
-                        .font(ClavisTypography.clavixMono(9, weight: .bold))
-                        .tracking(0.5)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 3)
-                        .background(tone.border)
-                        .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
-                        .fixedSize()
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Text(tag)
+                    .font(ClavisTypography.clavixMono(9, weight: .bold))
+                    .tracking(0.5)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 3)
+                    .background(tone.border)
+                    .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
+                    .fixedSize()
 
-                    Text("via \(card.theme.displayName)")
-                        .font(ClavisTypography.clavixMono(10, weight: .regular))
-                        .foregroundColor(tone.ink.opacity(0.75))
-                        .lineLimit(1)
-                }
+                Text("via \(card.theme.displayName)")
+                    .font(ClavisTypography.clavixMono(10, weight: .regular))
+                    .foregroundColor(tone.ink.opacity(0.75))
+                    .lineLimit(1)
+            }
 
-                Text(card.title)
-                    .font(ClavisTypography.clavixSerif(16, weight: .medium))
-                    .foregroundColor(tone.ink)
+            Text(card.title)
+                .font(ClavisTypography.clavixSerif(16, weight: .medium))
+                .foregroundColor(tone.ink)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if !card.summary.isEmpty {
+                Text(card.summary)
+                    .font(ClavisTypography.clavixCaption)
+                    .foregroundColor(tone.ink.opacity(0.85))
+                    .lineSpacing(2)
                     .fixedSize(horizontal: false, vertical: true)
+            }
 
-                if !card.summary.isEmpty {
-                    Text(card.summary)
-                        .font(ClavisTypography.clavixCaption)
-                        .foregroundColor(tone.ink.opacity(0.85))
-                        .lineSpacing(2)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                if !card.sourceChips.isEmpty {
-                    HStack(spacing: 6) {
-                        ForEach(Array(card.sourceChips.prefix(3)), id: \.self) { source in
-                            Text(source)
-                                .font(ClavisTypography.clavixMono(9, weight: .semibold))
-                                .tracking(0.3)
-                                .foregroundColor(tone.ink.opacity(0.85))
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 3, style: .continuous)
-                                        .stroke(tone.border.opacity(0.55), lineWidth: 1)
-                                )
-                                .fixedSize()
-                        }
+            if !card.sourceChips.isEmpty {
+                HStack(spacing: 6) {
+                    ForEach(Array(card.sourceChips.prefix(3)), id: \.self) { source in
+                        Text(source)
+                            .font(ClavisTypography.clavixMono(9, weight: .semibold))
+                            .tracking(0.3)
+                            .foregroundColor(tone.ink.opacity(0.85))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 3, style: .continuous)
+                                    .stroke(tone.border.opacity(0.55), lineWidth: 1)
+                            )
+                            .fixedSize()
                     }
                 }
             }
-
-            VStack(alignment: .trailing, spacing: 2) {
-                Text("STRENGTH")
-                    .font(ClavisTypography.clavixMono(10, weight: .bold))
-                    .tracking(0.4)
-                    .foregroundColor(tone.ink.opacity(0.7))
-                Text(card.strength.displayName.uppercased())
-                    .font(ClavisTypography.clavixMono(13, weight: .bold))
-                    .foregroundColor(tone.ink)
-                    .lineLimit(1)
-                    .fixedSize()
-            }
         }
         .padding(14)
+        .padding(.trailing, 88)  // leave room for pinned strength badge
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(tone.bg)
         .overlay(
@@ -121,6 +108,21 @@ private struct HiFiDriverCard: View {
                 .stroke(tone.border, lineWidth: 1)
         )
         .clipShape(RoundedRectangle(cornerRadius: ClavixLayout.cardRadius, style: .continuous))
+        .overlay(alignment: .topTrailing) {
+            VStack(alignment: .trailing, spacing: 1) {
+                Text("STRENGTH")
+                    .font(ClavisTypography.clavixMono(9, weight: .bold))
+                    .tracking(0.4)
+                    .foregroundColor(tone.ink.opacity(0.7))
+                Text(card.strength.displayName.uppercased())
+                    .font(ClavisTypography.clavixMono(12, weight: .bold))
+                    .foregroundColor(tone.ink)
+                    .lineLimit(1)
+                    .fixedSize()
+            }
+            .padding(.top, 14)
+            .padding(.trailing, 14)
+        }
     }
 }
 

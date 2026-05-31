@@ -9,88 +9,121 @@ struct ArticleDetailSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        ClavixScreen(
-            eyebrow: ticker,
-            title: "Article",
-            trailing: AnyView(
-                Button("Close") { dismiss() }
-                    .font(ClavisTypography.clavixMono(10, weight: .semibold))
-                    .foregroundColor(.clavixAccent)
-                    .buttonStyle(.plain)
-            )
-        ) {
-            HStack(spacing: 8) {
-                impactPill
-                tierLabel
-                Spacer()
-                Text(relativeTimestamp)
-                    .font(ClavisTypography.clavixMono(10, weight: .regular))
-                    .foregroundColor(.clavixInk3)
-            }
-
-            Text(article.title?.sanitizedDisplayText ?? "Untitled article")
-                .font(ClavisTypography.clavixSerif(26, weight: .medium))
-                .foregroundColor(.clavixInk)
-                .fixedSize(horizontal: false, vertical: true)
-
-            Rectangle()
-                .fill(Color.clavixRule)
-                .frame(height: 1)
-
-            VStack(alignment: .leading, spacing: 6) {
-                ClavixEyebrow("Brief")
-                Text(briefText)
-                    .font(ClavisTypography.clavixSerif(16, weight: .regular))
-                    .foregroundColor(.clavixInk2)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                // Article title — main heading
+                Text(article.title?.sanitizedDisplayText ?? "Untitled article")
+                    .font(ClavisTypography.clavixSerif(26, weight: .medium))
+                    .foregroundColor(.clavixInk)
                     .fixedSize(horizontal: false, vertical: true)
-            }
 
-            if let portfolioContextText {
-                ClavixCard(fill: .clavixAccentSoft) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        ClavixEyebrow("Portfolio context")
-                        Text(portfolioContextText)
-                            .font(ClavisTypography.clavixSerif(15, weight: .regular))
-                            .foregroundColor(.clavixAccentInk)
-                            .fixedSize(horizontal: false, vertical: true)
+                // Financial impact pill + timestamp inline, below title
+                HStack(spacing: 8) {
+                    impactPill
+                    Text("·")
+                        .font(ClavisTypography.clavixMono(10, weight: .regular))
+                        .foregroundColor(.clavixInk4)
+                    Text(relativeTimestamp)
+                        .font(ClavisTypography.clavixMono(10, weight: .regular))
+                        .foregroundColor(.clavixInk3)
+                    Spacer()
+                }
+
+                Rectangle()
+                    .fill(Color.clavixRule)
+                    .frame(height: 1)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    ClavixEyebrow("Brief")
+                    Text(briefText)
+                        .font(ClavisTypography.clavixSerif(16, weight: .regular))
+                        .foregroundColor(.clavixInk2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                if let portfolioContextText {
+                    ClavixCard(fill: .clavixAccentSoft) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            ClavixEyebrow("Portfolio context")
+                            Text(portfolioContextText)
+                                .font(ClavisTypography.clavixSerif(15, weight: .regular))
+                                .foregroundColor(.clavixAccentInk)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
                 }
-            }
 
-            VStack(alignment: .leading, spacing: 6) {
-                ClavixEyebrow("Risk signal")
-                ClavixCard {
-                    HStack(alignment: .top, spacing: 12) {
-                        Text(sentimentValueText)
-                            .font(ClavisTypography.clavixMono(26, weight: .semibold))
-                            .foregroundColor(sentimentColor)
+                VStack(alignment: .leading, spacing: 6) {
+                    ClavixEyebrow("Risk signal")
+                    ClavixCard {
+                        HStack(alignment: .top, spacing: 12) {
+                            Text(sentimentValueText)
+                                .font(ClavisTypography.clavixMono(26, weight: .semibold))
+                                .foregroundColor(sentimentColor)
 
-                        Text(riskSignalText)
-                            .font(ClavisTypography.clavixCaption)
-                            .foregroundColor(.clavixInk2)
-                            .fixedSize(horizontal: false, vertical: true)
+                            Text(riskSignalText)
+                                .font(ClavisTypography.clavixCaption)
+                                .foregroundColor(.clavixInk2)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
                 }
-            }
 
-            if let buttonLabel = readOriginalLabel {
-                Button(action: openSourceURL) {
-                    Text(buttonLabel)
-                        .font(ClavisTypography.inter(15, weight: .semibold))
+                if let buttonLabel = readOriginalLabel {
+                    Button(action: openSourceURL) {
+                        Text(buttonLabel)
+                            .font(ClavisTypography.inter(15, weight: .semibold))
+                            .foregroundColor(.clavixInk)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 48)
+                            .background(Color.clear)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: ClavixLayout.controlRadius, style: .continuous)
+                                    .stroke(Color.clavixRule, lineWidth: 1)
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: ClavixLayout.controlRadius, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, ClavixLayout.pad)
+            .padding(.top, 20)
+            .padding(.bottom, ClavixLayout.bottomPad)
+        }
+        .background(Color.clavixPage.ignoresSafeArea())
+        .safeAreaInset(edge: .top, spacing: 0) {
+            // Header: "Article brief" title + X dismiss button
+            HStack(alignment: .center) {
+                Text("Article brief")
+                    .font(ClavisTypography.clavixSerif(20, weight: .medium))
+                    .foregroundColor(.clavixInk)
+                Spacer()
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 15, weight: .bold))
                         .foregroundColor(.clavixInk)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 48)
-                        .background(Color.clear)
+                        .frame(width: 38, height: 38)
+                        .background(Color.clavixPaper2)
+                        .clipShape(Circle())
                         .overlay(
-                            RoundedRectangle(cornerRadius: ClavixLayout.controlRadius, style: .continuous)
+                            Circle()
                                 .stroke(Color.clavixRule, lineWidth: 1)
                         )
-                        .clipShape(RoundedRectangle(cornerRadius: ClavixLayout.controlRadius, style: .continuous))
                 }
                 .buttonStyle(.plain)
             }
+            .padding(.horizontal, ClavixLayout.pad)
+            .padding(.vertical, 12)
+            .background(Color.clavixPage.ignoresSafeArea(edges: .top))
+            .overlay(alignment: .bottom) {
+                Rectangle().fill(Color.clavixRule).frame(height: 1)
+            }
         }
     }
+
+    // MARK: - Computed content
 
     private var briefText: String {
         if let tldr = article.tldr?.sanitizedDisplayText, !tldr.isEmpty {
@@ -169,12 +202,6 @@ struct ArticleDetailSheet: View {
         if label.contains("HIGH") { return .clavixWarnInk }
         if label.contains("LOW") { return .clavixInk2 }
         return .clavixAccentInk
-    }
-
-    private var tierLabel: some View {
-        Text(article.sourceTier.map { "Tier \($0) source" } ?? (article.source?.sanitizedDisplayText ?? "Source unavailable"))
-            .font(ClavisTypography.clavixMono(10, weight: .regular))
-            .foregroundColor(.clavixInk3)
     }
 
     private var relativeTimestamp: String {

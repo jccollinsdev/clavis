@@ -46,3 +46,5 @@ opencode.json
 token-dashboard/
 apns/
 ios/Clavis/Config/Secrets.local.xcconfig
+BACKFILL/
+scratch/

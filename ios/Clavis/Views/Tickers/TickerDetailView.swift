@@ -90,9 +90,6 @@ struct TickerDetailView: View {
                 }
             }
         }
-        .navigationDestination(for: AuditDestination.self) { destination in
-            auditDestinationView(for: destination)
-        }
         .sheet(item: $selectedArticle) { article in
             ArticleDetailSheet(
                 article: article,
@@ -195,8 +192,6 @@ struct TickerDetailView: View {
             .id("executive-summary")
         recentNewsSection(detail)
             .id("recent-news")
-        scoreHistorySection
-            .id("score-history")
         bottomCtas(detail)
             .id("cta")
     }
@@ -287,31 +282,38 @@ struct TickerDetailView: View {
     private func heroSection(_ detail: TickerDetailResponse) -> some View {
         ClavixCard(padding: 0) {
             VStack(alignment: .leading, spacing: 0) {
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(alignment: .top, spacing: 12) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            ClavixEyebrow("Composite")
-                            HStack(alignment: .lastTextBaseline, spacing: 10) {
-                                ClavixGradeBadge(displayGrade, size: 40)
-                                Text(displayScoreText)
-                                    .font(ClavisTypography.clavixMono(30, weight: .semibold))
-                                    .tracking(-0.6)
-                                    .foregroundColor(.clavixInk)
-                            }
-                            scoreDeltaLine(detail)
+                HStack(alignment: .top, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(alignment: .lastTextBaseline, spacing: 10) {
+                            ClavixGradeBadge(displayGrade, size: 40)
+                            Text(displayScoreText)
+                                .font(ClavisTypography.clavixMono(30, weight: .semibold))
+                                .tracking(-0.6)
+                                .foregroundColor(.clavixInk)
                         }
-                        Spacer(minLength: 8)
-                        TickerRadarChart(dimensions: radarDimensions, size: 168)
+                        scoreDeltaLine(detail)
+
+                        if isHeld {
+                            heroShareContent(detail)
+                        }
                     }
-                    if displayScoreValue == nil && filteredPriceHistory.count < 2 {
-                        ratingPendingCard
-                    }
+                    Spacer(minLength: 8)
+                    TickerRadarChart(dimensions: radarDimensions, size: 168)
                 }
                 .padding(14)
 
                 if isHeld {
                     Rectangle().fill(Color.clavixRule2).frame(height: 1)
-                    heroHoldRow(detail)
+                    heroLastContent(detail)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                }
+
+                if displayScoreValue == nil && filteredPriceHistory.count < 2 {
+                    Rectangle().fill(Color.clavixRule2).frame(height: 1)
+                    ratingPendingCard
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
                 }
             }
         }
@@ -369,31 +371,33 @@ struct TickerDetailView: View {
         detail.sharedAnalysis?.summary.scoreDelta
     }
 
-    private func heroHoldRow(_ detail: TickerDetailResponse) -> some View {
-        HStack(alignment: .top, spacing: 14) {
-            VStack(alignment: .leading, spacing: 2) {
-                ClavixEyebrow("You hold")
-                Text(holdSummaryLine(detail))
-                    .font(ClavisTypography.clavixMono(13, weight: .semibold))
-                    .foregroundColor(.clavixInk)
-                if let costLine = costSummaryLine(detail) {
-                    Text(costLine)
-                        .font(ClavisTypography.clavixMono(11, weight: .semibold))
-                        .foregroundColor(costSummaryColor(detail))
-                }
-            }
-            Spacer(minLength: 8)
-            VStack(alignment: .trailing, spacing: 2) {
-                ClavixEyebrow("Last")
-                Text(currency(latestPrice))
-                    .font(ClavisTypography.clavixMono(20, weight: .semibold))
-                    .foregroundColor(.clavixInk)
-                Text(dayChangeText(detail))
+    /// YOU HOLD + share count + cost P&L — shown in the top-left column, below delta, next to radar.
+    private func heroShareContent(_ detail: TickerDetailResponse) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            ClavixEyebrow("You hold")
+            Text(holdSummaryLine(detail))
+                .font(ClavisTypography.clavixMono(13, weight: .semibold))
+                .foregroundColor(.clavixInk)
+            if let costLine = costSummaryLine(detail) {
+                Text(costLine)
                     .font(ClavisTypography.clavixMono(11, weight: .semibold))
-                    .foregroundColor(dayChangeColor(detail))
+                    .foregroundColor(costSummaryColor(detail))
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(14)
+    }
+
+    /// LAST price + day change — shown left-aligned in the bottom strip of the hero card.
+    private func heroLastContent(_ detail: TickerDetailResponse) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            ClavixEyebrow("Last")
+            Text(currency(latestPrice))
+                .font(ClavisTypography.clavixMono(20, weight: .semibold))
+                .foregroundColor(.clavixInk)
+            Text(dayChangeText(detail))
+                .font(ClavisTypography.clavixMono(11, weight: .semibold))
+                .foregroundColor(dayChangeColor(detail))
+        }
     }
 
     private func holdSummaryLine(_ detail: TickerDetailResponse) -> String {
@@ -455,7 +459,9 @@ struct TickerDetailView: View {
                 VStack(spacing: 0) {
                     ForEach(Array(dimensions.enumerated()), id: \.element.key) { index, dimension in
                         if let destination = auditDestination(for: dimension.key) {
-                            NavigationLink(value: destination) {
+                            NavigationLink {
+                                auditDestinationView(for: destination)
+                            } label: {
                                 dimensionRow(dimension)
                                     .padding(.horizontal, 14)
                                     .padding(.vertical, 12)
@@ -527,7 +533,7 @@ struct TickerDetailView: View {
 
     private func driversSection(_ detail: TickerDetailResponse) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            hifiSectionHeader(eyebrow: "Why this rating", title: "Key drivers")
+            hifiSectionHeader(eyebrow: "", title: "Key drivers")
 
             let summary = driverSummary(detail)
             if !summary.isEmpty {
@@ -595,7 +601,9 @@ struct TickerDetailView: View {
     private func hifiSectionHeader(eyebrow: String, title: String, action: String? = nil, onAction: (() -> Void)? = nil) -> some View {
         HStack(alignment: .lastTextBaseline) {
             VStack(alignment: .leading, spacing: 2) {
-                ClavixEyebrow(eyebrow)
+                if !eyebrow.isEmpty {
+                    ClavixEyebrow(eyebrow)
+                }
                 Text(title)
                     .font(ClavisTypography.clavixSerif(18, weight: .medium))
                     .foregroundColor(.clavixInk)
@@ -616,11 +624,9 @@ struct TickerDetailView: View {
         let articles = displayArticles(detail)
         let visibleArticles = showAllArticles ? articles : Array(articles.prefix(10))
 
-        let articleCountText = articles.isEmpty ? "No articles in window" : "\(articles.count) article\(articles.count == 1 ? "" : "s") · 7d"
-
         return VStack(alignment: .leading, spacing: 10) {
             hifiSectionHeader(
-                eyebrow: articleCountText,
+                eyebrow: "",
                 title: "Recent news",
                 action: articles.count > 10 ? (showAllArticles ? "Show less" : "See all →") : nil,
                 onAction: { showAllArticles.toggle() }
@@ -656,19 +662,6 @@ struct TickerDetailView: View {
     private func newsCard(_ article: MethodologyArticle) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                if let tier = article.sourceTier {
-                    Text("T\(tier)")
-                        .font(ClavisTypography.clavixMono(9, weight: .bold))
-                        .tracking(0.4)
-                        .foregroundColor(.clavixInk2)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 3, style: .continuous)
-                                .stroke(Color.clavixRule, lineWidth: 1)
-                        )
-                        .fixedSize()
-                }
                 Text(article.source ?? "Unknown source")
                     .font(ClavisTypography.clavixMono(11, weight: .semibold))
                     .foregroundColor(.clavixInk2)
@@ -752,32 +745,25 @@ struct TickerDetailView: View {
         return TickerDetailView.articleShortDateFormatter.string(from: date)
     }
 
+    @ViewBuilder
     private func bottomCtas(_ detail: TickerDetailResponse) -> some View {
-        ClavixCard(fill: .clavixPaper) {
-            VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
-                if isHeld {
-                    VStack(alignment: .leading, spacing: ClavisTheme.smallSpacing) {
-                        Text("In your holdings")
-                            .font(ClavisTypography.cardTitle)
-                            .foregroundColor(.clavixInk)
-                        Text(holdingSummary(detail))
-                            .font(ClavisTypography.body)
-                            .foregroundColor(.clavixInk3)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                } else {
-                    HStack(spacing: ClavisTheme.smallSpacing) {
-                        ClavisPrimaryButton(title: "Add to Holdings", action: { showAddHoldingSheet = true })
-                        ClavisSecondaryButton(title: isInWatchlist ? "On Watchlist" : "Add to Watchlist") {
-                            Task { await toggleWatchlist() }
+        if !isHeld || isInWatchlist {
+            ClavixCard(fill: .clavixPaper) {
+                VStack(alignment: .leading, spacing: ClavisTheme.mediumSpacing) {
+                    if !isHeld {
+                        HStack(spacing: ClavisTheme.smallSpacing) {
+                            ClavisPrimaryButton(title: "Add to Holdings", action: { showAddHoldingSheet = true })
+                            ClavisSecondaryButton(title: isInWatchlist ? "On Watchlist" : "Add to Watchlist") {
+                                Task { await toggleWatchlist() }
+                            }
                         }
                     }
-                }
 
-                if isInWatchlist {
-                    Text("Watching")
-                        .font(ClavisTypography.footnoteEmphasis)
-                        .foregroundColor(.clavixAccent)
+                    if isInWatchlist {
+                        Text("Watching")
+                            .font(ClavisTypography.footnoteEmphasis)
+                            .foregroundColor(.clavixAccent)
+                    }
                 }
             }
         }

@@ -22,6 +22,7 @@ DEMO_TICKERS = ["AAPL", "MSFT", "NVDA", "TSLA", "JPM", "XOM", "SPY"]
 
 def get(url: str, token: str | None = None, timeout: int = 20) -> tuple[int, float, dict | None]:
     req = urllib.request.Request(url)
+    req.add_header("User-Agent", "curl/8.0")
     if token:
         req.add_header("Authorization", f"Bearer {token}")
     t0 = time.monotonic()

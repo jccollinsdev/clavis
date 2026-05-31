@@ -98,6 +98,7 @@ def run(
     batch_size: int = DEFAULT_BATCH_SIZE,
     inter_batch_delay_seconds: int = DEFAULT_INTER_BATCH_DELAY_SECONDS,
     target_date: date | str | None = None,
+    force_refresh: bool = False,
 ) -> dict:
     snapshot_date = _coerce_target_date(target_date)
     supabase = get_supabase()
@@ -108,20 +109,25 @@ def run(
         snapshot_date=snapshot_date,
     )
 
+    # force_refresh bypasses both the dimension freshness check and the
+    # existing-AI-snapshot early-return in refresh_ticker_snapshot, so Polygon
+    # bar data and real sector_beta / beta_to_spy are always recomputed.
+    effective_job_type = "manual_refresh" if force_refresh else "daily"
+
     processed = 0
     skipped = 0
     failed: list[dict[str, str]] = []
     batch_size = max(1, int(batch_size))
 
     for index, ticker in enumerate(tickers):
-        if snapshot_dimensions_fresh(date_snapshots.get(ticker)):
+        if not force_refresh and snapshot_dimensions_fresh(date_snapshots.get(ticker)):
             skipped += 1
             continue
         try:
             refresh_ticker_snapshot(
                 supabase,
                 ticker=ticker,
-                job_type="daily",
+                job_type=effective_job_type,
                 snapshot_date=snapshot_date,
             )
             processed += 1
@@ -143,6 +149,7 @@ def run(
         "metadata": {
             "requested": len(tickers),
             "target_date": snapshot_date.isoformat(),
+            "force_refresh": force_refresh,
             "failed": failed[:25],
         },
     }
@@ -151,7 +158,11 @@ def run(
 def run_from_env() -> dict:
     limit = os.getenv("COMPOSITE_RECOMPUTE_LIMIT")
     target_date = os.getenv("COMPOSITE_RECOMPUTE_TARGET_DATE")
+    force_refresh = os.getenv("COMPOSITE_RECOMPUTE_FORCE_REFRESH", "").lower() in (
+        "1", "true", "yes",
+    )
     return run(
         limit=int(limit) if limit else None,
         target_date=target_date or None,
+        force_refresh=force_refresh,
     )

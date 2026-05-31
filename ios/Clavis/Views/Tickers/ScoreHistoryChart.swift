@@ -295,8 +295,8 @@ struct TickerRadarChart: View {
             let axisCount = max(dimensions.count, 3)
 
             ZStack {
-                ForEach(1..<4, id: \.self) { ring in
-                    let scale = CGFloat(ring) / 3.0
+                ForEach(1..<5, id: \.self) { ring in
+                    let scale = CGFloat(ring) / 4.0
                     Path { path in
                         for index in 0..<axisCount {
                             let point = polygonPoint(
@@ -313,7 +313,7 @@ struct TickerRadarChart: View {
                         }
                         path.closeSubpath()
                     }
-                    .stroke(Color.clavixRule2, lineWidth: 1)
+                    .stroke(Color.clavixRule, lineWidth: ring == 4 ? 1.5 : 1)
                 }
 
                 ForEach(Array(dimensions.enumerated()), id: \.offset) { index, dimension in
@@ -322,7 +322,7 @@ struct TickerRadarChart: View {
                         path.move(to: center)
                         path.addLine(to: point)
                     }
-                    .stroke(Color.clavixRule2, style: StrokeStyle(lineWidth: 1))
+                    .stroke(Color.clavixRule, style: StrokeStyle(lineWidth: 0.75))
 
                     if dimension.score != nil {
                         Text(dimension.label)
@@ -360,7 +360,7 @@ struct TickerRadarChart: View {
                         }
                         path.closeSubpath()
                     }
-                    .fill(Color.clavixAccentSoft.opacity(0.85))
+                    .fill(Color.clavixAccentSoft.opacity(0.28))
 
                     Path { path in
                         for (offset, item) in indices {
@@ -378,7 +378,7 @@ struct TickerRadarChart: View {
                         }
                         path.closeSubpath()
                     }
-                    .stroke(Color.clavixAccent, style: StrokeStyle(lineWidth: 2))
+                    .stroke(Color.clavixAccent, style: StrokeStyle(lineWidth: 2.5))
                 }
             }
             .frame(width: frame, height: frame)

@@ -1,5 +1,17 @@
 import Foundation
 
+/// Launch-scope feature flags.
+///
+/// `brokerageEnabled` is OFF for v1: Clavix launches manual-entry only.
+/// Brokerage / automatic position sync is deferred to a post-v1 release for
+/// legal/admin reasons (see `docs/CLAVIX_LAUNCH_SCOPE_v1.md` and CLAVIX_TRUTH §11).
+/// While this is `false`, no brokerage CTA may be reachable in the shipping app.
+/// `BrokerageViewModel` and `/brokerage/*` stay in the codebase (dormant) so the
+/// feature can be re-enabled later without a rewrite.
+enum FeatureFlags {
+    static let brokerageEnabled = false
+}
+
 enum ClavisCopy {
     static let informationalDisclosure = "Clavix is informational only. It is not financial advice."
     static let riskAcknowledgment = "Clavix is informational only. Risk grades and scores reflect risk signals derived from public data and model outputs. They are not recommendations to buy, sell, or hold any security."

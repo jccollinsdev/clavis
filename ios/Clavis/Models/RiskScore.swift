@@ -74,8 +74,10 @@ struct RiskScore: Identifiable, Codable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(String.self, forKey: .id)
-        positionId = try container.decode(String.self, forKey: .positionId)
+        // API returns "id": null for shared/virtual scores — fall back to positionId-based synthetic id
+        let rawPositionId = (try? container.decodeIfPresent(String.self, forKey: .positionId)) ?? ""
+        positionId = rawPositionId
+        id = (try? container.decodeIfPresent(String.self, forKey: .id)) ?? "score:\(rawPositionId)"
         financialHealth = try? container.decodeFlexibleDoubleIfPresent(forKey: .financialHealth)
         newsSentiment = try? container.decodeFlexibleDoubleIfPresent(forKey: .newsSentiment)
         macroExposure = try? container.decodeFlexibleDoubleIfPresent(forKey: .macroExposure)
@@ -104,7 +106,7 @@ struct RiskScore: Identifiable, Codable {
         scoreAsOf = try? container.decodeIfPresent(Date.self, forKey: .scoreAsOf)
         scoreVersion = try? container.decodeIfPresent(String.self, forKey: .scoreVersion)
         reasoning = try? container.decodeIfPresent(String.self, forKey: .reasoning)
-        calculatedAt = try container.decode(Date.self, forKey: .calculatedAt)
+        calculatedAt = (try? container.decodeIfPresent(Date.self, forKey: .calculatedAt)) ?? Date()
     }
 
     var displayScore: Double {

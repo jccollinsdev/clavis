@@ -157,14 +157,16 @@ private struct OnboardingAddPortfolioView: View {
                 .font(ClavisTypography.clavixSerif(20, weight: .medium))
                 .foregroundColor(.clavixInk)
 
-            OnboardingMethodCard(
-                title: "Connect your brokerage",
-                description: "Read-only position sync for Pro accounts.",
-                icon: "link",
-                badge: "PRO",
-                detail: "Clavix never has trading access.",
-                action: onConnectBrokerage
-            )
+            if FeatureFlags.brokerageEnabled {
+                OnboardingMethodCard(
+                    title: "Connect your brokerage",
+                    description: "Read-only position sync for Pro accounts.",
+                    icon: "link",
+                    badge: "PRO",
+                    detail: "Clavix never has trading access.",
+                    action: onConnectBrokerage
+                )
+            }
             OnboardingMethodCard(
                 title: "Enter manually",
                 description: "Ticker, share count, and cost basis.",
@@ -403,7 +405,7 @@ private struct OnboardingUpgradeSheet: View {
                             Text("Upgrade to Pro")
                                 .font(ClavisTypography.h2)
                                 .foregroundColor(.clavixInk)
-                            Text("Connect your brokerage and import CSV files with Clavix Pro.")
+                            Text("Unlock unlimited holdings, the verbose morning brief, and deeper history with Clavix Pro.")
                                 .font(ClavisTypography.body)
                                 .foregroundColor(.clavixInk3)
                                 .fixedSize(horizontal: false, vertical: true)

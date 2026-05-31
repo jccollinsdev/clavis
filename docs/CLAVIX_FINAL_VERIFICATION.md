@@ -2,7 +2,18 @@
 
 **Session:** P0/P1 launch-fix pass  
 **Engineer:** Claude Opus  
-**Status:** Code changes complete; deployment + recompute pending
+**Status:** Deployment, forced recompute, and verification complete
+
+---
+
+## Final Verification
+
+- `verify_data_truth.py` passed: `502` tickers, `502` graded, `502` with score
+- `verify_api_serving.py` passed: `/health` `200`, unauthenticated `/tickers/AAPL` `401`
+- `verify_digest_scheduler.py` passed: both enabled users have future `next_run_at`
+- `verify_launch_readiness.py` passed: `GO for free TestFlight beta (pending external items above)`
+- Forced recompute `bf822a68-718f-48a9-9854-054f588f590b` completed `2026-05-30T18:16:43.265143+00:00` with `503` processed, `0` skipped, `0` failed
+- Direct VPS probes also matched expectations: `/health` `200`, `/tickers/AAPL` `401`
 
 ---
 
@@ -69,25 +80,27 @@
 
 ---
 
-## Current Production State (pre-deploy)
+## Current Production State (verified 2026-05-30)
 
 | Check | Status | Notes |
 |---|---|---|
 | `/health` latency | ✅ 152ms | Fast (event-loop starvation resolved from prior fix) |
 | Supabase connected | ✅ | |
 | MiniMax connected | ✅ | |
-| APNs | ❌ missing | Needs Apple Dev account |
+| APNs | ❌ missing | External: needs Apple Developer account |
 | SnapTrade | configured | (legacy; not user-facing) |
 | iOS build | ✅ passes | Compiles clean with ATS fix |
-| Grade distribution | ❌ 98.8% BBB/BB | Will improve after recompute post-fix |
-| Sector beta real | ❌ 0/504 | Will fix after deploy + recompute |
-| Realized vol real | ❌ 5/504 | Will fix after deploy + recompute |
-| Macro real | ❌ 0/504 | Will fix after deploy + recompute |
-| Digest jobs | ❌ next_run frozen | Will fix after container restart |
+| Grade distribution | ✅ 4 grades, 72% BBB+BB | Verified by `verify_data_truth.py` |
+| Sector beta real | ✅ 501/502 | Verified by `verify_data_truth.py` |
+| Realized vol real | ✅ 502/502 | Verified by `verify_data_truth.py` |
+| Macro real | ✅ 502/502 | Verified by `verify_data_truth.py` |
+| Digest jobs | ✅ next_run future for 2/2 enabled users | Verified by `verify_digest_scheduler.py` |
 
 ---
 
-## Required Actions After This Session
+## Historical Action Plan (completed)
+
+These were the remaining steps at the start of the session; they are now complete or verified above.
 
 ### Immediate (no credentials needed)
 

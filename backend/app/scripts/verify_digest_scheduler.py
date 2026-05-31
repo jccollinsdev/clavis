@@ -61,8 +61,8 @@ def main():
     # Check recent digest deliveries (last 7 days)
     cutoff = (datetime.datetime.utcnow() - datetime.timedelta(days=7)).isoformat()
     recent = (
-        sb.table("user_digests")
-        .select("user_id,generated_at,delivery_status")
+        sb.table("digests")
+        .select("user_id,generated_at,overall_grade")
         .gte("generated_at", cutoff)
         .order("generated_at", desc=True)
         .limit(20)
@@ -74,8 +74,8 @@ def main():
     for d in recent[:10]:
         uid = (d.get("user_id") or "?")[:8]
         gen = (d.get("generated_at") or "?")[:19]
-        status = d.get("delivery_status") or "?"
-        print(f"  user_{uid}  generated={gen}  status={status}")
+        grade = d.get("overall_grade") or "?"
+        print(f"  user_{uid}  generated={gen}  grade={grade}")
 
     print("\n" + "=" * 60)
     if failures:

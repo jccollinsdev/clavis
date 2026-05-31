@@ -43,25 +43,27 @@ struct SettingsView: View {
                     }
                     .buttonStyle(.plain)
 
-                    NavigationLink {
-                        BrokerageSettingsDetailView(viewModel: brokerageViewModel)
-                    } label: {
-                        SettingsSectionCard("BROKERAGE") {
-                            SettingsValueRow(
-                                "Connected brokerage",
-                                value: brokerageStatusValue,
-                                detail: brokerageDetail,
-                                valueColor: brokerageViewModel.isConnected ? .clavixGood : .clavixInk3
-                            )
-                            Divider()
-                            SettingsValueRow(
-                                "Auto-sync",
-                                value: brokerageViewModel.autoSyncEnabled ? "On" : "Off",
-                                valueColor: brokerageViewModel.autoSyncEnabled ? .clavixGood : .clavixInk3
-                            )
+                    if FeatureFlags.brokerageEnabled {
+                        NavigationLink {
+                            BrokerageSettingsDetailView(viewModel: brokerageViewModel)
+                        } label: {
+                            SettingsSectionCard("BROKERAGE") {
+                                SettingsValueRow(
+                                    "Connected brokerage",
+                                    value: brokerageStatusValue,
+                                    detail: brokerageDetail,
+                                    valueColor: brokerageViewModel.isConnected ? .clavixGood : .clavixInk3
+                                )
+                                Divider()
+                                SettingsValueRow(
+                                    "Auto-sync",
+                                    value: brokerageViewModel.autoSyncEnabled ? "On" : "Off",
+                                    valueColor: brokerageViewModel.autoSyncEnabled ? .clavixGood : .clavixInk3
+                                )
+                            }
                         }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
 
                     NavigationLink {
                         ReferenceSettingsDetailView()

@@ -14,10 +14,13 @@ struct SearchView: View {
     }
 
     private let recentsKey = "clavix.search.recents"
+    // v1: ETFs are not in the tracked universe, so the "ETFs" and "S&P 500"
+    // (seeded "SPY") chips were dead-ends and have been removed. "Recently
+    // downgraded" seeded an empty query (no-op) and is removed until backend
+    // filter params exist. Remaining chips seed real, in-universe results.
     private let browseChips: [[String]] = [
-        ["S&P 500", "ETFs", "Mega caps"],
-        ["Dividend aristocrats", "High-grade only"],
-        ["Recently downgraded"]
+        ["Mega caps", "Dividend aristocrats"],
+        ["High-grade only"]
     ]
 
     var body: some View {
@@ -269,12 +272,9 @@ struct SearchView: View {
     private func applyBrowseFilter(_ label: String) {
         // Quick filters become a search seed today; backend filter params come later (P1).
         switch label {
-        case "S&P 500":             query = "SPY"
-        case "ETFs":                query = "VTI"
         case "Mega caps":           query = "AAPL"
         case "Dividend aristocrats":query = "JNJ"
         case "High-grade only":     query = "MSFT"
-        case "Recently downgraded": query = ""
         default: query = label
         }
     }

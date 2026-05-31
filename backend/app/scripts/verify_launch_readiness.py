@@ -24,7 +24,8 @@ DEFAULT_BASE = "https://clavis.andoverdigital.com"
 def get(url, timeout=20):
     t0 = time.monotonic()
     try:
-        with urllib.request.urlopen(url, timeout=timeout) as resp:
+        req = urllib.request.Request(url, headers={"User-Agent": "curl/8.0"})
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
             elapsed = time.monotonic() - t0
             try:
                 body = json.loads(resp.read())

@@ -12,14 +12,17 @@ FINNHUB_QUOTE_URL = "https://finnhub.io/api/v1/quote"
 
 MAX_RETRIES = 5
 RETRY_BASE_DELAY = 5.0
-_MIN_CALL_SPACING = 20.0
+_MIN_CALL_SPACING = 5.0
 _AUTH_FAILURE_COOLDOWN = 300.0
+_AGGS_CACHE_TTL = 4 * 3600  # 4-hour in-process cache for bar data
 
 _last_polygon_call = 0.0
 _polygon_rate_limit_lock = Lock()
 _polygon_request_lock = Lock()
 _polygon_auth_state_lock = Lock()
 _polygon_auth_failed_until = 0.0
+_aggs_cache: dict[tuple, tuple[float, list]] = {}
+_aggs_cache_lock = Lock()
 
 
 class _SyntheticResponse:
@@ -30,16 +33,23 @@ class _SyntheticResponse:
         return {}
 
 
-def _is_index_ticker_request(url: str) -> bool:
-    """Return True if this Polygon URL targets an index ticker (e.g. I:TNX, I:VIX).
+def _is_plan_restricted_request(url: str) -> bool:
+    """Return True if this Polygon URL targets an endpoint that may return 403 due to
+    plan entitlements rather than an invalid API key.
 
-    Index tickers appear as /aggs/ticker/I:XXX/ or snapshot/.../I:XXX in the URL.
-    These may not be entitled on a basic Polygon plan; their 403 should not
-    poison the global auth gate and block all equity fetches.
+    Known plan-restricted endpoints:
+    - Index tickers (I:TNX, I:VIX, etc.) on basic/starter plans
+    - Options snapshot API (/v3/snapshot/options/) on basic/starter plans
+
+    403s from these endpoints should NOT poison the global auth gate, since the API
+    key itself is valid — only the subscription tier is limiting access.
     """
-    # URL-encode colon or literal colon in path segments
     upper = url.upper()
-    return "/I:" in upper or "%2FI%3A" in upper
+    return (
+        "/I:" in upper
+        or "%2FI%3A" in upper
+        or "/SNAPSHOT/OPTIONS/" in upper
+    )
 
 
 def _block_polygon_auth() -> None:
@@ -92,10 +102,9 @@ def _retry_request(fn, *args, **kwargs):
                     print(
                         f"Polygon auth error {result.status_code} for {failed_url}"
                     )
-                    # Index tickers (I:TNX, I:VIX, etc.) may not be entitled on this
-                    # Polygon plan. Do NOT poison the global auth gate for them — only
-                    # a true equity-ticker 403 means the API key itself is invalid.
-                    if not _is_index_ticker_request(failed_url):
+                    # Index tickers and options snapshot endpoints are plan-restricted,
+                    # not auth failures. Only block globally for equity agg 403s.
+                    if not _is_plan_restricted_request(failed_url):
                         _block_polygon_auth()
                     return result
             return result
@@ -188,6 +197,12 @@ def fetch_aggs(ticker: str, days: int = 30) -> list[dict]:
         print(f"No Polygon API key configured")
         return []
 
+    cache_key = (ticker.upper(), days)
+    with _aggs_cache_lock:
+        cached = _aggs_cache.get(cache_key)
+        if cached and time.monotonic() - cached[0] < _AGGS_CACHE_TTL:
+            return cached[1]
+
     to_date = datetime.now().date()
     from_date = to_date - timedelta(days=days)
 
@@ -205,8 +220,11 @@ def fetch_aggs(ticker: str, days: int = 30) -> list[dict]:
             return []
         if resp.status_code == 200:
             data = resp.json()
-            if data.get("results"):
-                return data["results"]
+            results = data.get("results") or []
+            if results:
+                with _aggs_cache_lock:
+                    _aggs_cache[cache_key] = (time.monotonic(), results)
+            return results
         return []
     except Exception as e:
         print(f"Error fetching aggs for {ticker}: {e}")

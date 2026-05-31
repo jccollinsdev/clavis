@@ -940,7 +940,7 @@ struct TickerLatestPrice: Codable {
 }
 
 struct TickerRiskSnapshot: Codable {
-    let id: String
+    let id: String?
     let ticker: String
     let grade: String?
     let safetyScore: Double?
@@ -949,7 +949,7 @@ struct TickerRiskSnapshot: Codable {
     let factorBreakdown: FactorBreakdown?
     let reasoning: String?
     let newsSummary: String?
-    let analysisAsOf: Date
+    let analysisAsOf: Date?
 
     enum CodingKeys: String, CodingKey {
         case id

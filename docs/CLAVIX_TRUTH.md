@@ -2,9 +2,11 @@
 
 **The single source of truth for what Clavix is, who it's for, and how it works.**
 
-**Version:** 2.0
-**Last updated:** May 6, 2026
+**Version:** 2.1
+**Last updated:** May 31, 2026
 **Status:** Authoritative. Supersedes all prior product, methodology, pricing, and roadmap documents.
+
+> **v2.1 change (2026-05-31):** Brokerage / automatic position sync is **deferred to a post-v1 release** (legal/admin/EIN exposure). v1 ships manual-entry only. Pro is **not** gated on brokerage. See `docs/CLAVIX_LAUNCH_SCOPE_v1.md` for the decision record and the revised Free/Pro split (§11 and §16 below reflect it).
 
 > **Read this first.** If anything in this codebase contradicts this document — code comments, other docs, README files, in-app copy, anything — this document is correct and the other thing is wrong. Fix the other thing.
 
@@ -625,14 +627,11 @@ The current code has three overlapping news stores (`news_items`, `ticker_news_c
 
 ### Adding a holding
 
-Three paths:
+**v2.1: brokerage / automatic sync is DEFERRED to a post-v1 release** (legal/admin/EIN exposure). v1 has **two** add paths: manual entry, and CSV import (Pro, when built). The brokerage path below is retained for the future release only — it must NOT ship as a working CTA in v1 (any in-app reference reads "Coming later"). See `docs/CLAVIX_LAUNCH_SCOPE_v1.md`.
 
-**1. SnapTrade brokerage connection (Pro)**
-- User clicks "Connect Brokerage" in onboarding or Settings
-- Redirected to SnapTrade hosted connect URL
-- Returns to Clavix via `clavix://snaptrade/callback` (with `clavis://` fallback for compatibility)
-- Holdings auto-sync nightly + on user-triggered refresh
-- Each synced position has `synced_from_brokerage = true` flag
+**1. Brokerage connection (Pro) — DEFERRED, post-v1**
+- _(Not in v1.)_ When built: user clicks "Connect Brokerage", redirected to a hosted connect URL, returns via `clavix://…/callback` (`clavis://` fallback), holdings auto-sync nightly + on refresh, each synced position flagged `synced_from_brokerage = true`.
+- In v1, no brokerage CTA may launch a portal. The processor (SnapTrade/Plaid/etc.) is an internal/future detail and never user-visible.
 
 **2. Manual entry (Free + Pro)**
 - User enters: ticker, share count, average cost basis, purchase date (optional)
@@ -824,8 +823,8 @@ Per user, configurable in Settings:
 | Sign up / sign in | ✓ | ✓ |
 | Onboarding | ✓ | ✓ |
 | Manual portfolio entry | ✓ (max 3 holdings) | ✓ (unlimited) |
-| SnapTrade brokerage sync | — | ✓ |
-| CSV import | — | ✓ |
+| Brokerage / auto position sync | **— (deferred post-v1)** | **— (deferred post-v1)** |
+| CSV import (bulk add) | — | ✓ (ship only when built; else "Coming later") |
 | Watchlist | ✓ (max 5) | ✓ (unlimited) |
 | Daily digest — Brief tier | ✓ | ✓ |
 | Daily digest — Standard tier | ✓ | ✓ |
@@ -842,8 +841,11 @@ Per user, configurable in Settings:
 | Macro shock alerts | — | ✓ |
 | Email digest of alerts | — | ✓ |
 | Severity threshold for alerts | — | ✓ |
-| Export portfolio data | ✓ | ✓ |
-| Delete account | ✓ | ✓ |
+| Account data export (rights-based) + delete account | ✓ | ✓ |
+| Portfolio & score-history CSV export | — | ✓ |
+| Deeper methodology/audit (90-day per-dim history, regression coefficients + R², per-article reasoning, audit export) | — | ✓ |
+
+> **v2.1:** The methodology drill-down (formula + current inputs + grade rationale) **stays Free** — it is the trust moat and the marketing/SEO engine. Pro deepens it (history, coefficients, per-article reasoning, export); Pro does not gate the basics. Brokerage is removed from both tiers (deferred post-v1). Pro's value = capacity (unlimited holdings/watchlist) + depth (verbose digest, full history, advanced alerts, audit) + export. At launch, **only advertise Pro features that actually work day one**; gate/label the rest "Coming later." Full table + rationale: `docs/CLAVIX_LAUNCH_SCOPE_v1.md`.
 
 **Pricing:**
 - **Free:** $0
