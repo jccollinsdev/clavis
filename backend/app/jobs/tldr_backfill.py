@@ -11,6 +11,7 @@ Auto: added to cron monthly_tldr_backfill on the 1st of each month.
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timedelta
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -31,7 +32,7 @@ def run(days_back: int = 30) -> dict[str, Any]:
     rows = (
         supabase.table("shared_ticker_events")
         .select("id, ticker, title, body, sentiment_score, tldr, what_it_means, key_implications, source, published_at, source_url")
-        .gte("published_at", f"NOW() - INTERVAL '{days_back} days'")
+        .gte("published_at", (datetime.utcnow() - timedelta(days=days_back)).isoformat())
         .not_.is_("body", "null")
         .or_("tldr.is.null,what_it_means.is.null,key_implications.is.null")
         .order("published_at", desc=True)
