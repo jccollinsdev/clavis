@@ -30,7 +30,7 @@ def run(days_back: int = 30) -> dict[str, Any]:
     # Find articles with body but incomplete enrichment
     rows = (
         supabase.table("shared_ticker_events")
-        .select("id, ticker, title, body, sentiment_score, tldr, what_it_means, key_implications, source, published_at, source_url, url")
+        .select("id, ticker, title, body, sentiment_score, tldr, what_it_means, key_implications, source, published_at, source_url")
         .gte("published_at", f"NOW() - INTERVAL '{days_back} days'")
         .not_.is_("body", "null")
         .or_("tldr.is.null,what_it_means.is.null,key_implications.is.null")
