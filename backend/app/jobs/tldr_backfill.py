@@ -10,6 +10,7 @@ Auto: added to cron monthly_tldr_backfill on the 1st of each month.
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import datetime, timedelta
 from typing import Any
@@ -59,11 +60,13 @@ def run(days_back: int = 30) -> dict[str, Any]:
     for i in range(0, total, BATCH_SIZE):
         batch = candidates[i : i + BATCH_SIZE]
         try:
-            result = enrich_and_store_articles_batch(
-                supabase,
-                batch,
-                skip_existing=False,  # preserves existing non-null fields, only fills nulls
-                max_concurrency=5,
+            result = asyncio.run(
+                enrich_and_store_articles_batch(
+                    supabase,
+                    batch,
+                    skip_existing=False,  # preserves non-null fields, only fills nulls
+                    max_concurrency=5,
+                )
             )
             stored += len(result)
         except Exception as exc:
