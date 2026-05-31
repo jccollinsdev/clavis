@@ -43,12 +43,70 @@ enum APIError: Error, LocalizedError {
     }
 }
 
+// MARK: - In-memory response cache
+
+/// Lightweight TTL cache for read-only GET responses.
+///
+/// Cached paths (2-minute TTL): ticker detail, prices, score history, methodology,
+/// search results, ticker list — data that doesn't change second-to-second and
+/// makes back-navigation and tab-switching feel instant.
+///
+/// Not cached: /today, /alerts, /positions, /watchlist, /preferences, /digests —
+/// these must always reflect the latest server state.
+private actor APIResponseCache {
+    struct Entry {
+        let data: Data
+        let cachedAt: Date
+    }
+
+    private var store: [String: Entry] = [:]
+    private let ttl: TimeInterval
+
+    init(ttl: TimeInterval = 120) { // 2-minute default
+        self.ttl = ttl
+    }
+
+    func get(_ key: String) -> Data? {
+        guard let entry = store[key] else { return nil }
+        guard Date().timeIntervalSince(entry.cachedAt) < ttl else {
+            store.removeValue(forKey: key)
+            return nil
+        }
+        return entry.data
+    }
+
+    func set(_ key: String, data: Data) {
+        store[key] = Entry(data: data, cachedAt: Date())
+    }
+
+    func invalidate(prefix: String) {
+        store = store.filter { !$0.key.hasPrefix(prefix) }
+    }
+
+    func invalidateAll() {
+        store.removeAll()
+    }
+}
+
 class APIService {
     static let shared = APIService()
 
     private let baseURL: String
     private let decoder: JSONDecoder
     private let session: URLSession
+
+    // Paths whose responses are safe to cache for 2 minutes.
+    // Freshness-critical paths (/today, /alerts, /positions, etc.) are NOT cached.
+    private static let cacheablePrefixes: [String] = [
+        "/tickers/",      // ticker detail, methodology, score-history, prices
+        "/search",        // search results
+        "/tickers",       // ticker list
+    ]
+    private static let cacheExclusions: [String] = [
+        "/today", "/alerts", "/positions", "/watchlist", "/preferences",
+        "/digests", "/analysis", "/brokerage",
+    ]
+    private let responseCache = APIResponseCache()
 
     private init() {
         self.baseURL = Config.backendBaseUrl
@@ -64,9 +122,20 @@ class APIService {
         let configuration = URLSessionConfiguration.default
         configuration.timeoutIntervalForRequest = 30
         configuration.timeoutIntervalForResource = 90
+        // URLCache disabled at OS level — we manage our own in-memory cache above,
+        // which has explicit TTLs and is invalidated on writes/mutations.
         configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
         configuration.urlCache = nil
+        // HTTP/2 multiplexing — reuse the same TCP connection for concurrent
+        // requests to the same host (ticker detail + prices + methodology).
+        configuration.httpMaximumConnectionsPerHost = 6
+        configuration.waitsForConnectivity = false
         self.session = URLSession(configuration: configuration)
+    }
+
+    private func isCacheable(path: String) -> Bool {
+        guard APIService.cacheablePrefixes.contains(where: { path.hasPrefix($0) }) else { return false }
+        return !APIService.cacheExclusions.contains(where: { path.hasPrefix($0) })
     }
 
     private func makeRequest(
@@ -76,7 +145,32 @@ class APIService {
         timeoutInterval: TimeInterval = 30,
         suppressSessionExpired: Bool = false
     ) async throws -> Data {
-        try await _makeRequest(path: path, method: method, body: body, timeoutInterval: timeoutInterval, suppressSessionExpired: suppressSessionExpired)
+        // Serve cached response for read-only GET requests on cacheable paths.
+        if method == "GET", body == nil, isCacheable(path: path) {
+            if let cached = await responseCache.get(path) {
+                return cached
+            }
+            let data = try await _makeRequest(
+                path: path, method: method, body: body,
+                timeoutInterval: timeoutInterval,
+                suppressSessionExpired: suppressSessionExpired
+            )
+            await responseCache.set(path, data: data)
+            return data
+        }
+        // Non-cacheable (mutations, freshness-critical): direct request.
+        // On any write (POST/PATCH/DELETE), also invalidate the relevant ticker cache.
+        let data = try await _makeRequest(
+            path: path, method: method, body: body,
+            timeoutInterval: timeoutInterval,
+            suppressSessionExpired: suppressSessionExpired
+        )
+        if method != "GET" {
+            // Invalidate ticker-specific cache on any write so next read is fresh.
+            let prefix = path.components(separatedBy: "?").first ?? path
+            await responseCache.invalidate(prefix: prefix)
+        }
+        return data
     }
 
     private func _makeRequest(

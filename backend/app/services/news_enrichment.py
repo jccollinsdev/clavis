@@ -335,7 +335,16 @@ async def enrich_and_store_article(
     key_implications: list | None = existing_llm.get("key_implications")
 
     need_sentiment = sentiment_score is None
-    need_tldr = tldr is None or what_it_means is None
+    # BUG FIX: key_implications was not included in the need_tldr check.
+    # Articles enriched before key_implications was added to TLDR_PROMPT had
+    # tldr + what_it_means set (so need_tldr was False) but key_implications=null,
+    # meaning they were permanently skipped by the enrichment loop.
+    # Fix: also trigger a TLDR_PROMPT call when key_implications is null or empty.
+    _ki = key_implications
+    _ki_missing = _ki is None or (isinstance(_ki, list) and len(_ki) == 0)
+    need_tldr = (tldr is None or not str(tldr or "").strip()
+                 or what_it_means is None or not str(what_it_means or "").strip()
+                 or _ki_missing)
 
     # Score from full body when available; fall back to headline-only scoring per §10.
     # Headline-only path: score sentiment from headline alone when body extraction failed.
