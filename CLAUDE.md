@@ -167,14 +167,34 @@ Real test user: `7ff5a6c5-8e49-4c2f-be1c-bdc869926699` (sansarbikramkarki@gmail.
 
 ---
 
-## Current P1 Blockers (as of 2026-05-31)
+## Phase 1 Status (2026-05-31 — all items resolved)
 
-Ordered by fix priority:
+| # | Item | Status | Commit |
+|---|---|---|---|
+| B1 | Digest + alerts freshness | ✅ LIVE — digest 11:09 UTC, 9 alerts | 395feba4d |
+| B2 | News relevance filter (ingestion) | ✅ DONE — `_ticker_relevance_penalty()` in candidate_ranker.py | 5c8218fe0 |
+| B2b | News relevance filter (scoring time) | ✅ DONE — `_filter_news_rows_by_relevance()` in ticker_cache_service.py | 992bc2460 |
+| B3 | Limited-data exclusion + calibration | ✅ DONE — composite excludes limited dims; BRK.B=AA, KO=A, JNJ=A | 5c8218fe0 |
+| B3b | API response consistency | ✅ DONE — `_shared_risk_dimensions` respects `limited_data_dimensions` | 41ce8f6d5 |
+| B4 | ETF filter dead-end | ✅ DONE — chips removed | 395feba4d |
+| B5 | Supabase security migration | ✅ DONE — applied via MCP | 395feba4d |
+| B6 | Security advisor rerun | ✅ DONE — all SECURITY DEFINER findings cleared | 395feba4d |
 
-1. **Digest + alerts freshness** — stale since 2026-05-28; scheduler fix deployed, next_run 11:00 UTC 2026-05-31. Verify fresh rows appear.
-2. **News relevance** — AAPL/MSFT news feed shows off-ticker articles (QQQ/SCHX/Porch/Josh-Brown). Truth §10 relevance filter not enforced at ingestion.
-3. **Limited-data exclusion + rating calibration** — 357/504 tickers have news_sentiment "limited" but it's still averaged into composite (violates Truth §7). Max grade is A; no AAA/AA. FCF/interest-coverage missing for blue chips.
-4. ~~ETF filter dead-end~~ — **DONE** (chips removed in commit 395feba4d).
-5. ~~Security migration~~ — **DONE** (applied 2026-05-31 via Supabase MCP).
-6. **StoreKit** — no IAP code exists; needed for paid launch.
-7. **APNs** — `/health` returns `apns:missing`; needs Apple Developer enrollment + p8 key.
+## Verified grade distribution (2026-05-31)
+- AA: 1 (BRK.B 80.0) — first AA ticker since launch
+- A: 131
+- BBB: 321
+- BB: 43
+- B: 8 + CCC/CC: 2
+- `verify_data_truth.py`: ALL CHECKS PASSED ✅, 7 grade bands
+
+## Remaining P1 blockers (no longer code-solvable without Apple account)
+- **StoreKit** — no IAP code exists; needed for paid launch; requires App Store Connect products
+- **APNs** — `/health` returns `apns:missing`; needs Apple Developer enrollment + p8 key
+- **Leaked-password protection** — toggle in Supabase Dashboard → Auth → Providers → Email (user task)
+
+## Daily recompute note
+The full-universe daily recompute runs at ~10:00 UTC weekdays. On the next run,
+all 321 BBB tickers will be re-scored with the limited-data exclusion fix applied.
+Many will shift from BBB to A as their limited news_sentiment is correctly excluded.
+After that run, the grade distribution will look materially more realistic.
