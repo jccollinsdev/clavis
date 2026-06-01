@@ -1,885 +1,1495 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Clavix | Portfolio risk, measured.</title>
-  <meta name="description" content="Clavix turns your holdings into a 60-second morning risk briefing: what changed overnight, where you are exposed, and why every position is rated the way it is." />
-  <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://getclavix.com/" />
-  <meta name="theme-color" content="#0F1117" />
-  <meta property="og:title" content="Clavix | Portfolio risk, measured." />
-  <meta property="og:description" content="Know what changed overnight, where you are exposed, and why every position is rated the way it is." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://getclavix.com" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Clavix | Portfolio risk, measured." />
-  <meta name="twitter:description" content="Know what changed overnight, where you are exposed, and why every position is rated the way it is." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clavix — Portfolio risk, graded.</title>
+  <meta name="description" content="Clavix grades every position in your portfolio using five independent risk dimensions, then delivers a plain-language brief before market open. Join the waitlist.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://getclavix.com/">
+  <meta name="theme-color" content="#EDEAD9">
+  <meta property="og:title" content="Clavix — Portfolio risk, graded.">
+  <meta property="og:description" content="Bond-style grades for your equity portfolio. Five risk dimensions. One morning brief.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://getclavix.com">
+  <meta property="og:image" content="https://getclavix.com/logos/appicon_1024.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Clavix — Portfolio risk, graded.">
+  <meta name="twitter:description" content="Bond-style grades for your equity portfolio. Five risk dimensions. One morning brief.">
+  <link rel="icon" type="image/png" href="logos/appicon_1024.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
   <style>
+    /* ── Reset & Base ─────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg-primary: #0F1117;
-      --surface: #161B24;
-      --surface-el: #1E2530;
-      --border: #2A3140;
-      --text-pri: #E8ECF0;
-      --text-sec: #7A8799;
-      --risk-a: #1D9E75;
-      --risk-c: #BA7517;
-      --risk-d: #D85A30;
-      --cream: #FEF5E7;
-      --font-ui: 'Inter', sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
+      --bg:          #EDEAD9;
+      --bg-dark:     #1A1815;
+      --surface:     #F5F1E8;
+      --surface-el:  #FAF7F0;
+      --border:      #DDD7C8;
+
+      --text:    #1A1815;
+      --text-2:  #5C5748;
+      --text-3:  #9B917F;
+
+      --accent:      #C2410C;
+      --accent-soft: #FAF0EA;
+      --accent-mid:  #9B3309;
+
+      /* Grade fg/bg — exact from app design system */
+      --aaa-fg: #085041; --aaa-bg: #D4EFE3;
+      --aa-fg:  #085041; --aa-bg:  #DCF5E6;
+      --a-fg:   #126B5C; --a-bg:   #E1F5EE;
+      --bbb-fg: #10555A; --bbb-bg: #DFF0EF;
+      --bb-fg:  #634B10; --bb-bg:  #FCF2E2;
+      --b-fg:   #633806; --b-bg:   #FAEEDA;
+      --ccc-fg: #783A14; --ccc-bg: #FDEBDE;
+      --cc-fg:  #712B13; --cc-bg:  #FAECE7;
+      --c-fg:   #791F1F; --c-bg:   #FCEBEB;
+      --f-fg:   #6B1515; --f-bg:   #FADEDE;
+
+      --font:   'Inter', -apple-system, sans-serif;
+      --mono:   'JetBrains Mono', 'Courier New', monospace;
+      --radius: 4px;
     }
 
     html { scroll-behavior: smooth; }
-
     body {
-      background: var(--bg-primary);
-      color: var(--text-pri);
-      font-family: var(--font-ui);
-      font-weight: 400;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
+      line-height: 1.6;
+    }
+    img { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Utilities ────────────────────────────────────────── */
+    .eyebrow {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+    .section-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+      display: block;
+      margin-bottom: 14px;
     }
 
-    a { color: inherit; text-decoration: none; }
-    button, input { font: inherit; }
+    /* ── Grade Badges ─────────────────────────────────────── */
+    .grade { font-family: var(--mono); font-weight: 700; }
+    .g-aaa { background: var(--aaa-bg); color: var(--aaa-fg); }
+    .g-aa  { background: var(--aa-bg);  color: var(--aa-fg); }
+    .g-a   { background: var(--a-bg);   color: var(--a-fg); }
+    .g-bbb { background: var(--bbb-bg); color: var(--bbb-fg); }
+    .g-bb  { background: var(--bb-bg);  color: var(--bb-fg); }
+    .g-b   { background: var(--b-bg);   color: var(--b-fg); }
+    .g-ccc { background: var(--ccc-bg); color: var(--ccc-fg); }
+    .g-cc  { background: var(--cc-bg);  color: var(--cc-fg); }
+    .g-c   { background: var(--c-bg);   color: var(--c-fg); }
+    .g-f   { background: var(--f-bg);   color: var(--f-fg); }
 
-    nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
+    .grade-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3px 8px;
+      border-radius: var(--radius);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .grade-badge-lg {
+      padding: 6px 14px;
+      font-size: 14px;
+    }
+
+    /* ── Scroll Reveal ────────────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-d1 { transition-delay: 0.1s; }
+    .reveal-d2 { transition-delay: 0.2s; }
+    .reveal-d3 { transition-delay: 0.3s; }
+
+    /* ── Phone Frame ──────────────────────────────────────── */
+    .phone-wrap {
+      display: inline-block;
+      transition: transform 0.4s ease, filter 0.4s ease;
+    }
+    .phone-wrap:hover {
+      transform: translateY(-4px) !important;
+      filter: drop-shadow(0 32px 48px rgba(0,0,0,0.22));
+    }
+    .phone-frame-outer {
+      background: #1C1914;
+      border-radius: 46px;
+      padding: 10px;
+      box-shadow:
+        0 0 0 1.5px #2A2620,
+        0 48px 96px -16px rgba(0,0,0,0.28),
+        0 16px 32px -8px rgba(0,0,0,0.16);
+    }
+    .phone-screen {
+      border-radius: 38px;
+      overflow: hidden;
+      background: var(--bg);
+    }
+    .phone-screen img {
+      display: block;
+      width: 100%;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* ── Navigation ───────────────────────────────────────── */
+    .nav-outer {
+      position: sticky;
+      top: 0;
       z-index: 100;
+      background: rgba(237,234,217,0.85);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+    nav {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 32px;
+      height: 60px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 3rem;
-      height: 64px;
-      background: rgba(15,17,23,0.92);
-      backdrop-filter: blur(12px);
-      border-bottom: 0.5px solid var(--border);
     }
-
-    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-
-    .logo-mark {
-      width: 32px;
-      height: 32px;
-      background: var(--surface-el);
-      border: 0.5px solid var(--border);
-      display: grid;
-      place-items: center;
-      color: var(--risk-a);
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
-      font-weight: 500;
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-
-    .logo-word {
-      font-weight: 600;
-      font-size: 1.1rem;
+    .nav-logo img {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+    }
+    .nav-wordmark {
+      font-size: 14px;
+      font-weight: 700;
       letter-spacing: 0.12em;
-      color: var(--cream);
-      text-transform: uppercase;
     }
-
-    .nav-links { display: flex; gap: 2.5rem; list-style: none; align-items: center; }
-
-    .nav-links a {
-      font-size: 0.78rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-sec);
-      transition: color 0.2s;
+    .nav-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 9px 20px;
+      border-radius: 100px;
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
     }
+    .nav-btn:hover { background: var(--accent-mid); transform: translateY(-1px); }
 
-    .nav-links a:hover { color: var(--text-pri); }
-
-    .nav-cta {
-      display: inline-block;
-      font-size: 0.78rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      padding: 9px 22px;
-      border: 1px solid var(--text-pri);
-      background: var(--text-pri);
-      color: var(--bg-primary) !important;
-      transition: opacity 0.2s;
-    }
-
-    .nav-cta:hover { opacity: 0.88; }
-
-    .nav-hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 8px; background: none; border: none; }
-    .nav-hamburger span { display: block; width: 22px; height: 1.5px; background: var(--text-pri); }
-
+    /* ── Hero ─────────────────────────────────────────────── */
     .hero {
-      min-height: 100vh;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 32px 72px;
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      padding-top: 64px;
-      overflow: hidden;
-      border-top: none;
-    }
-
-    .hero-left {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 6rem 4rem;
-      border-right: 0.5px solid var(--border);
-    }
-
-    .hero-kicker, .section-tag {
-      font-size: 0.7rem;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--text-sec);
-      margin-bottom: 2rem;
-      display: flex;
+      grid-template-columns: 55fr 45fr;
+      gap: 60px;
       align-items: center;
-      gap: 12px;
+      min-height: calc(100vh - 60px);
     }
 
-    .hero-kicker::before, .section-tag::before {
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface-el);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 6px 14px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-2);
+      letter-spacing: 0.04em;
+      margin-bottom: 28px;
+      opacity: 0;
+      animation: fade-up 0.6s ease 0.05s forwards;
+    }
+    .pulse-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #1D9E75;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .pulse-dot::after {
       content: '';
-      width: 32px;
-      height: 1px;
-      background: var(--text-sec);
-      display: block;
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      background: rgba(29,158,117,0.35);
+      animation: pulse-ring 2s ease-out infinite;
     }
 
-    .hero-headline {
-      font-size: clamp(2.4rem, 4vw, 3.8rem);
-      font-weight: 400;
-      line-height: 1.1;
-      letter-spacing: -0.025em;
-      margin-bottom: 2rem;
-      color: var(--text-pri);
+    .hero-h1 {
+      font-size: clamp(44px, 5.2vw, 64px);
+      font-weight: 700;
+      line-height: 1.06;
+      letter-spacing: -0.028em;
+      margin-bottom: 22px;
+      opacity: 0;
+      animation: fade-up 0.6s ease 0.15s forwards;
+    }
+    .hero-h1 em { font-style: normal; color: var(--accent); }
+
+    .hero-sub {
+      font-size: 17px;
+      line-height: 1.68;
+      color: var(--text-2);
+      max-width: 480px;
+      margin-bottom: 36px;
+      opacity: 0;
+      animation: fade-up 0.6s ease 0.25s forwards;
     }
 
-    .hero-headline em { font-style: italic; color: var(--text-sec); }
-
-    .hero-body {
-      font-size: 1rem;
-      line-height: 1.78;
-      color: var(--text-sec);
-      max-width: 540px;
-      margin-bottom: 2rem;
-      font-weight: 300;
+    .hero-form-outer {
+      opacity: 0;
+      animation: fade-up 0.6s ease 0.35s forwards;
     }
 
-    .hero-body strong { color: var(--text-pri); font-weight: 400; }
-
-    .proof-list { display: grid; gap: 0.75rem; max-width: 560px; margin-bottom: 2.6rem; }
-
-    .proof-item {
+    /* ── Forms ────────────────────────────────────────────── */
+    .form-row {
       display: flex;
-      align-items: center;
-      gap: 0.8rem;
-      font-size: 0.84rem;
-      color: var(--text-sec);
-      line-height: 1.55;
+      gap: 8px;
+      margin-bottom: 10px;
     }
-
-    .proof-item::before { content: ''; width: 6px; height: 6px; background: var(--risk-a); flex-shrink: 0; }
-
-    .hero-form { display: flex; flex-direction: column; gap: 12px; max-width: 560px; }
-
-    .signup-shell { border: 1px solid var(--border); background: rgba(30, 37, 48, 0.82); padding: 1rem; }
-
-    .form-row { display: flex; gap: 0; }
-
     .email-input {
       flex: 1;
       height: 50px;
-      border: 1px solid var(--border);
-      border-right: none;
-      background: var(--surface);
-      padding: 0 1.2rem;
-      font-size: 1rem;
-      color: var(--text-pri);
+      padding: 0 16px;
+      background: var(--surface-el);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 15px;
+      color: var(--text);
       outline: none;
-      -webkit-appearance: none;
-      border-radius: 0;
+      transition: border-color 0.2s, box-shadow 0.2s;
       min-width: 0;
     }
+    .email-input::placeholder { color: var(--text-3); }
+    .email-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(194,65,12,0.1);
+    }
+    .email-input.shake {
+      animation: shake 0.4s ease;
+      border-color: #C83B30;
+    }
 
-    .email-input::placeholder { color: var(--text-sec); }
-    .email-input:focus { border-color: var(--text-sec); background: var(--surface-el); }
-
-    .primary-btn {
+    .submit-btn {
       height: 50px;
-      padding: 0 1.8rem;
-      background: var(--surface-el);
-      color: var(--text-pri);
-      border: 1px solid var(--border);
-      font-size: 0.8rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
+      padding: 0 22px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 600;
       cursor: pointer;
       white-space: nowrap;
-      transition: background 0.18s, border-color 0.18s;
-      border-radius: 0;
+      transition: background 0.2s, transform 0.15s, opacity 0.2s;
+      letter-spacing: 0.01em;
+    }
+    .submit-btn:hover { background: var(--accent-mid); transform: translateY(-1px); }
+    .submit-btn:active { transform: translateY(0); }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .form-note {
+      font-size: 12px;
+      color: var(--text-3);
     }
 
-    .primary-btn:hover { background: var(--border); border-color: var(--text-sec); }
-    .primary-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .form-state-success {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--aa-bg);
+      border: 1px solid #C0E8D4;
+      border-radius: var(--radius);
+      margin-bottom: 10px;
+    }
+    .form-state-success.on { display: flex; }
+    .success-icon {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: #085041;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .form-state-success strong { display: block; font-size: 14px; font-weight: 600; color: var(--aa-fg); }
+    .form-state-success span  { font-size: 12px; color: var(--text-2); }
 
-    .smallprint {
+    .form-state-dupe {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 13px;
+      color: var(--text-2);
+      margin-bottom: 10px;
+    }
+    .form-state-dupe.on { display: flex; }
+
+    /* ── Hero Visual ──────────────────────────────────────── */
+    .hero-visual {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      animation: fade-up 0.8s ease 0.2s forwards;
+    }
+    .hero-phone-wrap {
+      position: relative;
+    }
+    .hero-phone {
+      width: 270px;
+      animation: phone-float 6s ease-in-out infinite;
+      transform: rotate(-3deg);
+    }
+
+    .float-chip {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface-el);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.09);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-2);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .float-chip .ticker {
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .chip-aa  { top: 12%;   right: -64px; animation: chip1 5s   ease-in-out infinite; }
+    .chip-bbb { top: 46%;   left: -72px;  animation: chip2 6.5s ease-in-out infinite 0.6s; }
+    .chip-a   { bottom: 16%; right: -52px; animation: chip3 4.5s ease-in-out infinite 1.3s; }
+
+    /* ── Stats Strip ──────────────────────────────────────── */
+    .stats-strip {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .stats-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 32px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .stat-item {
+      padding: 30px 24px;
+      border-right: 1px solid var(--border);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-num {
+      font-family: var(--mono);
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-3);
+      font-weight: 500;
+      letter-spacing: 0.01em;
+    }
+
+    /* ── Generic Section ──────────────────────────────────── */
+    .section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 96px 32px;
+    }
+    .section-header {
+      text-align: center;
+      max-width: 640px;
+      margin: 0 auto 56px;
+    }
+    .section-header .eyebrow { margin-bottom: 12px; display: block; }
+    .section-header h2 {
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: -0.022em;
+      line-height: 1.2;
+      margin-bottom: 14px;
+    }
+    .section-header p { font-size: 16px; color: var(--text-2); line-height: 1.65; }
+
+    /* ── How It Works ─────────────────────────────────────── */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+    }
+    .step-card {
+      background: var(--surface);
+      padding: 36px 28px;
+    }
+    .step-card:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+    .step-card:last-child  { border-radius: 0 var(--radius) var(--radius) 0; }
+
+    .step-num {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.07em;
+      margin-bottom: 18px;
+    }
+    .step-icon {
+      width: 42px; height: 42px;
+      background: var(--surface-el);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-2);
+      margin-bottom: 18px;
+    }
+    .step-card h3 {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin-bottom: 9px;
+    }
+    .step-card p { font-size: 14px; color: var(--text-2); line-height: 1.6; }
+
+    /* ── Feature Sections ─────────────────────────────────── */
+    .feature-row {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 32px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+    .feature-row.flip { direction: rtl; }
+    .feature-row.flip > * { direction: ltr; }
+
+    .feature-copy h2 {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1.18;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+    .feature-copy p {
+      font-size: 16px;
+      color: var(--text-2);
+      line-height: 1.68;
+      margin-bottom: 28px;
+    }
+
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .feature-list li {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-2);
+      padding: 9px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .feature-list li:hover { border-color: var(--accent); color: var(--text); }
+
+    /* Grade row */
+    .grade-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.7rem;
-      font-size: 0.72rem;
-      color: var(--text-sec);
-      letter-spacing: 0.04em;
-      margin-top: 0.75rem;
+      gap: 6px;
+      margin-bottom: 12px;
     }
+    .grade-note { font-size: 12px; color: var(--text-3); }
 
-    .success-msg { display: none; font-size: 0.82rem; letter-spacing: 0.04em; color: var(--risk-a); margin-top: 0.85rem; line-height: 1.5; }
-
-    .optional-profile { display: none; border-top: 0.5px solid var(--border); margin-top: 1rem; padding-top: 1rem; }
-
-    .optional-title { font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-sec); margin-bottom: 0.85rem; }
-    .optional-note { font-size: 0.82rem; color: var(--text-sec); line-height: 1.55; margin-bottom: 0.95rem; }
-
-    .chip-group { display: grid; gap: 0.7rem; margin-bottom: 1rem; }
-    .chip-label { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-sec); }
-    .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-
-    .choice-chip {
-      border: 0.5px solid var(--border);
-      background: var(--bg-primary);
-      color: var(--text-sec);
-      padding: 0.68rem 0.8rem;
-      font-size: 0.78rem;
-      cursor: pointer;
-      transition: border-color 0.18s, color 0.18s, background 0.18s;
+    /* Dimension bars */
+    .dims-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
     }
-
-    .choice-chip:hover, .choice-chip.is-selected {
-      color: var(--text-pri);
-      background: var(--surface-el);
-      border-color: var(--text-sec);
-    }
-
-    .lead-secondary {
-      border: none;
-      background: transparent;
-      color: var(--text-sec);
-      font-size: 0.76rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      cursor: pointer;
-      margin-left: 0.9rem;
-    }
-
-    .lead-secondary:hover { color: var(--text-pri); }
-
-    .hero-right {
+    .dim-row { display: flex; flex-direction: column; gap: 5px; }
+    .dim-meta {
       display: flex;
       align-items: center;
-      justify-content: center;
-      padding: 4rem 3rem;
-      background: var(--surface);
-      position: relative;
+      justify-content: space-between;
+    }
+    .dim-left { display: flex; align-items: center; gap: 8px; }
+    .dim-code {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-3);
+      letter-spacing: 0.07em;
+      min-width: 36px;
+    }
+    .dim-name { font-size: 13px; color: var(--text-2); }
+    .dim-score {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .dim-track {
+      height: 4px;
+      background: var(--border);
+      border-radius: 0;
       overflow: hidden;
     }
-
-    .preview-panel, .mobile-preview {
-      width: 100%;
-      max-width: 390px;
-      border: 1.5px solid var(--border);
-      background: var(--bg-primary);
-      box-shadow: 0 0 60px rgba(0,0,0,0.6), 0 0 120px rgba(29,158,117,0.08);
-      padding: 1.15rem;
+    .dim-fill {
+      height: 100%;
+      width: 0;
+      transition: width 1.1s cubic-bezier(0.16, 1, 0.3, 1);
     }
+    .dims-card.animated .dim-fill { width: var(--w); }
 
-    .mobile-preview { display: none; margin-top: 2rem; box-shadow: none; }
-
-    .preview-top {
+    /* Alert list */
+    .alert-list {
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .alert-item {
+      display: flex;
       align-items: center;
-      font-family: var(--font-mono);
-      font-size: 0.68rem;
-      color: var(--text-sec);
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .alert-chip {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
       letter-spacing: 0.06em;
-      text-transform: uppercase;
-      margin-bottom: 1rem;
-      padding-bottom: 0.9rem;
-      border-bottom: 0.5px solid var(--border);
+      padding: 3px 7px;
+      border-radius: var(--radius);
+      flex-shrink: 0;
     }
+    .chip-port  { background: #1A1815; color: #F5F1E8; }
+    .chip-risk  { background: #341719; color: #F5B8B8; }
+    .chip-grade { background: #173124; color: #85DEB8; }
+    .chip-news  { background: #172838; color: #8EC5E8; }
+    .alert-text { font-size: 13px; color: var(--text-2); }
 
-    .grade-card { background: var(--surface-el); border: 0.5px solid var(--border); padding: 1.25rem; margin-bottom: 0.9rem; }
-    .grade-label { font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-sec); margin-bottom: 1rem; }
-    .grade-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; }
-    .grade-large { font-size: 3.8rem; line-height: 0.9; font-weight: 400; letter-spacing: -0.05em; }
-    .score-number { font-family: var(--font-mono); font-size: 0.92rem; color: var(--risk-a); margin-bottom: 0.35rem; }
-
-    .brief-card { border: 0.5px solid var(--border); background: var(--surface); padding: 1rem; margin-bottom: 0.75rem; }
-    .brief-meta { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-sec); margin-bottom: 0.7rem; }
-    .brief-meta .stable { color: var(--risk-a); }
-    .brief-meta .elevated { color: var(--risk-c); }
-    .brief-meta .audit { color: var(--text-pri); }
-    .brief-title { font-size: 0.92rem; line-height: 1.45; color: var(--text-pri); margin-bottom: 0.4rem; }
-    .brief-text { font-size: 0.78rem; line-height: 1.55; color: var(--text-sec); }
-
-    .hero-phone-caption {
-      position: absolute;
-      bottom: 2rem;
-      left: 0;
-      right: 0;
-      text-align: center;
-      font-size: 0.68rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-sec);
-      opacity: 0.5;
-    }
-
-    section, .section { padding: 5rem 4rem; border-top: 0.5px solid var(--border); }
-
-    .section-headline {
-      font-size: clamp(1.8rem, 3vw, 2.6rem);
-      font-weight: 400;
-      line-height: 1.2;
-      letter-spacing: -0.02em;
-      margin-bottom: 1.5rem;
-      color: var(--text-pri);
-      max-width: 850px;
-    }
-
-    .section-body { font-size: 0.95rem; line-height: 1.8; color: var(--text-sec); font-weight: 300; max-width: 720px; }
-
-    .skim-line {
-      display: inline-block;
-      margin: 0 0 1.1rem;
-      font-size: 0.78rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--risk-a);
-    }
-
-    .pain-grid, .how-grid, .case-grid, .screens-grid, .fit-grid { display: grid; gap: 0; margin-top: 4rem; border: 0.5px solid var(--border); }
-    .pain-grid { grid-template-columns: 0.9fr 1.1fr; }
-    .how-grid { grid-template-columns: repeat(3, 1fr); }
-    .case-grid { grid-template-columns: repeat(3, 1fr); }
-    .screens-grid { grid-template-columns: repeat(4, 1fr); }
-    .fit-grid { grid-template-columns: 1fr 1fr; }
-
-    .cell { padding: 2.5rem 2rem; border-right: 0.5px solid var(--border); background: var(--surface); }
-    .cell:last-child { border-right: none; }
-
-    .pain-stat, .cell-num { font-family: var(--font-mono); font-size: 3rem; color: var(--border); line-height: 1; margin-bottom: 1.5rem; font-weight: 400; }
-    .pain-stat { font-size: 4rem; }
-
-    .cell-title { font-size: 1.15rem; font-weight: 400; margin-bottom: 0.75rem; line-height: 1.3; color: var(--text-pri); }
-    .cell-desc { font-size: 0.85rem; color: var(--text-sec); line-height: 1.75; font-weight: 300; }
-
-    .stack-list { display: grid; gap: 0; background: var(--surface); }
-    .stack-item { padding: 1.4rem 1.6rem; border-bottom: 0.5px solid var(--border); display: grid; grid-template-columns: 34px 1fr; gap: 1rem; align-items: start; }
-    .stack-item:last-child { border-bottom: none; }
-    .stack-index { font-family: var(--font-mono); color: var(--text-sec); font-size: 0.8rem; padding-top: 0.2rem; }
-
-    .method-section { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 0; padding: 0; border-top: 0.5px solid var(--border); }
-    .method-left { padding: 7rem 4rem; border-right: 0.5px solid var(--border); background: var(--bg-primary); display: flex; flex-direction: column; justify-content: center; }
-    .method-right { padding: 7rem 4rem; background: var(--surface); }
-    .formula-box { border: 0.5px solid var(--border); background: var(--surface-el); padding: 1.5rem; font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.75; color: var(--text-sec); margin-top: 2rem; overflow-x: auto; }
-
-    .dimension-list { display: flex; flex-direction: column; gap: 14px; }
-    .dimension-item { display: grid; grid-template-columns: 1fr auto; gap: 1.2rem; align-items: center; padding: 1.1rem 1.4rem; border: 0.5px solid var(--border); background: var(--surface-el); transition: border-color 0.2s; }
-    .dimension-item:hover { border-color: var(--text-sec); }
-    .dimension-title { font-size: 0.92rem; color: var(--text-pri); margin-bottom: 0.3rem; }
-    .dimension-desc { font-size: 0.78rem; color: var(--text-sec); line-height: 1.55; font-weight: 300; }
-    .dimension-weight { font-family: var(--font-mono); color: var(--risk-a); font-size: 0.82rem; }
-
-    .case-section { background: var(--surface); }
-    .case-card { padding: 2rem; border-right: 0.5px solid var(--border); background: var(--bg-primary); }
-    .case-card:last-child { border-right: none; }
-    .case-top { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
-    .ticker { font-family: var(--font-mono); font-size: 0.9rem; color: var(--text-pri); letter-spacing: 0.08em; text-transform: uppercase; }
-    .case-badge { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--risk-d); border: 0.5px solid var(--border); padding: 0.45rem 0.65rem; background: var(--surface-el); white-space: nowrap; }
-    .mini-chart { height: 110px; border: 0.5px solid var(--border); background: var(--surface); margin-bottom: 1.4rem; overflow: hidden; }
-    .mini-chart svg { width: 100%; height: 100%; display: block; }
-    .case-note { margin-top: 1.5rem; color: var(--text-sec); font-size: 0.78rem; line-height: 1.7; max-width: 880px; font-weight: 300; }
-
-    .screen-card { padding: 1rem; border-right: 0.5px solid var(--border); background: var(--surface); }
-    .screen-card:last-child { border-right: none; }
-    .screen-mock { min-height: 285px; border: 0.5px solid var(--border); background: var(--bg-primary); padding: 1rem; display: grid; align-content: start; gap: 0.8rem; margin-bottom: 0.9rem; }
-    .mock-line { height: 10px; background: var(--surface-el); border: 0.5px solid var(--border); }
-    .mock-line.short { width: 54%; }
-    .mock-line.med { width: 76%; }
-    .mock-block { height: 62px; background: rgba(29,158,117,0.11); border: 0.5px solid rgba(29,158,117,0.28); }
-    .mock-block.amber { background: rgba(186,117,23,0.11); border-color: rgba(186,117,23,0.28); }
-    .mock-block.red { background: rgba(216,90,48,0.11); border-color: rgba(216,90,48,0.28); }
-    .screen-label { padding: 0.4rem 0.2rem 0; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-sec); line-height: 1.45; }
-
-    .fit-list { list-style: none; display: grid; gap: 1rem; margin-top: 1.2rem; }
-    .fit-list li { display: grid; grid-template-columns: 18px 1fr; gap: 0.8rem; color: var(--text-sec); font-size: 0.85rem; line-height: 1.65; }
-    .fit-list li::before { content: ''; width: 7px; height: 7px; background: var(--risk-a); margin-top: 0.55rem; }
-    .not-for li::before { background: var(--risk-d); }
-
-    .faq-wrap { margin-top: 3rem; border: 0.5px solid var(--border); }
-    .faq-item { border-bottom: 0.5px solid var(--border); background: var(--surface); }
-    .faq-item:last-child { border-bottom: none; }
-    .faq-question {
-      width: 100%;
-      min-height: 58px;
-      border: none;
-      background: transparent;
-      color: var(--text-pri);
-      text-align: left;
-      padding: 1.1rem 1.3rem;
+    /* Feature phone container */
+    .feature-phone {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 1rem;
-      cursor: pointer;
-      font-size: 0.94rem;
     }
-    .faq-question span { color: var(--text-sec); font-family: var(--font-mono); font-size: 0.8rem; }
-    .faq-answer { display: none; padding: 0 1.3rem 1.3rem; color: var(--text-sec); font-size: 0.86rem; line-height: 1.75; max-width: 860px; }
-    .faq-item.is-open .faq-answer { display: block; }
-    .faq-item.is-open .faq-question span { color: var(--risk-a); }
+    .feature-row:not(.flip) .feature-phone { justify-content: flex-end; }
+    .feature-row.flip .feature-phone { justify-content: flex-start; }
 
-    .offer-section { text-align: center; padding: 9rem 4rem; background: var(--surface-el); border-top: 0.5px solid var(--border); }
-    .offer-section .section-tag { justify-content: center; }
-    .offer-section .section-headline { margin-left: auto; margin-right: auto; }
-    .offer-body { font-size: 1rem; color: var(--text-sec); line-height: 1.8; max-width: 560px; margin: 0 auto 3rem; font-weight: 300; }
-    .offer-form { display: flex; justify-content: center; gap: 0; max-width: 520px; margin: 0 auto 1.5rem; }
-    .offer-form .email-input { height: 52px; }
-    .offer-form .primary-btn { height: 52px; background: var(--text-pri); color: var(--bg-primary); border-color: var(--text-pri); }
-    .offer-form .primary-btn:hover { opacity: 0.88; background: var(--text-pri); }
+    /* ── Grade Scale ──────────────────────────────────────── */
+    .grade-scale-outer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 80px 0;
+    }
+    .grade-scale-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+    .grade-scale-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .grade-scale-header .eyebrow { margin-bottom: 10px; display: block; }
+    .grade-scale-header h2 {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+    }
+    .grade-scale-header p { font-size: 15px; color: var(--text-2); }
 
-    footer { padding: 2.5rem 4rem; border-top: 0.5px solid var(--border); background: var(--bg-primary); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
-    .footer-copy { font-size: 0.72rem; color: var(--text-sec); letter-spacing: 0.04em; }
-    .footer-links { display: flex; gap: 2rem; list-style: none; flex-wrap: wrap; }
-    .footer-links a { font-size: 0.72rem; color: var(--text-sec); letter-spacing: 0.04em; transition: color 0.2s; }
-    .footer-links a:hover { color: var(--text-pri); }
-    .footer-risk { width: 100%; font-size: 0.68rem; color: var(--text-sec); line-height: 1.6; border-top: 0.5px solid var(--border); padding-top: 1rem; margin-top: 0.5rem; }
+    .grade-ladder {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 6px;
+    }
+    .grade-card {
+      background: var(--surface-el);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 10px;
+      text-align: center;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: default;
+    }
+    .grade-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+    }
+    .gc-letter {
+      font-family: var(--mono);
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .gc-range {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-3);
+      margin-bottom: 5px;
+    }
+    .gc-desc { font-size: 10px; color: var(--text-2); line-height: 1.35; }
 
-    @media (max-width: 980px) {
-      nav { padding: 0 1.5rem; }
-      .nav-links { display: none; }
-      .nav-links.open { display: flex; position: fixed; top: 64px; left: 0; right: 0; flex-direction: column; align-items: stretch; gap: 0; background: rgba(15,17,23,0.98); border-bottom: 0.5px solid var(--border); padding: 1rem 1.5rem; }
-      .nav-links.open a { padding: 0.8rem 0; }
-      .nav-hamburger { display: flex; }
-      .hero { grid-template-columns: 1fr; min-height: auto; }
-      .hero-right { display: none; }
-      .mobile-preview { display: block; max-width: 100%; }
-      .hero-left { padding: 4rem 1.5rem 5rem; border-right: none; }
-      .hero-headline { font-size: 2.25rem; }
-      .hero-body { font-size: 0.92rem; }
-      .hero-form { max-width: 100%; }
-      .form-row { flex-direction: column; }
-      .email-input { border-right: 1px solid var(--border); height: 52px; width: 100%; font-size: 16px; }
-      .primary-btn { height: 52px; width: 100%; }
-      .lead-secondary { margin-left: 0; margin-top: 0.9rem; display: block; }
-      section, .section { padding: 5rem 1.5rem; }
-      .pain-grid, .how-grid, .case-grid, .screens-grid, .fit-grid { grid-template-columns: 1fr; }
-      .cell, .case-card, .screen-card { border-right: none; border-bottom: 0.5px solid var(--border); padding: 2rem 1.5rem; }
-      .cell:last-child, .case-card:last-child, .screen-card:last-child { border-bottom: none; }
-      .method-section { grid-template-columns: 1fr; }
-      .method-left { padding: 4rem 1.5rem; border-right: none; }
-      .method-right { padding: 4rem 1.5rem; }
-      .offer-section { padding: 6rem 1.5rem; }
-      .offer-form { flex-direction: column; max-width: 340px; }
-      .offer-form .email-input { border-right: 1px solid var(--border); }
-      footer { padding: 2rem 1.5rem; flex-direction: column; align-items: flex-start; }
+    /* ── CTA Section ──────────────────────────────────────── */
+    .cta-outer {
+      background: var(--bg-dark);
+      padding: 96px 32px;
+      text-align: center;
+    }
+    .cta-inner {
+      max-width: 540px;
+      margin: 0 auto;
+    }
+    .cta-outer .eyebrow { color: #4A4438; margin-bottom: 16px; display: block; }
+    .cta-outer h2 {
+      font-size: clamp(32px, 4vw, 44px);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      color: #F5F1E8;
+      margin-bottom: 12px;
+      line-height: 1.1;
+    }
+    .cta-outer > .cta-inner > p {
+      font-size: 16px;
+      color: #5C5748;
+      margin-bottom: 36px;
+      line-height: 1.6;
+    }
+
+    .cta-form-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .cta-email-input {
+      flex: 1;
+      height: 52px;
+      padding: 0 18px;
+      background: #262218;
+      border: 1.5px solid #3A3530;
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 15px;
+      color: #F5F1E8;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      min-width: 0;
+    }
+    .cta-email-input::placeholder { color: #4A4438; }
+    .cta-email-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(194,65,12,0.15);
+    }
+    .cta-email-input.shake { animation: shake 0.4s ease; border-color: #C83B30; }
+
+    .cta-btn {
+      height: 52px;
+      padding: 0 28px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      white-space: nowrap;
+    }
+    .cta-btn:hover { background: var(--accent-mid); transform: translateY(-1px); }
+    .cta-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    .cta-note { font-size: 12px; color: #3A3228; }
+
+    .cta-success {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 16px 20px;
+      background: rgba(29,158,117,0.1);
+      border: 1px solid rgba(29,158,117,0.22);
+      border-radius: var(--radius);
+      margin-bottom: 12px;
+    }
+    .cta-success.on { display: flex; }
+    .cta-success strong { color: #45B88E; font-size: 15px; }
+    .cta-success span  { color: #5C8A78; font-size: 13px; }
+
+    .cta-dupe {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: #262218;
+      border: 1px solid #3A3530;
+      border-radius: var(--radius);
+      font-size: 13px;
+      color: #5C5748;
+      margin-bottom: 12px;
+    }
+    .cta-dupe.on { display: flex; }
+
+    /* ── Footer ───────────────────────────────────────────── */
+    footer {
+      background: var(--bg-dark);
+      border-top: 1px solid #252118;
+      padding: 28px 32px;
+    }
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .footer-logo img { width: 20px; height: 20px; border-radius: 4px; opacity: 0.6; }
+    .footer-logo span {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: #3A3228;
+    }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { font-size: 12px; color: #3A3228; transition: color 0.2s; }
+    .footer-links a:hover { color: #5C5748; }
+    .footer-copy { font-size: 12px; color: #2E2A22; }
+
+    /* ── Divider ──────────────────────────────────────────── */
+    hr.divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* ── Keyframes ────────────────────────────────────────── */
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes phone-float {
+      0%,100% { transform: rotate(-3deg) translateY(0); }
+      50%      { transform: rotate(-3deg) translateY(-14px); }
+    }
+    @keyframes chip1 {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-10px); }
+    }
+    @keyframes chip2 {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(9px); }
+    }
+    @keyframes chip3 {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-7px); }
+    }
+    @keyframes pulse-ring {
+      0%   { transform: scale(1); opacity: 0.55; }
+      100% { transform: scale(2.6); opacity: 0; }
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%      { transform: translateX(-5px); }
+      40%      { transform: translateX(5px); }
+      60%      { transform: translateX(-4px); }
+      80%      { transform: translateX(4px); }
+    }
+
+    /* ── Responsive ───────────────────────────────────────── */
+    @media (max-width: 960px) {
+      .hero {
+        grid-template-columns: 1fr;
+        padding: 56px 24px 72px;
+        min-height: auto;
+        gap: 52px;
+        text-align: center;
+      }
+      .hero-sub { margin-left: auto; margin-right: auto; }
+      .hero-badge { margin-left: auto; margin-right: auto; }
+      .hero-form-outer .form-note { text-align: center; }
+      .hero-visual { padding-bottom: 32px; }
+      .float-chip { display: none; }
+
+      .stats-inner { grid-template-columns: repeat(2,1fr); }
+      .stat-item:nth-child(2) { border-right: 1px solid var(--border); }
+      .stat-item:nth-child(3) { border-right: none; border-top: 1px solid var(--border); }
+      .stat-item:nth-child(4) { border-right: none; border-top: 1px solid var(--border); }
+
+      .steps-grid { grid-template-columns: 1fr; gap: 2px; }
+      .step-card:first-child { border-radius: var(--radius) var(--radius) 0 0; }
+      .step-card:last-child  { border-radius: 0 0 var(--radius) var(--radius); }
+
+      .feature-row {
+        grid-template-columns: 1fr;
+        gap: 44px;
+        padding: 60px 24px;
+        direction: ltr !important;
+      }
+      .feature-phone { order: -1; justify-content: center !important; }
+
+      .grade-ladder { grid-template-columns: repeat(5, 1fr); }
+      .section { padding: 64px 24px; }
     }
 
     @media (max-width: 600px) {
-      nav { height: 56px; }
-      .logo-mark { width: 28px; height: 28px; }
-      .logo-word { font-size: 0.9rem; }
-      .nav-links.open { top: 56px; }
-      .hero-left { padding: 3.4rem 1.25rem 3rem; }
-      .hero-kicker { font-size: 0.62rem; }
-      .hero-headline { font-size: 1.82rem; letter-spacing: -0.01em; margin-bottom: 1.4rem; }
-      .hero-body { font-size: 0.94rem; line-height: 1.65; margin-bottom: 1.7rem; }
-      .proof-item { font-size: 0.82rem; }
-      .choice-chip { min-height: 44px; }
-      section, .section { padding: 3.5rem 1.25rem; }
-      .section-tag { font-size: 0.6rem; }
-      .section-headline { font-size: 1.55rem; }
-      .section-body { font-size: 0.9rem; }
-      .cell-num, .pain-stat { font-size: 2rem; }
-      .cell-title { font-size: 0.98rem; }
-      .cell-desc { font-size: 0.84rem; }
-      .method-left, .method-right { padding: 3rem 1.25rem; }
-      .faq-question { font-size: 0.88rem; }
-      .offer-section { padding: 4rem 1.25rem; }
-      .footer-links { gap: 1.5rem; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
-      *, *::before, *::after { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+      nav { padding: 0 20px; }
+      .hero { padding: 40px 20px 60px; }
+      .hero-h1 { font-size: 38px; }
+      .form-row { flex-direction: column; }
+      .cta-form-row { flex-direction: column; }
+      .hero-phone { width: 230px; }
+      .grade-ladder { grid-template-columns: repeat(5, minmax(60px, 1fr)); }
+      .grade-card { padding: 14px 6px; }
+      .gc-letter { font-size: 16px; }
+      .footer-inner { flex-direction: column; align-items: flex-start; gap: 12px; }
     }
   </style>
 </head>
 <body>
-  <nav>
-    <a href="#top" class="nav-logo" aria-label="Clavix home">
-      <span class="logo-mark">CX</span>
-      <span class="logo-word">CLAVIX</span>
-    </a>
-    <button class="nav-hamburger" aria-label="Menu" aria-expanded="false" onclick="toggleMenu()"><span></span><span></span><span></span></button>
-    <ul class="nav-links" id="nav-links">
-      <li><a href="#pain">Problem</a></li>
-      <li><a href="#how">How it works</a></li>
-      <li><a href="#methodology">Methodology</a></li>
-      <li><a href="#case-studies">Case studies</a></li>
-      <li><a href="#faq">FAQ</a></li>
-      <li><a href="#early-access" class="nav-cta">Get early access</a></li>
-    </ul>
-  </nav>
 
-  <main id="top">
-    <section class="hero" style="border-top:none;padding:0;padding-top:64px;">
-      <div class="hero-left">
-        <div class="hero-kicker">For self-directed investors managing real portfolios</div>
-        <h1 class="hero-headline">Portfolio risk,<br><em>measured.</em></h1>
-        <p class="hero-body">Clavix turns your holdings into a <strong>60-second morning risk briefing</strong>: what changed overnight, where you are exposed, and why every position is rated the way it is.</p>
-        <div class="proof-list" aria-label="Clavix benefits">
-          <div class="proof-item">Overnight macro, sector, and position changes in one view.</div>
-          <div class="proof-item">Bond-style risk grades for every holding.</div>
-          <div class="proof-item">Full methodology with formulas, inputs, sources, and refresh dates.</div>
+  <!-- ── Navigation ───────────────────────────────────────── -->
+  <header class="nav-outer">
+    <nav>
+      <a class="nav-logo" href="/">
+        <img src="logos/appicon_1024.png" alt="Clavix logo">
+        <span class="nav-wordmark">CLAVIX</span>
+      </a>
+      <button class="nav-btn" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">
+        Join Waitlist
+      </button>
+    </nav>
+  </header>
+
+  <!-- ── Hero ─────────────────────────────────────────────── -->
+  <section class="hero">
+
+    <!-- Left: Copy -->
+    <div class="hero-copy">
+      <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        EARLY ACCESS &nbsp;·&nbsp; BETA OPEN
+      </div>
+
+      <h1 class="hero-h1">Portfolio risk,<br><em>graded</em>.</h1>
+
+      <p class="hero-sub">
+        Clavix grades every position in your book across five risk dimensions,
+        then sends you a plain-language brief before market open.
+        Know what changed overnight — before you trade.
+      </p>
+
+      <div class="hero-form-outer">
+        <div id="hero-form">
+          <div class="form-row">
+            <input class="email-input" type="email" id="email-hero"
+              placeholder="your@email.com" autocomplete="email">
+            <button class="submit-btn" id="btn-hero"
+              onclick="submitWaitlist('email-hero','hero-form','success-hero','dupe-hero','btn-hero')">
+              Get Early Access →
+            </button>
+          </div>
+          <p class="form-note">Free during beta. No brokerage connection required.</p>
         </div>
-        <div class="hero-form">
-          <div class="signup-shell">
-            <div class="form-row">
-              <input class="email-input" type="email" name="email" inputmode="email" id="hero-email" placeholder="your@email.com" autocomplete="email" autocapitalize="none" spellcheck="false" aria-label="Email address" />
-              <button class="primary-btn" type="button" onclick="submitEmail('hero-email','hero-success',true)">Get early access</button>
-            </div>
-            <p class="success-msg" id="hero-success" role="status" aria-live="polite">You are on the list. Launch access is sent to waitlist members first.</p>
-            <div class="smallprint"><span>14-day Pro trial at launch</span><span>·</span><span>No credit card required</span><span>·</span><span>Free tier available</span></div>
-            <div class="optional-profile" id="optional-profile">
-              <div class="optional-title">Optional, 10 seconds</div>
-              <p class="optional-note">Tap what fits. This helps us prioritize beta invites without slowing down signup.</p>
-              <div class="chip-group">
-                <div class="chip-label">You are</div>
-                <div class="chips" data-field="investor_type">
-                  <button type="button" class="choice-chip" data-value="self_directed_investor">Self-directed investor</button>
-                  <button type="button" class="choice-chip" data-value="advisor_wealth_manager">Advisor</button>
-                  <button type="button" class="choice-chip" data-value="finance_professional">Finance professional</button>
-                  <button type="button" class="choice-chip" data-value="student_learning">Learning</button>
-                </div>
-              </div>
-              <div class="chip-group">
-                <div class="chip-label">Main pain</div>
-                <div class="chips" data-field="biggest_pain">
-                  <button type="button" class="choice-chip" data-value="too_much_portfolio_news">Too much news</button>
-                  <button type="button" class="choice-chip" data-value="dont_know_riskier_holdings">Do not know what got riskier</button>
-                  <button type="button" class="choice-chip" data-value="transparent_methodology">Want transparent ratings</button>
-                  <button type="button" class="choice-chip" data-value="better_alerts">Want better alerts</button>
-                </div>
-              </div>
-              <button class="primary-btn" type="button" onclick="submitProfile()">Save profile</button>
-              <button class="lead-secondary" type="button" onclick="skipProfile()">Skip this</button>
-            </div>
+
+        <div class="form-state-success" id="success-hero">
+          <div class="success-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M3 8l3.5 3.5L13 5" stroke="white" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <strong>You're on the list.</strong>
+            <span>We'll email you when Clavix is ready.</span>
           </div>
         </div>
 
-        <div class="mobile-preview" aria-label="Compact Clavix app preview">
-          <div class="preview-top"><span>Morning briefing</span><span>6:42 AM ET</span></div>
-          <div class="grade-card"><div class="grade-label">Portfolio composite grade</div><div class="grade-row"><div class="grade-large">AA</div><div class="score-number">82 / 100</div></div></div>
-          <div class="brief-card"><div class="brief-meta"><span>Holding</span><span class="elevated">Elevated</span></div><div class="brief-title">One position has weaker news and higher short-term volatility.</div><p class="brief-text">Tap the rating to inspect the formula, inputs, and source data.</p></div>
+        <div class="form-state-dupe" id="dupe-hero">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <circle cx="7" cy="7" r="6" stroke="#9B917F" stroke-width="1.5"/>
+            <path d="M7 4v3m0 2v.5" stroke="#9B917F" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          You're already on the list — we'll be in touch.
         </div>
       </div>
-
-      <div class="hero-right">
-        <div class="preview-panel" aria-label="Clavix app preview">
-          <div class="preview-top"><span>Morning briefing</span><span>6:42 AM ET</span></div>
-          <div class="grade-card"><div class="grade-label">Portfolio composite grade</div><div class="grade-row"><div class="grade-large">AA</div><div class="score-number">82 / 100</div></div></div>
-          <div class="brief-card"><div class="brief-meta"><span>Macro</span><span class="stable">Stable</span></div><div class="brief-title">Rates and futures show no major portfolio-wide pressure.</div><p class="brief-text">Your largest holdings remain most sensitive to sector data, not today’s macro tape.</p></div>
-          <div class="brief-card"><div class="brief-meta"><span>Holding</span><span class="elevated">Elevated</span></div><div class="brief-title">One position has weaker news and higher short-term volatility.</div><p class="brief-text">The rating is unchanged, but two dimensions moved lower overnight.</p></div>
-          <div class="brief-card"><div class="brief-meta"><span>Methodology</span><span class="audit">Auditable</span></div><div class="brief-title">Tap any rating to see the formula and inputs.</div><p class="brief-text">Financial health, news, macro exposure, sector exposure, and volatility are shown separately.</p></div>
-        </div>
-        <div class="hero-phone-caption">Portfolio Risk · Holdings · Digest</div>
-      </div>
-    </section>
-
-    <section id="pain">
-      <div class="section-tag">The problem</div>
-      <span class="skim-line">One morning briefing instead of a scattered routine.</span>
-      <h2 class="section-headline">You should not need six apps to know if your portfolio changed overnight.</h2>
-      <p class="section-body">Most mornings, nothing material happened. But serious investors still have to check macro data, sector moves, headlines, earnings calendars, and each holding before they know that.</p>
-      <div class="pain-grid">
-        <div class="cell"><div class="pain-stat">30–60</div><h3 class="cell-title">Minutes spent piecing together what matters.</h3><p class="cell-desc">Clavix is built to compress the morning routine into a written briefing tailored to the holdings you actually own.</p></div>
-        <div class="stack-list">
-          <div class="stack-item"><div class="stack-index">01</div><div><h3 class="cell-title">Macro first.</h3><p class="cell-desc">What changed overnight in rates, volatility, oil, the dollar, and the broader market.</p></div></div>
-          <div class="stack-item"><div class="stack-index">02</div><div><h3 class="cell-title">Then sectors.</h3><p class="cell-desc">Which parts of the market affect the positions in your portfolio.</p></div></div>
-          <div class="stack-item"><div class="stack-index">03</div><div><h3 class="cell-title">Then holdings.</h3><p class="cell-desc">Which positions had meaningful changes, which stayed quiet, and why the ratings moved.</p></div></div>
-        </div>
-      </div>
-    </section>
-
-    <section id="how">
-      <div class="section-tag">How Clavix works</div>
-      <span class="skim-line">Add holdings. Filter the market. Audit the rating.</span>
-      <h2 class="section-headline">From holdings to a daily risk briefing.</h2>
-      <p class="section-body">Clavix is not a trading newsletter. It is a rating layer for self-directed investors who want calmer, clearer risk data.</p>
-      <div class="how-grid">
-        <div class="cell"><div class="cell-num">01</div><h3 class="cell-title">Add your holdings</h3><p class="cell-desc">Enter positions manually. Clavix builds a portfolio risk view from your holdings. More data connections coming in future updates.</p></div>
-        <div class="cell"><div class="cell-num">02</div><h3 class="cell-title">Clavix filters the market</h3><p class="cell-desc">Macro, sector, and company-level data are translated into changes that actually connect to your positions.</p></div>
-        <div class="cell"><div class="cell-num">03</div><h3 class="cell-title">You get ratings with the math shown</h3><p class="cell-desc">Every position receives a composite grade and five dimension scores, with formulas, inputs, and sources available to inspect.</p></div>
-      </div>
-    </section>
-
-    <div class="method-section" id="methodology">
-      <div class="method-left"><div class="section-tag">Transparency is the product</div><span class="skim-line">Every score shows formula, inputs, sources, and refresh time.</span><h2 class="section-headline">Not a black-box AI score.</h2><p class="section-body">Clavix uses five equal risk dimensions. Tap a score to see the formula, the input values, the source data, and when each piece refreshed.</p><div class="formula-box">composite_score = (financial_health + news_score + macro_exposure + sector_exposure + volatility) / 5</div></div>
-      <div class="method-right"><div class="dimension-list">
-        <div class="dimension-item"><div><div class="dimension-title">Financial Health</div><div class="dimension-desc">Balance sheet, cash flow, profitability, and growth trend.</div></div><div class="dimension-weight">20%</div></div>
-        <div class="dimension-item"><div><div class="dimension-title">News Score</div><div class="dimension-desc">Recent article tone, severity, source quality, recency, and unusual volume.</div></div><div class="dimension-weight">20%</div></div>
-        <div class="dimension-item"><div><div class="dimension-title">Macro Exposure</div><div class="dimension-desc">Regression-based sensitivity to rates, dollar, oil, volatility, and market beta.</div></div><div class="dimension-weight">20%</div></div>
-        <div class="dimension-item"><div><div class="dimension-title">Sector Exposure</div><div class="dimension-desc">Sector beta, sector trend, sector breadth, and sector-specific data.</div></div><div class="dimension-weight">20%</div></div>
-        <div class="dimension-item"><div><div class="dimension-title">Volatility</div><div class="dimension-desc">30-day and 90-day realized volatility, drawdown, and market beta.</div></div><div class="dimension-weight">20%</div></div>
-      </div></div>
     </div>
 
-    <section id="case-studies" class="case-section">
-      <div class="section-tag">Case studies</div>
-      <span class="skim-line">Historical examples only. No predictions. No recommendations.</span>
-      <h2 class="section-headline">Historical examples where risk ratings deteriorated before later price weakness.</h2>
-      <p class="section-body">Use this section for real examples once your backfilled data is verified. Each card should show the rating change, the data behind it, and what happened afterward.</p>
-      <div class="case-grid">
-        <article class="case-card"><div class="case-top"><div class="ticker">Example 01</div><div class="case-badge">High risk</div></div><div class="mini-chart" aria-hidden="true"><svg viewBox="0 0 320 110" preserveAspectRatio="none"><path d="M0,28 C35,24 48,34 75,32 C112,30 129,45 156,52 C188,60 205,73 230,78 C260,84 286,92 320,99" fill="none" stroke="rgba(216,90,48,0.95)" stroke-width="3"/><path d="M0,28 C35,24 48,34 75,32 C112,30 129,45 156,52 C188,60 205,73 230,78 C260,84 286,92 320,99 L320,110 L0,110 Z" fill="rgba(216,90,48,0.12)"/></svg></div><h3 class="cell-title">Rating deterioration before a later drawdown.</h3><p class="cell-desc">Replace this with a verified ticker where news score, volatility, or financial health weakened before the stock moved lower.</p></article>
-        <article class="case-card"><div class="case-top"><div class="ticker">Example 02</div><div class="case-badge">Weakening</div></div><div class="mini-chart" aria-hidden="true"><svg viewBox="0 0 320 110" preserveAspectRatio="none"><path d="M0,40 C30,39 47,35 75,44 C104,55 128,50 154,62 C187,75 201,71 230,83 C264,96 289,92 320,103" fill="none" stroke="rgba(216,90,48,0.95)" stroke-width="3"/><path d="M0,40 C30,39 47,35 75,44 C104,55 128,50 154,62 C187,75 201,71 230,83 C264,96 289,92 320,103 L320,110 L0,110 Z" fill="rgba(216,90,48,0.12)"/></svg></div><h3 class="cell-title">Multiple dimensions moved in the same direction.</h3><p class="cell-desc">Use this for cases where the composite rating fell because several independent inputs weakened together.</p></article>
-        <article class="case-card"><div class="case-top"><div class="ticker">Example 03</div><div class="case-badge">Pressure</div></div><div class="mini-chart" aria-hidden="true"><svg viewBox="0 0 320 110" preserveAspectRatio="none"><path d="M0,24 C38,27 54,28 85,41 C116,52 130,49 157,59 C188,69 204,83 236,86 C270,89 286,100 320,105" fill="none" stroke="rgba(216,90,48,0.95)" stroke-width="3"/><path d="M0,24 C38,27 54,28 85,41 C116,52 130,49 157,59 C188,69 204,83 236,86 C270,89 286,100 320,105 L320,110 L0,110 Z" fill="rgba(216,90,48,0.12)"/></svg></div><h3 class="cell-title">A high-risk rating helped separate signal from noise.</h3><p class="cell-desc">Use this for a before-and-after example with dates, starting grade, ending grade, and the data that drove the move.</p></article>
+    <!-- Right: Phone visual -->
+    <div class="hero-visual">
+      <div class="hero-phone-wrap">
+        <div class="float-chip chip-aa">
+          <span class="grade-badge g-aa grade">AA</span>
+          <span class="ticker">MSFT</span>
+        </div>
+        <div class="float-chip chip-bbb">
+          <span class="grade-badge g-bbb grade">BBB</span>
+          <span class="ticker">AAPL</span>
+        </div>
+        <div class="float-chip chip-a">
+          <span class="grade-badge g-a grade">A</span>
+          <span class="ticker">TSLA</span>
+        </div>
+
+        <div class="phone-wrap hero-phone">
+          <div class="phone-frame-outer">
+            <div class="phone-screen">
+              <img src="screenshots/screen_today_live.jpg"
+                alt="Clavix app — Today's Digest showing portfolio grade A and five-axis snapshot"
+                loading="eager" width="270">
+            </div>
+          </div>
+        </div>
       </div>
-      <p class="case-note">Case studies must be factual and dated. Best format: On [date], Clavix rated [ticker] [grade] because [inputs]. Over the next [period], the price moved [x percent]. This is historical context, not a prediction or recommendation.</p>
-    </section>
+    </div>
+  </section>
 
-    <section id="fit">
-      <div class="section-tag">Fit</div>
-      <span class="skim-line">Clear for the right user. Clear about the wrong use case.</span>
-      <h2 class="section-headline">Built for self-directed investors. Not for trading calls.</h2>
-      <p class="section-body">Clavix is designed to make portfolio risk easier to understand, not to tell anyone what to buy or sell.</p>
-      <div class="fit-grid">
-        <div class="cell"><h3 class="cell-title">Built for</h3><ul class="fit-list"><li>Investors who manage individual stocks, ETFs, and long-term positions.</li><li>People who already read market news but want it filtered through their actual holdings.</li><li>Users who want a rating and the math behind it, not a black-box answer.</li></ul></div>
-        <div class="cell"><h3 class="cell-title">Not built for</h3><ul class="fit-list not-for"><li>Day trading, options gambling, or short-term price predictions.</li><li>Buy, sell, add, reduce, or exit recommendations.</li><li>Replacing your own due diligence, advisor, or investment process.</li></ul></div>
+  <!-- ── Stats Strip ───────────────────────────────────────── -->
+  <div class="stats-strip">
+    <div class="stats-inner">
+      <div class="stat-item reveal">
+        <div class="stat-num">500+</div>
+        <div class="stat-label">US equities covered</div>
       </div>
-    </section>
-
-    <section id="screens">
-      <div class="section-tag">Product preview</div><span class="skim-line">The app should feel like a daily portfolio memo.</span><h2 class="section-headline">Built for the morning check-in.</h2><p class="section-body">The app should feel like a rating agency, a portfolio memo, and a transparent methodology drawer in one product.</p>
-      <div class="screens-grid">
-        <div class="screen-card"><div class="screen-mock" aria-hidden="true"><div class="mock-block"></div><div class="mock-line med"></div><div class="mock-line short"></div><div class="mock-block amber"></div><div class="mock-line med"></div></div><div class="screen-label">Know what changed overnight</div></div>
-        <div class="screen-card"><div class="screen-mock" aria-hidden="true"><div class="mock-line short"></div><div class="mock-block red"></div><div class="mock-line med"></div><div class="mock-line short"></div><div class="mock-block"></div></div><div class="screen-label">See which ratings moved</div></div>
-        <div class="screen-card"><div class="screen-mock" aria-hidden="true"><div class="mock-block amber"></div><div class="mock-block"></div><div class="mock-block red"></div><div class="mock-line med"></div></div><div class="screen-label">Audit the five dimensions</div></div>
-        <div class="screen-card"><div class="screen-mock" aria-hidden="true"><div class="mock-line med"></div><div class="mock-line short"></div><div class="mock-block"></div><div class="mock-line med"></div><div class="mock-line short"></div></div><div class="screen-label">Read the daily briefing</div></div>
+      <div class="stat-item reveal reveal-d1">
+        <div class="stat-num">5</div>
+        <div class="stat-label">Risk dimensions scored</div>
       </div>
-    </section>
-
-    <section id="faq">
-      <div class="section-tag">Deeper detail</div>
-      <span class="skim-line">Simple page. More detail when someone wants it.</span>
-      <h2 class="section-headline">Questions serious investors will ask.</h2>
-      <p class="section-body">The top of the page stays simple. This section gives more detail without forcing every visitor to read it.</p>
-      <div class="faq-wrap">
-        <div class="faq-item is-open"><button class="faq-question" type="button" aria-expanded="true" onclick="toggleFaq(this)">What does Clavix actually track?<span>−</span></button><div class="faq-answer">Clavix tracks macro conditions, sector exposure, company-specific news, financial health, and volatility. Those inputs roll into five risk dimensions and a composite bond-style grade for each tracked position.</div></div>
-        <div class="faq-item"><button class="faq-question" type="button" aria-expanded="false" onclick="toggleFaq(this)">How are scores calculated?<span>+</span></button><div class="faq-answer">Each ticker is scored across five dimensions: Financial Health, News Score, Macro Exposure, Sector Exposure, and Volatility. Each dimension is weighted equally at 20 percent. If a dimension has limited data, Clavix labels that clearly and recalculates from the available dimensions.</div></div>
-        <div class="faq-item"><button class="faq-question" type="button" aria-expanded="false" onclick="toggleFaq(this)">Is Clavix giving investment advice?<span>+</span></button><div class="faq-answer">No. Clavix is informational. It does not recommend buys, sells, position changes, trading actions, or price predictions. It describes observed portfolio risk using data, ratings, and methodology transparency.</div></div>
-        <div class="faq-item"><button class="faq-question" type="button" aria-expanded="false" onclick="toggleFaq(this)">What happens after the trial?<span>+</span></button><div class="faq-answer">The launch plan is a 14-day Pro trial with no credit card required. After the trial, users can continue with the free tier or choose Pro at the listed monthly price.</div></div>
-        <div class="faq-item"><button class="faq-question" type="button" aria-expanded="false" onclick="toggleFaq(this)">Why show the methodology?<span>+</span></button><div class="faq-answer">Sophisticated investors do not trust unexplained scores. Clavix is built so a user can inspect the formula, the inputs, the sources, the articles, and the refresh dates behind each rating.</div></div>
+      <div class="stat-item reveal reveal-d2">
+        <div class="stat-num">10</div>
+        <div class="stat-label">Grade bands · AAA to F</div>
       </div>
-    </section>
+      <div class="stat-item reveal reveal-d3">
+        <div class="stat-num">1×</div>
+        <div class="stat-label">Daily brief, every morning</div>
+      </div>
+    </div>
+  </div>
 
-    <section id="early-access" class="offer-section">
-      <div class="section-tag">Early access</div><h2 class="section-headline">Know what changed before the market opens.</h2><p class="offer-body">Join the Clavix launch list. Waitlist members get first access to the 14-day Pro trial, with no credit card required.</p>
-      <div class="offer-form"><input class="email-input" type="email" name="email" inputmode="email" id="footer-email" placeholder="your@email.com" autocomplete="email" autocapitalize="none" spellcheck="false" aria-label="Email address" /><button class="primary-btn" type="button" onclick="submitEmail('footer-email','footer-success',false)">Reserve my spot</button></div>
-      <div class="success-msg" id="footer-success" role="status" aria-live="polite" style="justify-content:center;margin:0.75rem auto 0;">Your spot is reserved. We will be in touch.</div>
-      <p class="smallprint" style="justify-content:center;margin-top:1rem;">Free tier available · Pro $20/month after trial · Your data is never sold</p>
-    </section>
-  </main>
+  <!-- ── How It Works ──────────────────────────────────────── -->
+  <div class="section">
+    <div class="section-header reveal">
+      <span class="eyebrow">How it works</span>
+      <h2>Three steps. No broker login.</h2>
+      <p>Clavix works with manually entered positions — no linked accounts, no OAuth. Add tickers, get graded overnight, read your brief in the morning.</p>
+    </div>
 
+    <div class="steps-grid reveal">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <div class="step-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M7 10h6M7 7h6M7 13h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3>Add your holdings</h3>
+        <p>Enter your tickers and quantities manually. No broker login. No linked accounts. Your data stays with you.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <div class="step-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M4 16V11M8 16V7M12 16V9M16 16V3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3>Get graded overnight</h3>
+        <p>Clavix scores five independent risk dimensions for every position each night. Financial health, news, macro, sector, volatility.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <div class="step-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M4 4h12M4 8h12M4 12h8M4 16h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3>Read your morning brief</h3>
+        <p>Open the app before the bell to a structured five-section digest. Macro, sectors, position changes, watchlist triggers, what to watch.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── Feature §I: Morning Brief ────────────────────────── -->
+  <div class="feature-row reveal">
+    <div class="feature-copy">
+      <span class="section-label">§ I — YOUR MORNING BRIEF</span>
+      <h2>Your brief, before the bell.</h2>
+      <p>
+        At market open, Clavix generates a structured five-section risk report in plain English.
+        Not a dashboard — a read. Macro headlines, sector shifts, per-position changes,
+        watchlist triggers, and what to watch.
+      </p>
+      <ul class="feature-list">
+        <li>§&nbsp;I &nbsp;&nbsp;&nbsp;Macro overnight</li>
+        <li>§&nbsp;II &nbsp;&nbsp;Your sectors</li>
+        <li>§&nbsp;III &nbsp;Position changes</li>
+        <li>§&nbsp;IV &nbsp;&nbsp;Watchlist alerts</li>
+        <li>§&nbsp;V &nbsp;&nbsp;&nbsp;What to watch</li>
+      </ul>
+    </div>
+    <div class="feature-phone">
+      <div class="phone-wrap" style="width:252px;">
+        <div class="phone-frame-outer">
+          <div class="phone-screen">
+            <img src="screenshots/screen_digest_live.jpg"
+              alt="Clavix morning digest showing §I Macro overnight and §II Your sectors"
+              loading="lazy">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── Feature §II: Holdings & Grades ───────────────────── -->
+  <div class="feature-row flip reveal">
+    <div class="feature-phone">
+      <div class="phone-wrap" style="width:252px;">
+        <div class="phone-frame-outer">
+          <div class="phone-screen">
+            <img src="screenshots/screen_holdings_live.jpg"
+              alt="Clavix holdings showing AAPL BBB, MSFT AA, TSLA A grades"
+              loading="lazy">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="feature-copy">
+      <span class="section-label">§ II — BOND-STYLE GRADES</span>
+      <h2>Bond-style grades for every position.</h2>
+      <p>
+        Each stock receives a composite grade from AAA to F — the same scale used for bond ratings.
+        Not a color. Not a vague score. A grade with five underlying dimensions you can audit.
+      </p>
+      <div class="grade-row">
+        <span class="grade-badge grade-badge-lg g-aaa">AAA</span>
+        <span class="grade-badge grade-badge-lg g-aa">AA</span>
+        <span class="grade-badge grade-badge-lg g-a">A</span>
+        <span class="grade-badge grade-badge-lg g-bbb">BBB</span>
+        <span class="grade-badge grade-badge-lg g-bb">BB</span>
+        <span class="grade-badge grade-badge-lg g-b">B</span>
+        <span class="grade-badge grade-badge-lg g-ccc">CCC</span>
+      </div>
+      <p class="grade-note">Composite of five independent dimension scores. Updated each weekday.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── Feature §III: Five Dimensions ────────────────────── -->
+  <div class="feature-row reveal">
+    <div class="feature-copy">
+      <span class="section-label">§ III — FIVE DIMENSIONS</span>
+      <h2>Five dimensions. One grade.</h2>
+      <p>
+        Every grade is a composite of five independently scored dimensions.
+        Tap any position to see exactly what drives its rating — and track what changed day over day.
+      </p>
+
+      <div class="dims-card" id="dims-card">
+        <div class="dim-row">
+          <div class="dim-meta">
+            <div class="dim-left">
+              <span class="dim-code">FIN</span>
+              <span class="dim-name">Financial Health</span>
+            </div>
+            <span class="dim-score">64</span>
+          </div>
+          <div class="dim-track">
+            <div class="dim-fill" style="--w:64%;background:#3B8C8C;"></div>
+          </div>
+        </div>
+        <div class="dim-row">
+          <div class="dim-meta">
+            <div class="dim-left">
+              <span class="dim-code">NEWS</span>
+              <span class="dim-name">News Sentiment</span>
+            </div>
+            <span class="dim-score">51</span>
+          </div>
+          <div class="dim-track">
+            <div class="dim-fill" style="--w:51%;background:#B39229;"></div>
+          </div>
+        </div>
+        <div class="dim-row">
+          <div class="dim-meta">
+            <div class="dim-left">
+              <span class="dim-code">MAC</span>
+              <span class="dim-name">Macro Exposure</span>
+            </div>
+            <span class="dim-score">100</span>
+          </div>
+          <div class="dim-track">
+            <div class="dim-fill" style="--w:100%;background:#1D9E75;"></div>
+          </div>
+        </div>
+        <div class="dim-row">
+          <div class="dim-meta">
+            <div class="dim-left">
+              <span class="dim-code">SEC</span>
+              <span class="dim-name">Sector Exposure</span>
+            </div>
+            <span class="dim-score">68</span>
+          </div>
+          <div class="dim-track">
+            <div class="dim-fill" style="--w:68%;background:#3B8C8C;"></div>
+          </div>
+        </div>
+        <div class="dim-row">
+          <div class="dim-meta">
+            <div class="dim-left">
+              <span class="dim-code">VOL</span>
+              <span class="dim-name">Volatility</span>
+            </div>
+            <span class="dim-score">90</span>
+          </div>
+          <div class="dim-track">
+            <div class="dim-fill" style="--w:90%;background:#45B88E;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="feature-phone">
+      <div class="phone-wrap" style="width:252px;">
+        <div class="phone-frame-outer">
+          <div class="phone-screen">
+            <img src="screenshots/screen_detail_live.jpg"
+              alt="Clavix position detail for AAPL showing BBB grade, radar chart, five dimension bars"
+              loading="lazy">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ── Feature §IV: Alerts ──────────────────────────────── -->
+  <div class="feature-row flip reveal">
+    <div class="feature-phone">
+      <div class="phone-wrap" style="width:252px;">
+        <div class="phone-frame-outer">
+          <div class="phone-screen">
+            <img src="screenshots/screen_alerts_live.jpg"
+              alt="Clavix alerts screen showing PORT, RISK, GRADE, NEWS chips"
+              loading="lazy">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="feature-copy">
+      <span class="section-label">§ IV — ALERTS</span>
+      <h2>Signal, not noise.</h2>
+      <p>
+        Grade changes, sector risk spikes, and material news events surface as structured alerts.
+        Filtered by type. Attributed to source. Timestamped.
+        Know what changed and why — not just that something did.
+      </p>
+      <div class="alert-list">
+        <div class="alert-item">
+          <span class="alert-chip chip-port">PORT</span>
+          <span class="alert-text">Your latest Morning Rating is ready</span>
+        </div>
+        <div class="alert-item">
+          <span class="alert-chip chip-risk">RISK</span>
+          <span class="alert-text">Portfolio concentration elevated in Technology</span>
+        </div>
+        <div class="alert-item">
+          <span class="alert-chip chip-grade">GRADE</span>
+          <span class="alert-text">TSLA grade changed from BBB to A &nbsp;<span class="grade-badge g-a grade" style="font-size:10px;padding:2px 6px;">A</span></span>
+        </div>
+        <div class="alert-item">
+          <span class="alert-chip chip-news">NEWS</span>
+          <span class="alert-text">Major event detected for AAPL: antitrust ruling</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Grade Scale ───────────────────────────────────────── -->
+  <div class="grade-scale-outer">
+    <div class="grade-scale-inner">
+      <div class="grade-scale-header reveal">
+        <span class="eyebrow">The Rating Scale</span>
+        <h2>The same scale used for bonds.<br>Applied to your portfolio.</h2>
+        <p>Ten grade bands. Each with a defined score range and a clear meaning. No ambiguity, no relative ranking.</p>
+      </div>
+      <div class="grade-ladder reveal">
+        <div class="grade-card">
+          <div class="gc-letter" style="color:var(--aaa-fg)">AAA</div>
+          <div class="gc-range">90–100</div>
+          <div class="gc-desc">Investment Grade</div>
+        </div>
+        <div class="grade-card">
+          <div class="gc-letter" style="color:var(--aa-fg)">AA</div>
+          <div class="gc-range">80–89</div>
+          <div class="gc-desc">Strong</div>
+        </div>
+        <div class="grade-card">
+          <div class="gc-letter" style="color:var(--a-fg)">A</div>
+          <div class="gc-range">70–79</div>
+          <div class="gc-desc">Sound</div>
+        </div>
+        <div class="grade-card">
+          <div class="gc-letter" style="color:var(--bbb-fg)">BBB</div>
+          <div class="gc-range">60–69</div>
+          <div class="gc-desc">Adequate</div>
+        </div>
+        <div class="grade-card">
+          <div class="gc-letter" style="color:var(--bb-fg)">BB</div>
+          <div class="gc-range">50–59</div>
+          <div class="gc-desc">Speculative</div>
+        </div>
+        <div class="grade-card">
+          <div class="gc-letter" style="color:var(--b-fg)">B</div>
+          <div class="gc-range">40–49</div>
+          <div class="gc-desc">Vulnerable</div>
+        </div>
+        <div class="grade-card">
+          <div class="gc-letter" style="color:var(--ccc-fg)">CCC</div>
+          <div class="gc-range">30–39</div>
+          <div class="gc-desc">Weak</div>
+        </div>
+        <div class="grade-card">
+          <div class="gc-letter" style="color:var(--cc-fg)">CC</div>
+          <div class="gc-range">20–29</div>
+          <div class="gc-desc">Distressed</div>
+        </div>
+        <div class="grade-card">
+          <div class="gc-letter" style="color:var(--c-fg)">C</div>
+          <div class="gc-range">10–19</div>
+          <div class="gc-desc">Near Default</div>
+        </div>
+        <div class="grade-card">
+          <div class="gc-letter" style="color:var(--f-fg)">F</div>
+          <div class="gc-range">0–9</div>
+          <div class="gc-desc">Default</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Final CTA ─────────────────────────────────────────── -->
+  <section class="cta-outer" id="waitlist">
+    <div class="cta-inner reveal">
+      <span class="eyebrow">Waitlist</span>
+      <h2>Join the waitlist.<br>Free during beta.</h2>
+      <p>Be among the first investors to use Clavix when we launch on the App Store.</p>
+
+      <div class="cta-success" id="success-cta">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <circle cx="9" cy="9" r="8" stroke="#45B88E" stroke-width="1.5"/>
+          <path d="M5.5 9l2.5 2.5L12.5 6.5" stroke="#45B88E" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div>
+          <strong>You're on the list.</strong>
+          <span>&nbsp;We'll email you when Clavix is ready.</span>
+        </div>
+      </div>
+
+      <div class="cta-dupe" id="dupe-cta">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <circle cx="7" cy="7" r="6" stroke="#5C5748" stroke-width="1.5"/>
+          <path d="M7 4v3m0 2v.5" stroke="#5C5748" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Already on the list — we'll be in touch.
+      </div>
+
+      <div id="cta-form">
+        <div class="cta-form-row">
+          <input class="cta-email-input" type="email" id="email-cta"
+            placeholder="your@email.com" autocomplete="email">
+          <button class="cta-btn" id="btn-cta"
+            onclick="submitWaitlist('email-cta','cta-form','success-cta','dupe-cta','btn-cta')">
+            Join the Waitlist
+          </button>
+        </div>
+        <p class="cta-note">No spam. No credit card. iOS only (for now).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ────────────────────────────────────────────── -->
   <footer>
-    <a href="#top" class="nav-logo" aria-label="Clavix home"><span class="logo-mark" style="width:28px;height:28px;font-size:0.68rem;opacity:0.85;">CX</span><span class="logo-word" style="font-size:0.9rem;opacity:0.6;">CLAVIX</span></a>
-    <span class="footer-copy">© 2026 Andover Digital LLC. Clavix is a product of Andover Digital LLC.</span>
-    <ul class="footer-links"><li><a href="/privacy">Privacy</a></li><li><a href="/terms">Terms</a></li><li><a href="/refund">Refund</a></li><li><a href="/methodology">Methodology</a></li><li><a href="mailto:support@getclavix.com">Contact</a></li></ul>
-    <p class="footer-risk">Clavix is for informational purposes only and does not provide investment advice, buy/sell recommendations, price predictions, or money management. Ratings are algorithmic and may be inaccurate, delayed, or incomplete. Always do your own due diligence before making investment decisions.</p>
+    <div class="footer-inner">
+      <div class="footer-logo">
+        <img src="logos/appicon_1024.png" alt="Clavix">
+        <span>CLAVIX</span>
+      </div>
+      <div class="footer-links">
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+        <a href="/refund">Refund Policy</a>
+      </div>
+      <span class="footer-copy">© 2026 Andover Digital</span>
+    </div>
   </footer>
 
   <script>
-    (function () {
-      var API_BASE = window.CLAVIX_API_BASE_URL || (
-        location.hostname === 'localhost' || location.hostname === '127.0.0.1'
-          ? 'http://127.0.0.1:8000'
-          : 'https://clavis.andoverdigital.com'
-      );
-      var WAITLIST_ENDPOINT = API_BASE.replace(/\/$/, '') + '/waitlist';
-      var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    /* ── Waitlist Submit ─────────────────────────────────── */
+    const SB_URL  = 'https://uwvwulhkxtzabykelvam.supabase.co';
+    const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV3dnd1bGhreHR6YWJ5a2VsdmFtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMDU2NTQsImV4cCI6MjA5MDg4MTY1NH0.Dp38Ba7YH7icnaPlnnvcGNuwMBrDL4l_Lx0veKuQYwk';
 
-      var capturedLeadEmail = '';
-      var leadProfile = { investor_type: '', biggest_pain: '' };
+    async function submitWaitlist(inputId, formId, successId, dupeId, btnId) {
+      const input   = document.getElementById(inputId);
+      const form    = document.getElementById(formId);
+      const btn     = document.getElementById(btnId);
+      const email   = (input ? input.value : '').trim();
 
-      function toggleMenu() {
-        var links = document.getElementById('nav-links');
-        var button = document.querySelector('.nav-hamburger');
-        links.classList.toggle('open');
-        button.setAttribute('aria-expanded', links.classList.contains('open') ? 'true' : 'false');
+      if (!input || !email) return;
+
+      /* Validate */
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        input.classList.add('shake');
+        input.focus();
+        setTimeout(() => input.classList.remove('shake'), 500);
+        return;
       }
 
-      document.querySelectorAll('.nav-links a').forEach(function (link) {
-        link.addEventListener('click', function () {
-          document.getElementById('nav-links').classList.remove('open');
-          var button = document.querySelector('.nav-hamburger');
-          if (button) button.setAttribute('aria-expanded', 'false');
-        });
-      });
+      if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
 
-      document.querySelectorAll('.chips').forEach(function (group) {
-        group.querySelectorAll('.choice-chip').forEach(function (chip) {
-          chip.addEventListener('click', function () {
-            var selected = chip.classList.contains('is-selected');
-            group.querySelectorAll('.choice-chip').forEach(function (item) {
-              item.classList.remove('is-selected');
-              item.setAttribute('aria-pressed', 'false');
-            });
-            if (selected) {
-              leadProfile[group.dataset.field] = '';
-            } else {
-              chip.classList.add('is-selected');
-              chip.setAttribute('aria-pressed', 'true');
-              leadProfile[group.dataset.field] = chip.dataset.value;
-            }
-          });
-        });
-      });
-
-      function normalizeEmail(value) {
-        return value.trim().toLowerCase();
-      }
-
-      function isValidEmail(value) {
-        return EMAIL_RE.test(value);
-      }
-
-      function showMessage(id, text, isError) {
-        var el = document.getElementById(id);
-        if (!el) return;
-        el.textContent = text;
-        el.style.display = 'block';
-        el.style.color = isError ? '#D85A30' : '#1D9E75';
-      }
-
-      async function postLead(payload) {
-        var res = await fetch(WAITLIST_ENDPOINT, {
+      try {
+        const res = await fetch(SB_URL + '/rest/v1/waitlist', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          headers: {
+            'Content-Type':  'application/json',
+            'apikey':        SB_KEY,
+            'Authorization': 'Bearer ' + SB_KEY,
+            'Prefer':        'return=minimal'
+          },
+          body: JSON.stringify({ email, source: 'getclavix.com' })
         });
-        var data = {};
-        try {
-          data = await res.json();
-        } catch (error) {
-          data = {};
+
+        /* Hide the form in all terminal states */
+        if (form) form.style.display = 'none';
+
+        if (res.status === 201 || res.ok) {
+          const el = document.getElementById(successId);
+          if (el) el.classList.add('on');
+        } else if (res.status === 409) {
+          const el = document.getElementById(dupeId);
+          if (el) el.classList.add('on');
+        } else {
+          /* Re-show form on unexpected error */
+          if (form) form.style.display = '';
+          if (btn)  { btn.disabled = false; btn.textContent = 'Try again'; }
         }
-        return { res: res, data: data };
+      } catch (err) {
+        console.error('Waitlist error:', err);
+        if (form) form.style.display = '';
+        if (btn)  { btn.disabled = false; btn.textContent = 'Try again'; }
       }
+    }
 
-      async function submitEmail(inputId, messageId, showProfile) {
-        var input = document.getElementById(inputId);
-        var email = normalizeEmail(input.value);
+    /* Enter key submits */
+    document.getElementById('email-hero').addEventListener('keydown', e => {
+      if (e.key === 'Enter') submitWaitlist('email-hero','hero-form','success-hero','dupe-hero','btn-hero');
+    });
+    document.getElementById('email-cta').addEventListener('keydown', e => {
+      if (e.key === 'Enter') submitWaitlist('email-cta','cta-form','success-cta','dupe-cta','btn-cta');
+    });
 
-        if (!isValidEmail(email)) {
-          input.style.borderColor = '#D85A30';
-          input.focus();
-          showMessage(messageId, 'Enter a valid email address.', true);
-          return;
+    /* ── Scroll Reveal ───────────────────────────────────── */
+    const revealObs = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          revealObs.unobserve(entry.target);
         }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -32px 0px' });
 
-        input.value = email;
-        input.style.borderColor = '';
+    document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
 
-        var button = input.parentElement.querySelector('button');
-        var originalText = button.textContent;
-        button.disabled = true;
-        button.textContent = 'Saving…';
-
-        try {
-          var result = await postLead({ email: email });
-          var res = result.res;
-          var data = result.data || {};
-
-          if (res.status === 422 || res.status === 400) {
-            showMessage(messageId, 'Enter a valid email address.', true);
-            return;
+    /* ── Dimension Bars ──────────────────────────────────── */
+    const dimsCard = document.getElementById('dims-card');
+    if (dimsCard) {
+      const dimsObs = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('animated');
+            dimsObs.unobserve(entry.target);
           }
-
-          if (res.ok && (data.status === 'success' || data.status === 'updated')) {
-            capturedLeadEmail = email;
-            showMessage(messageId, 'You are on the list. Launch access is sent to waitlist members first.');
-            if (showProfile) document.getElementById('optional-profile').style.display = 'block';
-            return;
-          }
-
-          if (data.status === 'duplicate' || res.status === 409) {
-            capturedLeadEmail = email;
-            showMessage(messageId, 'You are already on the list. We will keep you posted.');
-            if (showProfile) document.getElementById('optional-profile').style.display = 'block';
-            return;
-          }
-
-          showMessage(messageId, 'Something went wrong. Please try again.', true);
-        } catch (error) {
-          showMessage(messageId, 'Something went wrong. Please try again.', true);
-        } finally {
-          button.disabled = false;
-          button.textContent = originalText;
-        }
-      }
-
-      async function submitProfile() {
-        if (!capturedLeadEmail) return;
-
-        if (!leadProfile.investor_type && !leadProfile.biggest_pain) {
-          skipProfile();
-          return;
-        }
-
-        var payload = { email: capturedLeadEmail };
-        if (leadProfile.investor_type) payload.investor_type = leadProfile.investor_type;
-        if (leadProfile.biggest_pain) payload.biggest_pain = leadProfile.biggest_pain;
-
-        try {
-          var result = await postLead(payload);
-          var res = result.res;
-          var data = result.data || {};
-          if (!res.ok && data.status !== 'updated' && data.status !== 'duplicate') {
-            throw new Error('profile failed');
-          }
-          document.getElementById('optional-profile').style.display = 'none';
-          showMessage('hero-success', 'Thanks. Your launch profile is saved.');
-        } catch (error) {
-          showMessage('hero-success', 'Your email is saved. We could not save those extra details.', true);
-        }
-      }
-
-      function skipProfile() {
-        document.getElementById('optional-profile').style.display = 'none';
-        showMessage('hero-success', 'You are on the list. We will keep you posted.');
-      }
-
-      function toggleFaq(button) {
-        var item = button.parentElement;
-        var icon = button.querySelector('span');
-        var isOpen = item.classList.toggle('is-open');
-        button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        icon.textContent = isOpen ? '−' : '+';
-      }
-
-      window.toggleMenu = toggleMenu;
-      window.submitEmail = submitEmail;
-      window.submitProfile = submitProfile;
-      window.skipProfile = skipProfile;
-      window.toggleFaq = toggleFaq;
-    })();
+        });
+      }, { threshold: 0.25 });
+      dimsObs.observe(dimsCard);
+    }
   </script>
 </body>
 </html>
