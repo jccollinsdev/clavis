@@ -45,6 +45,24 @@ struct SettingsView: View {
                     }
                     .buttonStyle(.plain)
 
+                    // Notifications — shown always; push is pending APNs enrollment
+                    SettingsSectionCard("NOTIFICATIONS") {
+                        SettingsValueRow(
+                            "Push alerts",
+                            value: "Coming soon",
+                            detail: "Grade changes and major events will notify you once push notifications are enabled.",
+                            valueColor: .clavixInk3
+                        )
+                        Divider()
+                        NavigationLink {
+                            NotificationPrefsDetailView(viewModel: viewModel)
+                        } label: {
+                            SettingsValueRow("Alert preferences", value: "Configure")
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    // Brokerage — shown always; hidden behind coming-soon when not enabled
                     if FeatureFlags.brokerageEnabled {
                         NavigationLink {
                             BrokerageSettingsDetailView(viewModel: brokerageViewModel)
@@ -65,6 +83,15 @@ struct SettingsView: View {
                             }
                         }
                         .buttonStyle(.plain)
+                    } else {
+                        SettingsSectionCard("BROKERAGE") {
+                            SettingsValueRow(
+                                "Connect brokerage",
+                                value: "Coming soon",
+                                detail: "Read-only position sync from Robinhood, Schwab, Fidelity, and others. No trading access.",
+                                valueColor: .clavixInk3
+                            )
+                        }
                     }
 
                     NavigationLink {
@@ -558,6 +585,14 @@ private struct NotificationPrefsDetailView: View {
             if let message = viewModel.preferencesMessage {
                 SettingsMessageCard(message: message, fill: .clavixWarnSoft, foreground: .clavixWarnInk)
             }
+
+            ClavixInlineNoticeCard(
+                eyebrow: "Push delivery",
+                title: "Push notifications not yet active",
+                message: "Alert preferences are saved and will apply once push notifications are enabled. In-app alerts in the Alerts tab are active now.",
+                footnote: "Clavix alerts you about grade changes, major news, and portfolio risk signals affecting your held positions.",
+                glyph: "bell.badge"
+            )
 
             SettingsSectionCard("DELIVERY") {
                 VStack(spacing: 0) {
