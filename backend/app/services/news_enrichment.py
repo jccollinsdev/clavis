@@ -209,7 +209,9 @@ async def _score_article_llm(
         headline=headline[:300],
         body_excerpt=_truncate_text(body or "", 1200),
     )
-    result_text, parsed = _request_llm_json(prompt, max_tokens=400)
+    # _request_llm_json calls chatcompletion_text (sync OpenAI client + time.sleep
+    # throttle). Must run in a thread so the event loop stays responsive.
+    result_text, parsed = await asyncio.to_thread(_request_llm_json, prompt, max_tokens=400)
     return parsed if isinstance(parsed, dict) else {}
 
 
@@ -221,7 +223,7 @@ async def _generate_tldr_llm(
         headline=headline[:300],
         body=_truncate_text(body or "", 2000),
     )
-    result_text, parsed = _request_llm_json(prompt, max_tokens=600)
+    result_text, parsed = await asyncio.to_thread(_request_llm_json, prompt, max_tokens=600)
     return parsed if isinstance(parsed, dict) else {}
 
 

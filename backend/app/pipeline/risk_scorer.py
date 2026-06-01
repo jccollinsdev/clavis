@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import math
 from datetime import datetime, timezone
@@ -777,7 +778,7 @@ async def score_position(
         )
         return result_text, extract_json_object(result_text, {})
 
-    result_text, scores = _request_scores()
+    result_text, scores = await asyncio.to_thread(_request_scores)
     missing_dimensions = [key for key in DIMENSION_KEYS if scores.get(key) is None]
     if missing_dimensions:
         logger.warning(
@@ -786,7 +787,7 @@ async def score_position(
             missing_dimensions,
             (result_text or "")[:800],
         )
-        retry_text, retry_scores = _request_scores()
+        retry_text, retry_scores = await asyncio.to_thread(_request_scores)
         retry_missing = [
             key for key in DIMENSION_KEYS if retry_scores.get(key) is None
         ]
@@ -1122,13 +1123,13 @@ Respond with ONLY the JSON object. Start with {{ and end with }}."""
             )
             return result_text, _parse_batch_scores(result_text, tickers)
 
-        result_text, all_scores = _request_chunk_scores()
+        result_text, all_scores = await asyncio.to_thread(_request_chunk_scores)
         if _is_batch_response_suspicious(all_scores, tickers):
             logger.warning(
                 "score_positions_batch sparse fallback retry; raw=%r",
                 (result_text or "")[:800],
             )
-            retry_text, retry_scores = _request_chunk_scores()
+            retry_text, retry_scores = await asyncio.to_thread(_request_chunk_scores)
             if not _is_batch_response_suspicious(retry_scores, tickers):
                 result_text, all_scores = retry_text, retry_scores
 
