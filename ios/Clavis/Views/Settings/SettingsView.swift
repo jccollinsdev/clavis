@@ -966,6 +966,10 @@ private struct SupportLegalDetailView: View {
 
             SettingsSectionCard("LEGAL") {
                 VStack(spacing: 0) {
+                    SettingsValueRow("Operator", value: "Andover Digital LLC")
+                    Divider()
+                    SettingsValueRow("App Store by", value: "Individual Developer Account")
+                    Divider()
                     Link(destination: URL(string: "https://getclavix.com/terms")!) {
                         SettingsValueRow("Terms", value: "Open")
                     }

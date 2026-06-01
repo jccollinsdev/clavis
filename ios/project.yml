@@ -41,6 +41,7 @@ targets:
     resources:
       - path: Clavis/Resources/Fonts
       - path: Clavis/Resources/Design
+      - path: Clavis/Resources/PrivacyInfo.xcprivacy
     dependencies:
       - package: Supabase
   ClavisTests:

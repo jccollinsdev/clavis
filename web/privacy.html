@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy - Clavix</title>
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://getclavix.com/privacy" />
+  <meta name="theme-color" content="#0F1117" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-primary: #0F1117;
+      --surface: #161B24;
+      --surface-el: #1E2530;
+      --border: #2A3140;
+      --text-pri: #E8ECF0;
+      --text-sec: #7A8799;
+      --risk-a: #1D9E75;
+      --cream: #FEF5E7;
+      --font-ui: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg-primary);
+      color: var(--text-pri);
+      font-family: var(--font-ui);
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--risk-a); text-decoration: underline; text-underline-offset: 2px; }
+    a:hover { color: var(--cream); }
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 3rem; height: 64px;
+      background: rgba(15,17,23,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 0.5px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-mark {
+      width: 32px; height: 32px;
+      background: var(--surface-el);
+      border: 0.5px solid var(--border);
+      display: grid; place-items: center;
+      color: var(--risk-a);
+      font-family: var(--font-mono);
+      font-size: 0.78rem; font-weight: 500;
+    }
+    .logo-word {
+      font-weight: 600; font-size: 1.1rem;
+      letter-spacing: 0.12em;
+      color: var(--cream);
+      text-transform: uppercase;
+    }
+    main { max-width: 900px; margin: 0 auto; padding: 4rem 2rem 6rem; }
+    h1 {
+      font-size: 2.2rem; font-weight: 400;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+      color: var(--text-pri);
+    }
+    .doc-meta {
+      font-size: 0.8rem; color: var(--text-sec);
+      margin-bottom: 3rem; line-height: 1.6;
+    }
+    h2 {
+      font-size: 1.3rem; font-weight: 500;
+      margin: 2.5rem 0 1rem;
+      color: var(--text-pri);
+      padding-bottom: 0.4rem;
+      border-bottom: 0.5px solid var(--border);
+    }
+    h3 {
+      font-size: 1rem; font-weight: 500;
+      margin: 1.5rem 0 0.6rem;
+      color: var(--cream);
+    }
+    p, li { font-size: 0.92rem; line-height: 1.75; color: var(--text-sec); margin-bottom: 0.8rem; font-weight: 300; }
+    ul, ol { padding-left: 1.5rem; margin-bottom: 1rem; }
+    li { margin-bottom: 0.4rem; }
+    .highlight { background: var(--surface-el); border-left: 2px solid var(--risk-a); padding: 1rem 1.2rem; margin: 1.2rem 0; }
+    .highlight p { margin-bottom: 0; }
+    .pledge { font-size: 1rem; color: var(--risk-a); font-weight: 400; margin: 1.5rem 0; padding: 1rem 1.2rem; border: 0.5px solid var(--border); background: var(--surface); }
+    table { width: 100%; border-collapse: collapse; margin: 1.2rem 0; font-size: 0.85rem; }
+    th, td { text-align: left; padding: 0.7rem 0.8rem; border: 0.5px solid var(--border); color: var(--text-sec); font-weight: 300; }
+    th { background: var(--surface); color: var(--text-pri); font-weight: 400; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; }
+    td { vertical-align: top; }
+    footer {
+      padding: 2.5rem 3rem;
+      border-top: 0.5px solid var(--border);
+      background: var(--bg-primary);
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 1rem;
+      max-width: 900px; margin: 0 auto;
+    }
+    .footer-copy { font-size: 0.72rem; color: var(--text-sec); letter-spacing: 0.04em; }
+    .footer-links { display: flex; gap: 2rem; list-style: none; flex-wrap: wrap; }
+    .footer-links a { font-size: 0.72rem; color: var(--text-sec); letter-spacing: 0.04em; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--text-pri); }
+    .footer-risk { width: 100%; font-size: 0.68rem; color: var(--text-sec); line-height: 1.6; border-top: 0.5px solid var(--border); padding-top: 1rem; margin-top: 0.5rem; }
+    @media (max-width: 600px) {
+      nav { padding: 0 1.25rem; height: 56px; }
+      .logo-word { font-size: 0.9rem; }
+      .logo-mark { width: 28px; height: 28px; font-size: 0.68rem; }
+      main { padding: 2rem 1.25rem 4rem; }
+      h1 { font-size: 1.6rem; }
+      h2 { font-size: 1.1rem; }
+      footer { padding: 2rem 1.25rem; flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/" class="nav-logo" aria-label="Clavix home">
+      <span class="logo-mark">CX</span>
+      <span class="logo-word">CLAVIX</span>
+    </a>
+  </nav>
+
+  <main>
+    <h1>Privacy Policy</h1>
+    <p class="doc-meta">
+      Effective Date: June 1, 2026 &middot; Last Updated: June 1, 2026<br />
+      <em>This version replaces the prior Privacy Policy dated April 12, 2026.</em>
+    </p>
+
+    <div class="pledge">
+      Our pledge: We do not sell your data. We do not advertise with your portfolio data. Your portfolio information is yours.
+    </div>
+
+    <p>
+      Clavix is operated by <strong>Andover Digital LLC</strong> (&ldquo;we,&rdquo; &ldquo;us,&rdquo; &ldquo;our&rdquo;).
+      The Clavix iOS app is distributed on the Apple App Store. The App Store may display an individual developer name as the seller for Apple distribution purposes.
+      Andover Digital LLC operates the Clavix service, handles personal information as described in this policy, and provides support and the product experience.
+    </p>
+
+    <h2>1. Scope</h2>
+    <p>This policy applies to all users of the Clavix service in the United States. Clavix is intended for individuals who are <strong>18 years of age or older</strong>. We do not knowingly collect personal information from anyone under 18.</p>
+    <p>The Clavix iOS app is available through the Apple App Store. Apple collects certain information as described in Apple&rsquo;s own privacy policy. This policy covers only our handling of your information.</p>
+
+    <h2>2. Information We Collect</h2>
+
+    <h3>2.1 Information You Provide to Create and Manage Your Account</h3>
+    <table>
+      <tr><th>Data</th><th>Purpose</th><th>Required?</th></tr>
+      <tr><td>Email address</td><td>Account creation, authentication, account-related communication</td><td>Yes</td></tr>
+      <tr><td>Display name</td><td>To personalize your experience</td><td>Optional</td></tr>
+      <tr><td>Birth year</td><td>To personalize your experience</td><td>Optional</td></tr>
+    </table>
+
+    <h3>2.2 Information You Provide to Use the Service</h3>
+    <p><strong>Portfolio holdings.</strong> When you add positions, you provide ticker symbols, number of shares, average purchase price, and optionally a purchase date. This information is stored with your account and used to generate personalized risk analysis.</p>
+    <p><strong>Watchlist items.</strong> Ticker symbols you add to your watchlist are stored with your account.</p>
+    <p><strong>Alert and notification preferences.</strong> You can configure which alerts you receive, quiet hours, delivery time, and digest length.</p>
+
+    <h3>2.3 Information Provided for Push Notifications</h3>
+    <p>If you enable push notifications, we receive a device token provided by Apple&rsquo;s Push Notification service (APNs). This token is used solely to deliver notifications you have requested. You can disable push notifications at any time in your iOS Settings.</p>
+
+    <h3>2.4 Information Collected Automatically</h3>
+    <p>We collect limited technical information to operate and secure the service:</p>
+    <ul>
+      <li><strong>IP address</strong> — collected temporarily for rate limiting, security, and operational monitoring. Not stored long-term.</li>
+      <li><strong>Request metadata</strong> — the type of request, endpoint accessed, and timestamp are logged temporarily for debugging and performance monitoring.</li>
+    </ul>
+    <p><strong>We do not collect</strong> usage analytics, session recordings, behavioral tracking, device identifiers, iOS version, or device model information.</p>
+
+    <h3>2.5 Brokerage Connections</h3>
+    <p>Brokerage account connections are not available in the current version of the app. If brokerage connection becomes available in a future update, we will update this policy. When available, connections will use OAuth or read-only API access through a regulated intermediary. Your brokerage login credentials will be handled by your brokerage and will never be stored by us.</p>
+
+    <h2>3. How We Use Your Information</h2>
+    <ul>
+      <li><strong>To provide the Clavix service.</strong> This includes generating personalized risk scores, daily briefings, news filtering, and alerts based on your portfolio and preferences.</li>
+      <li><strong>To communicate with you.</strong> We may send you account-related communications (e.g., password reset emails). We do not send marketing emails.</li>
+      <li><strong>To improve the service.</strong> We may analyze aggregated, de-identified data to improve the product.</li>
+      <li><strong>To secure the service.</strong> We monitor for unauthorized access, abuse, and technical issues.</li>
+      <li><strong>To comply with legal obligations.</strong></li>
+    </ul>
+
+    <h2>4. AI and Model Processing</h2>
+    <p>Clavix uses artificial intelligence (AI) and large language models (LLMs) to generate risk scores, portfolio briefings, news sentiment analysis, and explanatory content. Our AI provider is <strong>MiniMax</strong>.</p>
+    <p><strong>What is sent to the AI provider:</strong> When we generate analysis for your portfolio, we may send your portfolio positions (ticker symbols, share counts, cost basis), portfolio value context, and recent news articles or market data related to your positions.</p>
+    <p><strong>What is not sent:</strong> Your name, email address, user ID, or other direct identifiers are not sent to the AI provider.</p>
+    <p><strong>Purpose:</strong> The AI generates structured risk analysis, digests, and scoring based on your portfolio context. This processing is integral to the personalized nature of the service.</p>
+    <p><strong>Contractual protections:</strong> MiniMax is contractually prohibited from using your data to train or improve their models and from using it for any purpose other than providing the service to us.</p>
+    <p><strong>Opt-out:</strong> AI processing is integral to the core service. If you do not want your portfolio data processed by AI, you should not use the service.</p>
+
+    <h2>5. How We Share Your Information</h2>
+    <p>We do not sell, rent, or trade your personal information. We share your information only in the following limited circumstances:</p>
+
+    <h3>5.1 Service Providers (Subprocessors)</h3>
+    <p>We use trusted third-party service providers who process data on our behalf:</p>
+    <table>
+      <tr><th>Provider</th><th>Service</th><th>Data Shared</th></tr>
+      <tr><td><strong>Supabase</strong></td><td>Database hosting, authentication</td><td>All app data (encrypted at rest, US-hosted)</td></tr>
+      <tr><td><strong>MiniMax</strong></td><td>AI/LLM processing for risk scoring, digest generation, news analysis</td><td>Portfolio positions (ticker, shares, cost basis), article text</td></tr>
+      <tr><td><strong>Apple (APNs)</strong></td><td>Push notification delivery</td><td>Device token, notification payload (title, body, type)</td></tr>
+      <tr><td><strong>Polygon.io</strong></td><td>Market data</td><td>Ticker symbols only &mdash; no personal data</td></tr>
+      <tr><td><strong>Finnhub</strong></td><td>Financial data, news discovery</td><td>Ticker symbols only &mdash; no personal data</td></tr>
+      <tr><td><strong>Cloudflare</strong></td><td>CDN, DNS, DDoS protection</td><td>HTTP request data (transient)</td></tr>
+      <tr><td><strong>DigitalOcean</strong></td><td>Server hosting</td><td>All app data processed on servers (US-hosted)</td></tr>
+    </table>
+
+    <h3>5.2 Legal Requirements</h3>
+    <p>We may disclose your information if required by law, court order, or government authority, or to protect our rights, property, or safety, our users, or the public.</p>
+
+    <h3>5.3 Business Transfers</h3>
+    <p>In the event of a merger, acquisition, or sale of assets, your information may be transferred. We will notify you through the app before your information becomes subject to a different privacy policy.</p>
+
+    <h2>6. Apple App Store and APNs</h2>
+    <p>The Clavix iOS app is distributed through the Apple App Store. Apple is not a party to this Privacy Policy and is not responsible for the Clavix service or its data handling.</p>
+    <p><strong>Push notifications:</strong> If you enable push notifications, your device token is handled by Apple&rsquo;s APNs infrastructure to deliver notifications. Apple&rsquo;s privacy policy governs their handling of this data.</p>
+    <p>If and when subscription purchases are implemented, Apple will process payments through the App Store. Apple will not share your payment card details with us but may share your transaction ID and purchase status to manage your subscription.</p>
+
+    <h2>7. Data Storage and Security</h2>
+    <ul>
+      <li>All data is stored on Supabase infrastructure hosted in the United States.</li>
+      <li>Encryption in transit: TLS 1.2+</li>
+      <li>Encryption at rest: AES-256</li>
+      <li>Access to personal data is restricted to authorized personnel on a need-to-know basis.</li>
+      <li>Brokerage login credentials are never stored (brokerage feature not yet available).</li>
+      <li>We implement commercially reasonable security measures but cannot guarantee absolute security.</li>
+    </ul>
+
+    <h2>8. Data Retention</h2>
+    <p>We retain your personal information for as long as your account is active.</p>
+    <p><strong>Shared data:</strong> Some data we generate (ticker risk scores, news articles) is stored in shared tables accessible to all users. This data is not personally identifying and is retained as long as it remains useful for the service.</p>
+    <p><strong>News articles:</strong> News articles and events are automatically deleted after 30 days.</p>
+    <p><strong>Account deletion:</strong> When you delete your account through the in-app settings, we delete or anonymize your personal data. Some shared data (such as ticker risk snapshots) may remain in shared tables without linkage to your identity.</p>
+
+    <h2>9. Your Rights and Choices</h2>
+    <ul>
+      <li><strong>Access and portability.</strong> Download your account data through the in-app &ldquo;Export Data&rdquo; feature.</li>
+      <li><strong>Correction.</strong> Update your profile and preferences in Settings.</li>
+      <li><strong>Deletion.</strong> Permanently delete your account through in-app &ldquo;Delete Account.&rdquo;</li>
+      <li><strong>Push notifications.</strong> Enable or disable in iOS Settings or in-app.</li>
+      <li><strong>Configuration.</strong> Adjust digest timing, alert types, and quiet hours in Settings.</li>
+    </ul>
+    <p>To exercise any rights not available in-app, email <a href="mailto:support@getclavix.com">support@getclavix.com</a>. We will respond within 30 days.</p>
+    <p><strong>California residents (CCPA/CPRA):</strong> We do not sell or share your personal information as those terms are defined under the CCPA. To exercise your rights, contact us at the email above.</p>
+
+    <h2>10. Children&rsquo;s Privacy</h2>
+    <p>The service is not directed to individuals under 18. We do not knowingly collect personal information from children under 18. If you believe a child has provided us with personal information, please contact us at <a href="mailto:support@getclavix.com">support@getclavix.com</a>.</p>
+
+    <h2>11. Cookies</h2>
+    <p>We use only essential session cookies to keep you logged in. We do not use advertising cookies, cross-site tracking, or third-party analytics scripts.</p>
+
+    <h2>12. Changes to This Policy</h2>
+    <p>We may update this Privacy Policy. When we make material changes, we will notify you through the app and update the &ldquo;Last Updated&rdquo; date. Your continued use after the effective date constitutes acceptance of the updated policy.</p>
+
+    <h2>13. Contact</h2>
+    <p>
+      <strong>Andover Digital LLC</strong><br />
+      Operator of Clavix<br />
+      Email: <a href="mailto:support@getclavix.com">support@getclavix.com</a>
+    </p>
+
+    <div class="highlight">
+      <p><strong>About the App Store seller.</strong> The Clavix iOS app is distributed on the Apple App Store through an Individual Apple Developer account. The App Store may display the individual developer&rsquo;s name as the seller for Apple distribution purposes. Andover Digital LLC operates the Clavix service and is the responsible entity described in this policy.</p>
+    </div>
+  </main>
+
+  <footer>
+    <a href="/" class="nav-logo" aria-label="Clavix home"><span class="logo-mark" style="width:28px;height:28px;font-size:0.68rem;opacity:0.85;">CX</span><span class="logo-word" style="font-size:0.9rem;opacity:0.6;">CLAVIX</span></a>
+    <span class="footer-copy">&copy; 2026 Andover Digital LLC. Clavix is a product of Andover Digital LLC.</span>
+    <ul class="footer-links">
+      <li><a href="/privacy">Privacy</a></li>
+      <li><a href="/terms">Terms</a></li>
+      <li><a href="/refund">Refund</a></li>
+      <li><a href="/methodology">Methodology</a></li>
+      <li><a href="mailto:support@getclavix.com">Contact</a></li>
+    </ul>
+    <p class="footer-risk">Clavix is for informational purposes only and does not provide investment advice. Nothing on this site or in the app constitutes a recommendation to buy, sell, or hold any security. Portfolio risk scores and analysis are generated algorithmically and may be inaccurate, delayed, or incomplete. Always do your own research and consult a licensed financial advisor before making investment decisions.</p>
+  </footer>
+</body>
+</html>

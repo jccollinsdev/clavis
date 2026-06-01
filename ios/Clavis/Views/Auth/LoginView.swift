@@ -110,6 +110,13 @@ struct LoginView: View {
                     .foregroundColor(.clavixInk3)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .multilineTextAlignment(.center)
+                    .padding(.bottom, 6)
+
+                Text("Clavix is operated by Andover Digital LLC.")
+                    .font(ClavisTypography.clavixCaption)
+                    .foregroundColor(.clavixInk4)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .multilineTextAlignment(.center)
                     .padding(.bottom, 8)
 
                 termsFooter
