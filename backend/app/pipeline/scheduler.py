@@ -5423,6 +5423,37 @@ def _cleanup_old_articles() -> None:
     supabase.table("shared_ticker_events").delete().lt("published_at", cutoff).execute()
 
 
+def _load_active_tickers_sync(supabase) -> list[str]:
+    positions = supabase.table("positions").select("ticker").execute().data or []
+    watchlist_items = supabase.table("watchlist_items").select("ticker").execute().data or []
+    return sorted(
+        {
+            str(row.get("ticker") or "").strip().upper()
+            for row in positions + watchlist_items
+            if row.get("ticker")
+        }
+    )
+
+
+def _load_unenriched_articles_sync(
+    supabase,
+    *,
+    cutoff: str,
+    limit: int,
+) -> list[dict[str, Any]]:
+    return (
+        supabase.table("shared_ticker_events")
+        .select("*")
+        .gte("published_at", cutoff)
+        .is_("sentiment_score", "null")
+        .order("published_at", desc=True)
+        .limit(limit)
+        .execute()
+        .data
+        or []
+    )
+
+
 async def _run_active_ticker_news_refresh() -> None:
     """Fetch Google News RSS for all active tickers (any user's portfolio/watchlist)
     and write articles to shared_ticker_events with full LLM enrichment.
@@ -5440,14 +5471,7 @@ async def _run_active_ticker_news_refresh() -> None:
 
     supabase = get_supabase()
     try:
-        # Collect all active tickers (in any user's portfolio or watchlist)
-        positions = supabase.table("positions").select("ticker").execute().data or []
-        watchlist_items = supabase.table("watchlist_items").select("ticker").execute().data or []
-        active_tickers = sorted({
-            str(r.get("ticker") or "").strip().upper()
-            for r in positions + watchlist_items
-            if r.get("ticker")
-        })
+        active_tickers = await asyncio.to_thread(_load_active_tickers_sync, supabase)
         if not active_tickers:
             logger.info("[NEWS_REFRESH] No active tickers found, skipping.")
             return
@@ -5482,16 +5506,11 @@ async def _run_bulk_sentiment_enrichment() -> None:
     supabase = get_supabase()
     try:
         cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
-        rows = (
-            supabase.table("shared_ticker_events")
-            .select("*")
-            .gte("published_at", cutoff)
-            .is_("sentiment_score", "null")
-            .order("published_at", desc=True)
-            .limit(200)
-            .execute()
-            .data
-            or []
+        rows = await asyncio.to_thread(
+            _load_unenriched_articles_sync,
+            supabase,
+            cutoff=cutoff,
+            limit=200,
         )
         if not rows:
             logger.info("[BULK_ENRICH] No unenriched articles found.")

@@ -249,6 +249,57 @@ def _request_llm_json(prompt: str, max_tokens: int = 600) -> tuple[str, dict]:
         return "", {}
 
 
+def _fetch_existing_article_row(
+    supabase,
+    *,
+    ticker: str,
+    event_hash: str,
+    columns: str,
+) -> dict[str, Any] | None:
+    result = (
+        supabase.table("shared_ticker_events")
+        .select(columns)
+        .eq("ticker", ticker)
+        .eq("event_hash", event_hash)
+        .limit(1)
+        .execute()
+    )
+    if result.data:
+        return result.data[0]
+    return None
+
+
+def _upsert_shared_ticker_event(
+    supabase,
+    payload: dict[str, Any],
+) -> dict[str, Any] | None:
+    result = (
+        supabase.table("shared_ticker_events")
+        .upsert(payload, on_conflict="ticker,event_hash")
+        .execute()
+    )
+    if result.data:
+        return result.data[0]
+    return None
+
+
+def _load_recent_shared_event_rows(
+    supabase,
+    *,
+    tickers: list[str],
+    cutoff: str,
+) -> list[dict[str, Any]]:
+    return (
+        supabase.table("shared_ticker_events")
+        .select("ticker,extraction_status,paywalled,sentiment_score")
+        .in_("ticker", list(tickers))
+        .gte("published_at", cutoff)
+        .execute()
+        .data
+        or []
+    )
+
+
 async def enrich_and_store_article(
     supabase,
     article: dict[str, Any],
@@ -277,30 +328,28 @@ async def enrich_and_store_article(
     existing_llm: dict[str, Any] = {}
     if skip_existing:
         try:
-            existing = (
-                supabase.table("shared_ticker_events")
-                .select("id")
-                .eq("ticker", ticker)
-                .eq("event_hash", event_hash)
-                .limit(1)
-                .execute()
+            existing = await asyncio.to_thread(
+                _fetch_existing_article_row,
+                supabase,
+                ticker=ticker,
+                event_hash=event_hash,
+                columns="id",
             )
-            if existing.data:
-                return existing.data[0]
+            if existing:
+                return existing
         except Exception:
             pass
     else:
         try:
-            existing_row = (
-                supabase.table("shared_ticker_events")
-                .select("sentiment_score,sentiment_reason,impact_tag,tldr,what_it_means,key_implications")
-                .eq("ticker", ticker)
-                .eq("event_hash", event_hash)
-                .limit(1)
-                .execute()
+            existing_row = await asyncio.to_thread(
+                _fetch_existing_article_row,
+                supabase,
+                ticker=ticker,
+                event_hash=event_hash,
+                columns="sentiment_score,sentiment_reason,impact_tag,tldr,what_it_means,key_implications",
             )
-            if existing_row.data:
-                existing_llm = existing_row.data[0]
+            if existing_row:
+                existing_llm = existing_row
         except Exception:
             pass
 
@@ -424,13 +473,9 @@ async def enrich_and_store_article(
     }
 
     try:
-        result = (
-            supabase.table("shared_ticker_events")
-            .upsert(payload, on_conflict="ticker,event_hash")
-            .execute()
-        )
-        if result.data:
-            return result.data[0]
+        result = await asyncio.to_thread(_upsert_shared_ticker_event, supabase, payload)
+        if result:
+            return result
     except Exception as exc:
         logger.error("Failed to store article for %s: %s", ticker, exc)
 
@@ -520,13 +565,11 @@ async def ingest_and_enrich_ticker_news(
     # Query DB for usable 7-day counts per ticker
     cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
     try:
-        rows = (
-            supabase.table("shared_ticker_events")
-            .select("ticker,extraction_status,paywalled,sentiment_score")
-            .in_("ticker", list(tickers))
-            .gte("published_at", cutoff)
-            .execute()
-            .data or []
+        rows = await asyncio.to_thread(
+            _load_recent_shared_event_rows,
+            supabase,
+            tickers=list(tickers),
+            cutoff=cutoff,
         )
     except Exception:
         rows = []
@@ -556,7 +599,7 @@ async def ingest_and_enrich_ticker_news(
 
     from ..pipeline.rss_ingest import fetch_google_company_rss
 
-    metadata_map = get_metadata_map(supabase, fallback_tickers)
+    metadata_map = await asyncio.to_thread(get_metadata_map, supabase, fallback_tickers)
     google_raw = await fetch_google_company_rss(
         fallback_tickers,
         ticker_metadata=metadata_map,

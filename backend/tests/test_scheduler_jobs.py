@@ -99,12 +99,17 @@ def test_schedule_news_cleanup_registers_cron_job():
 def test_start_scheduler_intraday_registers_only_tier_zero_jobs(monkeypatch):
     monkeypatch.setenv("SCHEDULER_TIER", "intraday")
     fake_scheduler = _FakeScheduler()
+    fake_supabase = SimpleNamespace(
+        table=lambda *_: SimpleNamespace(
+            select=lambda *_: SimpleNamespace(execute=lambda: SimpleNamespace(data=[]))
+        )
+    )
 
     with (
         patch.object(scheduler, "scheduler", fake_scheduler),
         patch.object(scheduler, "_fail_stale_runs"),
         patch.object(scheduler, "_fail_orphaned_runs"),
-        patch("app.services.supabase.get_supabase", return_value=object()),
+        patch("app.services.supabase.get_supabase", return_value=fake_supabase),
     ):
         scheduler.start_scheduler()
 

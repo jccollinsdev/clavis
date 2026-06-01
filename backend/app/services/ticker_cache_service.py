@@ -3557,6 +3557,7 @@ def build_holding_workflow_response(
     latest_analysis_run = latest_analysis_run or _get_latest_analysis_run_for_ids(
         supabase, [position_id]
     )
+    latest_analysis_run = latest_analysis_run or {}
     current_score = build_risk_score_response(
         snapshot,
         position_id=position_id,

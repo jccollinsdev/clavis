@@ -136,3 +136,120 @@ These should be audited before launch if they have user-facing latency concerns.
 | `65ea23c` | fix: prices route blocks event loop — wrap Polygon fetch in asyncio.to_thread |
 
 Both deployed via GitHub Actions CI (deploy-prod.yml) with health check passing.
+
+---
+
+## Fix 5 — P0: Background enrichment still blocked the event loop via sync Supabase calls; duplicate add could 500 on existing holdings
+
+**Date:** 2026-06-01  
+**Session:** Search/add reliability follow-up (post-LLM offload)  
+**Engineer:** Codex
+
+### Symptom A — `/tickers/search` still degraded badly under load
+
+**Live evidence (production, disposable onboarding test user):**
+- `GET /tickers/AAPL` returned `200` in about `2.3s`
+- `GET /holdings` returned `200` in about `3.4s`
+- `GET /tickers/search?q=AAPL` returned `200` but took about `24.4s`
+- `GET /health` timed out after `25s`
+
+**Local isolation check:** direct local call to `search_supported_tickers(..., "AAPL")` against the live Supabase project finished in about `1.9s`, which showed the search function itself was not inherently a 24-second operation.
+
+**Root cause:** after the earlier MiniMax/LLM offload fix, several async paths still called the synchronous Supabase client directly on the uvicorn / APScheduler event loop:
+- `backend/app/pipeline/scheduler.py`
+  - `_run_active_ticker_news_refresh()` queried `positions` and `watchlist_items` synchronously
+  - `_run_bulk_sentiment_enrichment()` queried `shared_ticker_events` synchronously
+- `backend/app/services/news_enrichment.py`
+  - `enrich_and_store_article()` performed sync `select` and `upsert`
+  - `ingest_and_enrich_ticker_news()` performed sync `shared_ticker_events` count queries and sync `get_metadata_map(...)`
+- `backend/app/routes/holdings.py`
+  - `list_holdings()` and `create_holding()` still performed sync Supabase work inline in async routes
+
+These calls were short individually, but under background enrichment load they still monopolized the event loop and starved user-facing requests.
+
+**Files changed:**
+- `backend/app/pipeline/scheduler.py`
+- `backend/app/services/news_enrichment.py`
+- `backend/app/routes/holdings.py`
+
+**Fix:** extracted the remaining blocking database work into small sync helper functions and dispatched them with `await asyncio.to_thread(...)`.
+
+Representative examples:
+
+```python
+# scheduler.py
+active_tickers = await asyncio.to_thread(_load_active_tickers_sync, supabase)
+rows = await asyncio.to_thread(
+    _load_unenriched_articles_sync,
+    supabase,
+    cutoff=cutoff,
+    limit=200,
+)
+```
+
+```python
+# news_enrichment.py
+existing = await asyncio.to_thread(
+    _fetch_existing_article_row,
+    supabase,
+    ticker=ticker,
+    event_hash=event_hash,
+    columns="id",
+)
+result = await asyncio.to_thread(_upsert_shared_ticker_event, supabase, payload)
+metadata_map = await asyncio.to_thread(get_metadata_map, supabase, fallback_tickers)
+```
+
+```python
+# holdings.py
+response, missing_price_positions = await asyncio.to_thread(
+    _list_holdings_sync,
+    supabase,
+    user_id=user_id,
+    envelope=envelope,
+)
+creation_result = await asyncio.to_thread(
+    _create_holding_sync,
+    supabase,
+    user_id=user_id,
+    position=position,
+)
+```
+
+### Symptom B — duplicate `POST /holdings` returned 500 instead of reusing the existing holding
+
+**Live evidence (production):**
+- `POST /holdings` with duplicate `AAPL` payload on the disposable onboarding test user returned `500` in about `2.9s`
+- traceback pointed to `build_holding_workflow_response()` dereferencing `latest_analysis_run.get("status")` when `latest_analysis_run` was `None`
+
+**File changed:** `backend/app/services/ticker_cache_service.py`
+
+**Fix:**
+
+```python
+latest_analysis_run = latest_analysis_run or _get_latest_analysis_run_for_ids(
+    supabase, [position_id]
+)
+latest_analysis_run = latest_analysis_run or {}
+```
+
+This preserves the old behavior when a run exists, but makes the duplicate-holding path safe when there is no associated analysis run row.
+
+### Verification
+
+**Backend tests run:**
+
+```bash
+cd backend && pytest \
+  tests/test_holdings_add.py \
+  tests/test_ticker_search_and_digest_fallback.py \
+  tests/test_enrichment_completeness.py \
+  tests/test_scheduler_jobs.py
+```
+
+**Result:** `62 passed`
+
+**Notes:**
+- Added/updated tests to reflect the broader `asyncio.to_thread(...)` usage in `holdings.py`
+- Added a regression test that `build_holding_workflow_response()` does not crash when `latest_analysis_run` is missing
+- No production deploy happened in this session; live timing re-check after deploy is still pending

@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime, timezone
+from typing import Any
 
 from fastapi import APIRouter, Request, HTTPException, Depends, BackgroundTasks
 
@@ -44,25 +45,24 @@ async def run_onboarding_seed_user(user_id: str):
     await run_for_user(supabase, user_id)
 
 
-@router.get("")
-async def list_holdings(
-    background_tasks: BackgroundTasks,
-    envelope: bool = False,
-    user_id: str = Depends(get_user_id),
-):
-    supabase = get_supabase()
+def _list_holdings_sync(
+    supabase,
+    *,
+    user_id: str,
+    envelope: bool,
+) -> tuple[Any, list[dict[str, str]]]:
     positions = (
         supabase.table("positions").select("*").eq("user_id", user_id).execute().data
         or []
     )
-
-    for pos in positions:
-        if pos.get("current_price") is None:
-            background_tasks.add_task(refresh_position_price, pos["id"], pos["ticker"])
-
+    missing_price_positions = [
+        {"id": pos["id"], "ticker": pos["ticker"]}
+        for pos in positions
+        if pos.get("current_price") is None
+    ]
     enriched = enrich_positions_with_ticker_cache(positions, supabase)
     if not envelope:
-        return enriched
+        return enriched, missing_price_positions
 
     portfolio_rows = (
         supabase.table("portfolio_risk_snapshots")
@@ -76,30 +76,28 @@ async def list_holdings(
         .data
         or []
     )
-    return {
-        "portfolio": portfolio_rows[0] if portfolio_rows else None,
-        "positions": enriched,
-        "freshness": latest_job_freshness(
-            supabase,
-            ["daily_portfolio_rollup_per_user", "daily_composite_recompute_universe"],
-        ),
-    }
+    return (
+        {
+            "portfolio": portfolio_rows[0] if portfolio_rows else None,
+            "positions": enriched,
+            "freshness": latest_job_freshness(
+                supabase,
+                ["daily_portfolio_rollup_per_user", "daily_composite_recompute_universe"],
+            ),
+        },
+        missing_price_positions,
+    )
 
 
-@router.post("", response_model=HoldingWorkflowResponse)
-async def create_holding(
+def _create_holding_sync(
+    supabase,
+    *,
+    user_id: str,
     position: PositionCreate,
-    background_tasks: BackgroundTasks,
-    user_id: str = Depends(get_user_id),
-):
-    supabase = get_supabase()
-
+) -> dict[str, Any]:
     supported = ensure_ticker_in_universe(supabase, position.ticker)
     is_outside_universe = False
     if not supported:
-        # CLAVIX_TRUTH §5: outside-universe tickers may be added in degraded
-        # mode when the user explicitly opts in. Otherwise reject with copy
-        # explaining the path forward.
         if not getattr(position, "allow_outside_universe", False):
             raise HTTPException(
                 400,
@@ -122,15 +120,15 @@ async def create_holding(
     )
     if existing_position:
         existing = enrich_positions_with_ticker_cache(existing_position, supabase)[0]
-        return build_holding_workflow_response(
+        response = build_holding_workflow_response(
             supabase,
             user_id=user_id,
             ticker=normalized_ticker,
             position_id=existing["id"],
             position=existing,
         )
+        return {"kind": "existing", "response": response}
 
-    # Strip non-DB fields before insert (model includes UX-only flags).
     payload = position.model_dump(exclude_none=True)
     payload.pop("allow_outside_universe", None)
     data = {
@@ -144,7 +142,80 @@ async def create_holding(
     result = supabase.table("positions").insert(data).execute()
     if not result.data:
         raise HTTPException(500, "Failed to create position")
-    created = result.data[0]
+    return {
+        "kind": "created",
+        "created": result.data[0],
+        "is_outside_universe": is_outside_universe,
+    }
+
+
+def _enrich_single_position_sync(supabase, position: dict[str, Any]) -> dict[str, Any]:
+    enriched = enrich_positions_with_ticker_cache([position], supabase)
+    return enriched[0] if enriched else position
+
+
+def _clear_analysis_started_at_sync(supabase, position_id: str) -> None:
+    supabase.table("positions").update({"analysis_started_at": None}).eq(
+        "id", position_id
+    ).execute()
+
+
+def _get_latest_analysis_run_sync(
+    supabase,
+    analysis_run_id: str | None,
+) -> dict[str, Any] | None:
+    if not analysis_run_id:
+        return None
+    latest_analysis_run_result = (
+        supabase.table("analysis_runs")
+        .select("*")
+        .eq("id", analysis_run_id)
+        .limit(1)
+        .execute()
+        .data
+    )
+    if latest_analysis_run_result:
+        return latest_analysis_run_result[0]
+    return None
+
+
+@router.get("")
+async def list_holdings(
+    background_tasks: BackgroundTasks,
+    envelope: bool = False,
+    user_id: str = Depends(get_user_id),
+):
+    supabase = get_supabase()
+    response, missing_price_positions = await asyncio.to_thread(
+        _list_holdings_sync,
+        supabase,
+        user_id=user_id,
+        envelope=envelope,
+    )
+    for pos in missing_price_positions:
+        if pos.get("current_price") is None:
+            background_tasks.add_task(refresh_position_price, pos["id"], pos["ticker"])
+    return response
+
+
+@router.post("", response_model=HoldingWorkflowResponse)
+async def create_holding(
+    position: PositionCreate,
+    background_tasks: BackgroundTasks,
+    user_id: str = Depends(get_user_id),
+):
+    supabase = get_supabase()
+    creation_result = await asyncio.to_thread(
+        _create_holding_sync,
+        supabase,
+        user_id=user_id,
+        position=position,
+    )
+    if creation_result["kind"] == "existing":
+        return creation_result["response"]
+
+    created = creation_result["created"]
+    is_outside_universe = creation_result["is_outside_universe"]
     background_tasks.add_task(refresh_position_price, created["id"], created["ticker"])
     background_tasks.add_task(run_onboarding_seed_user, user_id)
 
@@ -152,12 +223,18 @@ async def create_holding(
     # metadata nor a snapshot row to enrich from). Return immediately with
     # honest limited-data state.
     if is_outside_universe:
-        return build_holding_workflow_response(
+        enriched_position = await asyncio.to_thread(
+            _enrich_single_position_sync,
+            supabase,
+            created,
+        )
+        return await asyncio.to_thread(
+            build_holding_workflow_response,
             supabase,
             user_id=user_id,
             ticker=created["ticker"],
             position_id=created["id"],
-            position=enrich_positions_with_ticker_cache([created], supabase)[0],
+            position=enriched_position,
             latest_refresh_job=None,
         )
 
@@ -170,16 +247,20 @@ async def create_holding(
             requested_by_user_id=user_id,
         )
     except Exception as exc:
-        supabase.table("positions").update({"analysis_started_at": None}).eq(
-            "id", created["id"]
-        ).execute()
+        await asyncio.to_thread(_clear_analysis_started_at_sync, supabase, created["id"])
         created["analysis_started_at"] = None
-        return build_holding_workflow_response(
+        enriched_position = await asyncio.to_thread(
+            _enrich_single_position_sync,
+            supabase,
+            created,
+        )
+        return await asyncio.to_thread(
+            build_holding_workflow_response,
             supabase,
             user_id=user_id,
             ticker=created["ticker"],
             position_id=created["id"],
-            position=enrich_positions_with_ticker_cache([created], supabase)[0],
+            position=enriched_position,
             latest_refresh_job={
                 "ticker": created["ticker"],
                 "status": "failed",
@@ -196,16 +277,20 @@ async def create_holding(
             target_tickers=[created["ticker"]],
         )
     except Exception as exc:
-        supabase.table("positions").update({"analysis_started_at": None}).eq(
-            "id", created["id"]
-        ).execute()
+        await asyncio.to_thread(_clear_analysis_started_at_sync, supabase, created["id"])
         created["analysis_started_at"] = None
-        return build_holding_workflow_response(
+        enriched_position = await asyncio.to_thread(
+            _enrich_single_position_sync,
+            supabase,
+            created,
+        )
+        return await asyncio.to_thread(
+            build_holding_workflow_response,
             supabase,
             user_id=user_id,
             ticker=created["ticker"],
             position_id=created["id"],
-            position=enrich_positions_with_ticker_cache([created], supabase)[0],
+            position=enriched_position,
             latest_refresh_job=refresh_job,
             latest_analysis_run={
                 "id": None,
@@ -215,25 +300,23 @@ async def create_holding(
             },
         )
 
-    latest_analysis_run = None
-    if analysis_run.get("analysis_run_id"):
-        latest_analysis_run_result = (
-            supabase.table("analysis_runs")
-            .select("*")
-            .eq("id", analysis_run["analysis_run_id"])
-            .limit(1)
-            .execute()
-            .data
-        )
-        if latest_analysis_run_result:
-            latest_analysis_run = latest_analysis_run_result[0]
-
-    return build_holding_workflow_response(
+    latest_analysis_run = await asyncio.to_thread(
+        _get_latest_analysis_run_sync,
+        supabase,
+        analysis_run.get("analysis_run_id"),
+    )
+    enriched_position = await asyncio.to_thread(
+        _enrich_single_position_sync,
+        supabase,
+        created,
+    )
+    return await asyncio.to_thread(
+        build_holding_workflow_response,
         supabase,
         user_id=user_id,
         ticker=created["ticker"],
         position_id=created["id"],
-        position=enrich_positions_with_ticker_cache([created], supabase)[0],
+        position=enriched_position,
         latest_analysis_run=latest_analysis_run,
         latest_refresh_job=refresh_job,
     )

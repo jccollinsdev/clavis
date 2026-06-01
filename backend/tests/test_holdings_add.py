@@ -24,6 +24,7 @@ _fake_openai_module.OpenAI = _FakeOpenAI
 sys.modules.setdefault("openai", _fake_openai_module)
 
 from app.routes import holdings
+from app.services import ticker_cache_service
 
 
 class _FakeResult:
@@ -162,7 +163,9 @@ def test_create_holding_returns_backend_workflow_status():
     enqueue_mock.assert_awaited_once()
     workflow_mock.assert_called_once()
     refresh_price_mock.assert_not_called()
-    to_thread_mock.assert_called_once()
+    called_fns = [call.args[0] for call in to_thread_mock.await_args_list]
+    assert holdings._create_holding_sync in called_fns
+    assert refresh_snapshot_mock in called_fns
 
 
 def test_create_holding_reuses_existing_holding_without_new_jobs():
@@ -212,6 +215,76 @@ def test_create_holding_reuses_existing_holding_without_new_jobs():
     workflow_mock.assert_called_once()
     refresh_snapshot_mock.assert_not_called()
     enqueue_mock.assert_not_called()
+
+
+def test_build_holding_workflow_response_handles_missing_latest_analysis_run():
+    with (
+        patch.object(
+            ticker_cache_service,
+            "get_metadata_map",
+            return_value={"AAPL": {}},
+        ),
+        patch.object(
+            ticker_cache_service,
+            "get_latest_risk_snapshot_history_map",
+            return_value={"AAPL": []},
+        ),
+        patch.object(
+            ticker_cache_service,
+            "_get_latest_position_analysis_for_ids",
+            return_value=None,
+        ),
+        patch.object(
+            ticker_cache_service,
+            "_get_latest_analysis_run_for_ids",
+            return_value=None,
+        ),
+        patch.object(
+            ticker_cache_service,
+            "build_risk_score_response",
+            return_value={},
+        ),
+        patch.object(
+            ticker_cache_service,
+            "_get_latest_position_score_for_ids",
+            return_value={},
+        ),
+        patch.object(
+            ticker_cache_service,
+            "_analysis_state_from_context",
+            return_value={
+                "status": "ready",
+                "coverage_state": "substantive",
+                "coverage_note": "Coverage is substantive.",
+                "latest_analysis_run_id": None,
+                "latest_refresh_job_id": None,
+                "latest_refresh_status": None,
+                "analysis_as_of": None,
+                "last_news_refresh_at": None,
+                "news_refresh_status": None,
+                "price_as_of": None,
+                "news_as_of": None,
+                "source": "shared",
+            },
+        ),
+        patch.object(
+            ticker_cache_service,
+            "sanitize_public_analysis_text",
+            side_effect=lambda payload: payload,
+        ),
+    ):
+        response = ticker_cache_service.build_holding_workflow_response(
+            object(),
+            user_id="user-1",
+            ticker="AAPL",
+            position_id="pos-123",
+            position={"id": "pos-123", "ticker": "AAPL"},
+            latest_analysis_run=None,
+            latest_refresh_job={"id": "job-1"},
+            latest_news_row={},
+        )
+
+    assert response["position"]["latest_analysis_run_status"] is None
 
 
 def test_create_holding_rejects_unsupported_ticker():
