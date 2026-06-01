@@ -64,3 +64,62 @@ def test_compile_portfolio_digest_uses_summary_length_token_budget(monkeypatch):
 
     assert captured["max_tokens"] == 2200
     assert result["content"] == "content"
+
+
+def test_compile_portfolio_digest_tolerates_none_risk_lists(monkeypatch):
+    monkeypatch.setattr(
+        portfolio_compiler,
+        "chatcompletion_text",
+        lambda **_kwargs: json.dumps(
+            {
+                "overall_summary": "summary",
+                "content": "content",
+                "sections": {
+                    "overnight_macro": {
+                        "headlines": [None, "Rates were steady"],
+                        "themes": [None, "rate_policy"],
+                        "brief": "Quiet overnight tape.",
+                    },
+                    "sector_overview": [],
+                    "position_impacts": [],
+                    "portfolio_impact": [],
+                    "what_matters_today": [
+                        {
+                            "catalyst": "No major catalyst",
+                            "impacted_positions": [None, "HOOD"],
+                            "urgency": "low",
+                        }
+                    ],
+                    "watchlist_alerts": [],
+                    "major_events": [],
+                    "watch_list": [],
+                    "monitoring_notes": [],
+                    "portfolio_advice": [],
+                },
+            }
+        ),
+    )
+
+    result = asyncio.run(
+        portfolio_compiler.compile_portfolio_digest(
+            [
+                {
+                    "ticker": "HOOD",
+                    "grade": "B",
+                    "total_score": 70,
+                    "risk_drivers": [None, "Funding risk"],
+                    "top_risks": [None, "Margin pressure"],
+                }
+            ],
+            "B",
+            summary_length="standard",
+            portfolio_risk={
+                "portfolio_allocation_risk_score": 40,
+                "concentration_risk": 25,
+                "cluster_risk": 10,
+                "top_risk_drivers": [None, {"type": "single_name"}],
+            },
+        )
+    )
+
+    assert result["content"] == "content"

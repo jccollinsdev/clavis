@@ -99,6 +99,23 @@ def test_llm_prompt_uses_treasury_scale_and_position_value():
     assert "Approximate position value: $1000.0" in prompt
 
 
+def test_llm_prompt_filters_none_inferred_labels():
+    prompt = risk_scorer._llm_score_prompt(
+        {
+            "ticker": "AMD",
+            "shares": 10,
+            "purchase_price": 100,
+            "position_value": 1000,
+            "inferred_labels": [None, "growth", ""],
+            "summary": "Company-specific catalyst",
+            "long_report": "Detailed report",
+        }
+    )
+
+    assert "growth" in prompt
+    assert "None" not in prompt
+
+
 def test_score_position_synthesizes_reasoning_when_llm_returns_blank(monkeypatch):
     monkeypatch.setattr(
         risk_scorer,

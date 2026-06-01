@@ -207,6 +207,38 @@ def test_cache_hit_reuses_identical_user_event_composite_triplet(monkeypatch):
     assert first == second
 
 
+def test_personalisation_filters_none_key_implications(monkeypatch):
+    monkeypatch.setenv("MINIMAX_PERSONALISATION_ENABLED", "true")
+    monkeypatch.setenv("MINIMAX_DAILY_BUDGET", "5")
+
+    sample_db = _sample_db()
+    sample_db.tables["shared_ticker_events"][0]["key_implications"] = [
+        None,
+        "Data center demand held up",
+        "",
+    ]
+    captured = {}
+
+    def fake_chatcompletion_text(**kwargs):
+        captured["prompt"] = kwargs["messages"][1]["content"]
+        return "Direct, portfolio-specific note."
+
+    with patch.object(
+        personalisation,
+        "chatcompletion_text",
+        side_effect=fake_chatcompletion_text,
+    ):
+        result = personalisation.personalise_articles_for_user(
+            "user-1",
+            ["evt-1"],
+            supabase=sample_db,
+        )
+
+    assert "None" not in captured["prompt"]
+    assert "Data center demand held up" in captured["prompt"]
+    assert result["evt-1"]["narrative"] == "Direct, portfolio-specific note."
+
+
 def test_compile_portfolio_digest_stores_personalised_articles_section(monkeypatch):
     monkeypatch.setattr(
         portfolio_compiler,

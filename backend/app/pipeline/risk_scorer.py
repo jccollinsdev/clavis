@@ -714,6 +714,12 @@ def _prefer_llm_scoring(position_data: dict) -> bool:
     return bool(summary or long_report)
 
 
+def _join_labels(values: list[object] | None) -> str:
+    return ", ".join(
+        str(value).strip() for value in (values or []) if str(value or "").strip()
+    )
+
+
 def _llm_score_prompt(position_data: dict) -> str:
     article_evidence = _article_evidence_brief(position_data)
     evidence_block = (
@@ -724,7 +730,7 @@ def _llm_score_prompt(position_data: dict) -> str:
         shares=position_data.get("shares", 0),
         purchase_price=position_data.get("purchase_price", 0),
         position_value=round(_safe_float(position_data.get("position_value"), 0.0), 2),
-        labels=", ".join(position_data.get("inferred_labels", []) or []),
+        labels=_join_labels(position_data.get("inferred_labels")),
         summary=position_data.get("summary", ""),
         long_report=(position_data.get("long_report", "") or "") + evidence_block,
     )
@@ -1056,7 +1062,7 @@ async def score_positions_batch(
 - Approximate current price: ${position.get("current_price") or position.get("purchase_price", 0)}
 - Estimated position value: ${round(_safe_float(position.get("current_price") or position.get("purchase_price")) * _safe_float(position.get("shares")), 2)}
 - Portfolio weight: {round(((_safe_float(position.get("current_price") or position.get("purchase_price")) * _safe_float(position.get("shares"))) / portfolio_total_value) * 100, 2)}%
-- Inferred labels: {", ".join(position.get("inferred_labels", [])) or position.get("archetype", "core")}
+- Inferred labels: {_join_labels(position.get("inferred_labels")) or position.get("archetype", "core")}
 - Position report summary: {position.get("summary", "no summary")[:200]}
 - Long report excerpt: {position.get("long_report", "")[:300]}"""
             for i, (_, position) in enumerate(chunk)

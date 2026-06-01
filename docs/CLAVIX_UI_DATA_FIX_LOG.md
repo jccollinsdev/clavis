@@ -253,3 +253,93 @@ cd backend && pytest \
 - Added/updated tests to reflect the broader `asyncio.to_thread(...)` usage in `holdings.py`
 - Added a regression test that `build_holding_workflow_response()` does not crash when `latest_analysis_run` is missing
 - No production deploy happened in this session; live timing re-check after deploy is still pending
+
+---
+
+## Fix 6 — P0: Null list items in prompt builders could still crash analysis runs and leave digests stale
+
+### Symptom
+
+After deploying the event-loop and holdings fixes, production search/add flows recovered, but multiple June 1 analysis runs still failed with:
+
+```text
+sequence item 0: expected str instance, NoneType found
+```
+
+That failure blocked scheduled digest generation for multiple users and caused the disposable onboarding user's automatic runs to fail even though holdings creation itself succeeded.
+
+### Live evidence
+
+- `analysis_runs` rows on `2026-06-01` showed repeated failures for scheduled/manual/onboarding runs with the exact error above
+- only 1 of 4 users had a June 1 digest after the first deploy
+- production endpoint timings after deploy were healthy:
+  - `/tickers/search?q=AAPL` -> about `2.9s`
+  - `/tickers/AAPL` -> about `2.2s`
+  - `/holdings` -> about `3.5s`
+  - duplicate `POST /holdings` -> `200` in about `2.7s`
+
+### Root cause
+
+Several prompt builders were joining nullable arrays directly:
+
+- `key_implications` arrays could contain `None`
+- inferred label arrays could contain `None` / empty values
+- digest position risk lists could contain nullable entries
+- macro headline arrays could contain nullable entries
+
+Any of those could trigger Python's `str.join(...)` failure during scheduled analysis assembly.
+
+### Files changed
+
+- `backend/app/services/personalisation.py`
+- `backend/app/pipeline/portfolio_compiler.py`
+- `backend/app/pipeline/risk_scorer.py`
+- `backend/app/pipeline/major_event_analyzer.py`
+- `backend/app/pipeline/agentic_scan.py`
+- `backend/app/pipeline/position_report_builder.py`
+- `backend/app/pipeline/position_classifier.py`
+- `backend/app/pipeline/macro_classifier.py`
+- `backend/tests/test_p7_1_personalisation.py`
+- `backend/tests/test_portfolio_compiler_summary_length.py`
+- `backend/tests/test_risk_scorer.py`
+
+### Fix
+
+Normalized nullable list inputs before joining them into prompt text or digest scaffolding:
+
+```python
+", ".join(
+    str(value).strip()
+    for value in (values or [])
+    if str(value or "").strip()
+)
+```
+
+This keeps the prompt content intact while dropping `None` / blank items that should never become literal text.
+
+### Verification
+
+**Backend tests run:**
+
+```bash
+cd backend && pytest \
+  tests/test_p7_1_personalisation.py \
+  tests/test_risk_scorer.py \
+  tests/test_portfolio_compiler_summary_length.py \
+  tests/test_holdings_add.py \
+  tests/test_ticker_search_and_digest_fallback.py \
+  tests/test_enrichment_completeness.py \
+  tests/test_scheduler_jobs.py
+```
+
+**Result:** `81 passed`
+
+### Important remaining gap
+
+This hotfix removes a real crash vector, but it does **not** make the entire data stack fully fresh by 7 AM. The production audit still shows:
+
+- `SCHEDULER_TIER=intraday` on boot
+- only 1 of 4 users with a June 1 digest before this second deploy
+- `151 / 504` active-universe tickers with stale latest snapshots
+- macro/sector rows still `price_only` with null narrative/score fields
+- only `91 / 504` active-universe tickers with at least 5 recent articles in the last 7 days

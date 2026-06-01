@@ -88,6 +88,11 @@ def _limited_data_result(news_item: dict) -> dict:
 
 async def analyze_major_event(news_item: dict, position_context: dict) -> dict:
     """Analyze a single major event for a specific position."""
+    labels = ", ".join(
+        str(label).strip()
+        for label in (position_context.get("inferred_labels") or [])
+        if str(label or "").strip()
+    )
     user_prompt = f"""Event:
 Title: {news_item.get("title", "")}
 Summary: {news_item.get("summary", "")}
@@ -98,7 +103,7 @@ Position context:
 - Shares: {position_context.get("shares", 0)}
 - Purchase price: {position_context.get("purchase_price", 0)}
 - Archetype: {position_context.get("archetype", "unknown")}
-- Inferred labels: {", ".join(position_context.get("inferred_labels", []))}
+- Inferred labels: {labels}
 """
     try:
         result = chatcompletion_text(
@@ -145,7 +150,11 @@ async def analyze_major_events_batch(
     shares = position_context.get("shares", 0)
     purchase_price = position_context.get("purchase_price", 0)
     archetype = position_context.get("archetype", "unknown")
-    labels = ", ".join(position_context.get("inferred_labels", []))
+    labels = ", ".join(
+        str(label).strip()
+        for label in (position_context.get("inferred_labels") or [])
+        if str(label or "").strip()
+    )
 
     prompt = f"""Position context:
 - Ticker: {ticker}

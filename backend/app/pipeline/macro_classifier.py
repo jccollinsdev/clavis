@@ -326,7 +326,11 @@ def _normalize_macro_output(
         or "limited" in brief.lower()
         or brief.lower().startswith("overnight macro developments centered on")
     ):
-        headline_text = "; ".join(headlines[:3])
+        headline_text = "; ".join(
+            str(headline).strip()
+            for headline in headlines[:3]
+            if str(headline or "").strip()
+        )
         theme_text = ", ".join(_theme_label(theme) for theme in themes[:3])
         if theme_text:
             brief = f"Overnight headlines centered on {headline_text}. The main themes were {theme_text}."

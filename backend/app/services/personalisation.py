@@ -122,6 +122,12 @@ def _trim_narrative(text: str) -> str:
     return trimmed
 
 
+def _join_text_items(values: list[Any] | None) -> str:
+    return ", ".join(
+        str(value).strip() for value in (values or []) if str(value or "").strip()
+    )
+
+
 def _latest_portfolio_snapshot_pair(
     supabase,
     user_id: str,
@@ -305,7 +311,7 @@ def _generate_narrative(
             f"Summary: {event_row.get('summary') or ''}",
             f"TLDR: {event_row.get('tldr') or ''}",
             f"What it means: {event_row.get('what_it_means') or ''}",
-            f"Key implications: {', '.join(event_row.get('key_implications') or [])}",
+            f"Key implications: {_join_text_items(event_row.get('key_implications'))}",
         ]
     )
     try:

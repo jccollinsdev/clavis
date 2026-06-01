@@ -320,6 +320,10 @@ def _clean_text(value: Any) -> str:
     return cleaned
 
 
+def _join_text_items(values: list[Any] | None) -> str:
+    return ", ".join(_clean_text(value) for value in (values or []) if _clean_text(value))
+
+
 def _truncate(text: str, limit: int) -> str:
     text = _clean_text(text)
     if len(text) <= limit:
@@ -799,7 +803,7 @@ def _fallback_position_report(
             if event.get("risk_direction") == "improving"
         ]
     )
-    labels_text = ", ".join(inferred_labels[:3]) if inferred_labels else "core"
+    labels_text = _join_text_items(inferred_labels[:3]) if inferred_labels else "core"
     event_titles = [
         event.get("title", "recent data") for event in event_analyses[:3]
     ]
@@ -889,7 +893,7 @@ async def build_position_report(
     prompt = f"""Position:
     - Ticker: {position.get("ticker", "")}
     - Sector: {position.get("sector", "unknown")}
-    - Inferred labels: {", ".join(inferred_labels) if inferred_labels else "unknown"}
+    - Inferred labels: {_join_text_items(inferred_labels) if inferred_labels else "unknown"}
     """
 
     if is_backfill_mode:
@@ -910,7 +914,7 @@ Backfill context:
         prompt += f"""
 Macro Context (overnight developments):
 - Brief: {macro_brief}
-- Themes: {", ".join(macro_themes) if macro_themes else "none detected"}
+- Themes: {_join_text_items(macro_themes) if macro_themes else "none detected"}
 """
 
         position_impacts = macro_context.get("position_impacts", [])
@@ -1040,11 +1044,11 @@ async def build_position_reports_batch(
 - Sector: {position.get("sector", "unknown")}
 - Shares: {position.get("shares", 0)}
 - Purchase price: {position.get("purchase_price", 0)}
-- Inferred labels: {", ".join(inferred_labels) if inferred_labels else "unknown"}"""
+- Inferred labels: {_join_text_items(inferred_labels) if inferred_labels else "unknown"}"""
 
         if macro_brief:
             pos_text += f"""
-- Macro Context: Brief: {macro_brief}, Themes: {", ".join(macro_themes) if macro_themes else "none"}"""
+- Macro Context: Brief: {macro_brief}, Themes: {_join_text_items(macro_themes) if macro_themes else "none"}"""
 
         ticker_impact = next(
             (

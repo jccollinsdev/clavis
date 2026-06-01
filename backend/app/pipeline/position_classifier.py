@@ -117,5 +117,5 @@ Recent relevant events:
     return {
         "labels": labels[:4] or DEFAULT_LABELS,
         "summary": parsed.get("summary")
-        or f"{position.get('ticker', 'This holding')} is best understood through labels: {', '.join(labels[:4] or DEFAULT_LABELS)}.",
+        or f"{position.get('ticker', 'This holding')} is best understood through labels: {', '.join(str(label).strip() for label in (labels[:4] or DEFAULT_LABELS) if str(label or '').strip())}.",
     }

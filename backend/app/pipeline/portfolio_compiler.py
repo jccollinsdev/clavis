@@ -439,9 +439,12 @@ def _macro_overview_text(macro_context: dict | None) -> str:
         f"- Brief: {overnight_macro.get('brief', 'No significant overnight macro.')}"
     )
     lines.append(
-        f"- Themes: {', '.join(theme.replace('_', ' ') for theme in themes) if themes else 'none'}"
+        f"- Themes: {', '.join(_clean_text_list(themes)) if themes else 'none'}"
     )
-    lines.append(f"- Headlines: {', '.join(headlines[:3]) if headlines else 'none'}")
+    cleaned_headlines = _clean_text_list(headlines)
+    lines.append(
+        f"- Headlines: {', '.join(cleaned_headlines[:3]) if cleaned_headlines else 'none'}"
+    )
     return "\n".join(lines)
 
 
@@ -481,7 +484,7 @@ def _what_matters_text(macro_context: dict | None) -> str:
     lines = ["What Matters Today:"]
     for item in matters[:6]:
         catalyst = item.get("catalyst", "")
-        impacted_positions = item.get("impacted_positions") or []
+        impacted_positions = _clean_text_list(item.get("impacted_positions") or [])
         urgency = item.get("urgency", "medium")
         impacted_text = ", ".join(impacted_positions) if impacted_positions else "none"
         lines.append(f"- {catalyst} | impacted: {impacted_text} | urgency: {urgency}")
@@ -735,7 +738,7 @@ Portfolio Risk Analysis:
 - Portfolio risk score: {risk_score}/100
 - Concentration risk: {concentration}/100
 - Cluster risk: {cluster}/100
-- Top risk drivers: {", ".join([d.get("type", "unknown") for d in top_drivers[:3]]) or "none identified"}
+- Top risk drivers: {", ".join(_clean_text_list([(d or {}).get("type", "unknown") for d in top_drivers[:3]])) or "none identified"}
 """
 
     macro_info = _macro_overview_text(macro_context)
@@ -757,8 +760,8 @@ Portfolio Risk Analysis:
                     f"  Previous grade: {position.get('previous_grade') or 'no change'}",
                     f"  Shares: {position.get('shares', 0)}",
                     f"  Summary: {position.get('summary') or 'No summary available.'}",
-                    f"  Risk drivers: {', '.join(position.get('risk_drivers', position.get('watch_items', []))[:3]) or 'none'}",
-                    f"  Top risks: {', '.join(position.get('top_risks', [])[:3]) or 'none'}",
+                    f"  Risk drivers: {', '.join(_clean_text_list(position.get('risk_drivers', position.get('watch_items', []))[:3])) or 'none'}",
+                    f"  Top risks: {', '.join(_clean_text_list(position.get('top_risks', [])[:3])) or 'none'}",
                     f"  Dimension breakdown: {position.get('dimension_breakdown') or 'none'}",
                     f"  Risk drivers: {position.get('risk_context') or position.get('rating_verifier', [])}",
                 ]

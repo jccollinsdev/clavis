@@ -116,9 +116,14 @@ def _normalize_risk_direction(value: object, fallback: str = "neutral") -> str:
 async def analyze_minor_event(
     news_item: dict, position: dict, inferred_labels: list[str] | None = None
 ) -> dict:
+    labels = ", ".join(
+        str(label).strip()
+        for label in (inferred_labels or [position.get("archetype", "growth")])
+        if str(label or "").strip()
+    )
     prompt = SYSTEM_PROMPT.format(
         ticker=position.get("ticker", ""),
-        labels=", ".join(inferred_labels or [position.get("archetype", "growth")]),
+        labels=labels,
         purchase_price=position.get("purchase_price", 0),
         title=news_item.get("title", ""),
         summary=news_item.get("summary", ""),
@@ -206,7 +211,11 @@ async def analyze_minor_events_batch(
     if not articles:
         return []
 
-    labels = ", ".join(inferred_labels or [position.get("archetype", "growth")])
+    labels = ", ".join(
+        str(label).strip()
+        for label in (inferred_labels or [position.get("archetype", "growth")])
+        if str(label or "").strip()
+    )
     purchase_price = position.get("purchase_price", 0)
 
     news_texts = []
