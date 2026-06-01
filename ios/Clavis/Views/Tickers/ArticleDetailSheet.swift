@@ -17,9 +17,12 @@ struct ArticleDetailSheet: View {
                     .foregroundColor(.clavixInk)
                     .fixedSize(horizontal: false, vertical: true)
 
-                // Financial impact pill + timestamp inline, below title
+                // Impact pill + source tier + timestamp
                 HStack(spacing: 8) {
                     impactPill
+                    if let tier = article.sourceTier {
+                        tierBadge(tier)
+                    }
                     Text("·")
                         .font(ClavisTypography.clavixMono(10, weight: .regular))
                         .foregroundColor(.clavixInk4)
@@ -65,6 +68,28 @@ struct ArticleDetailSheet: View {
                                 .font(ClavisTypography.clavixCaption)
                                 .foregroundColor(.clavixInk2)
                                 .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+
+                if let implications = article.keyImplications, !implications.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ClavixEyebrow("Key implications")
+                        ClavixCard {
+                            VStack(alignment: .leading, spacing: 10) {
+                                ForEach(Array(implications.prefix(4).enumerated()), id: \.offset) { _, implication in
+                                    HStack(alignment: .top, spacing: 10) {
+                                        Circle()
+                                            .fill(Color.clavixAccent)
+                                            .frame(width: 5, height: 5)
+                                            .padding(.top, 6)
+                                        Text(implication.sanitizedDisplayText)
+                                            .font(ClavisTypography.clavixCaption)
+                                            .foregroundColor(.clavixInk2)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -168,6 +193,16 @@ struct ArticleDetailSheet: View {
         if score >= 70 { return .clavixGood }
         if score >= 50 { return .clavixWarn }
         return .clavixBad
+    }
+
+    private func tierBadge(_ tier: Int) -> some View {
+        Text("T\(tier)")
+            .font(ClavisTypography.clavixMono(10, weight: .bold))
+            .foregroundColor(.clavixInk3)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 3)
+            .background(Color.clavixPaper2)
+            .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
     }
 
     private var impactPill: some View {
