@@ -1138,7 +1138,10 @@ private struct HoldingsAddSheet: View {
             allowOutsideUniverse: isOutsideUniverseSelection
         )
         if viewModel.errorMessage == nil {
-            dismiss()
+            // Close the entire sheet rather than just popping the nav stack page.
+            // dismiss() only goes back to the method picker; setting showAddSheet
+            // directly closes the parent .sheet presentation.
+            viewModel.showAddSheet = false
         }
     }
 }
