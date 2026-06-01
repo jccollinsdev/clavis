@@ -33,7 +33,7 @@ struct ContentView: View {
                 await authViewModel.checkSession()
             }
         }
-        .onChange(of: authViewModel.isAuthenticated) { isAuth in
+        .onChange(of: authViewModel.isAuthenticated) { _, isAuth in
             if !isAuth {
                 hasCheckedSession = false
             }

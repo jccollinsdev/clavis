@@ -56,7 +56,7 @@ struct MainTabView: View {
         .onAppear {
             mountedTabs.insert(selectedTab)
         }
-        .onChange(of: selectedTab) { tab in
+        .onChange(of: selectedTab) { _, tab in
             mountedTabs.insert(tab)
         }
         .onReceive(NotificationCenter.default.publisher(for: .openDigest)) { _ in

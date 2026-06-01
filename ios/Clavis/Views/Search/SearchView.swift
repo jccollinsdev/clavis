@@ -52,7 +52,7 @@ struct SearchView: View {
                 hasLoadedInitialState = true
                 loadRecents()
             }
-            .onChange(of: query) { _ in
+            .onChange(of: query) {
                 runSearch()
             }
             .navigationDestination(for: String.self) { ticker in

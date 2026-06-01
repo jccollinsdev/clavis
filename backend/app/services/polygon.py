@@ -122,6 +122,11 @@ def polygon_get(url: str, *, params: dict | None = None, timeout: int = 15):
     """Perform a Polygon request under a strict 20s global gate."""
     if _polygon_auth_temporarily_blocked():
         return _SyntheticResponse(403)
+    # Plan-restricted endpoints (options, index tickers) consistently return
+    # 403 on the free/basic plan. Skip the global rate limiter for these so
+    # the composite recompute doesn't sleep 5s × 503 tickers unnecessarily.
+    if _is_plan_restricted_request(url):
+        return _retry_request(requests.get, url, params=params, timeout=timeout)
     with _polygon_request_lock:
         if _polygon_auth_temporarily_blocked():
             return _SyntheticResponse(403)

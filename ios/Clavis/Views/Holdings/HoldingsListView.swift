@@ -108,7 +108,7 @@ struct HoldingsListView: View {
             .refreshable {
                 await viewModel.refreshHoldings()
             }
-            .onChange(of: deepLinkTicker) { newValue in
+            .onChange(of: deepLinkTicker) { _, newValue in
                 guard let ticker = newValue else { return }
                 deepLinkTicker = nil
                 navigationPath.append(ticker)
@@ -822,6 +822,7 @@ private struct HoldingsAddMethodSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showManualSheet = false
     @State private var showCSVSheet = false
+    @State private var manualSaveCompleted = false
 
     var body: some View {
         ClavixScreen(eyebrow: "Choose a method", title: "Add position") {
@@ -871,8 +872,15 @@ private struct HoldingsAddMethodSheet: View {
                 showCSVSheet = true
             }
         }
-        .sheet(isPresented: $showManualSheet) {
-            HoldingsAddSheet(viewModel: viewModel)
+        .sheet(isPresented: $showManualSheet, onDismiss: {
+            if manualSaveCompleted {
+                manualSaveCompleted = false
+                dismiss()
+            }
+        }) {
+            HoldingsAddSheet(viewModel: viewModel, onComplete: {
+                manualSaveCompleted = true
+            })
         }
         .sheet(isPresented: $showCSVSheet) {
             HoldingsCSVComingSoonSheet()
@@ -932,6 +940,7 @@ private struct HoldingsMethodCard: View {
 private struct HoldingsAddSheet: View {
     @ObservedObject var viewModel: HoldingsViewModel
     @Environment(\.dismiss) private var dismiss
+    var onComplete: (() -> Void)? = nil
 
     @State private var ticker = ""
     @State private var companyName = ""
@@ -973,7 +982,7 @@ private struct HoldingsAddSheet: View {
             ClavixCard {
                 VStack(spacing: 12) {
                     entryField(title: "Ticker", text: $ticker, keyboard: .default, autocapitalized: true)
-                        .onChange(of: ticker) { newValue in
+                        .onChange(of: ticker) { _, newValue in
                             resolveTickerTask?.cancel()
                             selectedTickerResult = nil
                             resolveTickerTask = Task { await resolveTicker(newValue) }
@@ -1138,10 +1147,11 @@ private struct HoldingsAddSheet: View {
             allowOutsideUniverse: isOutsideUniverseSelection
         )
         if viewModel.errorMessage == nil {
-            // Close the entire sheet rather than just popping the nav stack page.
-            // dismiss() only goes back to the method picker; setting showAddSheet
-            // directly closes the parent .sheet presentation.
-            viewModel.showAddSheet = false
+            // Signal success so the parent method-picker sheet can also dismiss.
+            // onComplete sets a flag on HoldingsAddMethodSheet; its onDismiss
+            // handler then calls dismiss() to close the method picker too.
+            onComplete?()
+            dismiss()
         }
     }
 }

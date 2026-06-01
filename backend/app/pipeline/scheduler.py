@@ -301,7 +301,7 @@ def _project_shared_event_analysis(
 
     key_implications = list(base_analysis.get("key_implications") or [])
     recommended_followups = list(base_analysis.get("recommended_followups") or [])
-    labels = ", ".join(inferred_labels or [])
+    labels = ", ".join(l for l in (inferred_labels or []) if isinstance(l, str))
     if labels:
         recommended_followups.append(
             f"Review the read-through against {ticker}'s current labels: {labels}."
