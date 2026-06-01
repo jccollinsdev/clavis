@@ -5370,17 +5370,32 @@ def _upsert_ticker_snapshot_from_scores(
     composite = ai_scores.get("total_score") or structural_scores.get("safety_score") or 50
     grade = ai_scores.get("grade") or structural_scores.get("grade") or score_to_grade(composite)
 
+    def _dim_or_none(value) -> "int | None":
+        """Return None for zero-valued dimensions from the LLM.
+
+        The LLM uses 0 to mean 'excluded / no data for this dimension', not
+        a genuine zero score.  Storing None keeps downstream logic honest:
+        _first_positive(), _shared_risk_dimensions(), and the portfolio rollup
+        all skip None, but they also skip 0 — storing None is cleaner and
+        avoids ambiguity in future reads.
+        """
+        try:
+            v = int(round(float(value)))
+            return v if v > 0 else None
+        except (TypeError, ValueError):
+            return None
+
     payload = {
         "ticker": ticker,
         "snapshot_date": today.isoformat(),
         "snapshot_type": "daily",
         "grade": grade,
         "safety_score": structural_scores.get("safety_score"),
-        "financial_health": ai_scores.get("financial_health"),
-        "news_sentiment_dim": ai_scores.get("news_sentiment"),
-        "macro_exposure_dim": ai_scores.get("macro_exposure"),
-        "sector_exposure": ai_scores.get("sector_exposure"),
-        "volatility": ai_scores.get("volatility"),
+        "financial_health": _dim_or_none(ai_scores.get("financial_health")),
+        "news_sentiment_dim": _dim_or_none(ai_scores.get("news_sentiment")),
+        "macro_exposure_dim": _dim_or_none(ai_scores.get("macro_exposure")),
+        "sector_exposure": _dim_or_none(ai_scores.get("sector_exposure")),
+        "volatility": _dim_or_none(ai_scores.get("volatility")),
         "composite_score": composite,
         "confidence": structural_scores.get("confidence"),
         "reasoning": ai_scores.get("reasoning"),

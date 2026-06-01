@@ -4079,17 +4079,31 @@ def refresh_ticker_snapshot(
         dimension_last_refreshed = {
             key: analysis_as_of for key in dimension_inputs
         }
+        def _dim_or_none(value) -> "int | None":
+            """Store None instead of 0 for excluded/missing dimensions.
+
+            The structural scorer and LLM both use 0 to mean 'excluded' or
+            'no data', not a genuine zero score. Storing None keeps the
+            snapshot schema honest: _first_positive() and the portfolio
+            rollup skip None just like they skip 0, but None is unambiguous.
+            """
+            try:
+                v = int(round(float(value)))
+                return v if v > 0 else None
+            except (TypeError, ValueError):
+                return None
+
         snapshot_payload = {
             "ticker": ticker,
             "snapshot_date": target_date_iso,
             "snapshot_type": job_type,
             "grade": score["grade"],
             "safety_score": round(score["safety_score"], 1),
-            "financial_health": score.get("financial_health"),
-            "news_sentiment_dim": score.get("news_sentiment"),
-            "macro_exposure_dim": score.get("macro_exposure"),
-            "sector_exposure": score.get("sector_exposure"),
-            "volatility": score.get("volatility"),
+            "financial_health": _dim_or_none(score.get("financial_health")),
+            "news_sentiment_dim": _dim_or_none(score.get("news_sentiment")),
+            "macro_exposure_dim": _dim_or_none(score.get("macro_exposure")),
+            "sector_exposure": _dim_or_none(score.get("sector_exposure")),
+            "volatility": _dim_or_none(score.get("volatility")),
             "composite_score": round(score["total_score"], 1),
             "structural_base_score": score["structural_base_score"],
             "macro_adjustment": score["macro_adjustment"],
