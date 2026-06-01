@@ -1129,7 +1129,8 @@ private struct HoldingsAddSheet: View {
     }
 
     private func submit() async {
-        guard let sharesValue = Double(shares), let costBasisValue = Double(costBasis) else { return }
+        guard let sharesValue = Double(shares) else { return }
+        let costBasisValue = Double(costBasis.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
         await viewModel.addHolding(
             ticker: ticker.uppercased(),
             shares: sharesValue,
